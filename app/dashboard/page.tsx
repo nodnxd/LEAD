@@ -8,19 +8,10 @@ const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const STATUS = ['pending', 'progress', 'done', 'pass'] as const;
-const STATUS_LABEL: Record<string, string> = { pending: '대기', progress: '진행중', done: '완료', pass: '패스' };
-const STATUS_COLOR: Record<string, string> = {
-  pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  progress: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  done: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  pass: 'bg-zinc-500/20 text-zinc-500 border-zinc-500/30',
-};
-
 const getCardColor = (gender: string, group_type: string) => {
-  if (group_type === 'group') return { bg: 'bg-purple-500/20', border: 'border-purple-500/40', text: 'text-purple-300', dot: 'bg-purple-400' };
-  if (gender === 'female') return { bg: 'bg-pink-500/20', border: 'border-pink-500/40', text: 'text-pink-300', dot: 'bg-pink-400' };
-  return { bg: 'bg-blue-500/20', border: 'border-blue-500/40', text: 'text-blue-300', dot: 'bg-blue-400' };
+  if (group_type === 'group') return { bg: 'bg-purple-500/20', border: 'border-purple-500/40', text: 'text-purple-300', dot: 'bg-purple-400', accent: '#a855f7' };
+  if (gender === 'female') return { bg: 'bg-pink-500/20', border: 'border-pink-500/40', text: 'text-pink-300', dot: 'bg-pink-400', accent: '#ec4899' };
+  return { bg: 'bg-blue-500/20', border: 'border-blue-500/40', text: 'text-blue-300', dot: 'bg-blue-400', accent: '#3b82f6' };
 };
 
 const getLinkIcon = (url: string) => {
@@ -48,12 +39,22 @@ const getDDay = (deadline: string | null) => {
 const toDateStr = (y: number, m: number, d: number) =>
   `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
-type Reference = { label: string; url: string };
+const parseDeadline = (val: string) => {
+  const clean = val.replace(/[.\-\/\s]/g, '');
+  if (clean.length === 8) return `${clean.slice(0,4)}-${clean.slice(4,6)}-${clean.slice(6,8)}`;
+  if (clean.length === 4) return `${new Date().getFullYear()}-${clean.slice(0,2)}-${clean.slice(2,4)}`;
+  return val;
+};
+
+// 콘텐츠에서 URL 추출
+const extractUrls = (text: string): string[] => {
+  const urlRegex = /https?:\/\/[^\s]+/g;
+  return text.match(urlRegex) || [];
+};
 
 const emptyForm = () => ({
   title: '', artist: '', gender: 'male', group_type: 'solo',
-  deadline: '', status: 'pending', memo: '',
-  references: [] as Reference[],
+  deadline: '', content: '',
 });
 
 export default function Dashboard() {
@@ -69,7 +70,7 @@ export default function Dashboard() {
   const [toastMsg, setToastMsg] = useState('');
   const [sortBy, setSortBy] = useState<'dday' | 'gender' | 'group'>('dday');
   const [form, setForm] = useState(emptyForm());
-  const [newRef, setNewRef] = useState<Reference>({ label: '', url: '' });
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const toast = (msg: string) => { setToastMsg(msg); setShowToast(true); setTimeout(() => setShowToast(false), 2500); };
 
@@ -98,10 +99,12 @@ export default function Dashboard() {
 
   const openEdit = (lead: any) => {
     setForm({
-      title: lead.title, artist: lead.artist, gender: lead.gender || 'male',
-      group_type: lead.group_type || 'solo', deadline: lead.deadline || '',
-      status: lead.status || 'pending', memo: lead.memo || '',
-      references: lead.references || (lead.reference_url ? [{ label: '레퍼런스', url: lead.reference_url }] : []),
+      title: lead.title,
+      artist: lead.artist,
+      gender: lead.gender || 'male',
+      group_type: lead.group_type || 'solo',
+      deadline: lead.deadline || '',
+      content: lead.content || '',
     });
     setEditingLead(lead);
     setShowModal(true);
@@ -109,12 +112,15 @@ export default function Dashboard() {
 
   const saveLead = async () => {
     if (!form.title.trim() || !form.artist.trim()) return;
+    const urls = extractUrls(form.content);
     const payload = {
-      title: form.title, artist: form.artist, gender: form.gender,
-      group_type: form.group_type, deadline: form.deadline || null,
-      status: form.status, memo: form.memo,
-      references: form.references,
-      reference_url: form.references[0]?.url || null,
+      title: form.title,
+      artist: form.artist,
+      gender: form.gender,
+      group_type: form.group_type,
+      deadline: form.deadline || null,
+      content: form.content,
+      reference_url: urls[0] || null,
       host_id: user.id,
     };
     if (editingLead) await supabase.from('leads').update(payload).eq('id', editingLead.id);
@@ -131,33 +137,27 @@ export default function Dashboard() {
     toast('🗑 삭제됐어요');
   };
 
-  const updateStatus = async (id: string, status: string) => {
-    await supabase.from('leads').update({ status }).eq('id', id);
-    setLeads(leads.map(l => l.id === id ? { ...l, status } : l));
-    if (viewingLead?.id === id) setViewingLead((prev: any) => ({ ...prev, status }));
-  };
-
   const copyShareLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/view/${user.id}`);
     toast('🔗 링크 복사됐어요!');
   };
 
-  const addRef = () => {
-    if (!newRef.url.trim()) return;
-    setForm(p => ({ ...p, references: [...p.references, { label: newRef.label, url: newRef.url }] }));
-    setNewRef({ label: '', url: '' });
+  // 커서 위치에 링크 삽입
+  const insertLink = () => {
+    const url = prompt('링크를 입력해요:');
+    if (!url?.trim()) return;
+    const ta = contentRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selectedText = form.content.slice(start, end);
+    const insertion = selectedText ? `${selectedText} ${url}` : url;
+    const newContent = form.content.slice(0, start) + insertion + '\n' + form.content.slice(end);
+    setForm(p => ({ ...p, content: newContent }));
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(start + insertion.length + 1, start + insertion.length + 1); }, 0);
   };
 
-  const parseDeadline = (val: string) => {
-    const clean = val.replace(/[.\-\/\s]/g, '');
-    if (clean.length === 8) return `${clean.slice(0,4)}-${clean.slice(4,6)}-${clean.slice(6,8)}`;
-    if (clean.length === 4) {
-      const y = new Date().getFullYear();
-      return `${y}-${clean.slice(0,2)}-${clean.slice(2,4)}`;
-    }
-    return val;
-  };
-
+  // 달력
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -172,12 +172,6 @@ export default function Dashboard() {
     return leads.filter(l => l.deadline === dateStr);
   };
 
-  const getRefs = (lead: any): Reference[] => {
-    if (lead.references && Array.isArray(lead.references) && lead.references.length > 0) return lead.references;
-    if (lead.reference_url) return [{ label: '레퍼런스', url: lead.reference_url }];
-    return [];
-  };
-
   const today = new Date();
   const { firstDay, daysInMonth, year, month } = getDaysInMonth(currentMonth);
   const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -190,15 +184,33 @@ export default function Dashboard() {
     return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
   });
 
+  // 콘텐츠 렌더링 — URL을 클릭 가능한 링크로
+  const renderContent = (content: string) => {
+    if (!content) return null;
+    const parts = content.split(/(https?:\/\/[^\s]+)/g);
+    return parts.map((part, i) => {
+      if (part.match(/^https?:\/\//)) {
+        return (
+          <a key={i} href={part} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[#5B8CFF] hover:underline break-all">
+            <span>{getLinkIcon(part)}</span>
+            <span>{part.replace('https://', '').replace('http://', '').split('/').slice(0, 2).join('/')}</span>
+          </a>
+        );
+      }
+      return <span key={i} className="whitespace-pre-wrap">{part}</span>;
+    });
+  };
+
   const LeadCard = ({ lead, compact = false }: { lead: any; compact?: boolean }) => {
     const c = getCardColor(lead.gender, lead.group_type);
     const expired = isExpired(lead.deadline);
     const dday = getDDay(lead.deadline);
-    const refs = getRefs(lead);
+    const urls = extractUrls(lead.content || '');
     return (
       <div
         onClick={() => setViewingLead(lead)}
-        className={`border rounded-2xl cursor-pointer transition-all hover:scale-[1.02] ${c.bg} ${c.border} ${expired && lead.status !== 'progress' ? 'opacity-40 grayscale' : ''} ${compact ? 'p-2' : 'p-4'}`}
+        className={`border rounded-2xl cursor-pointer transition-all hover:scale-[1.02] ${c.bg} ${c.border} ${expired ? 'opacity-35 grayscale' : ''} ${compact ? 'p-2' : 'p-4'}`}
       >
         {compact ? (
           <div className="flex items-center gap-1.5">
@@ -221,21 +233,20 @@ export default function Dashboard() {
               </div>
               <div className="flex flex-col items-end gap-1 ml-2 shrink-0">
                 {dday && (
-                  <span className={`text-[11px] font-black px-2 py-0.5 rounded-full border ${expired ? 'text-red-400 border-red-500/30 bg-red-500/10' : 'text-zinc-400 border-zinc-700 bg-zinc-800/50'}`}>{dday}</span>
+                  <span className={`text-[11px] font-black px-2 py-0.5 rounded-full border ${expired ? 'text-red-400 border-red-500/30 bg-red-500/10' : dday === 'D-DAY' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' : 'text-zinc-400 border-zinc-700 bg-zinc-800/50'}`}>{dday}</span>
                 )}
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full border ${STATUS_COLOR[lead.status]}`}>{STATUS_LABEL[lead.status]}</span>
               </div>
             </div>
-            {refs.length > 0 && (
-              <div className="flex flex-col gap-1 mt-2 pt-2 border-t border-white/5">
-                {refs.slice(0, 2).map((ref, i) => (
-                  <a key={i} href={ref.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                    className="flex items-center gap-1.5 text-[11px] text-zinc-500 hover:text-white transition-colors">
-                    <span>{getLinkIcon(ref.url)}</span>
-                    <span className="truncate">{ref.label || ref.url.replace('https://', '').split('/').slice(0, 2).join('/')}</span>
-                  </a>
+            {lead.content && (
+              <p className="text-zinc-500 text-[11px] line-clamp-2 mt-1">{lead.content.replace(/https?:\/\/[^\s]+/g, '🔗').slice(0, 80)}</p>
+            )}
+            {urls.length > 0 && (
+              <div className="flex gap-1.5 mt-2 pt-2 border-t border-white/5">
+                {urls.slice(0, 3).map((url, i) => (
+                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                    className="text-[13px] hover:scale-110 transition-transform">{getLinkIcon(url)}</a>
                 ))}
-                {refs.length > 2 && <span className="text-zinc-700 text-[10px]">+{refs.length - 2}개 더</span>}
+                {urls.length > 3 && <span className="text-zinc-700 text-[10px] self-center">+{urls.length - 3}</span>}
               </div>
             )}
           </>
@@ -263,9 +274,9 @@ export default function Dashboard() {
 
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 mb-6 border-b border-white/10 pb-4">
           <div className="flex items-center gap-2">
-            <span className="text-zinc-500 text-[13px] font-bold">{leads.filter(l => !isExpired(l.deadline) || l.status === 'progress').length} 활성</span>
+            <span className="text-zinc-500 text-[13px] font-bold">{leads.filter(l => !isExpired(l.deadline)).length} 활성</span>
             <span className="text-zinc-700">·</span>
-            <span className="text-zinc-700 text-[13px]">{leads.filter(l => isExpired(l.deadline) && l.status !== 'progress').length} 마감</span>
+            <span className="text-zinc-700 text-[13px]">{leads.filter(l => isExpired(l.deadline)).length} 마감</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
@@ -348,71 +359,48 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* 상세 모달 */}
+      {/* 상세 모달 — 크게 */}
       {viewingLead && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={() => setViewingLead(null)}>
-          <div className={`w-full max-w-md border rounded-[2rem] overflow-hidden shadow-2xl ${getCardColor(viewingLead.gender, viewingLead.group_type).bg} ${getCardColor(viewingLead.gender, viewingLead.group_type).border}`} onClick={e => e.stopPropagation()}>
-            <div className="p-6 max-h-[85vh] overflow-y-auto">
-              <div className="flex items-start justify-between mb-4">
+          <div
+            className={`w-full max-w-2xl border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender, viewingLead.group_type).bg} ${getCardColor(viewingLead.gender, viewingLead.group_type).border}`}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-8 max-h-[85vh] overflow-y-auto">
+              {/* 헤더 */}
+              <div className="flex items-start justify-between mb-6">
                 <div className="flex-1 min-w-0">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${getCardColor(viewingLead.gender, viewingLead.group_type).text}`}>
+                  <span className={`text-[11px] font-black uppercase tracking-widest ${getCardColor(viewingLead.gender, viewingLead.group_type).text}`}>
                     {viewingLead.group_type === 'group' ? 'GROUP' : viewingLead.gender === 'female' ? 'FEMALE' : 'MALE'}
                   </span>
-                  <h2 className="text-white font-black text-[22px] mt-0.5">{viewingLead.artist}</h2>
-                  <p className="text-zinc-400 text-[14px]">{viewingLead.title}</p>
+                  <h2 className="text-white font-black text-[28px] mt-0.5 leading-tight">{viewingLead.artist}</h2>
+                  <p className="text-zinc-400 text-[16px] mt-1">{viewingLead.title}</p>
                 </div>
-                <div className="flex flex-col items-end gap-2 ml-3 shrink-0">
+                <div className="flex flex-col items-end gap-2 ml-4 shrink-0">
                   {getDDay(viewingLead.deadline) && (
-                    <span className={`text-[12px] font-black px-3 py-1 rounded-full border ${isExpired(viewingLead.deadline) ? 'text-red-400 border-red-500/30 bg-red-500/10' : 'text-zinc-300 border-zinc-600 bg-zinc-800/50'}`}>
+                    <span className={`text-[14px] font-black px-4 py-1.5 rounded-full border ${isExpired(viewingLead.deadline) ? 'text-red-400 border-red-500/30 bg-red-500/10' : getDDay(viewingLead.deadline) === 'D-DAY' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' : 'text-zinc-300 border-zinc-600 bg-zinc-800/50'}`}>
                       {getDDay(viewingLead.deadline)}
                     </span>
                   )}
-                  {viewingLead.deadline && <span className="text-zinc-600 text-[11px]">{viewingLead.deadline}</span>}
+                  {viewingLead.deadline && <span className="text-zinc-500 text-[12px]">{viewingLead.deadline}</span>}
+                  {isExpired(viewingLead.deadline) && <span className="text-red-400 text-[11px] font-black">마감됨</span>}
                 </div>
               </div>
 
-              <div className="mb-4">
-                <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-2">상태</p>
-                <div className="flex gap-2 flex-wrap">
-                  {STATUS.map(s => (
-                    <button key={s} onClick={() => updateStatus(viewingLead.id, s)}
-                      className={`px-3 py-1.5 rounded-full text-[11px] font-black border transition-all ${viewingLead.status === s ? STATUS_COLOR[s] : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>
-                      {STATUS_LABEL[s]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {getRefs(viewingLead).length > 0 && (
-                <div className="mb-4">
-                  <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-2">레퍼런스</p>
-                  <div className="flex flex-col gap-2">
-                    {getRefs(viewingLead).map((ref, i) => (
-                      <div key={i} className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
-                        {ref.label && <p className="px-3 pt-2 pb-0.5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{ref.label}</p>}
-                        <a href={ref.url} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-3 py-2.5 hover:bg-white/10 transition-all">
-                          <span className="text-[16px]">{getLinkIcon(ref.url)}</span>
-                          <span className="text-zinc-300 text-[12px] truncate flex-1">{ref.url.replace('https://', '').split('/').slice(0, 3).join('/')}</span>
-                          <span className="text-[10px] text-[#5B8CFF] font-black shrink-0">열기 →</span>
-                        </a>
-                      </div>
-                    ))}
+              {/* 콘텐츠 */}
+              {viewingLead.content && (
+                <div className="mb-6">
+                  <p className="text-zinc-500 text-[11px] font-black uppercase tracking-widest mb-3">내용</p>
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-zinc-300 text-[14px] leading-relaxed">
+                    {renderContent(viewingLead.content)}
                   </div>
                 </div>
               )}
 
-              {viewingLead.memo && (
-                <div className="mb-5">
-                  <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-2">메모</p>
-                  <p className="text-zinc-300 text-[13px] leading-relaxed whitespace-pre-line">{viewingLead.memo}</p>
-                </div>
-              )}
-
               <div className="flex gap-2">
-                <button onClick={() => { setViewingLead(null); openEdit(viewingLead); }} className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-[12px] hover:bg-white/10 transition-all">수정</button>
-                <button onClick={() => { if (confirm(`"${viewingLead.title}" 삭제할까요?`)) deleteLead(viewingLead.id); }} className="py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-[12px] hover:bg-red-500/20 transition-all">삭제</button>
-                <button onClick={() => setViewingLead(null)} className="py-2.5 px-4 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">닫기</button>
+                <button onClick={() => { setViewingLead(null); openEdit(viewingLead); }} className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-[13px] hover:bg-white/10 transition-all">수정</button>
+                <button onClick={() => { if (confirm(`"${viewingLead.title}" 삭제할까요?`)) deleteLead(viewingLead.id); }} className="py-3 px-5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-[13px] hover:bg-red-500/20 transition-all">삭제</button>
+                <button onClick={() => setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
               </div>
             </div>
           </div>
@@ -422,12 +410,16 @@ export default function Dashboard() {
       {/* 추가/수정 모달 */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto">
-          <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl shadow-2xl my-4">
+          <div className="w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl my-4">
             <div className="p-6">
-              <h2 className="text-white font-black text-[16px] mb-5">{editingLead ? '리드 수정' : '리드 추가'}</h2>
-              <div className="flex flex-col gap-3">
-                <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="리드 제목 *" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white" />
-                <input value={form.artist} onChange={e => setForm(p => ({ ...p, artist: e.target.value }))} placeholder="아티스트명 *" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white" />
+              <h2 className="text-white font-black text-[18px] mb-5">{editingLead ? '리드 수정' : '리드 추가'}</h2>
+              <div className="flex flex-col gap-4">
+
+                {/* 기본 정보 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <input value={form.artist} onChange={e => setForm(p => ({ ...p, artist: e.target.value }))} placeholder="아티스트명 *" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white" />
+                  <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="리드 제목 *" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white" />
+                </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <select value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none text-zinc-300">
@@ -440,7 +432,7 @@ export default function Dashboard() {
                   </select>
                 </div>
 
-                {/* 날짜 — 타이핑 + 달력 아이콘 + 빠른 버튼 */}
+                {/* 날짜 */}
                 <div>
                   <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">데드라인</label>
                   <div className="flex gap-2">
@@ -451,14 +443,10 @@ export default function Dashboard() {
                       placeholder="YYYY-MM-DD 또는 MMDD"
                       className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white"
                     />
-                    <input
-                      type="date"
-                      value={form.deadline}
-                      onChange={e => setForm(p => ({ ...p, deadline: e.target.value }))}
-                      className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all text-zinc-400 w-14 cursor-pointer"
-                    />
+                    <input type="date" value={form.deadline} onChange={e => setForm(p => ({ ...p, deadline: e.target.value }))}
+                      className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all text-zinc-400 w-14 cursor-pointer" />
                   </div>
-                  <div className="flex gap-1.5 mt-2 flex-wrap">
+                  <div className="flex gap-1.5 mt-2">
                     {[1, 3, 7, 14, 30].map(d => {
                       const dt = new Date(); dt.setDate(dt.getDate() + d);
                       const str = toDateStr(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
@@ -472,49 +460,30 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none text-zinc-300">
-                  {STATUS.map(s => <option key={s} value={s} className="bg-zinc-900">{STATUS_LABEL[s]}</option>)}
-                </select>
-
-                {/* 레퍼런스 */}
+                {/* 통합 콘텐츠 에디터 */}
                 <div>
-                  <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-2 block">레퍼런스</label>
-                  <div className="flex flex-col gap-1.5 mb-2">
-                    <input
-                      value={newRef.label}
-                      onChange={e => setNewRef(p => ({ ...p, label: e.target.value }))}
-                      placeholder="소제목 (예: 멜로디 레퍼, 사운드 레퍼)"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-[12px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white"
-                    />
-                    <div className="flex gap-2">
-                      <input
-                        value={newRef.url}
-                        onChange={e => setNewRef(p => ({ ...p, url: e.target.value }))}
-                        onKeyDown={e => e.key === 'Enter' && addRef()}
-                        placeholder="https://youtube.com/..."
-                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-[12px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white"
-                      />
-                      <button onClick={addRef} className="px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white font-black text-[11px] hover:bg-white/20 transition-all">추가</button>
-                    </div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">내용 / 레퍼런스</label>
+                    <button onClick={insertLink}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-[11px] font-bold hover:text-[#5B8CFF] hover:border-[#5B8CFF]/30 transition-all">
+                      🔗 링크 삽입
+                    </button>
                   </div>
-                  {form.references.map((ref, i) => (
-                    <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 mb-1.5">
-                      <span className="text-[13px]">{getLinkIcon(ref.url)}</span>
-                      <div className="flex-1 min-w-0">
-                        {ref.label && <p className="text-zinc-400 text-[10px] font-black">{ref.label}</p>}
-                        <p className="text-zinc-500 text-[11px] truncate">{ref.url.replace('https://', '')}</p>
-                      </div>
-                      <button onClick={() => setForm(p => ({ ...p, references: p.references.filter((_, idx) => idx !== i) }))} className="text-zinc-600 hover:text-red-500 shrink-0">×</button>
-                    </div>
-                  ))}
+                  <textarea
+                    ref={contentRef}
+                    value={form.content}
+                    onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
+                    placeholder={`자유롭게 내용을 작성하세요.\n\n예:\n멜로디 레퍼런스\nhttps://youtu.be/...\n\n사운드 방향\n팝 발라드, 어쿠스틱 느낌으로\nhttps://soundcloud.com/...`}
+                    rows={10}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white resize-none leading-relaxed"
+                  />
+                  <p className="text-zinc-700 text-[11px] mt-1">링크를 텍스트 어디에나 붙여넣으면 자동으로 클릭 가능해져요</p>
                 </div>
-
-                <textarea value={form.memo} onChange={e => setForm(p => ({ ...p, memo: e.target.value }))} placeholder="메모" rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white resize-none" />
               </div>
 
               <div className="flex gap-3 mt-5">
-                <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">취소</button>
-                <button onClick={saveLead} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[12px] hover:scale-[1.02] transition-all">저장</button>
+                <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">취소</button>
+                <button onClick={saveLead} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">저장</button>
               </div>
             </div>
           </div>
