@@ -469,4 +469,74 @@ export default function Dashboard(){
                 <div className="grid grid-cols-3 gap-3"><div><label className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-1.5 block">성별</label><select value={form.gender} onChange={e=>setForm(p=>({...p,gender:e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none text-zinc-300"><option value="male" className="bg-zinc-900">남자</option><option value="female" className="bg-zinc-900">여자</option><option value="mixed" className="bg-zinc-900">혼성</option></select></div><div><label className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-1.5 block">타입</label><select value={form.group_type} onChange={e=>setForm(p=>({...p,group_type:e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none text-zinc-300"><option value="solo" className="bg-zinc-900">솔로</option><option value="group" className="bg-zinc-900">그룹</option></select></div><div><label className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-1.5 block">앨범</label><select value={form.album_type} onChange={e=>setForm(p=>({...p,album_type:e.target.value}))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none text-zinc-300"><option value="single" className="bg-zinc-900">Single</option><option value="ep" className="bg-zinc-900">EP</option><option value="lp" className="bg-zinc-900">LP</option><option value="ost" className="bg-zinc-900">OST</option></select></div></div>
                 <div><label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">1st Deadline</label><div className="flex gap-2"><input value={form.deadline} onChange={e=>setForm(p=>({...p,deadline:e.target.value}))} onBlur={e=>setForm(p=>({...p,deadline:parseDeadline(e.target.value)}))} placeholder="YYYY-MM-DD 또는 MMDD" className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white"/><input type="date" value={form.deadline} onChange={e=>setForm(p=>({...p,deadline:e.target.value}))} className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-[13px] outline-none text-zinc-400 w-14 cursor-pointer"/></div><DateShortcuts field="deadline"/></div>
                 <div><label className="text-zinc-400 text-[10px] font-black uppercase tracking-widest mb-1.5 block">2nd Deadline <span className="text-zinc-700 font-normal normal-case">(선택)</span></label><div className="flex gap-2"><input value={form.deadline2} onChange={e=>setForm(p=>({...p,deadline2:e.target.value}))} onBlur={e=>setForm(p=>({...p,deadline2:parseDeadline(e.target.value)}))} placeholder="YYYY-MM-DD 또는 MMDD" className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/20 transition-all placeholder:text-zinc-700 text-zinc-300"/><input type="date" value={form.deadline2} onChange={e=>setForm(p=>({...p,deadline2:e.target.value}))} className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-[13px] outline-none text-zinc-400 w-14 cursor-pointer"/></div><DateShortcuts field="deadline2"/></div>
-                <div><div className="flex items-center justify-between mb-1.5"><label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">내용 / 레퍼런스</label><button onClick={insertLink} className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-[11px] font-bold hover:text-[#5B8CFF] hover:border-[#5B8CFF]/30 transition-all">🔗 링크 삽입</button></div><textarea ref={contentRef} value={form.content} onChange={e=>setForm(p=>({...p,content:e.target.value}))} placeholder={`자유롭게 내용을 작성하세요.\n\n멜로디 레퍼런�
+                <div><div className="flex items-center justify-between mb-1.5"><label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">내용 / 레퍼런스</label><button onClick={insertLink} className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-[11px] font-bold hover:text-[#5B8CFF] hover:border-[#5B8CFF]/30 transition-all">🔗 링크 삽입</button></div><textarea ref={contentRef} value={form.content} onChange={e=>setForm(p=>({...p,content:e.target.value}))} placeholder={`자유롭게 내용을 작성하세요.\n\n멜로디 레퍼런스\nhttps://youtu.be/...`} rows={7} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white resize-none leading-relaxed"/></div>
+              </div>
+              <div className="flex gap-3 mt-5"><button onClick={()=>setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">취소</button><button onClick={saveLead} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">저장</button></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirm&&<ConfirmModal msg={confirm.msg} onOk={()=>{confirm.onOk();setConfirm(null);}} onCancel={()=>setConfirm(null)}/>}
+
+      {/* ── 게스트 관리 모달 ── */}
+      {showGuestsModal&&(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowGuestsModal(false)}>
+          <div className="w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl" onClick={e=>e.stopPropagation()}>
+            <div className="max-h-[88vh] flex flex-col">
+              <div className="flex items-center gap-3 p-5 border-b border-white/10">
+                <h2 className="text-white font-black text-[18px]">👥 게스트</h2>
+                <div className="flex-1"/>
+                <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
+                  <button onClick={()=>setGuestTab('pending')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${guestTab==='pending'?'bg-yellow-500/80 text-black':'text-zinc-500 hover:text-white'}`}>신청 대기 {pendingGuests.length>0&&<span className="ml-1">{pendingGuests.length}</span>}</button>
+                  <button onClick={()=>setGuestTab('history')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${guestTab==='history'?'bg-zinc-600 text-white':'text-zinc-500 hover:text-white'}`}>📁 히스토리 {historyGuests.length>0&&<span className="ml-1">{historyGuests.length}</span>}</button>
+                </div>
+                <button onClick={()=>setShowGuestsModal(false)} className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-zinc-500 hover:text-white flex items-center justify-center text-[13px] transition-all ml-2">✕</button>
+              </div>
+              <div className="overflow-y-auto flex-1 p-5">
+                {displayedGuests.length===0?(
+                  <div className="text-center py-12">
+                    <p className="text-zinc-700 text-[13px]">{guestTab==='pending'?'대기 중인 게스트가 없어요':'히스토리가 없어요'}</p>
+                    {guestTab==='pending'&&historyGuests.length>0&&(<button onClick={()=>setGuestTab('history')} className="mt-3 text-zinc-600 text-[12px] hover:text-zinc-400 transition-colors">히스토리 보기 →</button>)}
+                  </div>
+                ):(
+                  <div className="flex flex-col gap-2">
+                    {displayedGuests.map(g=>{
+                      const guest=g.guests;
+                      const isPending=g.status==='pending';
+                      const isApproved=g.status==='approved';
+                      return(
+                        <div key={g.id} className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${isPending?'border-yellow-500/20 bg-yellow-500/5':isApproved?'border-emerald-500/20 bg-emerald-500/5':'border-white/5 bg-white/[0.02]'}`}>
+                          <div className="w-10 h-10 rounded-full bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 flex items-center justify-center shrink-0">
+                            <span className="text-[#5B8CFF] font-black text-[13px]">{(guest?.artist_name||'?')[0].toUpperCase()}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="text-white font-bold text-[14px]">{guest?.artist_name||'—'}</p>
+                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${isPending?'text-yellow-400 border-yellow-500/30 bg-yellow-500/10':isApproved?'text-emerald-400 border-emerald-500/30 bg-emerald-500/10':'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'}`}>{isPending?'대기':isApproved?'승인':'거절'}</span>
+                            </div>
+                            <p className="text-zinc-500 text-[12px]">{guest?.name} · {guest?.email}</p>
+                            {guest?.phone&&<p className="text-zinc-600 text-[11px]">{guest.phone}</p>}
+                            <p className="text-zinc-700 text-[10px] mt-0.5">{new Date(g.created_at).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})}</p>
+                          </div>
+                          <div className="flex gap-2 shrink-0">
+                            {isPending&&<button onClick={()=>updateApproval(g.id,'approved')} className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 text-[11px] font-bold transition-all">승인</button>}
+                            {isPending&&<button onClick={()=>ask(`"${guest?.artist_name}"의 접근을 거절할까요?`,()=>updateApproval(g.id,'rejected'))} className="px-3 py-1.5 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400/70 hover:text-red-400 text-[11px] font-bold transition-all">거절</button>}
+                            {!isPending&&isApproved&&<button onClick={()=>ask(`"${guest?.artist_name}"의 접근을 거절할까요?`,()=>updateApproval(g.id,'rejected'))} className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-500 hover:text-red-400 text-[11px] font-bold transition-all">거절로 변경</button>}
+                            {!isPending&&!isApproved&&<button onClick={()=>updateApproval(g.id,'approved')} className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-emerald-400 text-[11px] font-bold transition-all">재승인</button>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toastMsg&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-pretendard">{toastMsg}</div>}
+    </>
+  );
+}
