@@ -88,6 +88,7 @@ export default function Dashboard(){
   const [fileFilterGenre,setFileFilterGenre]=useState('');
   const [fileSort,setFileSort]=useState<'date'|'bpm'|'name'|'genre'>('date');
   const [selectedFiles,setSelectedFiles]=useState<string[]>([]);
+  const [fileSearch,setFileSearch]=useState('');
   const [confirm,setConfirm]=useState<{msg:string;onOk:()=>void}|null>(null);
   const contentRef=useRef<HTMLTextAreaElement>(null);
 
@@ -130,10 +131,24 @@ export default function Dashboard(){
     await supabase.from('pitches').delete().eq('id',pitch.id);
     fetchPitches();fetchPitchFiles();toast('🗑 피칭 삭제됐어요');
   };
+  const blobDownload=async(fileUrl:string,fileName:string)=>{
+    try{
+      const res=await fetch(fileUrl);
+      const blob=await res.blob();
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download=fileName||'audio.mp3';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }catch{toast('다운로드 실패했어요');}
+  };
+
   const downloadSelected=async()=>{
     const toDownload=filteredPitchFiles.filter(f=>selectedFiles.includes(f.id));
-    for(let i=0;i<toDownload.length;i++){const f=toDownload[i];const a=document.createElement('a');a.href=f.file_url;a.download=f.file_name||'audio.mp3';document.body.appendChild(a);a.click();document.body.removeChild(a);if(i<toDownload.length-1)await new Promise(r=>setTimeout(r,500));}
     toast(`⬇️ ${toDownload.length}개 다운로드 시작`);
+    for(let i=0;i<toDownload.length;i++){
+      await blobDownload(toDownload[i].file_url,toDownload[i].file_name||'audio.mp3');
+      if(i<toDownload.length-1)await new Promise(r=>setTimeout(r,500));
+    }
   };
   const deleteSelected=async()=>{
     const toDelete=filteredPitchFiles.filter(f=>selectedFiles.includes(f.id));
@@ -170,13 +185,14 @@ export default function Dashboard(){
     if(fileLead){const ids=pitches.filter(p=>p.lead_id===fileLead.id).map(p=>p.id);f=f.filter(x=>ids.includes(x.pitch_id));}
     if(fileFilterVocal)f=f.filter(x=>x.vocal_gender===fileFilterVocal);
     if(fileFilterGenre)f=f.filter(x=>x.genre===fileFilterGenre);
+    if(fileSearch){const q=fileSearch.toLowerCase();f=f.filter(x=>(x.file_name||'').toLowerCase().includes(q)||(x.genre||'').toLowerCase().includes(q)||pitches.find(p=>p.id===x.pitch_id&&(p.artist_name||'').toLowerCase().includes(q)));}
     return f.sort((a,b)=>{
       if(fileSort==='bpm')return(b.bpm||0)-(a.bpm||0);
       if(fileSort==='genre')return(a.genre||'').localeCompare(b.genre||'');
       if(fileSort==='name')return(a.file_name||'').localeCompare(b.file_name||'');
       return new Date(b.created_at).getTime()-new Date(a.created_at).getTime();
     });
-  },[pitchFiles,fileLead,fileFilterVocal,fileFilterGenre,fileSort,pitches]);
+  },[pitchFiles,fileLead,fileFilterVocal,fileFilterGenre,fileSort,fileSearch,pitches]);
 
   const newPitchCount=pitches.filter(p=>p.status==='new').length;
   const pitchesForLead=pitchLead?pitches.filter(p=>p.lead_id===pitchLead.id):pitches;
@@ -228,7 +244,7 @@ export default function Dashboard(){
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':'text-zinc-500 hover:text-white'}`}>📋 목록</button>
             </div>
             <button onClick={()=>{setPitchLead(null);setExpandedPitch(null);setShowPitchModal(true);}} className="relative bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">📨 피칭{newPitchCount>0&&<span className="absolute -top-1 -right-1 w-4 h-4 bg-[#5B8CFF] rounded-full text-white text-[9px] font-black flex items-center justify-center">{newPitchCount}</span>}</button>
-            <button onClick={()=>{setFileLead(null);setSelectedFiles([]);setFileFilterVocal('');setFileFilterGenre('');setShowFilesPanel(true);}} className="relative bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">🎵 파일 관리{pitchFiles.length>0&&<span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-zinc-700 rounded-full text-zinc-300 text-[9px] font-black flex items-center justify-center px-1">{pitchFiles.length}</span>}</button>
+            <button onClick={()=>{setFileLead(null);setSelectedFiles([]);setFileFilterVocal('');setFileFilterGenre('');setFileSearch('');setShowFilesPanel(true);}} className="relative bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">🎵 파일 관리{pitchFiles.length>0&&<span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-zinc-700 rounded-full text-zinc-300 text-[9px] font-black flex items-center justify-center px-1">{pitchFiles.length}</span>}</button>
             <button onClick={()=>{setAnnForm({title:'',content:''});setShowAnnModal(true);}} className="bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">📢 공지</button>
             <button onClick={copyShareLink} className="bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">🔗 공유</button>
             <button onClick={()=>openCreate()} className="bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white px-5 py-2 rounded-xl font-black text-[11px] hover:scale-105 transition-all">+ 리드 추가</button>
@@ -339,7 +355,7 @@ export default function Dashboard(){
                                         </div>
                                       </div>
                                       <div className="flex gap-2 shrink-0">
-                                        <a href={f.file_url} download={f.file_name} className="px-3 py-1.5 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF] hover:bg-[#5B8CFF]/20 text-[11px] font-bold transition-all">⬇️ 다운</a>
+                                        <a href={f.file_url} download={f.file_name} onClick={e=>{e.preventDefault();blobDownload(f.file_url,f.file_name||'audio.mp3');}} className="px-3 py-1.5 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF] hover:bg-[#5B8CFF]/20 text-[11px] font-bold transition-all cursor-pointer">⬇️ 다운</a>
                                         <button onClick={()=>ask(`"${f.file_name||'파일'}"을 삭제할까요?`,()=>deletePitchFile(f))} className="px-3 py-1.5 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400/70 hover:text-red-400 text-[11px] font-bold transition-all">삭제</button>
                                       </div>
                                     </div>
@@ -371,6 +387,13 @@ export default function Dashboard(){
 
           {/* 필터 */}
           <div className="flex flex-wrap items-center gap-3 px-6 py-3 border-b border-white/5 shrink-0">
+            {/* 검색 */}
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-[12px]">🔍</span>
+              <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder="파일명, 아티스트, 장르 검색..."
+                className="pl-8 pr-4 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[12px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white w-56"/>
+              {fileSearch&&<button onClick={()=>setFileSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white text-[11px]">✕</button>}
+            </div>
             <div className="flex gap-2 overflow-x-auto">
               <button onClick={()=>setFileLead(null)} className={`px-3 py-1.5 rounded-full text-[11px] font-bold border whitespace-nowrap transition-all ${!fileLead?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>전체 리드</button>
               {leads.filter(l=>pitches.some(p=>p.lead_id===l.id&&pitchFiles.some(f=>f.pitch_id===p.id))).map(l=>(
@@ -448,7 +471,7 @@ export default function Dashboard(){
                         <td className="py-3 pr-4"><span className="text-zinc-600 text-[11px]">{new Date(f.created_at).toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})}</span></td>
                         <td className="py-3 text-center">
                           <div className="flex items-center justify-center gap-1.5">
-                            <a href={f.file_url} download={f.file_name} className="px-2.5 py-1 rounded-lg bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF] hover:bg-[#5B8CFF]/20 text-[10px] font-bold transition-all">⬇️</a>
+                            <a href={f.file_url} download={f.file_name} onClick={e=>{e.preventDefault();blobDownload(f.file_url,f.file_name||'audio.mp3');}} className="px-2.5 py-1 rounded-lg bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF] hover:bg-[#5B8CFF]/20 text-[10px] font-bold transition-all cursor-pointer">⬇️</a>
                             <button onClick={()=>ask(`"${f.file_name||'파일'}"을 삭제할까요?`,()=>deletePitchFile(f))} className="px-2.5 py-1 rounded-lg bg-red-500/5 border border-red-500/10 text-red-400/60 hover:text-red-400 text-[10px] font-bold transition-all">✕</button>
                           </div>
                         </td>

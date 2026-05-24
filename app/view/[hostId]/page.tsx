@@ -116,6 +116,16 @@ export default function GuestView(){
   const [filterGroup,setFilterGroup]=useState<string[]>([]);
   const [filterAlbum,setFilterAlbum]=useState<string[]>([]);
   const [sortBy,setSortBy]=useState<'dday'|'gender'|'group'|'album'>('dday');
+  const [guestProfile,setGuestProfile]=useState<any>(null);
+
+  // 게스트 로그인 상태 확인
+  useEffect(()=>{
+    supabase.auth.getUser().then(async({data})=>{
+      if(!data.user)return;
+      const{data:profile}=await supabase.from('guests').select('*').eq('id',data.user.id).single();
+      if(profile&&profile.status==='approved')setGuestProfile(profile);
+    });
+  },[]);
   const fileInputRef=useRef<HTMLInputElement>(null);
 
   const fetchAll=async()=>{
@@ -324,7 +334,14 @@ export default function GuestView(){
               <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':'text-zinc-500 hover:text-white'}`}>📅 달력</button>
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':'text-zinc-500 hover:text-white'}`}>📋 목록</button>
             </div>
-            <span className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-500 text-[10px] font-black uppercase tracking-widest">Guest</span>
+            {guestProfile?(
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#5B8CFF]/30 bg-[#5B8CFF]/10">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#5B8CFF]"/>
+                <span className="text-[#5B8CFF] text-[11px] font-bold">{guestProfile.artist_name}</span>
+              </div>
+            ):(
+              <a href="/guest" className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-500 text-[10px] font-black hover:text-white hover:border-white/20 transition-all">로그인</a>
+            )}
           </div>
         </div>
 
@@ -367,7 +384,11 @@ export default function GuestView(){
               </div>
               {viewingLead.content&&<div className="mb-5"><p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-2">내용</p><div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-zinc-300 text-[13px] leading-relaxed">{renderContent(viewingLead.content)}</div></div>}
               <div className="flex gap-2">
-                <button onClick={()=>{setPitchingLead(viewingLead);setPitchForm(emptyPitch());setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setUploadError('');setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 피칭하기</button>
+                <button onClick={()=>{
+                  setPitchingLead(viewingLead);
+                  setPitchForm(guestProfile?{artist_name:guestProfile.artist_name||'',contact:guestProfile.phone||guestProfile.email||'',message:''}:emptyPitch());
+                  setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setUploadError('');setViewingLead(null);
+                }} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 피칭하기</button>
                 <button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
               </div>
             </div>
