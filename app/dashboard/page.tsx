@@ -104,9 +104,17 @@ export default function Dashboard(){
   const fetchPitchFiles=async(u=user)=>{if(!u)return;const{data}=await supabase.from('pitch_files').select('*').eq('host_id',u.id).order('created_at',{ascending:false});if(data)setPitchFiles(data);};
   const fetchGuestApprovals=async(u=user)=>{
     if(!u)return;
-    const{data,error}=await supabase.from('guest_approvals').select('*, guests(name,artist_name,email,phone)').eq('host_id',u.id).order('created_at',{ascending:false});
-    console.log('[guests] data:', data, 'error:', error);
-    if(data)setGuestApprovals(data);
+    // 1) guest_approvals 조회
+    const{data:approvals,error:aErr}=await supabase.from('guest_approvals').select('*').eq('host_id',u.id).order('created_at',{ascending:false});
+    if(aErr||!approvals){console.error('[approvals error]',aErr);return;}
+    if(approvals.length===0){setGuestApprovals([]);return;}
+    // 2) guests 별도 조회 (join 대신)
+    const guestIds=approvals.map((a:any)=>a.guest_id);
+    const{data:guests,error:gErr}=await supabase.from('guests').select('id,name,artist_name,email,phone').in('id',guestIds);
+    if(gErr)console.error('[guests error]',gErr);
+    // 3) 수동 merge
+    const merged=approvals.map((a:any)=>({...a,guests:guests?.find((g:any)=>g.id===a.guest_id)||null}));
+    setGuestApprovals(merged);
   };
 
   useEffect(()=>{if(user){fetchLeads(user);fetchAnn(user);fetchPitches(user);fetchPitchFiles(user);fetchGuestApprovals(user);}},[user]);
