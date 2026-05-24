@@ -10,13 +10,13 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
 
-// ── Audio Analysis ──────────────────────────────────────────
+// ── Audio Analysis ──
 const getFileHash = async (file: File): Promise<string> => {
   const hash = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
 };
 
-const analyzeAudio = async (file: File): Promise<{bpm:number; vocal:'male'|'female'|'unknown'; duration:number}> => {
+const analyzeAudio = async (file: File): Promise<{bpm:number;vocal:'male'|'female'|'unknown';duration:number}> => {
   try {
     const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
     const ctx = new AudioCtx();
@@ -25,72 +25,52 @@ const analyzeAudio = async (file: File): Promise<{bpm:number; vocal:'male'|'fema
     const sr = audioBuffer.sampleRate;
     const duration = Math.round(audioBuffer.duration);
     const data = audioBuffer.getChannelData(0);
-
-    // BPM — energy envelope + peak detection
-    const frameSize = Math.floor(sr * 0.05);
-    const hopSize = Math.floor(frameSize / 2);
+    const frameSize = Math.floor(sr * 0.05), hopSize = Math.floor(frameSize / 2);
     const energies: number[] = [];
     const limit = Math.min(data.length, sr * 90);
     for (let i = 0; i < limit - frameSize; i += hopSize) {
-      let e = 0; for (let j = 0; j < frameSize; j++) e += data[i+j]*data[i+j];
-      energies.push(e / frameSize);
+      let e = 0; for (let j = 0; j < frameSize; j++) e += data[i+j]*data[i+j]; energies.push(e/frameSize);
     }
-    const winSize = 43;
-    const peaks: number[] = [];
+    const winSize = 43, peaks: number[] = [];
     for (let i = winSize; i < energies.length - winSize; i++) {
-      const avg = energies.slice(i-winSize, i+winSize).reduce((a,b)=>a+b) / (winSize*2);
-      if (energies[i] > avg*1.3 && energies[i] > energies[i-1] && energies[i] > energies[i+1]) {
-        if (!peaks.length || i - peaks[peaks.length-1] > 8) peaks.push(i);
-      }
+      const avg = energies.slice(i-winSize, i+winSize).reduce((a,b)=>a+b)/(winSize*2);
+      if (energies[i]>avg*1.3 && energies[i]>energies[i-1] && energies[i]>energies[i+1] && (!peaks.length||i-peaks[peaks.length-1]>8)) peaks.push(i);
     }
     let bpm = 0;
     if (peaks.length >= 4) {
-      const intervals = peaks.slice(1).map((p,i) => (p-peaks[i])*hopSize/sr);
+      const intervals = peaks.slice(1).map((p,i)=>(p-peaks[i])*hopSize/sr);
       const sorted = [...intervals].sort((a,b)=>a-b);
-      const median = sorted[Math.floor(sorted.length/2)];
-      bpm = Math.round(60/median);
-      while (bpm<60) bpm*=2; while (bpm>200) bpm/=2; bpm=Math.round(bpm);
+      bpm = Math.round(60/sorted[Math.floor(sorted.length/2)]);
+      while(bpm<60)bpm*=2; while(bpm>200)bpm/=2; bpm=Math.round(bpm);
     }
-
-    // Vocal gender — autocorrelation pitch detection via OfflineAudioContext
     const startSec = Math.min(audioBuffer.duration*0.2, Math.max(0, audioBuffer.duration-8));
     const durSec = Math.min(5, audioBuffer.duration-startSec);
     let vocal: 'male'|'female'|'unknown' = 'unknown';
     if (durSec >= 1) {
       const offline = new OfflineAudioContext(1, Math.floor(durSec*sr), sr);
-      const src = offline.createBufferSource();
-      src.buffer = audioBuffer; src.connect(offline.destination); src.start(0, startSec, durSec);
+      const src = offline.createBufferSource(); src.buffer=audioBuffer; src.connect(offline.destination); src.start(0,startSec,durSec);
       const rendered = await offline.startRendering();
       const d = rendered.getChannelData(0);
-      const fSize = Math.floor(sr*0.04);
-      const pitches: number[] = [];
-      for (let start = 0; start < d.length-fSize; start += fSize) {
-        const minL=Math.floor(sr/380), maxL=Math.floor(sr/65);
-        let maxC=-Infinity, bestL=0;
-        for (let lag=minL; lag<=maxL; lag++) {
-          let c=0,n=0;
-          for (let i=0; i<fSize-lag; i++){c+=d[start+i]*d[start+i+lag];n+=d[start+i]*d[start+i];}
-          const nc=n>0?c/n:0; if(nc>maxC){maxC=nc;bestL=lag;}
-        }
-        if (maxC>0.15&&bestL>0) pitches.push(sr/bestL);
+      const fSize = Math.floor(sr*0.04), pitches: number[] = [];
+      for (let start=0; start<d.length-fSize; start+=fSize) {
+        const minL=Math.floor(sr/380),maxL=Math.floor(sr/65); let maxC=-Infinity,bestL=0;
+        for (let lag=minL;lag<=maxL;lag++){let c=0,n=0;for(let i=0;i<fSize-lag;i++){c+=d[start+i]*d[start+i+lag];n+=d[start+i]*d[start+i];}const nc=n>0?c/n:0;if(nc>maxC){maxC=nc;bestL=lag;}}
+        if(maxC>0.15&&bestL>0)pitches.push(sr/bestL);
       }
-      if (pitches.length>=3) {
-        pitches.sort((a,b)=>a-b);
-        const med=pitches[Math.floor(pitches.length/2)];
-        if (med<158) vocal='male'; else if (med>195) vocal='female';
-      }
+      if(pitches.length>=3){pitches.sort((a,b)=>a-b);const med=pitches[Math.floor(pitches.length/2)];if(med<158)vocal='male';else if(med>195)vocal='female';}
     }
-    return {bpm, vocal, duration};
-  } catch { return {bpm:0, vocal:'unknown', duration:0}; }
+    return {bpm,vocal,duration};
+  } catch { return {bpm:0,vocal:'unknown',duration:0}; }
 };
-// ───────────────────────────────────────────────────────────
 
-const getCardColor = (gender:string, group_type:string) => {
-  const g=group_type==='group';
-  if(gender==='mixed')return{bg:g?'bg-purple-500/10':'bg-purple-500/20',border:g?'border-purple-500/20':'border-purple-500/40',text:g?'text-purple-400/50':'text-purple-300',dot:g?'bg-purple-400/35':'bg-purple-400',label:g?'혼성 그룹':'혼성'};
-  if(gender==='female')return{bg:g?'bg-pink-500/10':'bg-pink-500/20',border:g?'border-pink-500/20':'border-pink-500/40',text:g?'text-pink-400/50':'text-pink-300',dot:g?'bg-pink-400/35':'bg-pink-400',label:g?'여자 그룹':'여자'};
-  return{bg:g?'bg-blue-500/10':'bg-blue-500/20',border:g?'border-blue-500/20':'border-blue-500/40',text:g?'text-blue-400/50':'text-blue-300',dot:g?'bg-blue-400/35':'bg-blue-400',label:g?'남자 그룹':'남자'};
+type PitchFileItem = {
+  id: string; file: File; hash: string;
+  analysis: {bpm:number;vocal:'male'|'female'|'unknown';duration:number} | null;
+  genre: string; isDuplicate: boolean; analyzing: boolean;
 };
+
+// ── Helpers ──
+const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='group';if(gender==='mixed')return{bg:g?'bg-purple-500/10':'bg-purple-500/20',border:g?'border-purple-500/20':'border-purple-500/40',text:g?'text-purple-400/50':'text-purple-300',dot:g?'bg-purple-400/35':'bg-purple-400',label:g?'혼성 그룹':'혼성'};if(gender==='female')return{bg:g?'bg-pink-500/10':'bg-pink-500/20',border:g?'border-pink-500/20':'border-pink-500/40',text:g?'text-pink-400/50':'text-pink-300',dot:g?'bg-pink-400/35':'bg-pink-400',label:g?'여자 그룹':'여자'};return{bg:g?'bg-blue-500/10':'bg-blue-500/20',border:g?'border-blue-500/20':'border-blue-500/40',text:g?'text-blue-400/50':'text-blue-300',dot:g?'bg-blue-400/35':'bg-blue-400',label:g?'남자 그룹':'남자'};};
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
 const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${t.cls}`}>{t.label}</span>;};
 const getLinkIcon=(url:string)=>{if(!url)return'🔗';if(url.includes('youtube')||url.includes('youtu.be'))return'▶️';if(url.includes('soundcloud'))return'🎵';if(url.includes('spotify'))return'🎧';if(url.includes('instagram'))return'📸';return'🔗';};
@@ -105,8 +85,7 @@ const vocalCls=(v:string)=>v==='male'?'text-blue-400 border-blue-500/30 bg-blue-
 
 const DeadlineDisplay=({lead,size='normal'}:{lead:any;size?:'compact'|'normal'|'large'})=>{
   const d1=lead.deadline,d2=lead.deadline2;if(!d1&&!d2)return null;
-  if(d1&&d2){
-    const dd1=getDDay(d1),dd2=getDDay(d2),e1=isExpired(d1),e2=isExpired(d2);
+  if(d1&&d2){const dd1=getDDay(d1),dd2=getDDay(d2),e1=isExpired(d1),e2=isExpired(d2);
     if(size==='compact')return<div className="flex flex-col gap-0.5 ml-auto shrink-0"><span className={`text-[8px] font-black ${e1?'text-red-400/60':'text-zinc-700'}`}>1st {dd1}</span><span className={`text-[9px] font-black ${e2?'text-red-400':'text-zinc-400'}`}>2nd {dd2}</span></div>;
     if(size==='large')return<div className="flex flex-col items-end gap-2"><div className="flex items-center gap-2"><span className="text-zinc-600 text-[10px] font-black tracking-widest">1ST</span><span className={`text-[12px] font-black px-2.5 py-0.5 rounded-full border ${e1?'text-red-400/60 border-red-500/20 bg-red-500/5':'text-zinc-500 border-zinc-700/60 bg-zinc-800/40'}`}>{dd1}</span></div><div className="flex items-center gap-2"><span className="text-zinc-300 text-[10px] font-black tracking-widest">2ND</span><span className={`text-[15px] font-black px-3 py-0.5 rounded-full border ${e2?'text-red-400 border-red-500/30 bg-red-500/10':dd2==='D-DAY'?'text-yellow-400 border-yellow-500/30 bg-yellow-500/10':'text-zinc-100 border-zinc-500 bg-zinc-800/60'}`}>{dd2}</span></div><span className="text-zinc-700 text-[10px]">{d1} → {d2}</span></div>;
     return<div className="flex flex-col items-end gap-1"><div className="flex items-center gap-1.5"><span className="text-zinc-700 text-[9px] font-black">1st</span><span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${e1?'text-red-400/60 border-red-500/20 bg-red-500/5':'text-zinc-600 border-zinc-700/50 bg-zinc-800/30'}`}>{dd1}</span></div><div className="flex items-center gap-1.5"><span className="text-zinc-400 text-[9px] font-black">2nd</span><span className={`text-[12px] font-black px-2 py-0.5 rounded-full border ${e2?'text-red-400 border-red-500/30 bg-red-500/10':dd2==='D-DAY'?'text-yellow-400 border-yellow-500/30 bg-yellow-500/10':'text-zinc-300 border-zinc-600 bg-zinc-800/50'}`}>{dd2}</span></div></div>;
@@ -117,14 +96,14 @@ const DeadlineDisplay=({lead,size='normal'}:{lead:any;size?:'compact'|'normal'|'
   if(size==='large')return<span className={`text-[15px] font-black px-4 py-1.5 rounded-full border ${cls}`}>{dday}</span>;
   return<span className={`text-[11px] font-black px-2 py-0.5 rounded-full border ${cls}`}>{dday}</span>;
 };
-
 const FilterPill=({label,active,onClick}:{label:string;active:boolean;onClick:()=>void})=>(
   <button onClick={onClick} className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all ${active?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>{label}</button>
 );
 
-const emptyPitch=()=>({artist_name:'',contact:'',message:'',genre:''});
+const emptyPitch=()=>({artist_name:'',contact:'',message:''});
+let fileCounter=0;
 
-export default function GuestView() {
+export default function GuestView(){
   const params=useParams();
   const hostId=params.hostId as string;
   const [leads,setLeads]=useState<any[]>([]);
@@ -136,19 +115,15 @@ export default function GuestView() {
   const [viewingLead,setViewingLead]=useState<any>(null);
   const [pitchingLead,setPitchingLead]=useState<any>(null);
   const [pitchForm,setPitchForm]=useState(emptyPitch());
-  const [pitchFile,setPitchFile]=useState<File|null>(null);
-  const [fileHash,setFileHash]=useState('');
-  const [analyzing,setAnalyzing]=useState(false);
-  const [analysisResult,setAnalysisResult]=useState<{bpm:number;vocal:'male'|'female'|'unknown';duration:number}|null>(null);
-  const [isDuplicate,setIsDuplicate]=useState(false);
+  const [pitchFiles,setPitchFiles]=useState<PitchFileItem[]>([]);
   const [pitchSent,setPitchSent]=useState(false);
   const [pitchLoading,setPitchLoading]=useState(false);
-  const [dragOver,setDragOver]=useState(false);
+  const [uploadProgress,setUploadProgress]=useState(0);
   const [filterGender,setFilterGender]=useState<string[]>([]);
   const [filterGroup,setFilterGroup]=useState<string[]>([]);
   const [filterAlbum,setFilterAlbum]=useState<string[]>([]);
   const [sortBy,setSortBy]=useState<'dday'|'gender'|'group'|'album'>('dday');
-  const fileInputRef=useRef<HTMLInputElement>(null);
+  const globalFileRef=useRef<HTMLInputElement>(null);
 
   const fetchAll=async()=>{
     const [lr,ar]=await Promise.all([
@@ -159,31 +134,53 @@ export default function GuestView() {
   };
   useEffect(()=>{if(!hostId)return;fetchAll();const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
-  const handleFileSelect=async(file:File)=>{
+  const addFile=async(file:File)=>{
     if(!file.name.toLowerCase().endsWith('.mp3')){alert('MP3 파일만 업로드 가능해요!');return;}
     if(file.size>50*1024*1024){alert('50MB 이하 파일만 가능해요!');return;}
-    setPitchFile(file);setAnalyzing(true);setAnalysisResult(null);setIsDuplicate(false);setFileHash('');
-    const [hash,result]=await Promise.all([getFileHash(file),analyzeAudio(file)]);
-    const {data:dup}=await supabase.from('pitches').select('id').eq('file_hash',hash).eq('host_id',hostId);
-    setFileHash(hash);setIsDuplicate(!!(dup&&dup.length>0));setAnalysisResult(result);setAnalyzing(false);
+    const id=`file_${++fileCounter}`;
+    setPitchFiles(prev=>[...prev,{id,file,hash:'',analysis:null,genre:'',isDuplicate:false,analyzing:true}]);
+    const [hash,analysis]=await Promise.all([getFileHash(file),analyzeAudio(file)]);
+    const {data:dup}=await supabase.from('pitch_files').select('id').eq('file_hash',hash).eq('host_id',hostId);
+    setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,hash,analysis,isDuplicate:!!(dup&&dup.length>0),analyzing:false}:f));
+  };
+
+  const removeFile=(id:string)=>setPitchFiles(prev=>prev.filter(f=>f.id!==id));
+  const updateFileGenre=(id:string,genre:string)=>setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,genre}:f));
+
+  const handleFileDrop=(e:React.DragEvent)=>{
+    e.preventDefault();
+    Array.from(e.dataTransfer.files).forEach(f=>addFile(f));
+  };
+  const handleFileInput=(e:React.ChangeEvent<HTMLInputElement>)=>{
+    Array.from(e.target.files||[]).forEach(f=>addFile(f));
+    e.target.value='';
   };
 
   const submitPitch=async()=>{
     if(!pitchForm.artist_name.trim()||!pitchForm.contact.trim()||!pitchingLead)return;
-    setPitchLoading(true);
-    let fileUrl='',fileName='';
-    if(pitchFile){
-      const safe=pitchFile.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-      const path=`${hostId}/${pitchingLead.id}_${Date.now()}_${safe}`;
-      const {data:up}=await supabase.storage.from('pitch-files').upload(path,pitchFile,{contentType:'audio/mpeg'});
-      if(up){fileUrl=supabase.storage.from('pitch-files').getPublicUrl(path).data.publicUrl;fileName=pitchFile.name;}
-    }
-    await supabase.from('pitches').insert({
+    setPitchLoading(true);setUploadProgress(0);
+    const {data:pitchData,error}=await supabase.from('pitches').insert({
       lead_id:pitchingLead.id,host_id:hostId,
-      artist_name:pitchForm.artist_name,contact:pitchForm.contact,message:pitchForm.message,genre:pitchForm.genre||null,
-      file_url:fileUrl||null,file_name:fileName||null,file_hash:fileHash||null,
-      bpm:analysisResult?.bpm||null,vocal_gender:analysisResult?.vocal||null,duration:analysisResult?.duration||null,
-    });
+      artist_name:pitchForm.artist_name,contact:pitchForm.contact,message:pitchForm.message,
+    }).select().single();
+    if(error||!pitchData){setPitchLoading(false);alert('제출 중 오류가 났어요. 다시 시도해주세요.');return;}
+    const total=pitchFiles.length;
+    for(let i=0;i<total;i++){
+      const pf=pitchFiles[i];
+      const safe=pf.file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+      const path=`${hostId}/${pitchData.id}_${i}_${Date.now()}_${safe}`;
+      const {data:up}=await supabase.storage.from('pitch-files').upload(path,pf.file,{contentType:'audio/mpeg'});
+      if(up){
+        const fileUrl=supabase.storage.from('pitch-files').getPublicUrl(path).data.publicUrl;
+        await supabase.from('pitch_files').insert({
+          pitch_id:pitchData.id,host_id:hostId,
+          file_url:fileUrl,file_name:pf.file.name,file_hash:pf.hash,
+          bpm:pf.analysis?.bpm||null,vocal_gender:pf.analysis?.vocal||null,
+          genre:pf.genre||null,duration:pf.analysis?.duration||null,
+        });
+      }
+      setUploadProgress(Math.round(((i+1)/total)*100));
+    }
     setPitchLoading(false);setPitchSent(true);
   };
 
@@ -240,6 +237,48 @@ export default function GuestView() {
       </div>
     );
   };
+
+  // ── 파일 아이템 컴포넌트 ──
+  const FileItem=({item}:{item:PitchFileItem})=>(
+    <div className="border border-white/10 rounded-2xl bg-white/[0.03] overflow-hidden">
+      {/* 파일 헤더 */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
+        <span className="text-[18px]">🎵</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-[12px] font-bold truncate">{item.file.name}</p>
+          <p className="text-zinc-600 text-[11px]">{(item.file.size/1024/1024).toFixed(1)}MB</p>
+        </div>
+        {item.analyzing&&<div className="w-4 h-4 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin shrink-0"/>}
+        {!item.analyzing&&item.analysis&&<span className="text-green-400 text-[14px] shrink-0">✓</span>}
+        <button onClick={()=>removeFile(item.id)} className="text-zinc-700 hover:text-red-400 text-[13px] transition-colors shrink-0">✕</button>
+      </div>
+
+      {/* 분석 결과 */}
+      {item.analyzing&&<div className="px-4 py-3 text-zinc-600 text-[11px]">BPM · 보컬 분석 중...</div>}
+      {!item.analyzing&&item.analysis&&(
+        <div className="px-4 py-3">
+          {item.isDuplicate&&<div className="mb-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20"><p className="text-yellow-400 text-[11px] font-bold">⚠️ 이미 동일한 파일이 제출된 적 있어요</p></div>}
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {item.analysis.bpm>0&&<span className="text-[10px] font-black px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-zinc-300">🥁 {item.analysis.bpm} BPM</span>}
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${vocalCls(item.analysis.vocal)}`}>🎤 {vocalLabel(item.analysis.vocal)}</span>
+            {item.analysis.duration>0&&<span className="text-[10px] font-black px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-zinc-500">⏱ {fmtDur(item.analysis.duration)}</span>}
+          </div>
+          {/* 장르 선택 */}
+          <div>
+            <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-1.5">장르</p>
+            <div className="flex flex-wrap gap-1">
+              {GENRES.map(g=>(
+                <button key={g} onClick={()=>updateFileGenre(item.id,item.genre===g?'':g)}
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${item.genre===g?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'bg-white/5 border-white/10 text-zinc-600 hover:text-white'}`}>
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return(
     <>
@@ -317,7 +356,7 @@ export default function GuestView() {
               </div>
               {viewingLead.content&&<div className="mb-5"><p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-2">내용</p><div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-zinc-300 text-[13px] leading-relaxed">{renderContent(viewingLead.content)}</div></div>}
               <div className="flex gap-2">
-                <button onClick={()=>{setPitchingLead(viewingLead);setPitchForm(emptyPitch());setPitchFile(null);setFileHash('');setAnalysisResult(null);setIsDuplicate(false);setPitchSent(false);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 피칭하기</button>
+                <button onClick={()=>{setPitchingLead(viewingLead);setPitchForm(emptyPitch());setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 피칭하기</button>
                 <button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
               </div>
             </div>
@@ -328,13 +367,14 @@ export default function GuestView() {
       {/* 피칭 모달 */}
       {pitchingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
-          <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-[2rem] shadow-2xl my-4" onClick={e=>e.stopPropagation()}>
+          <div className="w-full max-w-lg bg-[#111] border border-white/10 rounded-[2rem] shadow-2xl my-4" onClick={e=>e.stopPropagation()}>
             <div className="p-6">
               {pitchSent?(
-                <div className="text-center py-8">
+                <div className="text-center py-10">
                   <div className="text-5xl mb-4">🎉</div>
                   <h2 className="text-white font-black text-[22px] mb-2">피칭 완료!</h2>
                   <p className="text-zinc-400 text-[13px]"><span className="text-white font-bold">{pitchingLead.artist}</span> — {pitchingLead.title}</p>
+                  <p className="text-zinc-400 text-[12px] mt-1">{pitchForm.artist_name} · 파일 {pitchFiles.length}개 제출</p>
                   <p className="text-zinc-600 text-[12px] mt-3">담당자가 확인 후 연락드릴게요.</p>
                   <button onClick={()=>{setPitchingLead(null);setPitchSent(false);}} className="mt-6 w-full py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
                 </div>
@@ -344,66 +384,69 @@ export default function GuestView() {
                     <h2 className="text-white font-black text-[20px]">🎵 피칭하기</h2>
                     <p className="text-zinc-500 text-[12px] mt-0.5">{pitchingLead.artist} — {pitchingLead.title}</p>
                   </div>
+
                   <div className="flex flex-col gap-4">
-                    {/* 아티스트명 */}
-                    <div>
-                      <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">아티스트명 *</label>
-                      <input value={pitchForm.artist_name} onChange={e=>setPitchForm(p=>({...p,artist_name:e.target.value}))} placeholder="피칭하는 아티스트명" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white"/>
+                    {/* 기본 정보 */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">아티스트명 *</label>
+                        <input value={pitchForm.artist_name} onChange={e=>setPitchForm(p=>({...p,artist_name:e.target.value}))} placeholder="아티스트명" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white"/>
+                      </div>
+                      <div>
+                        <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">연락처 *</label>
+                        <input value={pitchForm.contact} onChange={e=>setPitchForm(p=>({...p,contact:e.target.value}))} placeholder="이메일/전화/카카오" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white"/>
+                      </div>
                     </div>
-                    {/* 연락처 */}
+
+                    {/* 파일 목록 */}
                     <div>
-                      <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">연락처 * <span className="text-zinc-700 font-normal normal-case">(이메일 / 전화 / 카카오)</span></label>
-                      <input value={pitchForm.contact} onChange={e=>setPitchForm(p=>({...p,contact:e.target.value}))} placeholder="연락받을 수 있는 방법" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white"/>
-                    </div>
-                    {/* MP3 업로드 */}
-                    <div>
-                      <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">데모 파일 <span className="text-zinc-700 font-normal normal-case">MP3 · 최대 50MB</span></label>
-                      <input ref={fileInputRef} type="file" accept=".mp3,audio/mpeg" className="hidden" onChange={e=>{const f=e.target.files?.[0];if(f)handleFileSelect(f);}}/>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">데모 파일 <span className="text-zinc-700 font-normal normal-case">MP3 · 최대 50MB · 여러 개 가능</span></label>
+                        <span className="text-zinc-600 text-[11px]">{pitchFiles.length}개</span>
+                      </div>
+
+                      {/* 기존 파일 목록 */}
+                      {pitchFiles.length>0&&<div className="flex flex-col gap-2 mb-3">{pitchFiles.map(item=><FileItem key={item.id} item={item}/>)}</div>}
+
+                      {/* 파일 추가 드롭존 */}
+                      <input ref={globalFileRef} type="file" accept=".mp3,audio/mpeg" multiple className="hidden" onChange={handleFileInput}/>
                       <div
-                        onDragOver={e=>{e.preventDefault();setDragOver(true);}}
-                        onDragLeave={()=>setDragOver(false)}
-                        onDrop={e=>{e.preventDefault();setDragOver(false);const f=e.dataTransfer.files[0];if(f)handleFileSelect(f);}}
-                        onClick={()=>!analyzing&&fileInputRef.current?.click()}
-                        className={`border-2 border-dashed rounded-2xl p-5 text-center transition-all ${analyzing?'cursor-wait':pitchFile?'cursor-default':'cursor-pointer hover:border-white/25'} ${dragOver?'border-[#5B8CFF]/70 bg-[#5B8CFF]/10':pitchFile?'border-white/20 bg-white/5':'border-white/10 bg-white/[0.02]'}`}
+                        onDragOver={e=>{e.preventDefault();}}
+                        onDrop={handleFileDrop}
+                        onClick={()=>globalFileRef.current?.click()}
+                        className="border-2 border-dashed border-white/10 rounded-2xl p-4 text-center cursor-pointer hover:border-white/20 hover:bg-white/[0.02] transition-all"
                       >
-                        {!pitchFile&&!analyzing&&<><div className="text-3xl mb-2">🎵</div><p className="text-zinc-400 text-[13px] font-bold">클릭하거나 드래그해서 업로드</p><p className="text-zinc-700 text-[11px] mt-1">MP3만 가능 · 최대 50MB</p></>}
-                        {analyzing&&<div className="flex flex-col items-center gap-3 py-2"><div className="w-8 h-8 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/><p className="text-zinc-400 text-[12px]">BPM · 보컬 분석 중...</p><p className="text-zinc-600 text-[11px]">잠시만 기다려주세요</p></div>}
-                        {pitchFile&&!analyzing&&analysisResult&&(
-                          <div className="text-left">
-                            <div className="flex items-center gap-2 mb-3">
-                              <span className="text-green-400">✓</span>
-                              <span className="text-white text-[12px] font-bold truncate flex-1">{pitchFile.name}</span>
-                              <span className="text-zinc-600 text-[11px] shrink-0">{(pitchFile.size/1024/1024).toFixed(1)}MB</span>
-                            </div>
-                            {isDuplicate&&<div className="mb-3 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20"><p className="text-yellow-400 text-[11px] font-bold">⚠️ 이미 동일한 파일이 제출된 적 있어요</p></div>}
-                            <div className="flex flex-wrap gap-2 mb-2">
-                              {analysisResult.bpm>0&&<span className="text-[11px] font-black px-2.5 py-1 rounded-full border border-white/10 bg-white/5 text-zinc-300">🥁 {analysisResult.bpm} BPM</span>}
-                              <span className={`text-[11px] font-black px-2.5 py-1 rounded-full border ${vocalCls(analysisResult.vocal)}`}>🎤 {vocalLabel(analysisResult.vocal)}</span>
-                              {analysisResult.duration>0&&<span className="text-[11px] font-black px-2.5 py-1 rounded-full border border-white/10 bg-white/5 text-zinc-400">⏱ {fmtDur(analysisResult.duration)}</span>}
-                            </div>
-                            <button onClick={e=>{e.stopPropagation();setPitchFile(null);setFileHash('');setAnalysisResult(null);setIsDuplicate(false);if(fileInputRef.current)fileInputRef.current.value='';}} className="text-zinc-700 hover:text-red-400 text-[11px] font-bold transition-colors">✕ 파일 제거</button>
-                          </div>
-                        )}
+                        <p className="text-zinc-600 text-[12px] font-bold">+ 파일 추가</p>
+                        <p className="text-zinc-800 text-[11px] mt-0.5">클릭 또는 드래그 · 여러 개 한 번에 선택 가능</p>
                       </div>
                     </div>
-                    {/* 장르 */}
-                    <div>
-                      <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-2 block">장르 <span className="text-zinc-700 font-normal normal-case">(선택)</span></label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {GENRES.map(g=><button key={g} onClick={()=>setPitchForm(p=>({...p,genre:p.genre===g?'':g}))} className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${pitchForm.genre===g?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>{g}</button>)}
-                      </div>
-                    </div>
+
                     {/* 메시지 */}
                     <div>
                       <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">메시지 <span className="text-zinc-700 font-normal normal-case">(선택)</span></label>
-                      <textarea value={pitchForm.message} onChange={e=>setPitchForm(p=>({...p,message:e.target.value}))} placeholder="한마디, 포트폴리오 링크 등" rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white resize-none leading-relaxed"/>
+                      <textarea value={pitchForm.message} onChange={e=>setPitchForm(p=>({...p,message:e.target.value}))} placeholder="한마디, 포트폴리오 링크 등" rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white resize-none leading-relaxed"/>
                     </div>
                   </div>
+
+                  {/* 업로드 진행 바 */}
+                  {pitchLoading&&(
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-zinc-500 text-[11px]">업로드 중...</span>
+                        <span className="text-zinc-400 text-[11px] font-bold">{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] rounded-full transition-all" style={{width:`${uploadProgress}%`}}/>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-3 mt-5">
-                    <button onClick={()=>{setPitchingLead(null);setPitchSent(false);}} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">취소</button>
-                    <button onClick={submitPitch} disabled={pitchLoading||!pitchForm.artist_name.trim()||!pitchForm.contact.trim()||analyzing}
+                    <button onClick={()=>{setPitchingLead(null);setPitchSent(false);}} disabled={pitchLoading} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all disabled:opacity-40">취소</button>
+                    <button onClick={submitPitch}
+                      disabled={pitchLoading||!pitchForm.artist_name.trim()||!pitchForm.contact.trim()||pitchFiles.some(f=>f.analyzing)}
                       className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-40 disabled:hover:scale-100">
-                      {pitchLoading?'업로드 중...':'피칭 제출'}
+                      {pitchLoading?'업로드 중...':pitchFiles.length>0?`${pitchFiles.length}개 파일 제출`:'피칭 제출'}
                     </button>
                   </div>
                 </>
