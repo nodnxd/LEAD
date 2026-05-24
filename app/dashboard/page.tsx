@@ -42,7 +42,6 @@ const FilterPill=({label,active,onClick}:{label:string;active:boolean;onClick:()
   <button onClick={onClick} className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all ${active?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>{label}</button>
 );
 
-// 커스텀 확인 다이얼로그
 const ConfirmModal=({msg,onOk,onCancel}:{msg:string;onOk:()=>void;onCancel:()=>void})=>(
   <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm font-pretendard p-4">
     <div className="w-full max-w-sm bg-[#111] border border-white/10 rounded-2xl shadow-2xl p-6">
@@ -105,7 +104,8 @@ export default function Dashboard(){
   const fetchPitchFiles=async(u=user)=>{if(!u)return;const{data}=await supabase.from('pitch_files').select('*').eq('host_id',u.id).order('created_at',{ascending:false});if(data)setPitchFiles(data);};
   const fetchGuestApprovals=async(u=user)=>{
     if(!u)return;
-    const{data}=await supabase.from('guest_approvals').select('*, guests(name,artist_name,email,phone)').eq('host_id',u.id).order('created_at',{ascending:false});
+    const{data,error}=await supabase.from('guest_approvals').select('*, guests(name,artist_name,email,phone)').eq('host_id',u.id).order('created_at',{ascending:false});
+    console.log('[guests] data:', data, 'error:', error);
     if(data)setGuestApprovals(data);
   };
 
@@ -209,7 +209,7 @@ export default function Dashboard(){
   const newPitchCount=pitches.filter(p=>p.status==='new').length;
   const pitchesForLead=pitchLead?pitches.filter(p=>p.lead_id===pitchLead.id):pitches;
   const getPitchFiles=(pitchId:string)=>pitchFiles.filter(f=>f.pitch_id===pitchId);
-  const getPitchLeadName=(pitch:any)=>{const l=leads.find(x=>x.id===pitch.lead_id);return l?`${l.artist} — ${l.title}`:'';}
+  const getPitchLeadName=(pitch:any)=>{const l=leads.find(x=>x.id===pitch.lead_id);return l?`${l.artist} — ${l.title}`:'';};
 
   const renderContent=(content:string)=>{if(!content)return null;return content.split(/(https?:\/\/[^\s]+)/g).map((part,i)=>{if(part.match(/^https?:\/\//))return<a key={i} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[#5B8CFF] hover:underline break-all"><span>{getLinkIcon(part)}</span><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;return<span key={i} className="whitespace-pre-wrap">{part}</span>;});};
   const DateShortcuts=({field}:{field:'deadline'|'deadline2'})=>(<div className="flex gap-1.5 mt-2">{[1,3,7,14,30].map(d=>{const dt=new Date();dt.setDate(dt.getDate()+d);const str=toDateStr(dt.getFullYear(),dt.getMonth()+1,dt.getDate());return<button key={d} onClick={()=>setForm(p=>({...p,[field]:str}))} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-500 text-[10px] font-bold hover:text-[#5B8CFF] hover:border-[#5B8CFF]/30 transition-all">+{d}일</button>;})}</div>);
@@ -267,7 +267,6 @@ export default function Dashboard(){
           </div>
         </div>
 
-        {/* 달력 */}
         {view==='calendar'&&(
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
@@ -283,7 +282,6 @@ export default function Dashboard(){
           </div>
         )}
 
-        {/* 목록 */}
         {view==='list'&&(
           <div className="relative z-10">
             <div className="flex flex-col gap-3 mb-5 p-4 rounded-xl bg-white/[0.02] border border-white/5">
@@ -297,7 +295,6 @@ export default function Dashboard(){
         )}
       </main>
 
-      {/* 상세 모달 */}
       {viewingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setViewingLead(null)}>
           <div className={`w-full max-w-2xl border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
@@ -314,7 +311,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 피칭 현황 모달 */}
       {showPitchModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowPitchModal(false)}>
           <div className="w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl" onClick={e=>e.stopPropagation()}>
@@ -390,7 +386,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 파일 관리 전체화면 — 테이블 뷰 */}
       {showFilesPanel&&(
         <div className="fixed inset-0 z-50 bg-[#080808] font-pretendard flex flex-col">
           <div className="flex items-center gap-4 px-6 py-4 border-b border-white/10 shrink-0">
@@ -399,10 +394,7 @@ export default function Dashboard(){
             <div className="flex-1"/>
             <button onClick={()=>setShowFilesPanel(false)} className="px-4 py-2 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">✕ 닫기</button>
           </div>
-
-          {/* 필터 */}
           <div className="flex flex-wrap items-center gap-3 px-6 py-3 border-b border-white/5 shrink-0">
-            {/* 검색 */}
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-[12px]">🔍</span>
               <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder="파일명, 아티스트, 장르 검색..."
@@ -427,7 +419,6 @@ export default function Dashboard(){
               </div>
             </div>
           </div>
-
           {selectedFiles.length>0&&(
             <div className="flex items-center gap-3 px-6 py-2.5 bg-[#5B8CFF]/10 border-b border-[#5B8CFF]/20 shrink-0">
               <span className="text-[#5B8CFF] text-[13px] font-bold flex-1">{selectedFiles.length}개 선택됨</span>
@@ -436,8 +427,6 @@ export default function Dashboard(){
               <button onClick={()=>setSelectedFiles([])} className="text-zinc-600 hover:text-white text-[12px] font-bold transition-colors">취소</button>
             </div>
           )}
-
-          {/* 테이블 */}
           <div className="flex-1 overflow-auto px-6 py-4">
             {filteredPitchFiles.length===0?(
               <div className="flex flex-col items-center justify-center h-full gap-3"><p className="text-zinc-700 text-[32px]">🎵</p><p className="text-zinc-600 text-[14px]">파일이 없어요</p></div>
@@ -465,31 +454,15 @@ export default function Dashboard(){
                     return(
                       <tr key={f.id} className={`border-b border-white/5 transition-colors group ${isSelected?'bg-[#5B8CFF]/5':idx%2===0?'bg-white/[0.01]':'bg-transparent'} hover:bg-white/[0.03]`}>
                         <td className="py-3 pr-4"><input type="checkbox" checked={isSelected} onChange={e=>setSelectedFiles(p=>e.target.checked?[...p,f.id]:p.filter(x=>x!==f.id))} className="w-4 h-4 rounded cursor-pointer"/></td>
-                        <td className="py-3 pr-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-[#5B8CFF]/10 border border-[#5B8CFF]/15 flex items-center justify-center shrink-0"><span className="text-[11px]">🎵</span></div>
-                            <span className="text-zinc-200 text-[12px] font-medium truncate max-w-[180px]">{f.file_name||'audio.mp3'}</span>
-                          </div>
-                        </td>
+                        <td className="py-3 pr-4"><div className="flex items-center gap-2"><div className="w-7 h-7 rounded-lg bg-[#5B8CFF]/10 border border-[#5B8CFF]/15 flex items-center justify-center shrink-0"><span className="text-[11px]">🎵</span></div><span className="text-zinc-200 text-[12px] font-medium truncate max-w-[180px]">{f.file_name||'audio.mp3'}</span></div></td>
                         <td className="py-3 pr-4"><span className="text-zinc-400 text-[12px]">{pitch?.artist_name||'—'}</span></td>
                         <td className="py-3 pr-4"><span className="text-zinc-500 text-[11px]">{lead?.artist||'—'}</span></td>
-                        <td className="py-3 pr-4 text-center">
-                          {f.vocal_gender&&f.vocal_gender!=='unknown'?(
-                            <div className="flex items-center justify-center gap-1"><div className={`w-1.5 h-1.5 rounded-full ${vocalDot(f.vocal_gender)}`}/><span className={`text-[11px] font-bold ${f.vocal_gender==='male'?'text-blue-400':'text-pink-400'}`}>{vocalLabel(f.vocal_gender)}</span></div>
-                          ):<span className="text-zinc-700 text-[11px]">—</span>}
-                        </td>
+                        <td className="py-3 pr-4 text-center">{f.vocal_gender&&f.vocal_gender!=='unknown'?(<div className="flex items-center justify-center gap-1"><div className={`w-1.5 h-1.5 rounded-full ${vocalDot(f.vocal_gender)}`}/><span className={`text-[11px] font-bold ${f.vocal_gender==='male'?'text-blue-400':'text-pink-400'}`}>{vocalLabel(f.vocal_gender)}</span></div>):<span className="text-zinc-700 text-[11px]">—</span>}</td>
                         <td className="py-3 pr-4 text-center"><span className={`text-[12px] font-bold ${f.bpm>0?'text-zinc-300':'text-zinc-700'}`}>{f.bpm>0?f.bpm:'—'}</span></td>
-                        <td className="py-3 pr-4">
-                          {f.genre?<span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF]">{f.genre}</span>:<span className="text-zinc-700 text-[11px]">—</span>}
-                        </td>
+                        <td className="py-3 pr-4">{f.genre?<span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF]">{f.genre}</span>:<span className="text-zinc-700 text-[11px]">—</span>}</td>
                         <td className="py-3 pr-4 text-center"><span className="text-zinc-500 text-[11px] font-mono">{fmtDur(f.duration)}</span></td>
                         <td className="py-3 pr-4"><span className="text-zinc-600 text-[11px]">{new Date(f.created_at).toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})}</span></td>
-                        <td className="py-3 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <a href={f.file_url} download={f.file_name} onClick={e=>{e.preventDefault();blobDownload(f.file_url,f.file_name||'audio.mp3');}} className="px-2.5 py-1 rounded-lg bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF] hover:bg-[#5B8CFF]/20 text-[10px] font-bold transition-all cursor-pointer">⬇️</a>
-                            <button onClick={()=>ask(`"${f.file_name||'파일'}"을 삭제할까요?`,()=>deletePitchFile(f))} className="px-2.5 py-1 rounded-lg bg-red-500/5 border border-red-500/10 text-red-400/60 hover:text-red-400 text-[10px] font-bold transition-all">✕</button>
-                          </div>
-                        </td>
+                        <td className="py-3 text-center"><div className="flex items-center justify-center gap-1.5"><a href={f.file_url} download={f.file_name} onClick={e=>{e.preventDefault();blobDownload(f.file_url,f.file_name||'audio.mp3');}} className="px-2.5 py-1 rounded-lg bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF] hover:bg-[#5B8CFF]/20 text-[10px] font-bold transition-all cursor-pointer">⬇️</a><button onClick={()=>ask(`"${f.file_name||'파일'}"을 삭제할까요?`,()=>deletePitchFile(f))} className="px-2.5 py-1 rounded-lg bg-red-500/5 border border-red-500/10 text-red-400/60 hover:text-red-400 text-[10px] font-bold transition-all">✕</button></div></td>
                       </tr>
                     );
                   })}
@@ -500,7 +473,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 공지 모달 */}
       {showAnnModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>{setShowAnnModal(false);setAnnForm(null);}}>
           <div className="w-full max-w-lg bg-[#111] border border-white/10 rounded-2xl shadow-2xl" onClick={e=>e.stopPropagation()}>
@@ -517,7 +489,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 리드 추가/수정 모달 */}
       {showModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto">
           <div className="w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl my-4">
@@ -543,10 +514,8 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 커스텀 확인 다이얼로그 */}
       {confirm&&<ConfirmModal msg={confirm.msg} onOk={()=>{confirm.onOk();setConfirm(null);}} onCancel={()=>setConfirm(null)}/>}
 
-      {/* 게스트 관리 모달 */}
       {showGuestsModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowGuestsModal(false)}>
           <div className="w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl" onClick={e=>e.stopPropagation()}>
