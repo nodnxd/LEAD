@@ -138,6 +138,21 @@ export default function Dashboard() {
     fetchPitches();toast(`상태 변경: ${PITCH_STATUS[status]?.label}`);
   };
 
+  const deletePitch = async (pitch:any) => {
+    if(!confirm(`"${pitch.artist_name}" 피칭을 삭제할까요?`))return;
+    if(pitch.file_url){
+      const path=pitch.file_url.split('/pitch-files/')[1];
+      if(path)await supabase.storage.from('pitch-files').remove([path]);
+    }
+    await supabase.from('pitches').delete().eq('id',pitch.id);
+    fetchPitches();toast('🗑 삭제됐어요');
+  };
+
+  const vocalLabel=(v:string)=>v==='male'?'남성 보컬':v==='female'?'여성 보컬':'미감지';
+  const vocalCls=(v:string)=>v==='male'?'text-blue-400 border-blue-500/30 bg-blue-500/10':v==='female'?'text-pink-400 border-pink-500/30 bg-pink-500/10':'text-zinc-600 border-zinc-700/50 bg-zinc-800/30';
+  const fmtDur=(s:number)=>s?`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`:'';
+  const [playingId,setPlayingId]=useState<string|null>(null);
+
   const insertLink = () => {
     const url=prompt('링크를 입력해요:');if(!url?.trim())return;
     const ta=contentRef.current;if(!ta)return;
@@ -473,20 +488,42 @@ export default function Dashboard() {
                 <div className="flex flex-col gap-3">
                   {pitchesForLead.map(p=>{
                     const lead=leads.find(l=>l.id===p.lead_id);
+                    const isPlaying=playingId===p.id;
                     return (
                       <div key={p.id} className="p-4 rounded-xl bg-white/5 border border-white/10">
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start justify-between gap-3 mb-3">
                           <div className="flex-1 min-w-0">
                             {lead&&<p className="text-zinc-600 text-[10px] mb-1">{lead.artist} — {lead.title}</p>}
                             <p className="text-white font-bold text-[15px]">{p.artist_name}</p>
                             <p className="text-zinc-400 text-[12px]">{p.contact}</p>
-                            {p.message&&<p className="text-zinc-300 text-[13px] mt-2 leading-relaxed whitespace-pre-line">{p.message}</p>}
-                            <p className="text-zinc-700 text-[10px] mt-2">{new Date(p.created_at).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
+                            <p className="text-zinc-700 text-[10px] mt-1">{new Date(p.created_at).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})}</p>
                           </div>
-                          <select value={p.status} onChange={e=>updatePitchStatus(p.id,e.target.value)} className={`bg-zinc-900 border rounded-xl px-3 py-2 text-[11px] font-bold outline-none shrink-0 ${PITCH_STATUS[p.status]?.cls||''}`}>
-                            {Object.entries(PITCH_STATUS).map(([v,{label}])=><option key={v} value={v} className="bg-zinc-900 text-white">{label}</option>)}
-                          </select>
+                          <div className="flex flex-col items-end gap-2 shrink-0">
+                            <select value={p.status} onChange={e=>updatePitchStatus(p.id,e.target.value)} className={`bg-zinc-900 border rounded-xl px-3 py-1.5 text-[11px] font-bold outline-none ${PITCH_STATUS[p.status]?.cls||''}`}>
+                              {Object.entries(PITCH_STATUS).map(([v,{label}])=><option key={v} value={v} className="bg-zinc-900 text-white">{label}</option>)}
+                            </select>
+                            <button onClick={()=>deletePitch(p)} className="text-zinc-700 hover:text-red-400 text-[10px] font-bold transition-colors">삭제</button>
+                          </div>
                         </div>
+                        {/* 분석 뱃지 */}
+                        <div className="flex flex-wrap gap-1.5 mb-2">
+                          {p.bpm>0&&<span className="text-[10px] font-black px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-zinc-400">🥁 {p.bpm} BPM</span>}
+                          {p.vocal_gender&&<span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${vocalCls(p.vocal_gender)}`}>🎤 {vocalLabel(p.vocal_gender)}</span>}
+                          {p.genre&&<span className="text-[10px] font-black px-2 py-0.5 rounded-full border border-[#5B8CFF]/30 bg-[#5B8CFF]/10 text-[#5B8CFF]">{p.genre}</span>}
+                          {p.duration>0&&<span className="text-[10px] font-black px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-zinc-600">⏱ {fmtDur(p.duration)}</span>}
+                        </div>
+                        {/* 오디오 플레이어 */}
+                        {p.file_url&&(
+                          <div className="mt-2 p-3 rounded-xl bg-black/30 border border-white/5">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-zinc-500 text-[11px] truncate flex-1">{p.file_name||'audio.mp3'}</span>
+                              <a href={p.file_url} download className="text-zinc-600 hover:text-white text-[11px] font-bold transition-colors shrink-0">⬇️ 다운</a>
+                            </div>
+                            <audio controls src={p.file_url} className="w-full h-8" style={{filter:'invert(0.8) hue-rotate(180deg)'}}
+                              onPlay={()=>setPlayingId(p.id)} onPause={()=>setPlayingId(null)} onEnded={()=>setPlayingId(null)}/>
+                          </div>
+                        )}
+                        {p.message&&<p className="text-zinc-400 text-[12px] mt-2 leading-relaxed whitespace-pre-line border-t border-white/5 pt-2">{p.message}</p>}
                       </div>
                     );
                   })}
