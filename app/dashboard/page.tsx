@@ -83,6 +83,8 @@ export default function Dashboard(){
   const [pitchLead,setPitchLead]=useState<any>(null);
   const [expandedPitch,setExpandedPitch]=useState<string|null>(null);
   const [showFilesPanel,setShowFilesPanel]=useState(false);
+  const [showGuestsModal,setShowGuestsModal]=useState(false);
+  const [guestApprovals,setGuestApprovals]=useState<any[]>([]);
   const [fileLead,setFileLead]=useState<any>(null);
   const [fileFilterVocal,setFileFilterVocal]=useState('');
   const [fileFilterGenre,setFileFilterGenre]=useState('');
@@ -101,8 +103,13 @@ export default function Dashboard(){
   const fetchAnn=async(u=user)=>{if(!u)return;const{data}=await supabase.from('lead_announcements').select('*').eq('host_id',u.id).order('created_at',{ascending:true});if(data)setAnnouncements(data);};
   const fetchPitches=async(u=user)=>{if(!u)return;const{data}=await supabase.from('pitches').select('*').eq('host_id',u.id).order('created_at',{ascending:false});if(data)setPitches(data);};
   const fetchPitchFiles=async(u=user)=>{if(!u)return;const{data}=await supabase.from('pitch_files').select('*').eq('host_id',u.id).order('created_at',{ascending:false});if(data)setPitchFiles(data);};
+  const fetchGuestApprovals=async(u=user)=>{
+    if(!u)return;
+    const{data}=await supabase.from('guest_approvals').select('*, guests(name,artist_name,email,phone)').eq('host_id',u.id).order('created_at',{ascending:false});
+    if(data)setGuestApprovals(data);
+  };
 
-  useEffect(()=>{if(user){fetchLeads(user);fetchAnn(user);fetchPitches(user);fetchPitchFiles(user);}},[user]);
+  useEffect(()=>{if(user){fetchLeads(user);fetchAnn(user);fetchPitches(user);fetchPitchFiles(user);fetchGuestApprovals(user);}},[user]);
 
   const openCreate=(prefillDate?:string)=>{const f=emptyForm();if(prefillDate)f.deadline=prefillDate;setForm(f);setEditingLead(null);setShowModal(true);};
   const openEdit=(lead:any)=>{setForm({title:lead.title,artist:lead.artist,gender:lead.gender||'male',group_type:lead.group_type||'solo',album_type:lead.album_type||'single',deadline:lead.deadline||'',deadline2:lead.deadline2||'',content:lead.content||''});setEditingLead(lead);setShowModal(true);};
@@ -119,6 +126,11 @@ export default function Dashboard(){
   const saveAnn=async()=>{if(!annForm)return;if(annForm.id)await supabase.from('lead_announcements').update({title:annForm.title,content:annForm.content,updated_at:new Date().toISOString()}).eq('id',annForm.id);else await supabase.from('lead_announcements').insert({host_id:user.id,title:annForm.title,content:annForm.content});setAnnForm(null);fetchAnn();toast('📢 공지 저장됐어요!');};
   const deleteAnn=async(id:string)=>{await supabase.from('lead_announcements').delete().eq('id',id);fetchAnn();toast('공지 삭제됐어요');};
   const updatePitchStatus=async(pitchId:string,status:string)=>{await supabase.from('pitches').update({status}).eq('id',pitchId);fetchPitches();toast(`상태: ${PITCH_STATUS[status]?.label}`);};
+  const updateApproval=async(id:string,status:string)=>{
+    await supabase.from('guest_approvals').update({status}).eq('id',id);
+    fetchGuestApprovals();
+    toast(status==='approved'?'✅ 승인됐어요':status==='rejected'?'🚫 거절됐어요':'상태 변경됐어요');
+  };
 
   const deletePitchFile=async(pf:any)=>{
     if(pf.file_url){try{const url=new URL(pf.file_url);const p=url.pathname.split('/pitch-files/')[1];if(p)await supabase.storage.from('pitch-files').remove([decodeURIComponent(p)]);}catch{}}
@@ -244,6 +256,9 @@ export default function Dashboard(){
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':'text-zinc-500 hover:text-white'}`}>📋 목록</button>
             </div>
             <button onClick={()=>{setPitchLead(null);setExpandedPitch(null);setShowPitchModal(true);}} className="relative bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">📨 피칭{newPitchCount>0&&<span className="absolute -top-1 -right-1 w-4 h-4 bg-[#5B8CFF] rounded-full text-white text-[9px] font-black flex items-center justify-center">{newPitchCount}</span>}</button>
+            <button onClick={()=>setShowGuestsModal(true)} className="relative bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">
+              👥 게스트{guestApprovals.filter(g=>g.status==='pending').length>0&&<span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full text-black text-[9px] font-black flex items-center justify-center">{guestApprovals.filter(g=>g.status==='pending').length}</span>}
+            </button>
             <button onClick={()=>{setFileLead(null);setSelectedFiles([]);setFileFilterVocal('');setFileFilterGenre('');setFileSearch('');setShowFilesPanel(true);}} className="relative bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">🎵 파일 관리{pitchFiles.length>0&&<span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-zinc-700 rounded-full text-zinc-300 text-[9px] font-black flex items-center justify-center px-1">{pitchFiles.length}</span>}</button>
             <button onClick={()=>{setAnnForm({title:'',content:''});setShowAnnModal(true);}} className="bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">📢 공지</button>
             <button onClick={copyShareLink} className="bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">🔗 공유</button>
@@ -530,6 +545,62 @@ export default function Dashboard(){
 
       {/* 커스텀 확인 다이얼로그 */}
       {confirm&&<ConfirmModal msg={confirm.msg} onOk={()=>{confirm.onOk();setConfirm(null);}} onCancel={()=>setConfirm(null)}/>}
+
+      {/* 게스트 관리 모달 */}
+      {showGuestsModal&&(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowGuestsModal(false)}>
+          <div className="w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl" onClick={e=>e.stopPropagation()}>
+            <div className="max-h-[88vh] flex flex-col">
+              <div className="flex items-center gap-3 p-5 border-b border-white/10">
+                <h2 className="text-white font-black text-[18px]">👥 게스트 관리</h2>
+                <div className="flex items-center gap-3 ml-1">
+                  {[['pending','대기','text-yellow-400'],['approved','승인','text-emerald-400'],['rejected','거절','text-zinc-500']].map(([s,l,c])=>(
+                    <span key={s} className={`text-[11px] font-bold ${c}`}>{guestApprovals.filter(g=>g.status===s).length} {l}</span>
+                  ))}
+                </div>
+                <div className="flex-1"/>
+                <button onClick={()=>setShowGuestsModal(false)} className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-zinc-500 hover:text-white flex items-center justify-center text-[13px] transition-all">✕</button>
+              </div>
+              <div className="overflow-y-auto flex-1 p-5">
+                {guestApprovals.length===0?(
+                  <div className="text-center py-12 text-zinc-700 text-[13px]">신청한 게스트가 없어요</div>
+                ):(
+                  <div className="flex flex-col gap-2">
+                    {guestApprovals.map(g=>{
+                      const guest=g.guests;
+                      const isPending=g.status==='pending';
+                      const isApproved=g.status==='approved';
+                      return(
+                        <div key={g.id} className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${isPending?'border-yellow-500/20 bg-yellow-500/5':isApproved?'border-emerald-500/20 bg-emerald-500/5':'border-white/5 bg-white/[0.02]'}`}>
+                          <div className="w-10 h-10 rounded-full bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 flex items-center justify-center shrink-0">
+                            <span className="text-[#5B8CFF] font-black text-[13px]">{(guest?.artist_name||'?')[0].toUpperCase()}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="text-white font-bold text-[14px]">{guest?.artist_name||'—'}</p>
+                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${isPending?'text-yellow-400 border-yellow-500/30 bg-yellow-500/10':isApproved?'text-emerald-400 border-emerald-500/30 bg-emerald-500/10':'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'}`}>
+                                {isPending?'대기':isApproved?'승인':'거절'}
+                              </span>
+                            </div>
+                            <p className="text-zinc-500 text-[12px]">{guest?.name} · {guest?.email}</p>
+                            {guest?.phone&&<p className="text-zinc-600 text-[11px]">{guest.phone}</p>}
+                            <p className="text-zinc-700 text-[10px] mt-0.5">{new Date(g.created_at).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})}</p>
+                          </div>
+                          <div className="flex gap-2 shrink-0">
+                            {!isApproved&&<button onClick={()=>updateApproval(g.id,'approved')} className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 text-[11px] font-bold transition-all">승인</button>}
+                            {g.status!=='rejected'&&<button onClick={()=>ask(`"${guest?.artist_name}"의 접근을 거절할까요?`,()=>updateApproval(g.id,'rejected'))} className="px-3 py-1.5 rounded-xl bg-red-500/5 border border-red-500/10 text-red-400/70 hover:text-red-400 text-[11px] font-bold transition-all">거절</button>}
+                            {g.status==='rejected'&&<button onClick={()=>updateApproval(g.id,'approved')} className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white text-[11px] font-bold transition-all">재승인</button>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toastMsg&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-pretendard">{toastMsg}</div>}
     </>

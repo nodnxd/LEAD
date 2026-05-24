@@ -117,15 +117,21 @@ export default function GuestView(){
   const [filterAlbum,setFilterAlbum]=useState<string[]>([]);
   const [sortBy,setSortBy]=useState<'dday'|'gender'|'group'|'album'>('dday');
   const [guestProfile,setGuestProfile]=useState<any>(null);
+  const [authStatus,setAuthStatus]=useState<'loading'|'none'|'pending'|'rejected'|'approved'>('loading');
 
-  // 게스트 로그인 상태 확인
+  // 게스트 인증 확인 — 이 hostId에 대한 승인 여부
   useEffect(()=>{
     supabase.auth.getUser().then(async({data})=>{
-      if(!data.user)return;
-      const{data:profile}=await supabase.from('guests').select('*').eq('id',data.user.id).single();
-      if(profile&&profile.status==='approved')setGuestProfile(profile);
+      if(!data.user){setAuthStatus('none');return;}
+      const[profileRes,approvalRes]=await Promise.all([
+        supabase.from('guests').select('*').eq('id',data.user.id).single(),
+        supabase.from('guest_approvals').select('status').eq('guest_id',data.user.id).eq('host_id',hostId).single(),
+      ]);
+      if(profileRes.data)setGuestProfile(profileRes.data);
+      if(!approvalRes.data){setAuthStatus('none');}
+      else setAuthStatus(approvalRes.data.status as any);
     });
-  },[]);
+  },[hostId]);
   const fileInputRef=useRef<HTMLInputElement>(null);
 
   const fetchAll=async()=>{
@@ -315,6 +321,61 @@ export default function GuestView(){
         </div>
       )}
     </div>
+  );
+
+  const GateScreen=({icon,title,sub,children}:{icon:string;title:string;sub:string;children?:React.ReactNode})=>(
+    <>
+      <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
+      <main className="min-h-screen bg-[#050505] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.06] pointer-events-none"/>
+        <div className="w-full max-w-sm text-center">
+          <div className="flex items-baseline justify-center gap-2.5 mb-10">
+            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1>
+            <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
+          </div>
+          <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8">
+            <div className="text-4xl mb-4">{icon}</div>
+            <h2 className="text-white font-black text-[18px] mb-2">{title}</h2>
+            <p className="text-zinc-500 text-[13px] leading-relaxed">{sub}</p>
+            {children}
+          </div>
+          <p className="text-zinc-700 text-[11px] mt-6">Contact : everplayground@gmail.com</p>
+        </div>
+      </main>
+    </>
+  );
+
+  if(authStatus==='loading') return(
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/>
+    </div>
+  );
+
+  if(authStatus==='none') return(
+    <GateScreen icon="🔐" title="로그인이 필요해요" sub="리드를 보고 피칭하려면 로그인하세요.">
+      <a href={`/guest?hostId=${hostId}&redirect=/view/${hostId}`}
+        className="block w-full mt-6 py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">
+        로그인 / 회원가입
+      </a>
+    </GateScreen>
+  );
+
+  if(authStatus==='pending') return(
+    <GateScreen icon="⏳" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}>
+      <button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))}
+        className="block w-full mt-6 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">
+        다른 계정으로 로그인
+      </button>
+    </GateScreen>
+  );
+
+  if(authStatus==='rejected') return(
+    <GateScreen icon="🚫" title="접근이 거절됐어요" sub="담당자에게 문의해주세요.">
+      <button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))}
+        className="block w-full mt-6 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">
+        다른 계정으로 로그인
+      </button>
+    </GateScreen>
   );
 
   return(

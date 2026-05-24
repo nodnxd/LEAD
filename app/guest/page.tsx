@@ -12,6 +12,7 @@ function GuestAuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/';
+  const hostId = searchParams.get('hostId') || '';
 
   const [mode, setMode] = useState<'login'|'register'>('login');
   const [email, setEmail] = useState('');
@@ -28,16 +29,33 @@ function GuestAuthContent() {
     setLoading(true); setError('');
     const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
     if (err) { setError(err.message); setLoading(false); return; }
-    const { data: guest } = await supabase.from('guests').select('status').eq('id', data.user.id).single();
-    if (guest?.status === 'pending') {
-      await supabase.auth.signOut();
-      setError('아직 승인 대기 중이에요. 승인 완료 후 이용 가능해요.');
-      setLoading(false); return;
-    }
-    if (guest?.status === 'rejected') {
-      await supabase.auth.signOut();
-      setError('가입이 거절됐어요. 문의사항은 everplayground@gmail.com으로 연락해주세요.');
-      setLoading(false); return;
+
+    // 이 호스트에 대한 승인 여부 확인
+    if (hostId) {
+      const { data: approval } = await supabase
+        .from('guest_approvals')
+        .select('status')
+        .eq('guest_id', data.user.id)
+        .eq('host_id', hostId)
+        .single();
+
+      if (!approval) {
+        // 승인 요청 자동 생성
+        await supabase.from('guest_approvals').insert({ guest_id: data.user.id, host_id: hostId, status: 'pending' });
+        await supabase.auth.signOut();
+        setError('이 페이지 접근 승인을 요청했어요. 담당자 승인 후 이용 가능해요.');
+        setLoading(false); return;
+      }
+      if (approval.status === 'pending') {
+        await supabase.auth.signOut();
+        setError('아직 승인 대기 중이에요. 담당자 승인 후 이용 가능해요.');
+        setLoading(false); return;
+      }
+      if (approval.status === 'rejected') {
+        await supabase.auth.signOut();
+        setError('접근이 거절됐어요. 문의사항은 everplayground@gmail.com으로 연락해주세요.');
+        setLoading(false); return;
+      }
     }
     router.push(redirect);
   };
@@ -50,10 +68,19 @@ function GuestAuthContent() {
     setLoading(true); setError('');
     const { data, error: err } = await supabase.auth.signUp({ email, password });
     if (err || !data.user) { setError(err?.message || '오류가 났어요'); setLoading(false); return; }
-    await supabase.from('guests').insert({
-      id: data.user.id, name, email,
-      artist_name: artistName, phone: phone || null, status: 'pending',
+
+    // guests 프로필 저장
+    await supabase.from('guests').upsert({
+      id: data.user.id, name, email, artist_name: artistName, phone: phone || null,
     });
+
+    // 이 호스트에 대한 승인 요청 생성
+    if (hostId) {
+      await supabase.from('guest_approvals').upsert({
+        guest_id: data.user.id, host_id: hostId, status: 'pending',
+      });
+    }
+
     await supabase.auth.signOut();
     setLoading(false); setDone(true);
   };
@@ -66,7 +93,7 @@ function GuestAuthContent() {
           <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
         </div>
         <p className="text-zinc-600 text-[12px]">
-          {done ? '가입 신청 완료' : mode === 'login' ? '아티스트 계정으로 로그인하세요' : '아티스트 계정을 만들어요'}
+          {done ? '신청 완료' : mode === 'login' ? '계정으로 로그인하세요' : '아티스트 계정을 만들어요'}
         </p>
       </div>
 
@@ -74,7 +101,7 @@ function GuestAuthContent() {
         <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 text-center">
           <div className="text-5xl mb-5">✉️</div>
           <h2 className="text-white font-black text-[20px] mb-3">신청 완료!</h2>
-          <p className="text-zinc-400 text-[13px] leading-relaxed mb-1">
+          <p className="text-zinc-400 text-[13px] leading-relaxed">
             <span className="text-white font-bold">{artistName}</span> 님의 가입 신청이 접수됐어요.
           </p>
           <p className="text-zinc-600 text-[12px] leading-relaxed mt-2">담당자 승인 후 이용하실 수 있어요.</p>
@@ -145,7 +172,7 @@ function GuestAuthContent() {
             {mode === 'register' && (
               <div className="mt-4 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/5">
                 <p className="text-zinc-600 text-[11px] leading-relaxed">
-                  가입 신청 후 담당자 승인이 완료되면 이용하실 수 있어요. 승인에는 1–2일 소요될 수 있어요.
+                  가입 신청 후 담당자 승인이 완료되면 이용하실 수 있어요.
                 </p>
               </div>
             )}
