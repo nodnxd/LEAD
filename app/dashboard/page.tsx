@@ -64,13 +64,11 @@ export default function Dashboard(){
   const [announcements,setAnnouncements]=useState<any[]>([]);
   const [showAnnModal,setShowAnnModal]=useState(false);
   const [annForm,setAnnForm]=useState<{id?:string;title:string;content:string}|null>(null);
-  // 피칭
   const [pitches,setPitches]=useState<any[]>([]);
   const [pitchFiles,setPitchFiles]=useState<any[]>([]);
   const [showPitchModal,setShowPitchModal]=useState(false);
   const [pitchLead,setPitchLead]=useState<any>(null);
   const [expandedPitch,setExpandedPitch]=useState<string|null>(null);
-  // 파일 관리 (별도 전체화면 오버레이)
   const [showFilesPanel,setShowFilesPanel]=useState(false);
   const [fileLead,setFileLead]=useState<any>(null);
   const [fileFilterVocal,setFileFilterVocal]=useState('');
@@ -124,9 +122,13 @@ export default function Dashboard(){
     if(pf.file_url){
       const url=new URL(pf.file_url);
       const pathParts=url.pathname.split('/pitch-files/');
-      if(pathParts[1]){await supabase.storage.from('pitch-files').remove([decodeURIComponent(pathParts[1])]);}
+      if(pathParts[1]){
+        const{error:se}=await supabase.storage.from('pitch-files').remove([decodeURIComponent(pathParts[1])]);
+        if(se)console.error('스토리지 파일 삭제 실패:',se);
+      }
     }
-    await supabase.from('pitch_files').delete().eq('id',pf.id);
+    const{error:de}=await supabase.from('pitch_files').delete().eq('id',pf.id);
+    if(de){console.error('pitch_files DB 삭제 실패:',de);toast('❌ 삭제 실패 — 콘솔 확인');return;}
     fetchPitchFiles();toast('🗑 파일 삭제됐어요');
   };
 
@@ -134,9 +136,19 @@ export default function Dashboard(){
     if(!confirm(`"${pitch.artist_name}"의 피칭 전체를 삭제할까요?`))return;
     const files=pitchFiles.filter(f=>f.pitch_id===pitch.id);
     for(const f of files){
-      if(f.file_url){const url=new URL(f.file_url);const p=url.pathname.split('/pitch-files/')[1];if(p)await supabase.storage.from('pitch-files').remove([decodeURIComponent(p)]);}
+      if(f.file_url){
+        const url=new URL(f.file_url);
+        const p=url.pathname.split('/pitch-files/')[1];
+        if(p){
+          const{error:se}=await supabase.storage.from('pitch-files').remove([decodeURIComponent(p)]);
+          if(se)console.error('스토리지 삭제 실패:',se);
+        }
+      }
+      const{error:fe}=await supabase.from('pitch_files').delete().eq('id',f.id);
+      if(fe)console.error('pitch_files 삭제 실패:',fe);
     }
-    await supabase.from('pitches').delete().eq('id',pitch.id);
+    const{error:de}=await supabase.from('pitches').delete().eq('id',pitch.id);
+    if(de){console.error('pitches DB 삭제 실패:',de);toast('❌ 삭제 실패 — 콘솔 확인');return;}
     fetchPitches();fetchPitchFiles();toast('🗑 피칭 삭제됐어요');
   };
 
@@ -153,8 +165,16 @@ export default function Dashboard(){
     if(!confirm(`선택한 ${selectedFiles.length}개 파일을 삭제할까요?`))return;
     const toDelete=filteredPitchFiles.filter(f=>selectedFiles.includes(f.id));
     for(const f of toDelete){
-      if(f.file_url){const url=new URL(f.file_url);const p=url.pathname.split('/pitch-files/')[1];if(p)await supabase.storage.from('pitch-files').remove([decodeURIComponent(p)]);}
-      await supabase.from('pitch_files').delete().eq('id',f.id);
+      if(f.file_url){
+        const url=new URL(f.file_url);
+        const p=url.pathname.split('/pitch-files/')[1];
+        if(p){
+          const{error:se}=await supabase.storage.from('pitch-files').remove([decodeURIComponent(p)]);
+          if(se)console.error('스토리지 삭제 실패:',se);
+        }
+      }
+      const{error:de}=await supabase.from('pitch_files').delete().eq('id',f.id);
+      if(de)console.error('pitch_files 삭제 실패:',de);
     }
     setSelectedFiles([]);fetchPitchFiles();toast(`🗑 ${toDelete.length}개 삭제됐어요`);
   };
@@ -186,7 +206,6 @@ export default function Dashboard(){
   const filteredPitchFiles=useMemo(()=>{
     let f=[...pitchFiles];
     if(fileLead){
-      // pitchFiles에 직접 lead_id가 없으므로 pitch를 통해 필터
       const leadPitchIds=pitches.filter(p=>p.lead_id===fileLead.id).map(p=>p.id);
       f=f.filter(x=>leadPitchIds.includes(x.pitch_id));
     }
@@ -245,7 +264,6 @@ export default function Dashboard(){
 
         {announcements.length>0&&<div className="relative z-10 mb-5 flex flex-col gap-2">{announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20"><span className="text-[#5B8CFF] text-[11px] font-black mt-0.5 shrink-0">📢</span><div className="flex-1 min-w-0">{ann.title&&<p className="text-white font-bold text-[13px] mb-0.5">{ann.title}</p>}<p className="text-zinc-300 text-[12px] leading-relaxed whitespace-pre-line">{ann.content}</p></div><button onClick={()=>{setAnnForm({id:ann.id,title:ann.title||'',content:ann.content||''});setShowAnnModal(true);}} className="text-zinc-600 hover:text-zinc-400 text-[10px] shrink-0 font-bold">수정</button></div>)}</div>}
 
-        {/* 상단 바 */}
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 mb-6 border-b border-white/10 pb-4">
           <div className="flex items-center gap-2"><span className="text-zinc-500 text-[13px] font-bold">{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} 활성</span><span className="text-zinc-700">·</span><span className="text-zinc-700 text-[13px]">{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} 마감</span></div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -256,7 +274,6 @@ export default function Dashboard(){
             <button onClick={()=>{setPitchLead(null);setExpandedPitch(null);setShowPitchModal(true);}} className="relative bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">
               📨 피칭{newPitchCount>0&&<span className="absolute -top-1 -right-1 w-4 h-4 bg-[#5B8CFF] rounded-full text-white text-[9px] font-black flex items-center justify-center">{newPitchCount}</span>}
             </button>
-            {/* 파일 관리 — 별도 버튼 */}
             <button onClick={()=>{setFileLead(null);setSelectedFiles([]);setFileFilterVocal('');setFileFilterGenre('');setShowFilesPanel(true);}} className="relative bg-white/5 border border-white/10 text-zinc-400 px-3 py-2 rounded-xl font-bold text-[11px] hover:text-white hover:bg-white/10 transition-all">
               🎵 파일 관리{pitchFiles.length>0&&<span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-zinc-700 rounded-full text-zinc-400 text-[9px] font-black flex items-center justify-center px-1">{pitchFiles.length}</span>}
             </button>
@@ -267,7 +284,6 @@ export default function Dashboard(){
           </div>
         </div>
 
-        {/* 달력 */}
         {view==='calendar'&&(
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
@@ -283,7 +299,6 @@ export default function Dashboard(){
           </div>
         )}
 
-        {/* 목록 */}
         {view==='list'&&(
           <div className="relative z-10">
             <div className="flex flex-col gap-3 mb-5 p-4 rounded-xl bg-white/[0.02] border border-white/5">
@@ -297,7 +312,6 @@ export default function Dashboard(){
         )}
       </main>
 
-      {/* ── 상세 모달 ── */}
       {viewingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setViewingLead(null)}>
           <div className={`w-full max-w-2xl border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
@@ -317,7 +331,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* ── 피칭 현황 모달 ── */}
       {showPitchModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowPitchModal(false)}>
           <div className="w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl" onClick={e=>e.stopPropagation()}>
@@ -329,7 +342,6 @@ export default function Dashboard(){
                 <div className="flex-1"/>
                 <button onClick={()=>setShowPitchModal(false)} className="text-zinc-600 hover:text-white text-[13px] font-bold transition-colors">✕</button>
               </div>
-              {/* 리드 필터 */}
               <div className="flex gap-2 px-4 py-3 border-b border-white/5 overflow-x-auto">
                 <button onClick={()=>setPitchLead(null)} className={`px-3 py-1 rounded-full text-[11px] font-bold border whitespace-nowrap transition-all ${!pitchLead?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>전체</button>
                 {leads.filter(l=>pitches.some(p=>p.lead_id===l.id)).map(l=>{
@@ -405,20 +417,15 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* ── 파일 관리 전체화면 패널 ── */}
       {showFilesPanel&&(
         <div className="fixed inset-0 z-50 bg-[#0a0a0a] font-pretendard flex flex-col">
-          {/* 헤더 */}
           <div className="flex items-center gap-4 px-6 py-4 border-b border-white/10">
             <h2 className="text-white font-black text-[20px]">🎵 파일 관리</h2>
             <span className="text-zinc-600 text-[13px]">{pitchFiles.length}개 파일</span>
             <div className="flex-1"/>
             <button onClick={()=>setShowFilesPanel(false)} className="px-4 py-2 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">✕ 닫기</button>
           </div>
-
-          {/* 필터 바 */}
           <div className="flex flex-wrap items-center gap-3 px-6 py-4 border-b border-white/5">
-            {/* 리드 필터 */}
             <div className="flex gap-2 overflow-x-auto">
               <button onClick={()=>setFileLead(null)} className={`px-3 py-1.5 rounded-full text-[11px] font-bold border whitespace-nowrap transition-all ${!fileLead?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>전체</button>
               {leads.filter(l=>pitches.some(p=>p.lead_id===l.id&&pitchFiles.some(f=>f.pitch_id===p.id))).map(l=>(
@@ -437,8 +444,6 @@ export default function Dashboard(){
               </div>
             </div>
           </div>
-
-          {/* 선택 액션 */}
           {selectedFiles.length>0&&(
             <div className="flex items-center gap-3 px-6 py-3 bg-[#5B8CFF]/10 border-b border-[#5B8CFF]/20">
               <span className="text-[#5B8CFF] text-[13px] font-bold flex-1">{selectedFiles.length}개 선택됨</span>
@@ -447,8 +452,6 @@ export default function Dashboard(){
               <button onClick={()=>setSelectedFiles([])} className="text-zinc-600 hover:text-white text-[12px] font-bold transition-colors">취소</button>
             </div>
           )}
-
-          {/* 파일 리스트 */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
             {filteredPitchFiles.length===0?(
               <div className="flex flex-col items-center justify-center h-full gap-3">
@@ -457,7 +460,6 @@ export default function Dashboard(){
               </div>
             ):(
               <div className="flex flex-col gap-2">
-                {/* 전체 선택 */}
                 <div className="flex items-center gap-2 mb-2">
                   <input type="checkbox" checked={selectedFiles.length===filteredPitchFiles.length&&filteredPitchFiles.length>0}
                     onChange={e=>setSelectedFiles(e.target.checked?filteredPitchFiles.map(f=>f.id):[])}
@@ -504,7 +506,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 공지 모달 */}
       {showAnnModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>{setShowAnnModal(false);setAnnForm(null);}}>
           <div className="w-full max-w-lg bg-[#111] border border-white/10 rounded-2xl shadow-2xl" onClick={e=>e.stopPropagation()}>
@@ -521,7 +522,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 리드 추가/수정 */}
       {showModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto">
           <div className="w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl my-4">
