@@ -123,6 +123,8 @@ export default function GuestView(){
   const [guestProfile,setGuestProfile]=useState<any>(null);
   const [authStatus,setAuthStatus]=useState<'loading'|'none'|'pending'|'rejected'|'approved'>('loading');
   const [theme,setTheme]=useState<'dark'|'light'>('dark');
+  const [translating,setTranslating]=useState(false);
+  const [translatedCache,setTranslatedCache]=useState<Record<string,Section[]>>({});
 
   useEffect(()=>{const s=localStorage.getItem('lead_theme');if(s==='light')setTheme('light');},[]);
   const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
@@ -191,7 +193,56 @@ export default function GuestView(){
     setPitchLoading(false);setPitchSent(true);
   };
 
-  // 섹션 aware 렌더링
+  const gTranslate=async(text:string):Promise<string>=>{
+    if(!text.trim())return'';
+    const res=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ko&tl=en&dt=t&q=${encodeURIComponent(text)}`);
+    const data=await res.json();
+    return data[0].map((item:any)=>item[0]).join('');
+  };
+  const switchToEn=async(lead:any)=>{
+    if(contentLang==='en'){setContentLang('ko');return;}
+    // content_en이 이미 있으면 그냥 전환
+    if(lead.content_en){setContentLang('en');return;}
+    // 캐시 확인
+    if(translatedCache[lead.id]){setContentLang('en');return;}
+    // 번역 실행
+    setTranslating(true);
+    try{
+      const sections=parseSections(lead.content||'');
+      if(sections){
+        const translated=await Promise.all(sections.map(async(s,i)=>({
+          id:`en${i}`,
+          title:s.title?await gTranslate(s.title):'',
+          body:await gTranslate(s.body),
+        })));
+        setTranslatedCache(p=>({...p,[lead.id]:translated}));
+      } else {
+        const body=await gTranslate(lead.content||'');
+        setTranslatedCache(p=>({...p,[lead.id]:[{id:'en0',title:'',body}]}));
+      }
+      setContentLang('en');
+    }catch{/* 번역 실패시 그냥 KO 유지 */}
+    setTranslating(false);
+  };
+  const getEnContent=(lead:any):Section[]|null=>{
+    if(lead.content_en)return parseSections(lead.content_en)||[{id:'en0',title:'',body:lead.content_en}];
+    return translatedCache[lead.id]||null;
+  };
+  const renderSections=(sections:Section[])=>(
+    <div className="flex flex-col gap-4">
+      {sections.map((s,i)=>(
+        <div key={i}>
+          {s.title&&<p className={`text-[11px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-500':'text-zinc-400'}`}>{i+1}. {s.title}</p>}
+          <div className={`text-[13px] leading-relaxed ${D?'text-zinc-300':'text-zinc-700'}`}>
+            {s.body.split(/(https?:\/\/[^\s]+)/g).map((part,j)=>{
+              if(part.match(/^https?:\/\//))return<a key={j} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#5B8CFF] hover:underline break-all"><span>{getLinkIcon(part)}</span><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
+              return<span key={j} className="whitespace-pre-wrap">{part}</span>;
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
   const renderContent=(content:string)=>{
     if(!content)return null;
     const sections=parseSections(content);
@@ -394,20 +445,18 @@ export default function GuestView(){
                 <div className="ml-3 shrink-0"><DeadlineDisplay lead={viewingLead} size="large"/></div>
               </div>
               {/* 한/영 토글 + 내용 */}
-              {(viewingLead.content||viewingLead.content_en)&&(
+              {viewingLead.content&&(
                 <div className="mb-5">
-                  {viewingLead.content_en&&(
-                    <div className="flex gap-1 mb-3">
-                      {(['ko','en'] as const).map(lang=>(
-                        <button key={lang} onClick={()=>setContentLang(lang)}
-                          className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all border ${contentLang===lang?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'border-white/10 text-zinc-500 hover:text-white'}`}>
-                          {lang==='ko'?'한국어':'English'}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <div className="flex gap-1 mb-3">
+                    <button onClick={()=>setContentLang('ko')} className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all border ${contentLang==='ko'?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'border-white/10 text-zinc-500 hover:text-white'}`}>KO</button>
+                    <button onClick={()=>switchToEn(viewingLead)} disabled={translating} className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black transition-all border disabled:opacity-50 ${contentLang==='en'?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'border-white/10 text-zinc-500 hover:text-white'}`}>
+                      {translating?<><div className="w-2.5 h-2.5 border border-current border-t-transparent rounded-full animate-spin"/>번역 중</>:'EN'}
+                    </button>
+                  </div>
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                    {renderContent(contentLang==='en'&&viewingLead.content_en?viewingLead.content_en:viewingLead.content||'')}
+                    {contentLang==='en'&&getEnContent(viewingLead)
+                      ?renderSections(getEnContent(viewingLead)!)
+                      :renderContent(viewingLead.content||'')}
                   </div>
                 </div>
               )}
