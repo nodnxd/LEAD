@@ -281,7 +281,21 @@ export default function MyPage() {
                     <div key={d.id} className={`flex items-center gap-3 p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                       <span className="text-[14px]">🎵</span>
                       <span className={`flex-1 text-[12px] font-bold truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{d.file_name}</span>
-                      <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="text-[#5B8CFF] text-[11px] font-bold hover:underline">재생</a>
+                      <button onClick={async () => {
+                        const path = d.file_url.split('/member-demos/')[1];
+                        if (!path) return;
+                        const { data: signed } = await supabase.storage.from('member-demos').createSignedUrl(decodeURIComponent(path), 60);
+                        if (!signed) return;
+                        try {
+                          const res = await fetch(signed.signedUrl);
+                          const blob = await res.blob();
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url; a.download = d.file_name || 'demo.mp3';
+                          document.body.appendChild(a); a.click();
+                          document.body.removeChild(a); URL.revokeObjectURL(url);
+                        } catch { showToast('다운로드 실패'); }
+                      }} className="text-[#5B8CFF] text-[11px] font-bold hover:underline">⬇ 다운</button>
                     </div>
                   ))}
                 </div>
