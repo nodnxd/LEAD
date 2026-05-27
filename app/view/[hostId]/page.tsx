@@ -136,12 +136,11 @@ export default function GuestView(){
   useEffect(()=>{
     supabase.auth.getUser().then(async({data})=>{
       if(!data.user){setAuthStatus('none');return;}
-      // ✅ last_host_id 저장
       localStorage.setItem('last_host_id', hostId);
+      // ✅ 호스트는 바로 승인
+      if(data.user.id === hostId){setAuthStatus('approved');return;}
       const[profileRes,approvalRes]=await Promise.all([
-        // ✅ guests → members
         supabase.from('members').select('*').eq('id',data.user.id).single(),
-        // ✅ guest_approvals → member_approvals, guest_id → member_id
         supabase.from('member_approvals').select('status').eq('member_id',data.user.id).eq('host_id',hostId).single(),
       ]);
       if(profileRes.data)setGuestProfile(profileRes.data);
