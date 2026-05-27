@@ -10,7 +10,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
 
-// ── Section 파싱 (dashboard와 동일) ──
 type Section = {id:string;title:string;body:string};
 const parseSections = (content:string): Section[]|null => {
   try {
@@ -137,9 +136,13 @@ export default function GuestView(){
   useEffect(()=>{
     supabase.auth.getUser().then(async({data})=>{
       if(!data.user){setAuthStatus('none');return;}
+      // ✅ last_host_id 저장
+      localStorage.setItem('last_host_id', hostId);
       const[profileRes,approvalRes]=await Promise.all([
-        supabase.from('guests').select('*').eq('id',data.user.id).single(),
-        supabase.from('guest_approvals').select('status').eq('guest_id',data.user.id).eq('host_id',hostId).single(),
+        // ✅ guests → members
+        supabase.from('members').select('*').eq('id',data.user.id).single(),
+        // ✅ guest_approvals → member_approvals, guest_id → member_id
+        supabase.from('member_approvals').select('status').eq('member_id',data.user.id).eq('host_id',hostId).single(),
       ]);
       if(profileRes.data)setGuestProfile(profileRes.data);
       if(!approvalRes.data){setAuthStatus('none');}
@@ -201,11 +204,8 @@ export default function GuestView(){
   };
   const switchToEn=async(lead:any)=>{
     if(contentLang==='en'){setContentLang('ko');return;}
-    // content_en이 이미 있으면 그냥 전환
     if(lead.content_en){setContentLang('en');return;}
-    // 캐시 확인
     if(translatedCache[lead.id]){setContentLang('en');return;}
-    // 번역 실행
     setTranslating(true);
     try{
       const sections=parseSections(lead.content||'');
@@ -221,7 +221,7 @@ export default function GuestView(){
         setTranslatedCache(p=>({...p,[lead.id]:[{id:'en0',title:'',body}]}));
       }
       setContentLang('en');
-    }catch{/* 번역 실패시 그냥 KO 유지 */}
+    }catch{}
     setTranslating(false);
   };
   const getEnContent=(lead:any):Section[]|null=>{
@@ -395,10 +395,14 @@ export default function GuestView(){
               <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 달력</button>
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
             </div>
+            {/* ✅ MY 버튼 추가 */}
             {guestProfile?(
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#5B8CFF]/30 bg-[#5B8CFF]/10">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#5B8CFF]"/>
-                <span className="text-[#5B8CFF] text-[11px] font-bold">{guestProfile.artist_name}</span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#5B8CFF]/30 bg-[#5B8CFF]/10">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#5B8CFF]"/>
+                  <span className="text-[#5B8CFF] text-[11px] font-bold">{guestProfile.artist_name}</span>
+                </div>
+                <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
               </div>
             ):(
               <a href="/guest" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>로그인</a>
@@ -406,7 +410,6 @@ export default function GuestView(){
           </div>
         </div>
 
-        {/* 달력 */}
         {view==='calendar'&&(
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
@@ -428,14 +431,13 @@ export default function GuestView(){
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>성별</span>{[['male','남자'],['female','여자'],['mixed','혼성']].map(([v,l])=><FilterPill key={v} label={l} active={filterGender.includes(v)} onClick={()=>setFilterGender(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v])} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>타입</span>{[['solo','솔로'],['group','그룹']].map(([v,l])=><FilterPill key={v} label={l} active={filterGroup.includes(v)} onClick={()=>setFilterGroup(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v])} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>앨범</span>{[['single','Single'],['ep','EP'],['lp','LP'],['ost','OST']].map(([v,l])=><FilterPill key={v} label={l} active={filterAlbum.includes(v)} onClick={()=>setFilterAlbum(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v])} isDark={D}/>)}</div>
-          </div>
+            </div>
             {filteredLeads.length===0?<div className="text-center py-20"><p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>해당하는 리드가 없어요</p></div>:<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{filteredLeads.map(lead=><LeadCard key={lead.id} lead={lead}/>)}</div>}
           </div>
         )}
         <div className={`relative z-10 mt-8 pb-8 text-center`}><p className={`text-[11px] ${D?'text-zinc-600':'text-zinc-400'}`}>Contact : everplayground@gmail.com</p></div>
       </main>
 
-      {/* 상세 모달 */}
       {viewingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setViewingLead(null)}>
           <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
@@ -444,7 +446,6 @@ export default function GuestView(){
                 <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><span className={`text-[10px] font-black ${getCardColor(viewingLead.gender,viewingLead.group_type).text}`}>{getCardColor(viewingLead.gender,viewingLead.group_type).label}</span><AlbumBadge type={viewingLead.album_type||'single'}/></div><h2 className="text-white font-black text-[22px] leading-tight">{viewingLead.artist}</h2><p className="text-zinc-400 text-[14px] mt-0.5">{viewingLead.title}</p></div>
                 <div className="ml-3 shrink-0"><DeadlineDisplay lead={viewingLead} size="large"/></div>
               </div>
-              {/* 한/영 토글 + 내용 */}
               {viewingLead.content&&(
                 <div className="mb-5">
                   <div className="flex gap-1 mb-3">
@@ -473,7 +474,6 @@ export default function GuestView(){
         </div>
       )}
 
-      {/* 피칭 모달 */}
       {pitchingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
           <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl my-4 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
