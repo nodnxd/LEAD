@@ -134,14 +134,14 @@ export default function GuestView(){
   const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
 
   useEffect(()=>{
-    supabase.auth.getUser().then(async({data})=>{
-      if(!data.user){setAuthStatus('none');return;}
-      localStorage.setItem('last_host_id', hostId);
-      // ✅ 호스트는 바로 승인
-      if(data.user.id === hostId){setAuthStatus('approved');return;}
+    supabase.auth.getSession().then(async({data:{session}})=>{
+      if(!session){setAuthStatus('none');return;}
+      const user=session.user;
+      localStorage.setItem('last_host_id',hostId);
+      if(user.id===hostId){setAuthStatus('approved');return;}
       const[profileRes,approvalRes]=await Promise.all([
-        supabase.from('members').select('*').eq('id',data.user.id).single(),
-        supabase.from('member_approvals').select('status').eq('member_id',data.user.id).eq('host_id',hostId).single(),
+        supabase.from('members').select('*').eq('id',user.id).single(),
+        supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).single(),
       ]);
       if(profileRes.data)setGuestProfile(profileRes.data);
       if(!approvalRes.data){setAuthStatus('none');}
