@@ -47,15 +47,21 @@ function GuestAuthContent() {
     if (err) { setError(err.message); setLoading(false); return; }
 
     if (hostId) {
+      // ✅ 호스트는 바로 통과
+      if (data.user.id === hostId) {
+        router.push(redirect);
+        return;
+      }
+
       const { data: approval } = await supabase
-        .from('member_approvals')          // ✅ 변경
+        .from('member_approvals')
         .select('status')
-        .eq('member_id', data.user.id)     // ✅ 변경
+        .eq('member_id', data.user.id)
         .eq('host_id', hostId)
         .single();
 
       if (!approval) {
-        await supabase.from('member_approvals').upsert({  // ✅ 변경
+        await supabase.from('member_approvals').upsert({
           member_id: data.user.id, host_id: hostId, status: 'pending',
         });
         await supabase.auth.signOut();
@@ -74,18 +80,21 @@ function GuestAuthContent() {
       }
     }
 
-    // ✅ 로그인 성공 후 프로필 완성 여부 확인 → 온보딩으로
-    const { data: member } = await supabase
-      .from('members')
-      .select('profile_completed')
-      .eq('id', data.user.id)
-      .single();
+    // ✅ 로그인 성공 후 프로필 완성 여부 확인 → 온보딩으로 (호스트 제외)
+    if (data.user.id !== hostId) {
+      const { data: member } = await supabase
+        .from('members')
+        .select('profile_completed')
+        .eq('id', data.user.id)
+        .single();
 
-    if (!member?.profile_completed) {
-      router.push('/onboarding');
-    } else {
-      router.push(redirect);
+      if (!member?.profile_completed) {
+        router.push('/onboarding');
+        return;
+      }
     }
+
+    router.push(redirect);
   };
 
   // ─── 회원가입 ─────────────────────────────────────────────────────────────
