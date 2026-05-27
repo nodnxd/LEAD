@@ -27,12 +27,10 @@ function GuestAuthContent() {
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
-  // 아이디 찾기
   const [findName, setFindName] = useState('');
   const [findPhone, setFindPhone] = useState('');
   const [foundEmail, setFoundEmail] = useState('');
 
-  // 비밀번호 찾기
   const [resetEmail, setResetEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
@@ -50,15 +48,15 @@ function GuestAuthContent() {
 
     if (hostId) {
       const { data: approval } = await supabase
-        .from('guest_approvals')
+        .from('member_approvals')          // ✅ 변경
         .select('status')
-        .eq('guest_id', data.user.id)
+        .eq('member_id', data.user.id)     // ✅ 변경
         .eq('host_id', hostId)
         .single();
 
       if (!approval) {
-        await supabase.from('guest_approvals').insert({
-          guest_id: data.user.id, host_id: hostId, status: 'pending',
+        await supabase.from('member_approvals').upsert({  // ✅ 변경
+          member_id: data.user.id, host_id: hostId, status: 'pending',
         });
         await supabase.auth.signOut();
         setError('이 페이지 접근 승인을 요청했어요. 담당자 승인 후 이용 가능해요.');
@@ -75,7 +73,19 @@ function GuestAuthContent() {
         setLoading(false); return;
       }
     }
-    router.push(redirect);
+
+    // ✅ 로그인 성공 후 프로필 완성 여부 확인 → 온보딩으로
+    const { data: member } = await supabase
+      .from('members')
+      .select('profile_completed')
+      .eq('id', data.user.id)
+      .single();
+
+    if (!member?.profile_completed) {
+      router.push('/onboarding');
+    } else {
+      router.push(redirect);
+    }
   };
 
   // ─── 회원가입 ─────────────────────────────────────────────────────────────
@@ -88,7 +98,6 @@ function GuestAuthContent() {
 
     setLoading(true); setError('');
 
-    // signUp — 이메일 인증 ON이어도 data.user는 반환됨
     const { data, error: err } = await supabase.auth.signUp({ email, password });
     if (err || !data.user) {
       setError(err?.message || '회원가입 중 오류가 났어요');
@@ -97,18 +106,19 @@ function GuestAuthContent() {
 
     const userId = data.user.id;
 
-    // guests 프로필 저장 (anyone insert 정책 적용 상태 — anon 키로도 동작)
-    const { error: guestErr } = await supabase.from('guests').upsert({
+    // ✅ guests → members 변경
+    const { error: memberErr } = await supabase.from('members').upsert({
       id: userId, name, email, artist_name: artistName, phone: phone || null,
+      profile_completed: false,
     });
-    if (guestErr) console.error('[guests upsert]', guestErr.code, guestErr.message);
+    if (memberErr) console.error('[members upsert]', memberErr.code, memberErr.message);
 
-    // 승인 요청 생성
+    // ✅ guest_approvals → member_approvals, guest_id → member_id 변경
     if (hostId) {
-      const { error: approvalErr } = await supabase.from('guest_approvals').upsert({
-        guest_id: userId, host_id: hostId, status: 'pending',
+      const { error: approvalErr } = await supabase.from('member_approvals').upsert({
+        member_id: userId, host_id: hostId, status: 'pending',
       });
-      if (approvalErr) console.error('[guest_approvals upsert]', approvalErr.code, approvalErr.message);
+      if (approvalErr) console.error('[member_approvals upsert]', approvalErr.code, approvalErr.message);
     }
 
     await supabase.auth.signOut();
@@ -142,7 +152,6 @@ function GuestAuthContent() {
     setLoading(false);
   };
 
-  // ─── 공통 인풋 스타일 ────────────────────────────────────────────────────
   const inputCls = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white';
   const labelCls = 'text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-1.5 block';
   const btnPrimary = 'w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 shadow-lg shadow-blue-900/20';
@@ -157,7 +166,6 @@ function GuestAuthContent() {
 
   return (
     <div className="w-full max-w-sm relative z-10">
-      {/* ── 헤더 ── */}
       <div className="text-center mb-8">
         <div className="flex items-baseline justify-center gap-2.5 mb-3">
           <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1>
@@ -168,7 +176,7 @@ function GuestAuthContent() {
         </p>
       </div>
 
-      {/* ── 가입 완료 ── */}
+      {/* 가입 완료 */}
       {done && (
         <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 text-center">
           <div className="text-5xl mb-5">✉️</div>
@@ -184,7 +192,7 @@ function GuestAuthContent() {
         </div>
       )}
 
-      {/* ── 아이디 찾기 ── */}
+      {/* 아이디 찾기 */}
       {!done && mode === 'find-id' && (
         <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
           {foundEmail ? (
@@ -223,7 +231,7 @@ function GuestAuthContent() {
         </div>
       )}
 
-      {/* ── 비밀번호 찾기 ── */}
+      {/* 비밀번호 찾기 */}
       {!done && mode === 'find-pw' && (
         <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
           {resetSent ? (
@@ -257,7 +265,7 @@ function GuestAuthContent() {
         </div>
       )}
 
-      {/* ── 로그인 / 회원가입 ── */}
+      {/* 로그인 / 회원가입 */}
       {!done && (mode === 'login' || mode === 'register') && (
         <>
           <div className="flex bg-white/[0.03] border border-white/10 rounded-2xl p-1 gap-1 mb-5">
@@ -271,8 +279,6 @@ function GuestAuthContent() {
 
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
             <div className="flex flex-col gap-3">
-
-              {/* 회원가입 전용 필드 */}
               {mode === 'register' && (
                 <>
                   <div className="grid grid-cols-2 gap-3">
@@ -296,7 +302,6 @@ function GuestAuthContent() {
                 </>
               )}
 
-              {/* 공통 필드 */}
               <div>
                 <label className={labelCls}>이메일 *</label>
                 <input value={email} onChange={e => setEmail(e.target.value)}
@@ -310,7 +315,6 @@ function GuestAuthContent() {
                   className={inputCls}/>
               </div>
 
-              {/* 비밀번호 확인 (회원가입만) */}
               {mode === 'register' && (
                 <div>
                   <label className={labelCls}>비밀번호 확인 *</label>
@@ -344,7 +348,6 @@ function GuestAuthContent() {
               {loading ? '처리 중...' : mode === 'login' ? '로그인' : '가입 신청'}
             </button>
 
-            {/* 아이디/비밀번호 찾기 링크 (로그인 탭만) */}
             {mode === 'login' && (
               <div className="flex justify-center gap-4 mt-4">
                 <button onClick={() => switchMode('find-id')}
@@ -367,7 +370,6 @@ function GuestAuthContent() {
   );
 }
 
-// ── 에러 박스 컴포넌트 ───────────────────────────────────────────────────────
 function ErrorBox({ msg }: { msg: string }) {
   return (
     <div className="mt-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20">
