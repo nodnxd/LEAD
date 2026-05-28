@@ -136,7 +136,7 @@ export default function GuestView(){
   const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
 
   useEffect(()=>{
-    supabase.auth.getSession().then(async({data:{session}})=>{
+    const checkAuth=async(session:any)=>{
       if(!session){setAuthStatus('none');return;}
       const user=session.user;
       localStorage.setItem('last_host_id',hostId);
@@ -148,7 +148,13 @@ export default function GuestView(){
       if(profileRes.data)setGuestProfile(profileRes.data);
       if(!approvalRes.data){setAuthStatus('none');}
       else setAuthStatus(approvalRes.data.status as any);
+    };
+    supabase.auth.getSession().then(({data:{session}})=>checkAuth(session));
+    const{data:{subscription}}=supabase.auth.onAuthStateChange((_ev,session)=>{
+      if(_ev==='SIGNED_IN'||_ev==='TOKEN_REFRESHED') checkAuth(session);
+      else if(_ev==='SIGNED_OUT'){setAuthStatus('none');setGuestProfile(null);}
     });
+    return()=>subscription.unsubscribe();
   },[hostId]);
   const fileInputRef=useRef<HTMLInputElement>(null);
 
@@ -396,8 +402,16 @@ export default function GuestView(){
               <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 달력</button>
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
             </div>
-            {/* ✅ MY 버튼 추가 */}
-            {guestProfile?(
+            {/* ✅ MY 버튼 */}
+            {authStatus==='approved'&&!guestProfile?(
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
+                  <span className="text-amber-400 text-[11px] font-bold">HOST</span>
+                </div>
+                <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
+              </div>
+            ):guestProfile?(
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#5B8CFF]/30 bg-[#5B8CFF]/10">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#5B8CFF]"/>
