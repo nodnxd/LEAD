@@ -149,7 +149,7 @@ export default function GuestView(){
       if(!approvalRes.data){setAuthStatus('none');}
       else setAuthStatus(approvalRes.data.status as any);
     };
-    supabase.auth.getSession().then(({data:{session}})=>checkAuth(session));
+    supabase.auth.getSession().then(({data:{session}})=>{if(session)checkAuth(session);});
     const{data:{subscription}}=supabase.auth.onAuthStateChange((_ev,session)=>{
       if(_ev==='SIGNED_IN'||_ev==='TOKEN_REFRESHED'||_ev==='INITIAL_SESSION') checkAuth(session);
       else if(_ev==='SIGNED_OUT'){setAuthStatus('none');setGuestProfile(null);}
