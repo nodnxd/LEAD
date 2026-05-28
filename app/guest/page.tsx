@@ -70,6 +70,10 @@ export default function MyPage() {
     if (s === "light") setTheme("light");
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push("/"); return; }
+      // redirect 파라미터 있으면 바로 이동 (호스트/멤버 로그인 후 복귀)
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get('redirect');
+      if (redirectTo) { router.push(redirectTo); return; }
       setUser(session.user);
       fetchAll(session.user.id);
     });
