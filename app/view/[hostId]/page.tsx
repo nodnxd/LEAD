@@ -136,6 +136,7 @@ export default function GuestView(){
   const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
 
   useEffect(()=>{
+    if(!hostId)return;
     const checkAuth=async(user:any)=>{
       if(!user){setAuthStatus('none');return;}
       localStorage.setItem('last_host_id',hostId);
