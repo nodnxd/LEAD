@@ -10,7 +10,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
 
-// ── Section 타입 및 헬퍼 ──
 type Section = {id:string;title:string;body:string};
 let _sc = 0;
 const newSec = (title=''): Section => ({id:`s${++_sc}`,title,body:''});
@@ -24,7 +23,6 @@ const parseSections = (content:string): Section[]|null => {
 };
 const serializeSections = (ss:Section[]) => JSON.stringify(ss.map(({title,body})=>({title,body})));
 
-// ── SectionEditor 컴포넌트 ──
 const SectionEditor=({sections,onChange,isDark}:{sections:Section[];onChange:(s:Section[])=>void;isDark:boolean})=>{
   const handleKeyDown=(e:React.KeyboardEvent<HTMLTextAreaElement>,id:string)=>{
     const ta=e.currentTarget,val=ta.value,pos=ta.selectionStart;
@@ -87,7 +85,6 @@ const SectionEditor=({sections,onChange,isDark}:{sections:Section[];onChange:(s:
 const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='group';if(gender==='mixed')return{bg:g?'bg-purple-500/10':'bg-purple-500/20',border:g?'border-purple-500/20':'border-purple-500/40',text:g?'text-purple-400/50':'text-purple-300',dot:g?'bg-purple-400/35':'bg-purple-400',label:g?'혼성 그룹':'혼성'};if(gender==='female')return{bg:g?'bg-pink-500/10':'bg-pink-500/20',border:g?'border-pink-500/20':'border-pink-500/40',text:g?'text-pink-400/50':'text-pink-300',dot:g?'bg-pink-400/35':'bg-pink-400',label:g?'여자 그룹':'여자'};return{bg:g?'bg-blue-500/10':'bg-blue-500/20',border:g?'border-blue-500/20':'border-blue-500/40',text:g?'text-blue-400/50':'text-blue-300',dot:g?'bg-blue-400/35':'bg-blue-400',label:g?'남자 그룹':'남자'};};
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
 const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${t.cls}`}>{t.label}</span>;};
-const PITCH_STATUS:Record<string,{label:string;cls:string}>={new:{label:'새 피칭',cls:'text-[#5B8CFF] border-[#5B8CFF]/30 bg-[#5B8CFF]/10'},reviewed:{label:'검토중',cls:'text-yellow-400 border-yellow-500/30 bg-yellow-500/10'},pass:{label:'패스',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},accepted:{label:'합격',cls:'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}};
 const getLinkIcon=(url:string)=>{if(!url)return'🔗';if(url.includes('youtube')||url.includes('youtu.be'))return'▶️';if(url.includes('soundcloud'))return'🎵';if(url.includes('spotify'))return'🎧';if(url.includes('instagram'))return'📸';return'🔗';};
 const isExpired=(d:string|null)=>!!d&&new Date(d)<new Date(new Date().toDateString());
 const getDDay=(d:string|null)=>{if(!d)return null;const diff=Math.ceil((new Date(d).getTime()-new Date(new Date().toDateString()).getTime())/86400000);if(diff===0)return'D-DAY';return diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;};
@@ -172,7 +169,6 @@ export default function Dashboard(){
   const [fileSearch,setFileSearch]=useState('');
   const [confirm,setConfirm]=useState<{msg:string;onOk:()=>void}|null>(null);
 
-  // 테마 초기화
   useEffect(()=>{const s=localStorage.getItem('lead_theme');if(s==='light')setTheme('light');},[]);
   const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
   const D=theme==='dark';
@@ -188,12 +184,12 @@ export default function Dashboard(){
   const fetchPitchFiles=async(u=user)=>{if(!u)return;const{data}=await supabase.from('pitch_files').select('*').eq('host_id',u.id).order('created_at',{ascending:false});if(data)setPitchFiles(data);};
   const fetchGuestApprovals=async(u=user)=>{
     if(!u)return;
-    const{data:approvals,error:aErr}=await supabase.from('guest_approvals').select('*').eq('host_id',u.id).order('created_at',{ascending:false});
+    const{data:approvals,error:aErr}=await supabase.from('member_approvals').select('*').eq('host_id',u.id).order('created_at',{ascending:false});
     if(aErr||!approvals){return;}
     if(approvals.length===0){setGuestApprovals([]);return;}
-    const guestIds=approvals.map((a:any)=>a.guest_id);
-    const{data:guests}=await supabase.from('guests').select('id,name,artist_name,email,phone').in('id',guestIds);
-    const merged=approvals.map((a:any)=>({...a,guests:guests?.find((g:any)=>g.id===a.guest_id)||null}));
+    const memberIds=approvals.map((a:any)=>a.member_id);
+    const{data:members}=await supabase.from('members').select('id,name,artist_name,email,phone').in('id',memberIds);
+    const merged=approvals.map((a:any)=>({...a,guests:members?.find((g:any)=>g.id===a.member_id)||null}));
     setGuestApprovals(merged);
   };
 
@@ -226,10 +222,9 @@ export default function Dashboard(){
   const copyShareLink=()=>{navigator.clipboard.writeText(`${window.location.origin}/view/${user.id}`);toast('🔗 링크 복사됐어요!');};
   const saveAnn=async()=>{if(!annForm)return;if(annForm.id)await supabase.from('lead_announcements').update({title:annForm.title,content:annForm.content,updated_at:new Date().toISOString()}).eq('id',annForm.id);else await supabase.from('lead_announcements').insert({host_id:user.id,title:annForm.title,content:annForm.content});setAnnForm(null);fetchAnn();toast('📢 공지 저장됐어요!');};
   const deleteAnn=async(id:string)=>{await supabase.from('lead_announcements').delete().eq('id',id);fetchAnn();toast('공지 삭제됐어요');};
-  const updatePitchStatus=async(pitchId:string,status:string)=>{await supabase.from('pitches').update({status}).eq('id',pitchId);fetchPitches();toast(`상태: ${PITCH_STATUS[status]?.label}`);};
   const archivePitch=async(pitch:any)=>{await supabase.from('pitches').update({archived:true}).eq('id',pitch.id);fetchPitches();setExpandedPitch(null);toast('📁 히스토리로 이동됐어요');};
   const updateApproval=async(id:string,status:string)=>{
-    await supabase.from('guest_approvals').update({status}).eq('id',id);
+    await supabase.from('member_approvals').update({status}).eq('id',id);
     fetchGuestApprovals();
     toast(status==='approved'?'✅ 승인됐어요':status==='rejected'?'🚫 거절됐어요':'변경됐어요');
     if(status==='approved'||status==='rejected')setGuestTab('history');
@@ -274,7 +269,7 @@ export default function Dashboard(){
     return f.sort((a,b)=>{if(fileSort==='bpm')return(b.bpm||0)-(a.bpm||0);if(fileSort==='genre')return(a.genre||'').localeCompare(b.genre||'');if(fileSort==='name')return(a.file_name||'').localeCompare(b.file_name||'');return new Date(b.created_at).getTime()-new Date(a.created_at).getTime();});
   },[pitchFiles,fileLead,fileFilterVocal,fileFilterGenre,fileSort,fileSearch,pitches]);
 
-  const newPitchCount=pitches.filter(p=>p.status==='new'&&!p.archived).length;
+  const newPitchCount=pitches.filter(p=>!p.archived).length;
   const pitchesForLead=pitchLead?pitches.filter(p=>p.lead_id===pitchLead.id):pitches;
   const activePitches=pitchesForLead.filter(p=>!p.archived);
   const historyPitches=pitchesForLead.filter(p=>p.archived);
@@ -326,13 +321,12 @@ export default function Dashboard(){
     const urls=extractUrls(allText);
     const pCount=pitches.filter(p=>p.lead_id===lead.id&&!p.archived).length;
     const fCount=pitchFiles.filter(f=>pitches.find(p=>p.id===f.pitch_id&&p.lead_id===lead.id)).length;
-    const newP=pitches.filter(p=>p.lead_id===lead.id&&p.status==='new'&&!p.archived).length;
     return(
       <div onClick={()=>setViewingLead(lead)} className={`border rounded-2xl cursor-pointer transition-all hover:scale-[1.02] ${c.bg} ${c.border} ${expired?'opacity-35 grayscale':''} ${compact?'p-2':'p-4'}`}>
-        {compact?(<div className="flex items-center gap-1.5"><div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`}/><span className="text-white text-[11px] font-bold truncate">{lead.artist}</span>{newP>0&&<span className="text-[8px] font-black bg-[#5B8CFF] text-white rounded-full px-1 shrink-0">{newP}</span>}<DeadlineDisplay lead={lead} size="compact"/></div>):(
+        {compact?(<div className="flex items-center gap-1.5"><div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`}/><span className="text-white text-[11px] font-bold truncate">{lead.artist}</span>{pCount>0&&<span className="text-[8px] font-black bg-[#5B8CFF] text-white rounded-full px-1 shrink-0">{pCount}</span>}<DeadlineDisplay lead={lead} size="compact"/></div>):(
           <>
             <div className="flex items-start justify-between mb-2">
-              <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><div className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`}/><span className={`text-[10px] font-black ${c.text}`}>{c.label}</span><AlbumBadge type={lead.album_type||'single'}/>{pCount>0&&<span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${newP>0?'bg-[#5B8CFF] text-white':'bg-white/10 text-zinc-400'}`}>📨{pCount} 🎵{fCount}</span>}</div><h3 className="text-white font-black text-[15px] truncate">{lead.artist}</h3><p className="text-zinc-400 text-[12px] truncate">{lead.title}</p></div>
+              <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><div className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`}/><span className={`text-[10px] font-black ${c.text}`}>{c.label}</span><AlbumBadge type={lead.album_type||'single'}/>{pCount>0&&<span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#5B8CFF] text-white">📨{pCount} 🎵{fCount}</span>}</div><h3 className="text-white font-black text-[15px] truncate">{lead.artist}</h3><p className="text-zinc-400 text-[12px] truncate">{lead.title}</p></div>
               <div className="ml-2 shrink-0"><DeadlineDisplay lead={lead} size="normal"/></div>
             </div>
             {lead.content&&<p className="text-zinc-500 text-[11px] line-clamp-2 mt-1">{getLeadPreview(lead)}</p>}
@@ -343,7 +337,6 @@ export default function Dashboard(){
     );
   };
 
-  // 테마 변수
   const mainBg=D?'bg-[#050505] text-white':'bg-[#F2F2F7] text-[#111]';
   const modalBg=D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]';
   const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
@@ -365,13 +358,12 @@ export default function Dashboard(){
         <div className={`relative z-10 flex flex-wrap items-center justify-between gap-3 mb-6 border-b ${dividerCls} pb-4`}>
           <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} 활성</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} 마감</span></div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
-            {/* 다크/라이트 토글 */}
             <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`} title={D?'라이트 모드':'다크 모드'}>{D?'☀️':'🌙'}</button>
             <div className={`flex border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
               <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText+' hover:text-white'}`}>📅 달력</button>
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText+' hover:text-white'}`}>📋 목록</button>
             </div>
-            <button onClick={()=>{setPitchLead(null);setExpandedPitch(null);setPitchTab('active');setShowPitchModal(true);}} className={`relative border px-3 py-2 rounded-xl font-bold text-[11px] transition-all ${D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>📨 피칭{newPitchCount>0&&<span className="absolute -top-1 -right-1 w-4 h-4 bg-[#5B8CFF] rounded-full text-white text-[9px] font-black flex items-center justify-center">{newPitchCount}</span>}</button>
+            <button onClick={()=>{setPitchLead(null);setExpandedPitch(null);setPitchTab('active');setShowPitchModal(true);}} className={`relative border px-3 py-2 rounded-xl font-bold text-[11px] transition-all ${D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>📨 피칭{activePitches.length>0&&<span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-[#5B8CFF] rounded-full text-white text-[9px] font-black flex items-center justify-center px-1">{activePitches.length}</span>}</button>
             <button onClick={()=>{setGuestTab('pending');setShowGuestsModal(true);}} className={`relative border px-3 py-2 rounded-xl font-bold text-[11px] transition-all ${D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>👥 게스트{pendingGuests.length>0&&<span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full text-black text-[9px] font-black flex items-center justify-center">{pendingGuests.length}</span>}</button>
             <button onClick={()=>{setFileLead(null);setSelectedFiles([]);setFileFilterVocal('');setFileFilterGenre('');setFileSearch('');setShowFilesPanel(true);}} className={`relative border px-3 py-2 rounded-xl font-bold text-[11px] transition-all ${D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>🎵 파일{pitchFiles.length>0&&<span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-zinc-700 rounded-full text-zinc-300 text-[9px] font-black flex items-center justify-center px-1">{pitchFiles.length}</span>}</button>
             <button onClick={()=>{setAnnForm({title:'',content:''});setShowAnnModal(true);}} className={`border px-3 py-2 rounded-xl font-bold text-[11px] transition-all ${D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>📢 공지</button>
@@ -381,7 +373,6 @@ export default function Dashboard(){
           </div>
         </div>
 
-        {/* 달력 */}
         {view==='calendar'&&(
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
@@ -397,7 +388,6 @@ export default function Dashboard(){
           </div>
         )}
 
-        {/* 목록 */}
         {view==='list'&&(
           <div className="relative z-10">
             <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
@@ -411,7 +401,6 @@ export default function Dashboard(){
         )}
       </main>
 
-      {/* 상세 모달 */}
       {viewingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setViewingLead(null)}>
           <div className={`w-full max-w-2xl border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
@@ -444,7 +433,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 피칭 모달 */}
       {showPitchModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowPitchModal(false)}>
           <div className={`w-full max-w-2xl border rounded-2xl shadow-2xl ${modalBg}`} onClick={e=>e.stopPropagation()}>
@@ -452,7 +440,6 @@ export default function Dashboard(){
               <div className={`flex items-center gap-3 p-5 border-b ${dividerCls}`}>
                 <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>📨 피칭</h2>
                 <span className={`text-[12px] ${dimText}`}>{activePitches.length}건</span>
-                {newPitchCount>0&&<span className="text-[#5B8CFF] text-[12px] font-bold">새 {newPitchCount}건</span>}
                 <div className="flex-1"/>
                 <div className={`flex border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
                   <button onClick={()=>setPitchTab('active')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${pitchTab==='active'?'bg-[#5B8CFF] text-white':dimText}`}>받은 피칭</button>
@@ -462,7 +449,7 @@ export default function Dashboard(){
               </div>
               <div className={`flex gap-2 px-5 py-3 border-b ${D?'border-white/5':'border-black/[0.05]'} overflow-x-auto`}>
                 <button onClick={()=>setPitchLead(null)} className={`px-3 py-1 rounded-full text-[11px] font-bold border whitespace-nowrap transition-all ${!pitchLead?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>전체</button>
-                {leads.filter(l=>pitches.some(p=>p.lead_id===l.id)).map(l=>{const cnt=pitches.filter(p=>p.lead_id===l.id&&!p.archived).length;const nw=pitches.filter(p=>p.lead_id===l.id&&p.status==='new'&&!p.archived).length;return<button key={l.id} onClick={()=>setPitchLead(pitchLead?.id===l.id?null:l)} className={`px-3 py-1 rounded-full text-[11px] font-bold border whitespace-nowrap flex items-center gap-1 transition-all ${pitchLead?.id===l.id?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>{l.artist} <span className={D?'text-zinc-700':'text-zinc-400'}>{cnt}{nw>0&&<span className="text-[#5B8CFF]">+{nw}</span>}</span></button>;})}
+                {leads.filter(l=>pitches.some(p=>p.lead_id===l.id)).map(l=>{const cnt=pitches.filter(p=>p.lead_id===l.id&&!p.archived).length;return<button key={l.id} onClick={()=>setPitchLead(pitchLead?.id===l.id?null:l)} className={`px-3 py-1 rounded-full text-[11px] font-bold border whitespace-nowrap flex items-center gap-1 transition-all ${pitchLead?.id===l.id?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>{l.artist} <span className={D?'text-zinc-700':'text-zinc-400'}>{cnt}</span></button>;})}
               </div>
               <div className="overflow-y-auto flex-1 p-5">
                 {displayedPitches.length===0?<div className="text-center py-12"><p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>{pitchTab==='active'?'받은 피칭이 없어요':'히스토리가 없어요'}</p></div>:(
@@ -473,18 +460,13 @@ export default function Dashboard(){
                         <div key={p.id} className={`border rounded-xl overflow-hidden ${pitchTab==='history'?(D?'border-white/5 opacity-70':'border-black/[0.05] opacity-70'):D?'border-white/10 bg-white/[0.02]':'border-black/[0.08] bg-black/[0.02]'}`}>
                           <div className="flex items-center gap-3 p-4 cursor-pointer" onClick={()=>setExpandedPitch(isExp?null:p.id)}>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5"><p className={`font-bold text-[14px] ${D?'text-white':'text-[#111]'}`}>{p.artist_name}</p>{files.length>0&&<span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>}<span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${PITCH_STATUS[p.status]?.cls||''}`}>{PITCH_STATUS[p.status]?.label}</span></div>
+                              <div className="flex items-center gap-2 mb-0.5"><p className={`font-bold text-[14px] ${D?'text-white':'text-[#111]'}`}>{p.artist_name}</p>{files.length>0&&<span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>}</div>
                               <p className={`text-[12px] ${dimText}`}>{p.contact}</p>
                               <p className={`text-[10px] ${D?'text-zinc-700':'text-zinc-400'}`}>{getPitchLeadName(p)} · {new Date(p.created_at).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               {pitchTab==='active'&&(
-                                <>
-                                  <select value={p.status} onChange={e=>{e.stopPropagation();updatePitchStatus(p.id,e.target.value);}} onClick={e=>e.stopPropagation()} className={`border rounded-xl px-2 py-1.5 text-[11px] font-bold outline-none ${D?'bg-zinc-900':'bg-white'} ${PITCH_STATUS[p.status]?.cls||''}`}>
-                                    {Object.entries(PITCH_STATUS).map(([v,{label}])=><option key={v} value={v} className={D?'bg-zinc-900 text-white':'bg-white text-[#111]'}>{label}</option>)}
-                                  </select>
-                                  <button onClick={e=>{e.stopPropagation();archivePitch(p);}} className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${D?'bg-zinc-700/30 border-zinc-600/30 text-zinc-300 hover:bg-zinc-600/40':'bg-black/[0.06] border-black/[0.1] text-zinc-600 hover:bg-black/10'}`}>확인</button>
-                                </>
+                                <button onClick={e=>{e.stopPropagation();archivePitch(p);}} className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${D?'bg-zinc-700/30 border-zinc-600/30 text-zinc-300 hover:bg-zinc-600/40':'bg-black/[0.06] border-black/[0.1] text-zinc-600 hover:bg-black/10'}`}>확인</button>
                               )}
                               <button onClick={e=>{e.stopPropagation();setExpandedPitch(isExp?null:p.id);}} className={`text-[12px] transition-colors ${D?'text-zinc-600 hover:text-white':'text-zinc-400 hover:text-[#111]'}`}>{isExp?'▲':'▼'}</button>
                               <button onClick={e=>{e.stopPropagation();ask(`"${p.artist_name}"의 피칭을 삭제할까요?`,()=>deletePitch(p));}} className={`text-[11px] font-bold transition-colors ${D?'text-zinc-700 hover:text-red-400':'text-zinc-400 hover:text-red-500'}`}>삭제</button>
@@ -528,7 +510,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 파일 관리 */}
       {showFilesPanel&&(
         <div className={`fixed inset-0 z-50 ${panelBg} font-pretendard flex flex-col`}>
           <div className={`flex items-center gap-4 px-6 py-4 border-b ${dividerCls} shrink-0`}>
@@ -557,7 +538,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 공지 모달 */}
       {showAnnModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>{setShowAnnModal(false);setAnnForm(null);}}>
           <div className={`w-full max-w-lg border rounded-2xl shadow-2xl ${modalBg}`} onClick={e=>e.stopPropagation()}>
@@ -574,7 +554,6 @@ export default function Dashboard(){
         </div>
       )}
 
-      {/* 리드 추가/수정 모달 */}
       {showModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto">
           <div className={`w-full max-w-2xl border rounded-2xl shadow-2xl my-4 ${modalBg}`}>
@@ -593,7 +572,6 @@ export default function Dashboard(){
                 <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>1st Deadline</label><div className="flex gap-2"><input value={form.deadline} onChange={e=>setForm(p=>({...p,deadline:e.target.value}))} onBlur={e=>setForm(p=>({...p,deadline:parseDeadline(e.target.value)}))} placeholder="YYYY-MM-DD 또는 MMDD" className={`flex-1 border rounded-xl px-4 py-3 text-[13px] outline-none transition-all ${inputCls}`}/><input type="date" value={form.deadline} onChange={e=>setForm(p=>({...p,deadline:e.target.value}))} className={`border rounded-xl px-3 py-3 text-[13px] outline-none w-14 cursor-pointer ${inputCls}`}/></div><DateShortcuts field="deadline"/></div>
                 <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-400':'text-zinc-400'}`}>2nd Deadline <span className={`font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>(선택)</span></label><div className="flex gap-2"><input value={form.deadline2} onChange={e=>setForm(p=>({...p,deadline2:e.target.value}))} onBlur={e=>setForm(p=>({...p,deadline2:parseDeadline(e.target.value)}))} placeholder="YYYY-MM-DD 또는 MMDD" className={`flex-1 border rounded-xl px-4 py-3 text-[13px] outline-none transition-all ${inputCls}`}/><input type="date" value={form.deadline2} onChange={e=>setForm(p=>({...p,deadline2:e.target.value}))} className={`border rounded-xl px-3 py-3 text-[13px] outline-none w-14 cursor-pointer ${inputCls}`}/></div><DateShortcuts field="deadline2"/></div>
 
-                {/* 한/영 섹션 에디터 */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <label className={`text-[10px] font-black uppercase tracking-widest ${D?'text-zinc-500':'text-zinc-400'}`}>내용</label>
@@ -619,13 +597,12 @@ export default function Dashboard(){
 
       {confirm&&<ConfirmModal msg={confirm.msg} onOk={()=>{confirm.onOk();setConfirm(null);}} onCancel={()=>setConfirm(null)}/>}
 
-      {/* 게스트 모달 */}
       {showGuestsModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowGuestsModal(false)}>
           <div className={`w-full max-w-2xl border rounded-2xl shadow-2xl ${modalBg}`} onClick={e=>e.stopPropagation()}>
             <div className="max-h-[88vh] flex flex-col">
               <div className={`flex items-center gap-3 p-5 border-b ${dividerCls}`}>
-                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>👥 게스트</h2>
+                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>👥 멤버</h2>
                 <div className="flex-1"/>
                 <div className={`flex border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
                   <button onClick={()=>setGuestTab('pending')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${guestTab==='pending'?'bg-yellow-500/80 text-black':dimText}`}>신청 대기 {pendingGuests.length>0&&pendingGuests.length}</button>
@@ -636,7 +613,7 @@ export default function Dashboard(){
               <div className="overflow-y-auto flex-1 p-5">
                 {displayedGuests.length===0?(
                   <div className="text-center py-12">
-                    <p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>{guestTab==='pending'?'대기 중인 게스트가 없어요':'히스토리가 없어요'}</p>
+                    <p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>{guestTab==='pending'?'대기 중인 멤버가 없어요':'히스토리가 없어요'}</p>
                     {guestTab==='pending'&&historyGuests.length>0&&<button onClick={()=>setGuestTab('history')} className={`mt-3 text-[12px] transition-colors ${D?'text-zinc-600 hover:text-zinc-400':'text-zinc-400 hover:text-zinc-600'}`}>히스토리 보기 →</button>}
                   </div>
                 ):(

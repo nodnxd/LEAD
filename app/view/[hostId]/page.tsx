@@ -176,7 +176,7 @@ export default function GuestView(){
   const submitPitch=async()=>{
     if(!pitchForm.artist_name.trim()||!pitchForm.contact.trim()||!pitchingLead)return;
     setPitchLoading(true);setUploadProgress(0);setUploadError('');
-    const {data:pitchData,error:pitchErr}=await supabase.from('pitches').insert({lead_id:pitchingLead.id,host_id:hostId,artist_name:pitchForm.artist_name,contact:pitchForm.contact,message:pitchForm.message}).select().single();
+    const {data:pitchData,error:pitchErr}=await supabase.from('pitches').insert({lead_id:pitchingLead.id,host_id:hostId,member_id:guestProfile?.id||null,artist_name:pitchForm.artist_name,contact:pitchForm.contact,message:pitchForm.message}).select().single();
     if(pitchErr||!pitchData){setPitchLoading(false);setUploadError(`피칭 등록 실패: ${pitchErr?.message||'알 수 없는 오류'}`);return;}
     if(pitchFiles.length>0){
       const total=pitchFiles.length;
