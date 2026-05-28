@@ -1,402 +1,540 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
 
-type Mode = 'login' | 'register' | 'find-id' | 'find-pw';
+const ROLES = [
+  { id: 'producer', label: 'Producer' },
+  { id: 'topliner', label: 'Top-liner' },
+  { id: 'lyricist', label: 'Lyricist' },
+  { id: 'engineer', label: 'Engineer' },
+  { id: 'ar', label: 'A&R' },
+];
 
-function GuestAuthContent() {
+const GENRES = [
+  { id: 'POP', label: 'POP' },
+  { id: 'RNB', label: 'R&B' },
+  { id: 'HIPHOP', label: 'HIP HOP' },
+  { id: 'BALLAD', label: 'BALLAD' },
+  { id: 'BAND', label: 'BAND' },
+  { id: 'EDM', label: 'EDM' },
+  { id: 'ETC', label: 'ETC' },
+];
+
+type Work = { id?: string; song_title: string; artist_name: string; link: string; order_index?: number };
+type Demo = { id?: string; file_url: string; file_name: string; order_index?: number };
+
+export default function MyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/';
-  const hostId = searchParams.get('hostId') || '';
+  const [user, setUser] = useState<any>(null);
+  const [member, setMember] = useState<any>(null);
+  const [demos, setDemos] = useState<Demo[]>([]);
+  const [works, setWorks] = useState<Work[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [myPitches, setMyPitches] = useState<any[]>([]);
+  const [myPitchFiles, setMyPitchFiles] = useState<any[]>([]);
+  const [myLeads, setMyLeads] = useState<any[]>([]);
 
-  const [mode, setMode] = useState<Mode>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  // 편집 상태
   const [name, setName] = useState('');
   const [artistName, setArtistName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [done, setDone] = useState(false);
+  const [gender, setGender] = useState('');
+  const [company, setCompany] = useState('');
+  const [email, setEmail] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [roles, setRoles] = useState<string[]>([]);
+  const [genres, setGenres] = useState<string[]>([]);
+  const [genreEtc, setGenreEtc] = useState('');
+  const [demoLink, setDemoLink] = useState('');
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [editWorks, setEditWorks] = useState<Work[]>([]);
+  const [newDemoFiles, setNewDemoFiles] = useState<File[]>([]);
 
-  const [findName, setFindName] = useState('');
-  const [findPhone, setFindPhone] = useState('');
-  const [foundEmail, setFoundEmail] = useState('');
+  const photoRef = useRef<HTMLInputElement>(null);
+  const demoRef = useRef<HTMLInputElement>(null);
 
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetSent, setResetSent] = useState(false);
-
-  const switchMode = (m: Mode) => {
-    setMode(m); setError(''); setFoundEmail(''); setResetSent(false);
-  };
-
-  // ─── 로그인 ───────────────────────────────────────────────────────────────
-  const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) { setError('이메일과 비밀번호를 입력해주세요'); return; }
-    setLoading(true); setError('');
-
-    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
-    if (err) { setError(err.message); setLoading(false); return; }
-
-    if (hostId) {
-      // ✅ 호스트는 바로 통과
-      if (data.user.id === hostId) {
-        router.push(redirect);
-        return;
-      }
-
-      const { data: approval } = await supabase
-        .from('member_approvals')
-        .select('status')
-        .eq('member_id', data.user.id)
-        .eq('host_id', hostId)
-        .single();
-
-      if (!approval) {
-        await supabase.from('member_approvals').upsert({
-          member_id: data.user.id, host_id: hostId, status: 'pending',
-        });
-        await supabase.auth.signOut();
-        setError('이 페이지 접근 승인을 요청했어요. 담당자 승인 후 이용 가능해요.');
-        setLoading(false); return;
-      }
-      if (approval.status === 'pending') {
-        await supabase.auth.signOut();
-        setError('아직 승인 대기 중이에요. 담당자 승인 후 이용 가능해요.');
-        setLoading(false); return;
-      }
-      if (approval.status === 'rejected') {
-        await supabase.auth.signOut();
-        setError('접근이 거절됐어요. 문의사항은 everplayground@gmail.com으로 연락해주세요.');
-        setLoading(false); return;
-      }
-    }
-
-    // ✅ 로그인 성공 후 프로필 완성 여부 확인 → 온보딩으로 (호스트 제외)
-    if (data.user.id !== hostId) {
-      const { data: member } = await supabase
-        .from('members')
-        .select('profile_completed')
-        .eq('id', data.user.id)
-        .single();
-
-      if (!member?.profile_completed) {
-        router.push('/onboarding');
-        return;
-      }
-    }
-
-    router.push(redirect);
-  };
-
-  // ─── 회원가입 ─────────────────────────────────────────────────────────────
-  const handleRegister = async () => {
-    if (!email.trim() || !password.trim() || !name.trim() || !artistName.trim()) {
-      setError('이름, 활동명, 이메일, 비밀번호는 필수예요'); return;
-    }
-    if (password !== confirmPassword) { setError('비밀번호가 일치하지 않아요'); return; }
-    if (password.length < 6) { setError('비밀번호는 6자 이상이어야 해요'); return; }
-
-    setLoading(true); setError('');
-
-    const { data, error: err } = await supabase.auth.signUp({ email, password });
-    if (err || !data.user) {
-      setError(err?.message || '회원가입 중 오류가 났어요');
-      setLoading(false); return;
-    }
-
-    const userId = data.user.id;
-
-    // ✅ guests → members 변경
-    const { error: memberErr } = await supabase.from('members').upsert({
-      id: userId, name, email, artist_name: artistName, phone: phone || null,
-      profile_completed: false,
+  useEffect(() => {
+    const s = localStorage.getItem("lead_theme");
+    if (s === "light") setTheme("light");
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) { router.push("/"); return; }
+      setUser(session.user);
+      fetchAll(session.user.id);
     });
-    if (memberErr) console.error('[members upsert]', memberErr.code, memberErr.message);
-
-    // ✅ guest_approvals → member_approvals, guest_id → member_id 변경
-    if (hostId) {
-      const { error: approvalErr } = await supabase.from('member_approvals').upsert({
-        member_id: userId, host_id: hostId, status: 'pending',
-      });
-      if (approvalErr) console.error('[member_approvals upsert]', approvalErr.code, approvalErr.message);
-    }
-
-    await supabase.auth.signOut();
-    setLoading(false); setDone(true);
-  };
-
-  // ─── 아이디 찾기 ──────────────────────────────────────────────────────────
-  const handleFindId = async () => {
-    if (!findName.trim() || !findPhone.trim()) { setError('이름과 전화번호를 입력해주세요'); return; }
-    setLoading(true); setError(''); setFoundEmail('');
-
-    const { data, error: err } = await supabase.rpc('find_guest_email', {
-      p_name: findName.trim(), p_phone: findPhone.trim(),
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) router.push("/");
     });
+    return () => subscription.unsubscribe();
+  }, []);
 
-    if (err || !data) { setError('일치하는 계정을 찾을 수 없어요'); }
-    else { setFoundEmail(data as string); }
+  const fetchAll = async (uid: string) => {
+    const [{ data: m }, { data: d }, { data: w }, { data: pitches }] = await Promise.all([
+      supabase.from('members').select('*').eq('id', uid).single(),
+      supabase.from('demo_tracks').select('*').eq('member_id', uid).order('order_index'),
+      supabase.from('released_works').select('*').eq('member_id', uid).order('order_index'),
+      supabase.from('pitches').select('*').eq('member_id', uid).order('created_at', { ascending: false }),
+    ]);
+    if (m) { setMember(m); fillForm(m); }
+    if (d) setDemos(d);
+    if (w) setWorks(w);
+    if (pitches && pitches.length > 0) {
+      setMyPitches(pitches);
+      const pitchIds = pitches.map((p: any) => p.id);
+      const leadIds = [...new Set(pitches.map((p: any) => p.lead_id))];
+      const [{ data: files }, { data: leads }] = await Promise.all([
+        supabase.from('pitch_files').select('*').in('pitch_id', pitchIds),
+        supabase.from('leads').select('id,artist,title,gender,group_type,album_type').in('id', leadIds),
+      ]);
+      if (files) setMyPitchFiles(files);
+      if (leads) setMyLeads(leads);
+    }
     setLoading(false);
   };
 
-  // ─── 비밀번호 찾기 ────────────────────────────────────────────────────────
-  const handleFindPw = async () => {
-    if (!resetEmail.trim()) { setError('이메일을 입력해주세요'); return; }
-    setLoading(true); setError('');
-
-    const { error: err } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
-      redirectTo: `${window.location.origin}/guest/reset-password`,
-    });
-
-    if (err) { setError(err.message); } else { setResetSent(true); }
-    setLoading(false);
+  const fillForm = (m: any) => {
+    setName(m.name || '');
+    setArtistName(m.artist_name || '');
+    setGender(m.gender || '');
+    setCompany(m.company || '');
+    setEmail(m.email || '');
+    setInstagram(m.instagram || '');
+    setRoles(m.roles || []);
+    setGenres(m.genres || []);
+    setGenreEtc(m.genre_etc || '');
+    setDemoLink(m.demo_link || '');
+    setPhotoPreview(m.photo_url || '');
   };
 
-  const inputCls = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white';
-  const labelCls = 'text-zinc-600 text-[10px] font-black uppercase tracking-widest mb-1.5 block';
-  const btnPrimary = 'w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 shadow-lg shadow-blue-900/20';
-  const btnBack = 'w-full mt-3 py-2.5 text-zinc-600 text-[12px] font-bold hover:text-zinc-400 transition-all';
-
-  const subtitleMap: Record<Mode, string> = {
-    'login': '계정으로 로그인하세요',
-    'register': '아티스트 계정을 만들어요',
-    'find-id': '아이디(이메일) 찾기',
-    'find-pw': '비밀번호 재설정',
+  const openEdit = () => {
+    fillForm(member);
+    setEditWorks(works.map(w => ({ ...w })));
+    setNewDemoFiles([]);
+    setEditing(true);
   };
 
-  return (
-    <div className="w-full max-w-sm relative z-10">
-      <div className="text-center mb-8">
-        <div className="flex items-baseline justify-center gap-2.5 mb-3">
-          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1>
-          <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
-        </div>
-        <p className="text-zinc-600 text-[12px]">
-          {done ? '신청 완료' : subtitleMap[mode]}
-        </p>
-      </div>
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
 
-      {/* 가입 완료 */}
-      {done && (
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 text-center">
-          <div className="text-5xl mb-5">✉️</div>
-          <h2 className="text-white font-black text-[20px] mb-3">신청 완료!</h2>
-          <p className="text-zinc-400 text-[13px] leading-relaxed">
-            <span className="text-white font-bold">{artistName}</span> 님의 가입 신청이 접수됐어요.
-          </p>
-          <p className="text-zinc-600 text-[12px] leading-relaxed mt-2">담당자 승인 후 이용하실 수 있어요.</p>
-          <button onClick={() => { setDone(false); switchMode('login'); }}
-            className="mt-6 w-full py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">
-            로그인으로 돌아가기
-          </button>
-        </div>
-      )}
+  const toggleArr = (arr: string[], val: string, setFn: (v: string[]) => void) =>
+    setFn(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
 
-      {/* 아이디 찾기 */}
-      {!done && mode === 'find-id' && (
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
-          {foundEmail ? (
-            <div className="text-center py-4">
-              <div className="text-4xl mb-4">📧</div>
-              <p className="text-zinc-500 text-[12px] mb-2">가입된 이메일 주소</p>
-              <p className="text-white font-black text-[17px] mb-6 tracking-wide">{foundEmail}</p>
-              <button onClick={() => switchMode('login')}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">
-                로그인하기
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="flex flex-col gap-3">
-                <div>
-                  <label className={labelCls}>이름 *</label>
-                  <input value={findName} onChange={e => setFindName(e.target.value)}
-                    placeholder="가입 시 입력한 실명" className={inputCls}/>
-                </div>
-                <div>
-                  <label className={labelCls}>전화번호 *</label>
-                  <input value={findPhone} onChange={e => setFindPhone(e.target.value)}
-                    placeholder="가입 시 입력한 전화번호"
-                    onKeyDown={e => e.key === 'Enter' && handleFindId()}
-                    className={inputCls}/>
-                </div>
-              </div>
-              {error && <ErrorBox msg={error}/>}
-              <button onClick={handleFindId} disabled={loading} className={btnPrimary}>
-                {loading ? '확인 중...' : '아이디 찾기'}
-              </button>
-            </>
-          )}
-          <button onClick={() => switchMode('login')} className={btnBack}>← 로그인으로</button>
-        </div>
-      )}
+  const handlePhotoChange = (file: File) => {
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
 
-      {/* 비밀번호 찾기 */}
-      {!done && mode === 'find-pw' && (
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
-          {resetSent ? (
-            <div className="text-center py-4">
-              <div className="text-4xl mb-4">📩</div>
-              <p className="text-white font-black text-[16px] mb-2">이메일을 확인해주세요</p>
-              <p className="text-zinc-500 text-[12px] leading-relaxed mb-6">
-                <span className="text-zinc-300">{resetEmail}</span>으로<br/>비밀번호 재설정 링크를 보냈어요.
-              </p>
-              <button onClick={() => switchMode('login')}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">
-                로그인으로 돌아가기
-              </button>
-            </div>
-          ) : (
-            <>
-              <div>
-                <label className={labelCls}>가입한 이메일 *</label>
-                <input value={resetEmail} onChange={e => setResetEmail(e.target.value)}
-                  placeholder="이메일 주소" type="email"
-                  onKeyDown={e => e.key === 'Enter' && handleFindPw()}
-                  className={inputCls}/>
-              </div>
-              {error && <ErrorBox msg={error}/>}
-              <button onClick={handleFindPw} disabled={loading} className={btnPrimary}>
-                {loading ? '전송 중...' : '재설정 이메일 보내기'}
-              </button>
-              <button onClick={() => switchMode('login')} className={btnBack}>← 로그인으로</button>
-            </>
-          )}
-        </div>
-      )}
+  const deleteDemo = async (demo: Demo) => {
+    if (!demo.id) return;
+    await supabase.from('demo_tracks').delete().eq('id', demo.id);
+    setDemos(p => p.filter(d => d.id !== demo.id));
+    showToast('🗑 삭제됐어요');
+  };
 
-      {/* 로그인 / 회원가입 */}
-      {!done && (mode === 'login' || mode === 'register') && (
-        <>
-          <div className="flex bg-white/[0.03] border border-white/10 rounded-2xl p-1 gap-1 mb-5">
-            {(['login', 'register'] as const).map(m => (
-              <button key={m} onClick={() => switchMode(m)}
-                className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold transition-all ${mode === m ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'}`}>
-                {m === 'login' ? '로그인' : '회원가입'}
-              </button>
-            ))}
-          </div>
+  const handleSave = async () => {
+    if (!user || saving) return;
+    setSaving(true);
 
-          <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
-            <div className="flex flex-col gap-3">
-              {mode === 'register' && (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className={labelCls}>이름 *</label>
-                      <input value={name} onChange={e => setName(e.target.value)} placeholder="실명"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white"/>
-                    </div>
-                    <div>
-                      <label className={labelCls}>활동명 *</label>
-                      <input value={artistName} onChange={e => setArtistName(e.target.value)} placeholder="아티스트명"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-700 text-white"/>
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelCls}>전화번호 <span className="text-zinc-700 font-normal normal-case">(선택)</span></label>
-                    <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="010-0000-0000"
-                      className={inputCls}/>
-                  </div>
-                  <div className="border-t border-white/5"/>
-                </>
-              )}
+    let photoUrl = member?.photo_url || null;
+    if (photoFile) {
+      const ext = photoFile.name.split('.').pop();
+      const path = `members/${user.id}/avatar.${ext}`;
+      await supabase.storage.from('member-photos').upload(path, photoFile, { upsert: true });
+      photoUrl = supabase.storage.from('member-photos').getPublicUrl(path).data.publicUrl;
+    }
 
-              <div>
-                <label className={labelCls}>이메일 *</label>
-                <input value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="이메일 주소" type="email" className={inputCls}/>
-              </div>
-              <div>
-                <label className={labelCls}>비밀번호 *</label>
-                <input value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder={mode === 'register' ? '6자 이상' : '비밀번호'} type="password"
-                  onKeyDown={e => e.key === 'Enter' && mode === 'login' && handleLogin()}
-                  className={inputCls}/>
-              </div>
+    const finalGenres = genres.includes('ETC') && genreEtc.trim()
+      ? [...genres.filter(g => g !== 'ETC'), `ETC:${genreEtc.trim()}`]
+      : genres;
 
-              {mode === 'register' && (
-                <div>
-                  <label className={labelCls}>비밀번호 확인 *</label>
-                  <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                    placeholder="비밀번호 재입력" type="password"
-                    onKeyDown={e => e.key === 'Enter' && handleRegister()}
-                    className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-[13px] outline-none transition-all placeholder:text-zinc-700 text-white ${
-                      confirmPassword && password !== confirmPassword
-                        ? 'border-red-500/50 focus:border-red-500/70'
-                        : 'border-white/10 focus:border-[#5B8CFF]/50'
-                    }`}/>
-                  {confirmPassword && password !== confirmPassword && (
-                    <p className="text-red-400 text-[11px] mt-1 ml-1">비밀번호가 일치하지 않아요</p>
-                  )}
-                </div>
-              )}
-            </div>
+    await supabase.from('members').update({
+      name, artist_name: artistName, gender,
+      company: company || null, email,
+      instagram: instagram || null,
+      photo_url: photoUrl,
+      roles, genres: finalGenres,
+      genre_etc: genreEtc || null,
+      demo_link: demoLink || null,
+    }).eq('id', user.id);
 
-            {error && <ErrorBox msg={error}/>}
+    // 작업물 업데이트
+    await supabase.from('released_works').delete().eq('member_id', user.id);
+    const validWorks = editWorks.filter(w => w.song_title.trim() && w.artist_name.trim() && w.link.trim());
+    if (validWorks.length > 0) {
+      await supabase.from('released_works').insert(
+        validWorks.map((w, i) => ({ member_id: user.id, song_title: w.song_title, artist_name: w.artist_name, link: w.link, order_index: i }))
+      );
+    }
 
-            {mode === 'register' && (
-              <div className="mt-4 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/5">
-                <p className="text-zinc-600 text-[11px] leading-relaxed">
-                  가입 신청 후 담당자 승인이 완료되면 이용하실 수 있어요.
-                </p>
-              </div>
-            )}
+    // 새 데모곡 업로드
+    for (let i = 0; i < newDemoFiles.length; i++) {
+      const f = newDemoFiles[i];
+      const path = `demos/${user.id}/${Date.now()}_${i}.mp3`;
+      const { error } = await supabase.storage.from('member-demos').upload(path, f);
+      if (!error) {
+        const url = supabase.storage.from('member-demos').getPublicUrl(path).data.publicUrl;
+        await supabase.from('demo_tracks').insert({ member_id: user.id, file_url: url, file_name: f.name, order_index: demos.length + i });
+      }
+    }
 
-            <button onClick={mode === 'login' ? handleLogin : handleRegister} disabled={loading}
-              className={btnPrimary}>
-              {loading ? '처리 중...' : mode === 'login' ? '로그인' : '가입 신청'}
-            </button>
+    await fetchAll(user.id);
+    setEditing(false);
+    setSaving(false);
+    setPhotoFile(null);
+    setNewDemoFiles([]);
+    showToast('✅ 저장됐어요!');
+  };
 
-            {mode === 'login' && (
-              <div className="flex justify-center gap-4 mt-4">
-                <button onClick={() => switchMode('find-id')}
-                  className="text-zinc-600 text-[11px] font-bold hover:text-zinc-400 transition-all">
-                  아이디 찾기
-                </button>
-                <span className="text-zinc-700 text-[11px]">|</span>
-                <button onClick={() => switchMode('find-pw')}
-                  className="text-zinc-600 text-[11px] font-bold hover:text-zinc-400 transition-all">
-                  비밀번호 찾기
-                </button>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+  const D = theme === 'dark';
+  const bg = D ? 'bg-[#050505] text-white' : 'bg-[#F0F0F5] text-[#111]';
+  const card = D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.1] shadow-sm';
+  const inputCls = D
+    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/60'
+    : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/60';
+  const labelCls = `text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D ? 'text-zinc-500' : 'text-zinc-400'}`;
+  const dimText = D ? 'text-zinc-500' : 'text-zinc-600';
+  const divider = D ? 'border-white/[0.07]' : 'border-black/[0.1]';
 
-      <p className="text-center text-zinc-700 text-[11px] mt-6">Contact : everplayground@gmail.com</p>
+  const roleLabels: Record<string, string> = { producer: 'Producer', topliner: 'Top-liner', lyricist: 'Lyricist', engineer: 'Engineer', ar: 'A&R' };
+
+  if (loading) return (
+    <div className={`min-h-screen ${bg} flex items-center justify-center`}>
+      <div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin" />
     </div>
   );
-}
 
-function ErrorBox({ msg }: { msg: string }) {
-  return (
-    <div className="mt-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20">
-      <p className="text-red-400 text-[12px]">{msg}</p>
-    </div>
-  );
-}
+  const hostId = typeof window !== 'undefined' ? localStorage.getItem('last_host_id') : null;
 
-export default function GuestAuthPage() {
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}` }}/>
-      <main className="min-h-screen bg-[#050505] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.08] pointer-events-none"/>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[400px] h-[400px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.03] pointer-events-none"/>
-        <Suspense fallback={<div className="text-zinc-600 text-[11px] font-black tracking-widest">Loading...</div>}>
-          <GuestAuthContent />
-        </Suspense>
+      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}` }} />
+      <main className={`min-h-screen ${bg} font-pretendard p-5 lg:p-8 relative overflow-hidden`}>
+
+        <div className={`absolute top-[-15%] left-[-10%] w-[500px] h-[500px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[180px] ${D ? 'opacity-[0.06]' : 'opacity-[0.03]'} pointer-events-none`} />
+
+        <div className="relative z-10 max-w-2xl mx-auto">
+
+          {/* 헤더 */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-baseline gap-2.5">
+              <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1>
+              <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>MY PAGE</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {hostId && (
+                <button onClick={() => router.push(`/view/${hostId}`)} className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+                  ← 돌아가기
+                </button>
+              )}
+              <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
+                className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
+                {D ? '☀️' : '🌙'}
+              </button>
+              <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))}
+                className={`text-[11px] font-bold transition-colors ${D ? 'text-zinc-600 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>
+                로그아웃
+              </button>
+            </div>
+          </div>
+
+          {/* 프로필 카드 */}
+          <div className={`border rounded-2xl overflow-hidden mb-5 ${card}`}>
+
+            {/* 상단 프로필 */}
+            <div className={`p-6 border-b ${divider}`}>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 flex items-center justify-center shrink-0">
+                  {member?.photo_url
+                    ? <img src={member.photo_url} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-2xl font-black text-[#5B8CFF]">{(member?.artist_name || '?')[0].toUpperCase()}</span>
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <h2 className={`font-black text-[20px] ${D ? 'text-white' : 'text-[#111]'}`}>{member?.artist_name}</h2>
+                    {member?.roles?.map((r: string) => (
+                      <span key={r} className="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF]">{roleLabels[r] || r}</span>
+                    ))}
+                  </div>
+                  <p className={`text-[12px] ${dimText}`}>{member?.name}{member?.company && ` · ${member.company}`}</p>
+                  {member?.genres?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {member.genres.map((g: string) => (
+                        <span key={g} className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button onClick={openEdit} className="shrink-0 px-3 py-2 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF] text-[11px] font-bold hover:bg-[#5B8CFF]/20 transition-all">
+                  ✏️ 수정
+                </button>
+              </div>
+            </div>
+
+            {/* 연락처 */}
+            <div className={`px-6 py-4 border-b ${divider} flex flex-wrap gap-4`}>
+              {member?.email && (
+                <div><p className={labelCls}>이메일</p><p className={`text-[13px] ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{member.email}</p></div>
+              )}
+              {member?.instagram && (
+                <div><p className={labelCls}>인스타그램</p>
+                  <a href={`https://instagram.com/${member.instagram}`} target="_blank" rel="noopener noreferrer" className="text-[13px] text-[#5B8CFF] hover:underline">@{member.instagram}</a>
+                </div>
+              )}
+            </div>
+
+            {/* 데모곡 */}
+            <div className={`px-6 py-4 border-b ${divider}`}>
+              <p className={labelCls}>데모곡</p>
+              {demos.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  {demos.map(d => (
+                    <div key={d.id} className={`flex items-center gap-3 p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                      <span className="text-[14px]">🎵</span>
+                      <span className={`flex-1 text-[12px] font-bold truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{d.file_name}</span>
+                      <button onClick={async () => {
+                        const path = d.file_url.split('/member-demos/')[1];
+                        if (!path) return;
+                        const { data: signed } = await supabase.storage.from('member-demos').createSignedUrl(decodeURIComponent(path), 60);
+                        if (!signed) return;
+                        try {
+                          const res = await fetch(signed.signedUrl);
+                          const blob = await res.blob();
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url; a.download = d.file_name || 'demo.mp3';
+                          document.body.appendChild(a); a.click();
+                          document.body.removeChild(a); URL.revokeObjectURL(url);
+                        } catch { showToast('다운로드 실패'); }
+                      }} className="text-[#5B8CFF] text-[11px] font-bold hover:underline">⬇ 다운</button>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className={`text-[12px] ${dimText}`}>등록된 데모곡이 없어요</p>}
+              {member?.demo_link && (
+                <a href={member.demo_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-[11px] text-[#5B8CFF] hover:underline">🔗 추가 데모 링크</a>
+              )}
+            </div>
+
+            {/* 컷난 작업물 */}
+            <div className="px-6 py-4">
+              <p className={labelCls}>최근 컷난 작업물</p>
+              {works.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  {works.map((w, i) => (
+                    <a key={i} href={w.link} target="_blank" rel="noopener noreferrer"
+                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all hover:border-[#5B8CFF]/30 ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                      <div className="w-8 h-8 rounded-lg bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 flex items-center justify-center shrink-0">
+                        <span className="text-[12px]">🎶</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[12px] font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
+                        <p className={`text-[11px] ${dimText}`}>{w.artist_name}</p>
+                      </div>
+                      <span className="text-[#5B8CFF] text-[11px]">→</span>
+                    </a>
+                  ))}
+                </div>
+              ) : <p className={`text-[12px] ${dimText}`}>등록된 작업물이 없어요</p>}
+            </div>
+          </div>
+
+          {/* 📨 내가 피칭한 곡 */}
+          {myPitches.length > 0 && (
+            <div className={`border rounded-2xl overflow-hidden mt-5 ${card}`}>
+              <div className={`p-5 border-b ${divider}`}>
+                <p className={`font-black text-[14px] ${D ? 'text-white' : 'text-[#111]'}`}>📨 내가 피칭한 곡</p>
+                <p className={`text-[11px] mt-0.5 ${dimText}`}>총 {myPitches.length}건</p>
+              </div>
+              <div className="p-5 flex flex-col gap-3">
+                {myPitches.map(p => {
+                  const lead = myLeads.find(l => l.id === p.lead_id);
+                  const files = myPitchFiles.filter(f => f.pitch_id === p.id);
+                  return (
+                    <div key={p.id} className={`p-4 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-bold text-[13px] ${D ? 'text-white' : 'text-[#111]'}`}>{lead?.artist || '—'} <span className={`font-normal ${dimText}`}>— {lead?.title || ''}</span></p>
+                          <p className={`text-[11px] mt-0.5 ${dimText}`}>{new Date(p.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                        </div>
+                        {files.length > 0 && (
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>
+                        )}
+                      </div>
+                      {p.message && <p className={`text-[12px] leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>}
+                      {files.length > 0 && (
+                        <div className="flex flex-col gap-1.5 mt-2">
+                          {files.map(f => (
+                            <div key={f.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.03]'}`}>
+                              <span className="text-[12px]">🎵</span>
+                              <span className={`flex-1 text-[11px] truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
+                              {f.bpm > 0 && <span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
+                              {f.genre && <span className="text-[10px] font-black text-[#5B8CFF]">{f.genre}</span>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 수정 모달 */}
+        {editing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={() => setEditing(false)}>
+            <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+              <div className="p-6 max-h-[85vh] overflow-y-auto">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className={`font-black text-[18px] ${D ? 'text-white' : 'text-[#111]'}`}>프로필 수정</h2>
+                  <button onClick={() => setEditing(false)} className={`text-[13px] ${dimText}`}>✕</button>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  {/* 사진 */}
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => photoRef.current?.click()} className="relative group">
+                      <div className="w-16 h-16 rounded-full overflow-hidden bg-[#5B8CFF]/10 border-2 border-dashed border-[#5B8CFF]/30 flex items-center justify-center">
+                        {photoPreview ? <img src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-xl">📷</span>}
+                      </div>
+                      <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white text-[9px] font-bold">변경</span>
+                      </div>
+                    </button>
+                    <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handlePhotoChange(e.target.files[0])} />
+                    <p className={`text-[11px] ${dimText}`}>사진 클릭해서 변경</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><label className={labelCls}>실명</label><input value={name} onChange={e => setName(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} /></div>
+                    <div><label className={labelCls}>활동명</label><input value={artistName} onChange={e => setArtistName(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} /></div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>성별</label>
+                    <div className="flex gap-2">
+                      {[['male', '남성'], ['female', '여성'], ['other', '기타']].map(([v, l]) => (
+                        <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2 rounded-xl border text-[12px] font-bold transition-all ${gender === v ? 'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{l}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div><label className={labelCls}>소속 회사</label><input value={company} onChange={e => setCompany(e.target.value)} placeholder="회사명 또는 프리랜서" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} /></div>
+                  <div><label className={labelCls}>이메일</label><input value={email} onChange={e => setEmail(e.target.value)} type="email" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} /></div>
+                  <div>
+                    <label className={labelCls}>인스타그램</label>
+                    <div className="relative">
+                      <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-bold ${dimText}`}>@</span>
+                      <input value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="username" className={`w-full border rounded-xl pl-7 pr-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>역할</label>
+                    <div className="flex flex-wrap gap-2">
+                      {ROLES.map(r => (
+                        <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${roles.includes(r.id) ? 'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{r.label}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>선호 장르</label>
+                    <div className="flex flex-wrap gap-2">
+                      {GENRES.map(g => (
+                        <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${genres.includes(g.id) ? 'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{g.label}</button>
+                      ))}
+                    </div>
+                    {genres.includes('ETC') && (
+                      <input value={genreEtc} onChange={e => setGenreEtc(e.target.value)} placeholder="장르 직접 입력" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all mt-2 ${inputCls}`} />
+                    )}
+                  </div>
+
+                  {/* 데모곡 */}
+                  <div>
+                    <label className={labelCls}>데모곡</label>
+                    {demos.length > 0 && (
+                      <div className="flex flex-col gap-1.5 mb-2">
+                        {demos.map(d => (
+                          <div key={d.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                            <span className="text-[13px]">🎵</span>
+                            <span className={`flex-1 text-[11px] truncate ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.file_name}</span>
+                            <button onClick={() => deleteDemo(d)} className="text-red-400/60 hover:text-red-400 text-[11px] font-bold">삭제</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {demos.length + newDemoFiles.length < 3 && (
+                      <>
+                        <input ref={demoRef} type="file" accept=".mp3,audio/mpeg" multiple className="hidden"
+                          onChange={e => { const files = Array.from(e.target.files || []).slice(0, 3 - demos.length - newDemoFiles.length); setNewDemoFiles(p => [...p, ...files]); e.target.value = ''; }} />
+                        <button onClick={() => demoRef.current?.click()} className={`w-full py-2.5 rounded-xl border-2 border-dashed text-[11px] font-bold transition-all ${D ? 'border-white/10 text-zinc-600 hover:border-white/20 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:border-black/20'}`}>+ 데모곡 추가 ({3 - demos.length - newDemoFiles.length}개 남음)</button>
+                      </>
+                    )}
+                    {newDemoFiles.length > 0 && (
+                      <div className="flex flex-col gap-1 mt-2">
+                        {newDemoFiles.map((f, i) => (
+                          <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#5B8CFF]/5 border border-[#5B8CFF]/20">
+                            <span className="text-[12px]">🎵</span>
+                            <span className="flex-1 text-[11px] text-[#5B8CFF] truncate">{f.name}</span>
+                            <button onClick={() => setNewDemoFiles(p => p.filter((_, idx) => idx !== i))} className="text-red-400/60 text-[10px]">✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-2"><label className={labelCls}>추가 데모 링크</label><input value={demoLink} onChange={e => setDemoLink(e.target.value)} placeholder="https://..." className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} /></div>
+                  </div>
+
+                  {/* 컷난 작업물 */}
+                  <div>
+                    <label className={labelCls}>최근 컷난 작업물</label>
+                    <div className="flex flex-col gap-2">
+                      {editWorks.map((w, i) => (
+                        <div key={i} className={`p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                          <div className="flex justify-between mb-2">
+                            <span className={`text-[10px] font-black ${dimText}`}>#{i + 1}</span>
+                            {editWorks.length > 0 && <button onClick={() => setEditWorks(p => p.filter((_, idx) => idx !== i))} className="text-red-400/60 hover:text-red-400 text-[11px]">삭제</button>}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mb-2">
+                            <input value={w.song_title} onChange={e => setEditWorks(p => p.map((x, idx) => idx === i ? { ...x, song_title: e.target.value } : x))} placeholder="곡명" className={`w-full border rounded-lg px-2.5 py-1.5 text-[12px] outline-none ${inputCls}`} />
+                            <input value={w.artist_name} onChange={e => setEditWorks(p => p.map((x, idx) => idx === i ? { ...x, artist_name: e.target.value } : x))} placeholder="아티스트명" className={`w-full border rounded-lg px-2.5 py-1.5 text-[12px] outline-none ${inputCls}`} />
+                          </div>
+                          <input value={w.link} onChange={e => setEditWorks(p => p.map((x, idx) => idx === i ? { ...x, link: e.target.value } : x))} placeholder="링크" className={`w-full border rounded-lg px-2.5 py-1.5 text-[12px] outline-none ${inputCls}`} />
+                        </div>
+                      ))}
+                      {editWorks.length < 5 && (
+                        <button onClick={() => setEditWorks(p => [...p, { song_title: '', artist_name: '', link: '' }])} className={`py-2 rounded-xl border border-dashed text-[11px] font-bold ${D ? 'border-white/10 text-zinc-600 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:text-zinc-600'}`}>+ 추가</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <button onClick={() => setEditing(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>취소</button>
+                  <button onClick={handleSave} disabled={saving} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50">
+                    {saving ? '저장 중...' : '저장'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {toast && (
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-pretendard">{toast}</div>
+        )}
       </main>
     </>
   );
