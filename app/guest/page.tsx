@@ -69,7 +69,12 @@ export default function MyPage() {
     const s = localStorage.getItem("lead_theme");
     if (s === "light") setTheme("light");
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) { router.push("/"); return; }
+      if (!session) {
+        const qp = new URLSearchParams(window.location.search);
+        const qs = qp.toString();
+        router.push(qs ? `/?${qs}` : '/');
+        return;
+      }
       // redirect 파라미터 있으면 바로 이동 (호스트/멤버 로그인 후 복귀)
       const params = new URLSearchParams(window.location.search);
       const redirectTo = params.get('redirect');

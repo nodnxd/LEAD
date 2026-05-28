@@ -21,7 +21,8 @@ export default function LoginPage() {
       ? await supabase.auth.signUp({ email, password })
       : await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
-    router.push('/dashboard');
+    const qp = new URLSearchParams(window.location.search);
+    router.push(qp.get('redirect') || '/dashboard');
   };
 
   return (
