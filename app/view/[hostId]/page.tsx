@@ -136,9 +136,8 @@ export default function GuestView(){
   const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
 
   useEffect(()=>{
-    const checkAuth=async(session:any)=>{
-      if(!session){setAuthStatus('none');return;}
-      const user=session.user;
+    const checkAuth=async(user:any)=>{
+      if(!user){setAuthStatus('none');return;}
       localStorage.setItem('last_host_id',hostId);
       if(user.id===hostId){setAuthStatus('approved');return;}
       const[profileRes,approvalRes]=await Promise.all([
@@ -149,9 +148,9 @@ export default function GuestView(){
       if(!approvalRes.data){setAuthStatus('none');}
       else setAuthStatus(approvalRes.data.status as any);
     };
-    supabase.auth.getSession().then(({data:{session}})=>{if(session)checkAuth(session);});
+    supabase.auth.getUser().then(({data:{user}})=>{checkAuth(user);});
     const{data:{subscription}}=supabase.auth.onAuthStateChange((_ev,session)=>{
-      if(_ev==='SIGNED_IN'||_ev==='TOKEN_REFRESHED'||_ev==='INITIAL_SESSION') checkAuth(session);
+      if(_ev==='SIGNED_IN'||_ev==='TOKEN_REFRESHED'||_ev==='INITIAL_SESSION') checkAuth(session?.user||null);
       else if(_ev==='SIGNED_OUT'){setAuthStatus('none');setGuestProfile(null);}
     });
     return()=>subscription.unsubscribe();
