@@ -97,6 +97,17 @@ let fileCounter=0;
 export default function GuestView(){
   const params=useParams();
   const [hostId,setHostId]=useState('');
+  const [showLeadForm,setShowLeadForm]=useState(false);
+  const [editingLead,setEditingLead]=useState<any>(null);
+  const [leadSaving,setLeadSaving]=useState(false);
+  const [lArtist,setLArtist]=useState('');
+  const [lTitle,setLTitle]=useState('');
+  const [lGender,setLGender]=useState('');
+  const [lGroup,setLGroup]=useState('');
+  const [lAlbum,setLAlbum]=useState('single');
+  const [lContent,setLContent]=useState('');
+  const [lDeadline,setLDeadline]=useState('');
+  const [lDeadline2,setLDeadline2]=useState('');
   const [leads,setLeads]=useState<any[]>([]);
   const [announcements,setAnnouncements]=useState<any[]>([]);
   const [view,setView]=useState<'calendar'|'list'>('calendar');
@@ -151,6 +162,30 @@ export default function GuestView(){
       else setAuthStatus(approvalRes?.data?.status as any);
     });
   },[hostId]);
+  const openLeadForm=(lead?:any)=>{
+    if(lead){
+      setEditingLead(lead);setLArtist(lead.artist||'');setLTitle(lead.title||'');
+      setLGender(lead.gender||'');setLGroup(lead.group_type||'');setLAlbum(lead.album_type||'single');
+      setLContent(lead.content||'');setLDeadline(lead.deadline||'');setLDeadline2(lead.deadline2||'');
+    }else{
+      setEditingLead(null);setLArtist('');setLTitle('');setLGender('');setLGroup('');
+      setLAlbum('single');setLContent('');setLDeadline('');setLDeadline2('');
+    }
+    setShowLeadForm(true);
+  };
+  const saveLead=async()=>{
+    if(!lArtist.trim()||!lGender||!lGroup||!hostId)return;
+    setLeadSaving(true);
+    const data={host_id:hostId,artist:lArtist.trim(),title:lTitle.trim()||null,gender:lGender,group_type:lGroup,album_type:lAlbum,content:lContent.trim()||null,deadline:lDeadline||null,deadline2:lDeadline2||null};
+    if(editingLead){await supabase.from('leads').update(data).eq('id',editingLead.id);}
+    else{await supabase.from('leads').insert(data);}
+    await fetchAll();setShowLeadForm(false);setLeadSaving(false);
+  };
+  const deleteLead=async(leadId:string)=>{
+    if(!confirm('이 리드를 삭제할까요?'))return;
+    await supabase.from('leads').delete().eq('id',leadId);
+    await fetchAll();
+  };
   const fileInputRef=useRef<HTMLInputElement>(null);
 
   const fetchMyPitches=async()=>{
@@ -412,6 +447,7 @@ export default function GuestView(){
           <div className="flex items-center gap-2">
             <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
             <div className={`flex border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
+              <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-[#5B8CFF] text-white hover:bg-[#4070ee] transition-all">+ 리드 추가</button>
               <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 달력</button>
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
             </div>
@@ -591,6 +627,52 @@ export default function GuestView(){
                     })}
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showLeadForm&&(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto font-pretendard" onClick={()=>setShowLeadForm(false)}>
+          <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D?'bg-[#0E0E0E] border-white/[0.07]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className="p-6 max-h-[85vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>{editingLead?'리드 수정':'리드 추가'}</h2>
+                <button onClick={()=>setShowLeadForm(false)} className={dimText}>✕</button>
+              </div>
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={lArtist} onChange={e=>setLArtist(e.target.value)} placeholder="아티스트명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>앨범/프로젝트명</label><input value={lTitle} onChange={e=>setLTitle(e.target.value)} placeholder="타이틀명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                </div>
+                <div><label className={`text-[10px] font-black uppercase tracking-widest mb-2 block ${D?'text-zinc-500':'text-zinc-400'}`}>성별 *</label>
+                  <div className="flex gap-2">
+                    {[['male','남자'],['female','여자'],['mixed','혼성']].map(([v,l])=><button key={v} onClick={()=>setLGender(v)} className={`flex-1 py-2 rounded-xl border text-[12px] font-bold transition-all ${lGender===v?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/[0.03] border-white/[0.08] text-zinc-500':'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{l}</button>)}
+                  </div>
+                </div>
+                <div><label className={`text-[10px] font-black uppercase tracking-widest mb-2 block ${D?'text-zinc-500':'text-zinc-400'}`}>솔로/그룹 *</label>
+                  <div className="flex gap-2">
+                    {[['solo','솔로'],['group','그룹']].map(([v,l])=><button key={v} onClick={()=>setLGroup(v)} className={`flex-1 py-2 rounded-xl border text-[12px] font-bold transition-all ${lGroup===v?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/[0.03] border-white/[0.08] text-zinc-500':'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{l}</button>)}
+                  </div>
+                </div>
+                <div><label className={`text-[10px] font-black uppercase tracking-widest mb-2 block ${D?'text-zinc-500':'text-zinc-400'}`}>앨범 타입</label>
+                  <div className="flex gap-2">
+                    {[['single','Single'],['ep','EP'],['lp','LP'],['ost','OST']].map(([v,l])=><button key={v} onClick={()=>setLAlbum(v)} className={`flex-1 py-2 rounded-xl border text-[11px] font-bold transition-all ${lAlbum===v?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/[0.03] border-white/[0.08] text-zinc-500':'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{l}</button>)}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>1차 마감일</label><input type="date" value={lDeadline} onChange={e=>setLDeadline(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>2차 마감일</label><input type="date" value={lDeadline2} onChange={e=>setLDeadline2(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                </div>
+                <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>내용</label><textarea value={lContent} onChange={e=>setLContent(e.target.value)} rows={5} placeholder="리드 내용, 조건, 링크 등..." className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                {editingLead&&<button onClick={()=>deleteLead(editingLead.id).then(()=>setShowLeadForm(false))} className="px-4 py-3 rounded-xl border border-red-500/30 text-red-400 text-[13px] font-bold hover:bg-red-500/10 transition-all">삭제</button>}
+                <button onClick={()=>setShowLeadForm(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] ${D?'border-white/10 text-zinc-500':'border-black/[0.08] text-zinc-500'}`}>취소</button>
+                <button onClick={saveLead} disabled={leadSaving||!lArtist.trim()||!lGender||!lGroup} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-40">
+                  {leadSaving?'저장 중...':editingLead?'수정':'추가'}
+                </button>
               </div>
             </div>
           </div>
