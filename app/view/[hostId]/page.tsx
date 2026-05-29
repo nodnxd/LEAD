@@ -494,12 +494,14 @@ export default function GuestView(){
                 </div>
               )}
               <div className="flex gap-2">
-                {!(authStatus=='approved'&&!guestProfile)&&({!(authStatus=='approved'&&!guestProfile)&&({!(authStatus=='approved'&&!guestProfile)&&(<button onClick={()=>{
+                {!(authStatus==='approved'&&!guestProfile)&&(<button onClick={()=>{
                   setPitchingLead(viewingLead);
                   setPitchForm(guestProfile?{artist_name:guestProfile.artist_name||'',contact:guestProfile.phone||guestProfile.email||'',message:''}:emptyPitch());
                   setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setUploadError('');setViewingLead(null);
-                }} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 피칭하기</button>)})})}
-                {isHost&&<button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>}{isHost&&<button onClick={()=>{deleteLead(viewingLead.id);setViewingLead(null);}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 font-bold text-[13px] hover:bg-red-500/10 transition-all">🗑</button>}{isHost&&<button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>}{isHost&&<button onClick={()=>{deleteLead(viewingLead.id);setViewingLead(null);}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 font-bold text-[13px] hover:bg-red-500/10 transition-all">🗑</button>}<button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
+                }} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 피칭하기</button>)}
+                {isHost&&<button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>}
+                {isHost&&<button onClick={()=>{if(confirm('삭제?')){deleteLead(viewingLead.id);setViewingLead(null);}}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 text-[13px] hover:bg-red-500/10 transition-all">🗑</button>}
+                <button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
               </div>
             </div>
           </div>
