@@ -96,7 +96,7 @@ let fileCounter=0;
 
 export default function GuestView(){
   const params=useParams();
-  const hostId=params.hostId as string;
+  const [hostId,setHostId]=useState('');
   const [leads,setLeads]=useState<any[]>([]);
   const [announcements,setAnnouncements]=useState<any[]>([]);
   const [view,setView]=useState<'calendar'|'list'>('calendar');
@@ -139,8 +139,9 @@ export default function GuestView(){
     supabase.auth.getSession().then(async({data:{session}})=>{
       if(!session){setAuthStatus('none');return;}
       const user=session.user;
-      localStorage.setItem('last_host_id',hostId);
-      if(user.id===hostId){setAuthStatus('approved');return;}
+      setHostId(user.id);
+      localStorage.setItem('last_host_id',user.id);
+      setAuthStatus('approved');return;
       const[profileRes,approvalRes]=await Promise.all([
         supabase.from('members').select('*').eq('id',user.id).single(),
         supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).single(),
