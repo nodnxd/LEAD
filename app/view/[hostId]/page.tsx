@@ -121,6 +121,28 @@ export default function GuestView(){
   const [theme,setTheme]=useState<'dark'|'light'>('dark');
   const [translating,setTranslating]=useState(false);
   const [translatedCache,setTranslatedCache]=useState<Record<string,Section[]>>({});
+  const [showLeadForm,setShowLeadForm]=useState(false);
+  const [editingLead,setEditingLead]=useState<any>(null);
+  const [leadSaving,setLeadSaving]=useState(false);
+  const [lArtist,setLArtist]=useState('');
+  const [lTitle,setLTitle]=useState('');
+  const [lGender,setLGender]=useState('');
+  const [lGroup,setLGroup]=useState('');
+  const [lAlbum,setLAlbum]=useState('single');
+  const [lContent,setLContent]=useState('');
+  const [lDeadline,setLDeadline]=useState('');
+  const [lDeadline2,setLDeadline2]=useState('');
+  const [showLeadForm,setShowLeadForm]=useState(false);
+  const [editingLead,setEditingLead]=useState<any>(null);
+  const [leadSaving,setLeadSaving]=useState(false);
+  const [lArtist,setLArtist]=useState('');
+  const [lTitle,setLTitle]=useState('');
+  const [lGender,setLGender]=useState('');
+  const [lGroup,setLGroup]=useState('');
+  const [lAlbum,setLAlbum]=useState('single');
+  const [lContent,setLContent]=useState('');
+  const [lDeadline,setLDeadline]=useState('');
+  const [lDeadline2,setLDeadline2]=useState('');
 
   useEffect(()=>{const s=localStorage.getItem('lead_theme');if(s==='light')setTheme('light');},[]);
   const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
@@ -155,6 +177,14 @@ export default function GuestView(){
     });
     return()=>subscription.unsubscribe();
   },[hostId]);
+  const isHost=authStatus==='approved'&&!guestProfile;
+  const openLeadForm=(lead?:any,preset?:string)=>{if(lead){setEditingLead(lead);setLArtist(lead.artist||'');setLTitle(lead.title||'');setLGender(lead.gender||'');setLGroup(lead.group_type||'');setLAlbum(lead.album_type||'single');setLContent(lead.content||'');setLDeadline(lead.deadline||'');setLDeadline2(lead.deadline2||'');}else{setEditingLead(null);setLArtist('');setLTitle('');setLGender('');setLGroup('');setLAlbum('single');setLContent('');setLDeadline(preset||'');setLDeadline2('');}setShowLeadForm(true);};
+  const saveLead=async()=>{if(!lArtist.trim()||!lGender||!lGroup)return;setLeadSaving(true);const data={host_id:hostId,artist:lArtist.trim(),title:lTitle.trim()||null,gender:lGender,group_type:lGroup,album_type:lAlbum,content:lContent.trim()||null,deadline:lDeadline||null,deadline2:lDeadline2||null};if(editingLead){await supabase.from('leads').update(data).eq('id',editingLead.id);}else{await supabase.from('leads').insert(data);}await fetchAll();setShowLeadForm(false);setLeadSaving(false);};
+  const deleteLead=async(id:string)=>{if(!confirm('이 리드를 삭제할까요?'))return;await supabase.from('leads').delete().eq('id',id);await fetchAll();};
+  const isHost=authStatus==='approved'&&!guestProfile;
+  const openLeadForm=(lead?:any,preset?:string)=>{if(lead){setEditingLead(lead);setLArtist(lead.artist||'');setLTitle(lead.title||'');setLGender(lead.gender||'');setLGroup(lead.group_type||'');setLAlbum(lead.album_type||'single');setLContent(lead.content||'');setLDeadline(lead.deadline||'');setLDeadline2(lead.deadline2||'');}else{setEditingLead(null);setLArtist('');setLTitle('');setLGender('');setLGroup('');setLAlbum('single');setLContent('');setLDeadline(preset||'');setLDeadline2('');}setShowLeadForm(true);};
+  const saveLead=async()=>{if(!lArtist.trim()||!lGender||!lGroup)return;setLeadSaving(true);const data={host_id:hostId,artist:lArtist.trim(),title:lTitle.trim()||null,gender:lGender,group_type:lGroup,album_type:lAlbum,content:lContent.trim()||null,deadline:lDeadline||null,deadline2:lDeadline2||null};if(editingLead){await supabase.from('leads').update(data).eq('id',editingLead.id);}else{await supabase.from('leads').insert(data);}await fetchAll();setShowLeadForm(false);setLeadSaving(false);};
+  const deleteLead=async(id:string)=>{if(!confirm('이 리드를 삭제할까요?'))return;await supabase.from('leads').delete().eq('id',id);await fetchAll();};
   const fileInputRef=useRef<HTMLInputElement>(null);
 
   const fetchAll=async()=>{
@@ -408,7 +438,9 @@ export default function GuestView(){
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
                   <span className="text-amber-400 text-[11px] font-bold">HOST</span>
                 </div>
-                <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
+                <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-xl bg-[#5B8CFF] text-white text-[10px] font-black hover:bg-[#4070ee] transition-all">+ 리드 추가</button>
+              <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-xl bg-[#5B8CFF] text-white text-[10px] font-black hover:bg-[#4070ee] transition-all">+ 리드 추가</button>
+              <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
               </div>
             ):guestProfile?(
               <div className="flex items-center gap-2">
@@ -433,7 +465,7 @@ export default function GuestView(){
               <button onClick={()=>{setCurrentMonth(new Date());setWeekStart(startOfWeek(new Date()));}} className={`text-[11px] font-bold transition-colors ${D?'text-zinc-600 hover:text-white':'text-zinc-400 hover:text-[#111]'}`}>오늘</button>
             </div>
             <div className="grid grid-cols-7 mb-2">{DAYS.map((d,i)=><div key={d} className={`text-center text-[11px] font-black py-2 ${i===0?'text-red-400':i===6?'text-blue-400':D?'text-zinc-600':'text-zinc-400'}`}>{d}</div>)}</div>
-            {calView==='month'&&<div className="grid grid-cols-7 gap-1">{Array.from({length:firstDay}).map((_,i)=><div key={`e-${i}`}/>)}{Array.from({length:daysInMonth}).map((_,i)=>{const day=i+1,ds=toDateStr(year,month+1,day),isToday=today.getFullYear()===year&&today.getMonth()===month&&today.getDate()===day,isPast=new Date(year,month,day)<new Date(new Date().toDateString());return<div key={day} className={`min-h-[80px] rounded-xl p-1.5 border ${isToday?'border-[#5B8CFF]/50 bg-[#5B8CFF]/10':D?'border-white/5 bg-white/[0.02]':'border-black/[0.06] bg-white/60'} ${isPast&&!isToday?'opacity-50':''}`}><div className={`text-[11px] font-black mb-1 ${isToday?'text-[#5B8CFF]':isPast?D?'text-zinc-700':'text-zinc-400':D?'text-zinc-400':'text-zinc-500'}`}>{day}</div><div className="flex flex-col gap-0.5">{getLeadsForDate(ds).map(l=><LeadCard key={l.id} lead={l} compact/>)}</div></div>;})}</div>}
+            {calView==='month'&&<div className="grid grid-cols-7 gap-1">{Array.from({length:firstDay}).map((_,i)=><div key={`e-${i}`}/>)}{Array.from({length:daysInMonth}).map((_,i)=>{const day=i+1,ds=toDateStr(year,month+1,day),isToday=today.getFullYear()===year&&today.getMonth()===month&&today.getDate()===day,isPast=new Date(year,month,day)<new Date(new Date().toDateString());return<div key={day} className={`min-h-[80px] rounded-xl p-1.5 border ${isToday?'border-[#5B8CFF]/50 bg-[#5B8CFF]/10':D?'border-white/5 bg-white/[0.02]':'border-black/[0.06] bg-white/60'} ${isPast&&!isToday?'opacity-50':''}`}><div className={`text-[11px] font-black mb-1 ${isToday?'text-[#5B8CFF]':isPast?D?'text-zinc-700':'text-zinc-400':D?'text-zinc-400':'text-zinc-500'}`} onClick={()=>isHost&&openLeadForm(undefined,ds)} style={isHost?{cursor:'pointer'}:{}}>{day}</div><div className="flex flex-col gap-0.5">{getLeadsForDate(ds).map(l=><LeadCard key={l.id} lead={l} compact/>)}</div></div>;})}</div>}
             {calView==='week'&&<div className="grid grid-cols-7 gap-1">{weekDays.map((d,i)=>{const ds=toDateStr(d.getFullYear(),d.getMonth()+1,d.getDate()),isToday=d.toDateString()===today.toDateString(),isPast=d<new Date(new Date().toDateString()),dl=getLeadsForDate(ds);return<div key={ds} className={`min-h-[200px] rounded-xl p-2 border ${isToday?'border-[#5B8CFF]/50 bg-[#5B8CFF]/10':D?'border-white/5 bg-white/[0.02]':'border-black/[0.06] bg-white/60'} ${isPast&&!isToday?'opacity-50':''}`}><div className={`text-[11px] font-black mb-2 ${isToday?'text-[#5B8CFF]':isPast?D?'text-zinc-700':'text-zinc-400':i===0?'text-red-400':i===6?'text-blue-400':D?'text-zinc-400':'text-zinc-500'}`}>{DAYS[i]} {d.getDate()}</div><div className="flex flex-col gap-1">{dl.map(l=><LeadCard key={l.id} lead={l} compact/>)}{dl.length===0&&<div className={`text-[10px] text-center mt-4 ${D?'text-zinc-800':'text-zinc-300'}`}>—</div>}</div></div>;})}</div>}
           </div>
         )}
@@ -476,12 +508,12 @@ export default function GuestView(){
                 </div>
               )}
               <div className="flex gap-2">
-                {!(authStatus=='approved'&&!guestProfile)&&(<button onClick={()=>{
+                {!(authStatus=='approved'&&!guestProfile)&&({!(authStatus=='approved'&&!guestProfile)&&({!(authStatus=='approved'&&!guestProfile)&&(<button onClick={()=>{
                   setPitchingLead(viewingLead);
                   setPitchForm(guestProfile?{artist_name:guestProfile.artist_name||'',contact:guestProfile.phone||guestProfile.email||'',message:''}:emptyPitch());
                   setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setUploadError('');setViewingLead(null);
-                }} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 피칭하기</button>)}
-                <button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
+                }} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 피칭하기</button>)})})}
+                {isHost&&<button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>}{isHost&&<button onClick={()=>{deleteLead(viewingLead.id);setViewingLead(null);}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 font-bold text-[13px] hover:bg-red-500/10 transition-all">🗑</button>}{isHost&&<button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>}{isHost&&<button onClick={()=>{deleteLead(viewingLead.id);setViewingLead(null);}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 font-bold text-[13px] hover:bg-red-500/10 transition-all">🗑</button>}<button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
               </div>
             </div>
           </div>
