@@ -147,8 +147,8 @@ export default function GuestView(){
         supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).single(),
       ]);
       if(profileRes.data)setGuestProfile(profileRes.data);
-      if(!approvalRes.data){setAuthStatus('none');}
-      else setAuthStatus(approvalRes.data.status as any);
+      if(!approvalRes?.data){setAuthStatus('none');}
+      else setAuthStatus(approvalRes?.data?.status as any);
     });
   },[hostId]);
   const fileInputRef=useRef<HTMLInputElement>(null);
