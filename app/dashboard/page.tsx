@@ -157,6 +157,13 @@ export default function GuestView(){
     });
     return()=>subscription.unsubscribe();
   },[]);
+  useEffect(()=>{const s=localStorage.getItem('lead_theme');if(s==='light')setTheme('light');},[]);
+  const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
+  const D=theme==='dark';
+  const mainBg=D?'bg-[#050505] text-white':'bg-[#F2F2F7] text-[#111]';
+  const dividerCls=D?'border-white/10':'border-black/[0.08]';
+  const dimText=D?'text-zinc-500':'text-zinc-500';
+  const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
   const openLeadForm=(lead?:any)=>{
     if(lead){
       setEditingLead(lead);setLArtist(lead.artist||'');setLTitle(lead.title||'');
