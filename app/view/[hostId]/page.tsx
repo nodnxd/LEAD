@@ -132,17 +132,7 @@ export default function GuestView(){
   const [lContent,setLContent]=useState('');
   const [lDeadline,setLDeadline]=useState('');
   const [lDeadline2,setLDeadline2]=useState('');
-  const [showLeadForm,setShowLeadForm]=useState(false);
-  const [editingLead,setEditingLead]=useState<any>(null);
-  const [leadSaving,setLeadSaving]=useState(false);
-  const [lArtist,setLArtist]=useState('');
-  const [lTitle,setLTitle]=useState('');
-  const [lGender,setLGender]=useState('');
-  const [lGroup,setLGroup]=useState('');
-  const [lAlbum,setLAlbum]=useState('single');
-  const [lContent,setLContent]=useState('');
-  const [lDeadline,setLDeadline]=useState('');
-  const [lDeadline2,setLDeadline2]=useState('');
+  
 
   useEffect(()=>{const s=localStorage.getItem('lead_theme');if(s==='light')setTheme('light');},[]);
   const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
@@ -181,11 +171,7 @@ export default function GuestView(){
   const openLeadForm=(lead?:any,preset?:string)=>{if(lead){setEditingLead(lead);setLArtist(lead.artist||'');setLTitle(lead.title||'');setLGender(lead.gender||'');setLGroup(lead.group_type||'');setLAlbum(lead.album_type||'single');setLContent(lead.content||'');setLDeadline(lead.deadline||'');setLDeadline2(lead.deadline2||'');}else{setEditingLead(null);setLArtist('');setLTitle('');setLGender('');setLGroup('');setLAlbum('single');setLContent('');setLDeadline(preset||'');setLDeadline2('');}setShowLeadForm(true);};
   const saveLead=async()=>{if(!lArtist.trim()||!lGender||!lGroup)return;setLeadSaving(true);const data={host_id:hostId,artist:lArtist.trim(),title:lTitle.trim()||null,gender:lGender,group_type:lGroup,album_type:lAlbum,content:lContent.trim()||null,deadline:lDeadline||null,deadline2:lDeadline2||null};if(editingLead){await supabase.from('leads').update(data).eq('id',editingLead.id);}else{await supabase.from('leads').insert(data);}await fetchAll();setShowLeadForm(false);setLeadSaving(false);};
   const deleteLead=async(id:string)=>{if(!confirm('이 리드를 삭제할까요?'))return;await supabase.from('leads').delete().eq('id',id);await fetchAll();};
-  const isHost=authStatus==='approved'&&!guestProfile;
-  const openLeadForm=(lead?:any,preset?:string)=>{if(lead){setEditingLead(lead);setLArtist(lead.artist||'');setLTitle(lead.title||'');setLGender(lead.gender||'');setLGroup(lead.group_type||'');setLAlbum(lead.album_type||'single');setLContent(lead.content||'');setLDeadline(lead.deadline||'');setLDeadline2(lead.deadline2||'');}else{setEditingLead(null);setLArtist('');setLTitle('');setLGender('');setLGroup('');setLAlbum('single');setLContent('');setLDeadline(preset||'');setLDeadline2('');}setShowLeadForm(true);};
-  const saveLead=async()=>{if(!lArtist.trim()||!lGender||!lGroup)return;setLeadSaving(true);const data={host_id:hostId,artist:lArtist.trim(),title:lTitle.trim()||null,gender:lGender,group_type:lGroup,album_type:lAlbum,content:lContent.trim()||null,deadline:lDeadline||null,deadline2:lDeadline2||null};if(editingLead){await supabase.from('leads').update(data).eq('id',editingLead.id);}else{await supabase.from('leads').insert(data);}await fetchAll();setShowLeadForm(false);setLeadSaving(false);};
-  const deleteLead=async(id:string)=>{if(!confirm('이 리드를 삭제할까요?'))return;await supabase.from('leads').delete().eq('id',id);await fetchAll();};
-  const fileInputRef=useRef<HTMLInputElement>(null);
+    const fileInputRef=useRef<HTMLInputElement>(null);
 
   const fetchAll=async()=>{
     const [lr,ar]=await Promise.all([
