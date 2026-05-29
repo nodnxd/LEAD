@@ -138,30 +138,25 @@ export default function GuestView(){
   const [myPitchLoading,setMyPitchLoading]=useState(false);
   const [translatedCache,setTranslatedCache]=useState<Record<string,Section[]>>({});
 
-  useEffect(()=>{const s=localStorage.getItem('lead_theme');if(s==='light')setTheme('light');},[]);
-  const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
-  const D=theme==='dark';
-  const mainBg=D?'bg-[#050505] text-white':'bg-[#F2F2F7] text-[#111]';
-  const dividerCls=D?'border-white/10':'border-black/[0.08]';
-  const dimText=D?'text-zinc-500':'text-zinc-500';
-  const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
-
   useEffect(()=>{
-    supabase.auth.getSession().then(async({data:{session}})=>{
-      if(!session){setAuthStatus('none');return;}
-      const user=session.user;
+    const setApproved=(user:any)=>{
       setHostId(user.id);
       localStorage.setItem('last_host_id',user.id);
-      setAuthStatus('approved');return;
-      const[profileRes,approvalRes]=await Promise.all([
-        supabase.from('members').select('*').eq('id',user.id).single(),
-        supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).single(),
-      ]);
-      if(profileRes.data)setGuestProfile(profileRes.data);
-      if(!approvalRes?.data){setAuthStatus('none');}
-      else setAuthStatus(approvalRes?.data?.status as any);
+      setAuthStatus('approved');
+    };
+    supabase.auth.getSession().then(async({data:{session}})=>{
+      if(session?.user){setApproved(session.user);return;}
+      const{data:{user}}=await supabase.auth.getUser();
+      if(user){setApproved(user);}else{setAuthStatus('none');}
     });
-  },[hostId]);
+    const{data:{subscription}}=supabase.auth.onAuthStateChange((_ev,session)=>{
+      if(_ev==='SIGNED_IN'||_ev==='INITIAL_SESSION'||_ev==='TOKEN_REFRESHED'){
+        if(session?.user)setApproved(session.user);
+        else setAuthStatus('none');
+      }else if(_ev==='SIGNED_OUT'){setAuthStatus('none');}
+    });
+    return()=>subscription.unsubscribe();
+  },[]);
   const openLeadForm=(lead?:any)=>{
     if(lead){
       setEditingLead(lead);setLArtist(lead.artist||'');setLTitle(lead.title||'');
