@@ -197,7 +197,8 @@ export default function MyPage() {
     }
     const finalGenres = genres.includes('ETC') && genreEtc.trim()
       ? [...genres.filter(g => g !== 'ETC'), `ETC:${genreEtc.trim()}`] : genres;
-    await supabase.from('members').update({
+    await supabase.from('members').upsert({
+      id: user.id,
       name, artist_name: artistName, gender, company: company || null, email,
       instagram: instagram || null, photo_url: photoUrl,
       roles, genres: finalGenres, genre_etc: genreEtc || null, demo_link: demoLink || null,
@@ -228,7 +229,7 @@ export default function MyPage() {
   const bg = D ? 'bg-[#050505] text-white' : 'bg-[#F0F0F5] text-[#111]';
   const card = D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.1] shadow-sm';
   const inputCls = D
-    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/60'
+    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-500 focus:border-[#5B8CFF]/60'
     : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/60';
   const labelCls = `text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D ? 'text-zinc-500' : 'text-zinc-400'}`;
   const dimText = D ? 'text-zinc-500' : 'text-zinc-600';
