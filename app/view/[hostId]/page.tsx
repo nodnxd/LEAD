@@ -118,6 +118,7 @@ export default function GuestView(){
   const [sortBy,setSortBy]=useState<'dday'|'gender'|'group'|'album'>('dday');
   const [guestProfile,setGuestProfile]=useState<any>(null);
   const [authStatus,setAuthStatus]=useState<'loading'|'none'|'pending'|'rejected'|'approved'>('loading');
+  const [isHost,setIsHost]=useState(false);
   const [theme,setTheme]=useState<'dark'|'light'>('dark');
   const [translating,setTranslating]=useState(false);
   const [translatedCache,setTranslatedCache]=useState<Record<string,Section[]>>({});
@@ -145,9 +146,9 @@ export default function GuestView(){
   useEffect(()=>{
     if(!hostId)return;
     const checkAuth=async(user:any)=>{
-      if(!user){setAuthStatus('none');return;}
+      if(!user){setAuthStatus('none');setIsHost(false);return;}
       localStorage.setItem('last_host_id',hostId);
-      if(user.id===hostId){setAuthStatus('approved');return;}
+      if(user.id===hostId){setIsHost(true);setAuthStatus('approved');return;}
       const[profileRes,approvalRes]=await Promise.all([
         supabase.from('members').select('*').eq('id',user.id).single(),
         supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).single(),
@@ -163,11 +164,10 @@ export default function GuestView(){
     });
     const{data:{subscription}}=supabase.auth.onAuthStateChange((_ev,session)=>{
       if(_ev==='SIGNED_IN'||_ev==='TOKEN_REFRESHED'||_ev==='INITIAL_SESSION') checkAuth(session?.user||null);
-      else if(_ev==='SIGNED_OUT'){setAuthStatus('none');setGuestProfile(null);}
+      else if(_ev==='SIGNED_OUT'){setAuthStatus('none');setGuestProfile(null);setIsHost(false);}
     });
     return()=>subscription.unsubscribe();
   },[hostId]);
-  const isHost=authStatus==='approved'&&!guestProfile;
   const openLeadForm=(lead?:any,preset?:string)=>{if(lead){setEditingLead(lead);setLArtist(lead.artist||'');setLTitle(lead.title||'');setLGender(lead.gender||'');setLGroup(lead.group_type||'');setLAlbum(lead.album_type||'single');setLContent(lead.content||'');setLDeadline(lead.deadline||'');setLDeadline2(lead.deadline2||'');}else{setEditingLead(null);setLArtist('');setLTitle('');setLGender('');setLGroup('');setLAlbum('single');setLContent('');setLDeadline(preset||'');setLDeadline2('');}setShowLeadForm(true);};
   const saveLead=async()=>{if(!lArtist.trim()||!lGender||!lGroup)return;setLeadSaving(true);const data={host_id:hostId,artist:lArtist.trim(),title:lTitle.trim()||null,gender:lGender,group_type:lGroup,album_type:lAlbum,content:lContent.trim()||null,deadline:lDeadline||null,deadline2:lDeadline2||null};if(editingLead){await supabase.from('leads').update(data).eq('id',editingLead.id);}else{await supabase.from('leads').insert(data);}await fetchAll();setShowLeadForm(false);setLeadSaving(false);};
   const deleteLead=async(id:string)=>{if(!confirm('이 리드를 삭제할까요?'))return;await supabase.from('leads').delete().eq('id',id);await fetchAll();};
@@ -418,15 +418,14 @@ export default function GuestView(){
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
             </div>
             {/* ✅ MY 버튼 */}
-            {authStatus==='approved'&&!guestProfile?(
+            {isHost?(
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
                   <span className="text-amber-400 text-[11px] font-bold">HOST</span>
                 </div>
                 <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-xl bg-[#5B8CFF] text-white text-[10px] font-black hover:bg-[#4070ee] transition-all">+ 리드 추가</button>
-              <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-xl bg-[#5B8CFF] text-white text-[10px] font-black hover:bg-[#4070ee] transition-all">+ 리드 추가</button>
-              <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
+                <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
               </div>
             ):guestProfile?(
               <div className="flex items-center gap-2">
@@ -475,7 +474,7 @@ export default function GuestView(){
           <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
             <div className="p-6 max-h-[85vh] overflow-y-auto">
               <div className="flex items-start justify-between mb-5">
-                <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><span className={`text-[10px] font-black ${getCardColor(viewingLead.gender,viewingLead.group_type).text}`}>{getCardColor(viewingLead.gender,viewingLead.group_type).label}</span><AlbumBadge type={viewingLead.album_type||'single'}/></div><h2 className="text-white font-black text-[22px] leading-tight">{viewingLead.artist}</h2><p className="text-zinc-700 text-[9px]">host:{String(isHost)} status:{authStatus} profile:{String(!!guestProfile)}</p><p className="text-zinc-400 text-[14px] mt-0.5">{viewingLead.title}</p></div>
+                <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><span className={`text-[10px] font-black ${getCardColor(viewingLead.gender,viewingLead.group_type).text}`}>{getCardColor(viewingLead.gender,viewingLead.group_type).label}</span><AlbumBadge type={viewingLead.album_type||'single'}/></div><h2 className="text-white font-black text-[22px] leading-tight">{viewingLead.artist}</h2><p className="text-zinc-400 text-[14px] mt-0.5">{viewingLead.title}</p></div>
                 <div className="ml-3 shrink-0"><DeadlineDisplay lead={viewingLead} size="large"/></div>
               </div>
               {viewingLead.content&&(
@@ -494,7 +493,7 @@ export default function GuestView(){
                 </div>
               )}
               <div className="flex gap-2">
-                {!(authStatus==='approved'&&!guestProfile)&&(<button onClick={()=>{
+                {!isHost&&(<button onClick={()=>{
                   setPitchingLead(viewingLead);
                   setPitchForm(guestProfile?{artist_name:guestProfile.artist_name||'',contact:guestProfile.phone||guestProfile.email||'',message:''}:emptyPitch());
                   setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setUploadError('');setViewingLead(null);
