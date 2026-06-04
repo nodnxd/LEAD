@@ -317,12 +317,6 @@ export default function MyPage() {
                 <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>HOST PAGE</span>
               </div>
               <div className="flex items-center gap-2">
-                {hostId && (
-                  <button onClick={() => router.push(`/view/${hostId}`)}
-                    className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
-                    ← 뷰 페이지
-                  </button>
-                )}
                 <button onClick={() => router.push('/dashboard')}
                   className="px-3 py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-[11px] font-bold hover:bg-amber-500/20 transition-all">
                   📊 대시보드
@@ -645,12 +639,6 @@ export default function MyPage() {
               <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>MY PAGE</span>
             </div>
             <div className="flex items-center gap-2">
-              {hostId && (
-                <button onClick={() => router.push(`/view/${hostId}`)}
-                  className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
-                  ← 돌아가기
-                </button>
-              )}
               <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
                 className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
                 {D ? '☀️' : '🌙'}

@@ -413,7 +413,7 @@ export default function GuestView(){
   return(
     <>
       <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
-      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-pretendard relative overflow-hidden`}>
+      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-pretendard relative`}>
         <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] ${D?'opacity-[0.06]':'opacity-[0.04]'} pointer-events-none`}/>
         <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-8"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
 
