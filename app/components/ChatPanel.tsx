@@ -67,7 +67,19 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
       .from('member_approvals')
       .select('member_id,status,members(id,artist_name,photo_url,roles,name,company,instagram,genres,email)')
       .eq('host_id', hostId).in('status', ['approved', 'admin']);
-    if (data) setMembers(data.map((a: any) => a.members).filter(Boolean).filter((m: any) => m.id !== user?.id));
+    let list = (data || []).map((a: any) => a.members).filter(Boolean);
+    // 게스트라면 호스트를 멤버 목록에 자동 포함
+    if (user?.id && user.id !== hostId) {
+      if (!list.find((m: any) => m.id === hostId)) {
+        const { data: hm } = await supabase.from('members').select('id,artist_name,photo_url,roles,name,company,instagram,genres,email').eq('id', hostId).single();
+        if (hm) list = [hm, ...list];
+        else {
+          const { data: hp } = await supabase.from('host_profiles').select('id,display_name,photo_url').eq('id', hostId).single();
+          if (hp) list = [{ id: hp.id, artist_name: hp.display_name, name: hp.display_name, photo_url: hp.photo_url, roles: ['HOST'] }, ...list];
+        }
+      }
+    }
+    setMembers(list.filter((m: any) => m.id !== user?.id));
   }, [hostId, user?.id]);
 
   const fetchConvs = useCallback(async () => {
