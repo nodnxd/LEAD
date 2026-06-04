@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
+import ChatPanel from '@/app/components/ChatPanel';
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
 
@@ -116,6 +117,7 @@ export default function GuestView(){
   const [filterGroup,setFilterGroup]=useState<string[]>([]);
   const [filterAlbum,setFilterAlbum]=useState<string[]>([]);
   const [sortBy,setSortBy]=useState<'dday'|'gender'|'group'|'album'>('dday');
+  const [currentUser,setCurrentUser]=useState<any>(null);
   const [guestProfile,setGuestProfile]=useState<any>(null);
   const [authStatus,setAuthStatus]=useState<'loading'|'none'|'pending'|'rejected'|'approved'>('loading');
   const [isHost,setIsHost]=useState(false);
@@ -148,9 +150,10 @@ export default function GuestView(){
   useEffect(()=>{
     if(!hostId)return;
     const checkAuth=async(user:any)=>{
-      if(!user){setAuthStatus('none');setIsHost(false);return;}
+      if(!user){setAuthStatus('none');setIsHost(false);setCurrentUser(null);return;}
+      setCurrentUser(user);
       localStorage.setItem('last_host_id',hostId);
-      if(user.id===hostId){setIsHost(true);setAuthStatus('approved');return;}
+      if(user.id===hostId){setIsHost(true);setAuthStatus('approved');fetchAll();return;}
       const[profileRes,approvalRes]=await Promise.all([
         supabase.from('members').select('*').eq('id',user.id).single(),
         supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).single(),
@@ -159,7 +162,8 @@ export default function GuestView(){
       if(!approvalRes.data){setAuthStatus('none');}
       else{
         const s=approvalRes.data.status;
-        if(s==='admin'){setIsHost(true);setAuthStatus('approved');}
+        if(s==='admin'){setIsHost(true);setAuthStatus('approved');fetchAll();}
+        else if(s==='approved'){setAuthStatus('approved');fetchAll();}
         else setAuthStatus(s as any);
       }
     };
@@ -600,6 +604,11 @@ export default function GuestView(){
             </div>
           </div>
         </div>
+      )}
+
+      {/* 채팅 패널 */}
+      {currentUser&&authStatus==='approved'&&(
+        <ChatPanel user={currentUser} hostId={hostId} dark={D}/>
       )}
     </>
   );

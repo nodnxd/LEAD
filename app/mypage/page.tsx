@@ -77,7 +77,16 @@ export default function MyPage() {
   const [hostMembers, setHostMembers] = useState<any[]>([]);
   const [hostTab, setHostTab] = useState<'pitches' | 'members'>('pitches');
   const [hostEditing, setHostEditing] = useState(false);
+  const [hostProfile, setHostProfile] = useState<any>(null);
   const [hostDisplayName, setHostDisplayName] = useState('');
+  const [hostCompany, setHostCompany] = useState('');
+  const [hostInstagram, setHostInstagram] = useState('');
+  const [hostBio, setHostBio] = useState('');
+  const [hostRoles, setHostRoles] = useState<string[]>([]);
+  const [hostGenres, setHostGenres] = useState<string[]>([]);
+  const [hostPhotoPreview, setHostPhotoPreview] = useState('');
+  const [hostPhotoFile, setHostPhotoFile] = useState<File | null>(null);
+  const hostPhotoRef = useRef<HTMLInputElement>(null);
   const [hostSaving, setHostSaving] = useState(false);
 
   useEffect(() => {
@@ -139,12 +148,11 @@ export default function MyPage() {
   };
 
   const fetchHostData = async (uid: string) => {
-    const [{ data: leads }, { data: pitches }, { data: approvals }] = await Promise.all([
+    const [{ data: leads }, { data: pitches }, { data: approvals }, { data: hp }] = await Promise.all([
       supabase.from('leads').select('*').eq('host_id', uid).order('created_at', { ascending: false }),
       supabase.from('pitches').select('*').eq('host_id', uid).order('created_at', { ascending: false }),
-      supabase.from('member_approvals')
-        .select('*, members(id, artist_name, name, roles, photo_url, genres)')
-        .eq('host_id', uid),
+      supabase.from('member_approvals').select('*, members(id, artist_name, name, roles, photo_url, genres)').eq('host_id', uid),
+      supabase.from('host_profiles').select('*').eq('id', uid).single(),
     ]);
     if (leads) setHostLeads(leads);
     if (pitches) {
@@ -155,18 +163,45 @@ export default function MyPage() {
       }
     }
     if (approvals) setHostMembers(approvals);
+    if (hp) setHostProfile(hp);
   };
 
   const openHostEdit = () => {
-    setHostDisplayName(user?.user_metadata?.display_name || '');
+    const hp = hostProfile;
+    setHostDisplayName(hp?.display_name || user?.user_metadata?.display_name || '');
+    setHostCompany(hp?.company || '');
+    setHostInstagram(hp?.instagram || '');
+    setHostBio(hp?.bio || '');
+    setHostRoles(hp?.roles || []);
+    setHostGenres(hp?.genres || []);
+    setHostPhotoPreview(hp?.photo_url || '');
+    setHostPhotoFile(null);
     setHostEditing(true);
   };
   const saveHostProfile = async () => {
     if (!user || hostSaving) return;
     setHostSaving(true);
-    await supabase.auth.updateUser({ data: { display_name: hostDisplayName.trim() } });
-    setUser((prev: any) => ({ ...prev, user_metadata: { ...prev.user_metadata, display_name: hostDisplayName.trim() } }));
-    setHostEditing(false); setHostSaving(false);
+    let photoUrl = hostProfile?.photo_url || null;
+    if (hostPhotoFile) {
+      const ext = hostPhotoFile.name.split('.').pop();
+      const path = `hosts/${user.id}/avatar.${ext}`;
+      await supabase.storage.from('member-photos').upload(path, hostPhotoFile, { upsert: true });
+      photoUrl = supabase.storage.from('member-photos').getPublicUrl(path).data.publicUrl;
+    }
+    const data = {
+      id: user.id,
+      display_name: hostDisplayName.trim() || null,
+      company: hostCompany.trim() || null,
+      instagram: hostInstagram.trim() || null,
+      bio: hostBio.trim() || null,
+      photo_url: photoUrl,
+      roles: hostRoles,
+      genres: hostGenres,
+      updated_at: new Date().toISOString(),
+    };
+    await supabase.from('host_profiles').upsert(data);
+    setHostProfile(data);
+    setHostEditing(false); setHostSaving(false); setHostPhotoFile(null);
     showToast('✅ 저장됐어요!');
   };
 
@@ -304,24 +339,48 @@ export default function MyPage() {
             </div>
 
             {/* 호스트 정체성 카드 */}
-            <div className={`border rounded-2xl p-5 mb-4 ${card}`}>
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-                  <span className="text-2xl">🎛</span>
+            <div className={`border rounded-2xl overflow-hidden mb-4 ${card}`}>
+              <div className="flex items-center gap-4 p-5">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center overflow-hidden shrink-0">
+                  {hostProfile?.photo_url
+                    ? <img src={hostProfile.photo_url} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-2xl">🎛</span>}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">HOST</span>
                   </div>
-                  {user?.user_metadata?.display_name && (
-                    <p className={`font-bold text-[16px] ${D ? 'text-white' : 'text-[#111]'}`}>{user.user_metadata.display_name}</p>
-                  )}
-                  <p className={`text-[13px] ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{user?.email}</p>
+                  <p className={`font-bold text-[17px] ${D ? 'text-white' : 'text-[#111]'}`}>{hostProfile?.display_name || user?.email?.split('@')[0]}</p>
+                  <p className={`text-[12px] ${D ? 'text-zinc-500' : 'text-zinc-500'}`}>{user?.email}</p>
+                  {hostProfile?.company && <p className={`text-[11px] mt-0.5 ${D ? 'text-zinc-600' : 'text-zinc-400'}`}>{hostProfile.company}</p>}
                 </div>
                 <button onClick={openHostEdit}
                   className="shrink-0 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-bold hover:bg-amber-500/20 transition-all">
                   ✏️ 수정
                 </button>
+              </div>
+              {(hostProfile?.roles?.length > 0 || hostProfile?.instagram || hostProfile?.bio) && (
+                <div className={`px-5 pb-4 border-t ${D ? 'border-white/[0.06]' : 'border-black/[0.06]'} pt-3`}>
+                  {hostProfile?.roles?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {hostProfile.roles.map((r: string) => (
+                        <span key={r} className="text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400">
+                          {ROLES.find(x => x.id === r)?.label || r}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {hostProfile?.bio && <p className={`text-[12px] leading-relaxed ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{hostProfile.bio}</p>}
+                  {hostProfile?.instagram && (
+                    <a href={`https://instagram.com/${hostProfile.instagram}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1 text-[11px] text-[#5B8CFF] hover:underline">📸 @{hostProfile.instagram}</a>
+                  )}
+                </div>
+              )}
+              <div className={`px-5 pb-4 flex gap-2`}>
+                <a href={`/card/${user?.id}`} target="_blank" rel="noopener noreferrer"
+                  className="flex-1 py-2 text-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-black hover:bg-amber-500/20 transition-all">
+                  🪪 내 컴카드 보기
+                </a>
               </div>
             </div>
 
@@ -478,21 +537,72 @@ export default function MyPage() {
           </div>
 
           {hostEditing && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={() => setHostEditing(false)}>
-              <div className={`w-full max-w-sm border rounded-2xl shadow-2xl ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
-                <div className="p-6">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={() => setHostEditing(false)}>
+              <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+                <div className="p-6 max-h-[85vh] overflow-y-auto">
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className={`font-black text-[18px] ${D ? 'text-white' : 'text-[#111]'}`}>프로필 수정</h2>
+                    <h2 className={`font-black text-[18px] ${D ? 'text-white' : 'text-[#111]'}`}>호스트 프로필 수정</h2>
                     <button onClick={() => setHostEditing(false)} className={`text-[13px] ${dimText}`}>✕</button>
                   </div>
                   <div className="flex flex-col gap-4">
+                    {/* 사진 */}
+                    <div className="flex items-center gap-4">
+                      <button onClick={() => hostPhotoRef.current?.click()} className="relative group">
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-amber-500/10 border-2 border-dashed border-amber-500/30 flex items-center justify-center">
+                          {hostPhotoPreview ? <img src={hostPhotoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-xl">📷</span>}
+                        </div>
+                        <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-[9px] font-bold">변경</span>
+                        </div>
+                      </button>
+                      <input ref={hostPhotoRef} type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) { setHostPhotoFile(e.target.files[0]); setHostPhotoPreview(URL.createObjectURL(e.target.files[0])); } }} />
+                      <p className={`text-[11px] ${dimText}`}>사진 클릭해서 변경</p>
+                    </div>
+
                     <div>
                       <label className={labelCls}>이메일</label>
-                      <p className={`text-[13px] px-3 py-2.5 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06] text-zinc-400' : 'bg-black/[0.02] border-black/[0.06] text-zinc-500'}`}>{user?.email}</p>
+                      <p className={`text-[13px] px-3 py-2.5 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06] text-zinc-500' : 'bg-black/[0.02] border-black/[0.06] text-zinc-400'}`}>{user?.email}</p>
                     </div>
                     <div>
                       <label className={labelCls}>표시 이름</label>
-                      <input value={hostDisplayName} onChange={e => setHostDisplayName(e.target.value)} placeholder="이름 또는 닉네임" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
+                      <input value={hostDisplayName} onChange={e => setHostDisplayName(e.target.value)} placeholder="이름 또는 스튜디오명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>소속 / 레이블</label>
+                      <input value={hostCompany} onChange={e => setHostCompany(e.target.value)} placeholder="회사명 또는 프리랜서" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>인스타그램</label>
+                      <div className="relative">
+                        <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-bold ${dimText}`}>@</span>
+                        <input value={hostInstagram} onChange={e => setHostInstagram(e.target.value)} placeholder="username" className={`w-full border rounded-xl pl-7 pr-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelCls}>한 줄 소개</label>
+                      <textarea value={hostBio} onChange={e => setHostBio(e.target.value)} placeholder="간단한 소개를 입력하세요" rows={2} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all resize-none ${inputCls}`} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>역할</label>
+                      <div className="flex flex-wrap gap-2">
+                        {ROLES.map(r => (
+                          <button key={r.id} onClick={() => setHostRoles(p => p.includes(r.id) ? p.filter(x => x !== r.id) : [...p, r.id])}
+                            className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${hostRoles.includes(r.id) ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                            {r.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelCls}>선호 장르</label>
+                      <div className="flex flex-wrap gap-2">
+                        {GENRES.map(g => (
+                          <button key={g.id} onClick={() => setHostGenres(p => p.includes(g.id) ? p.filter(x => x !== g.id) : [...p, g.id])}
+                            className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${hostGenres.includes(g.id) ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                            {g.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-3 mt-6">
@@ -582,10 +692,16 @@ export default function MyPage() {
                     </div>
                   )}
                 </div>
-                <button onClick={openEdit}
-                  className="shrink-0 px-3 py-2 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF] text-[11px] font-bold hover:bg-[#5B8CFF]/20 transition-all">
-                  ✏️ 수정
-                </button>
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  <button onClick={openEdit}
+                    className="px-3 py-2 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20 text-[#5B8CFF] text-[11px] font-bold hover:bg-[#5B8CFF]/20 transition-all">
+                    ✏️ 수정
+                  </button>
+                  <a href={`/card/${user?.id}`} target="_blank" rel="noopener noreferrer"
+                    className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 text-[11px] font-bold hover:text-white transition-all text-center">
+                    🪪 컴카드
+                  </a>
+                </div>
               </div>
             </div>
 

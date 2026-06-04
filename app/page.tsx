@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
@@ -11,9 +11,17 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(()=>{
+    const saved=localStorage.getItem('lead_saved_email');
+    if(saved){setEmail(saved);setRememberMe(true);}
+  },[]);
 
   const handle = async () => {
     setLoading(true); setError('');
+    if(rememberMe&&email)localStorage.setItem('lead_saved_email',email);
+    else localStorage.removeItem('lead_saved_email');
     const { error } = isSignUp
       ? await supabase.auth.signUp({ email, password })
       : await supabase.auth.signInWithPassword({ email, password });
@@ -43,6 +51,12 @@ export default function LoginPage() {
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white" />
             </div>
             {error && <p className="text-red-400 text-[12px] mb-3">{error}</p>}
+            {!isSignUp&&(
+              <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                <input type="checkbox" checked={rememberMe} onChange={e=>setRememberMe(e.target.checked)} className="w-3.5 h-3.5 accent-[#5B8CFF]"/>
+                <span className="text-zinc-500 text-[12px]">아이디 기억하기</span>
+              </label>
+            )}
             <button onClick={handle} disabled={loading}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 mb-3">
               {loading ? '...' : isSignUp ? '회원가입' : '로그인'}
