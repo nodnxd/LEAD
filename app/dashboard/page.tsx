@@ -482,6 +482,7 @@ export default function GuestView(){
               <span className="text-amber-400 text-[11px] font-bold">HOST</span>
             </div>
             <button onClick={()=>{setShowMembers(true);fetchMembers();}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👥 멤버</button>
+            <button onClick={()=>{if(navigator.clipboard)navigator.clipboard.writeText(window.location.origin+'/view/'+hostId);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🔗 공유</button>
             <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
           </div>
         </div>
