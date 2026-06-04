@@ -148,6 +148,7 @@ export default function GuestView(){
     const checkAuth=async(user:any)=>{
       if(!user){setAuthStatus('none');setIsHost(false);return;}
       localStorage.setItem('last_host_id',hostId);
+      console.log('[auth] user.id:', user.id, 'hostId:', hostId, 'match:', user.id===hostId);
       if(user.id===hostId){setIsHost(true);setAuthStatus('approved');return;}
       const[profileRes,approvalRes]=await Promise.all([
         supabase.from('members').select('*').eq('id',user.id).single(),
