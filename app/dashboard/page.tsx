@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
+import ChatPanel from '@/app/components/ChatPanel';
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
 
@@ -140,10 +141,12 @@ export default function GuestView(){
   const [showMembers,setShowMembers]=useState(false);
   const [memberList,setMemberList]=useState<any[]>([]);
   const [memberLoading,setMemberLoading]=useState(false);
+  const [currentUser,setCurrentUser]=useState<any>(null);
 
   useEffect(()=>{
     const setApproved=(user:any)=>{
       setHostId(user.id);
+      setCurrentUser(user);
       localStorage.setItem('last_host_id',user.id);
       setAuthStatus('approved');
     };
@@ -459,7 +462,7 @@ export default function GuestView(){
   return(
     <>
       <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
-      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-pretendard relative overflow-hidden`}>
+      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-pretendard relative`}>
         <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] ${D?'opacity-[0.06]':'opacity-[0.04]'} pointer-events-none`}/>
         <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-8"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
 
@@ -752,6 +755,10 @@ export default function GuestView(){
             </div>
           </div>
         </div>
+      )}
+
+      {currentUser&&hostId&&(
+        <ChatPanel user={currentUser} hostId={hostId} dark={D}/>
       )}
     </>
   );

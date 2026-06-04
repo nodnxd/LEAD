@@ -439,7 +439,7 @@ export default function GuestView(){
                 <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
               </div>
             ):isHost&&previewMode?(
-              <button onClick={()=>setPreviewMode(false)} className="px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/5 text-amber-400/60 text-[10px] font-black hover:bg-amber-500/20 hover:text-amber-400 transition-all">👁 미리보기 중 · 클릭해서 HOST로</button>
+              <button onClick={()=>setPreviewMode(false)} className="px-3 py-1.5 rounded-full border border-amber-500/50 bg-amber-500/20 text-amber-400 text-[10px] font-black hover:bg-amber-500/30 transition-all animate-pulse">👁 미리보기 중 — 탭하면 HOST로</button>
             ):guestProfile?(
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#5B8CFF]/30 bg-[#5B8CFF]/10">
