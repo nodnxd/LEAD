@@ -179,7 +179,8 @@ export default function GuestView(){
     return()=>subscription.unsubscribe();
   },[hostId]);
   const openLeadForm=(lead?:any,preset?:string)=>{if(lead){setEditingLead(lead);setLArtist(lead.artist||'');setLTitle(lead.title||'');setLGender(lead.gender||'');setLGroup(lead.group_type||'');setLAlbum(lead.album_type||'single');setLContent(lead.content||'');setLDeadline(lead.deadline||'');setLDeadline2(lead.deadline2||'');}else{setEditingLead(null);setLArtist('');setLTitle('');setLGender('');setLGroup('');setLAlbum('single');setLContent('');setLDeadline(preset||'');setLDeadline2('');}setShowLeadForm(true);};
-  const saveLead=async()=>{if(!lArtist.trim()||!lGender||!lGroup)return;setLeadSaving(true);const data={host_id:hostId,artist:lArtist.trim(),title:lTitle.trim()||null,gender:lGender,group_type:lGroup,album_type:lAlbum,content:lContent.trim()||null,deadline:lDeadline||null,deadline2:lDeadline2||null};if(editingLead){await supabase.from('leads').update(data).eq('id',editingLead.id);}else{await supabase.from('leads').insert(data);}await fetchAll();setShowLeadForm(false);setLeadSaving(false);};
+  const [leadSaveError,setLeadSaveError]=useState('');
+  const saveLead=async()=>{if(!lArtist.trim()||!lGender||!lGroup)return;setLeadSaving(true);setLeadSaveError('');const data={host_id:hostId,artist:lArtist.trim(),title:lTitle.trim()||null,gender:lGender,group_type:lGroup,album_type:lAlbum,content:lContent.trim()||null,deadline:lDeadline||null,deadline2:lDeadline2||null};let err:any=null;if(editingLead){const r=await supabase.from('leads').update(data).eq('id',editingLead.id);err=r.error;}else{const r=await supabase.from('leads').insert(data);err=r.error;}if(err){setLeadSaveError(err.message||'저장 실패');setLeadSaving(false);return;}await fetchAll();setShowLeadForm(false);setLeadSaveError('');setLeadSaving(false);};
   const deleteLead=async(id:string)=>{if(!confirm('이 리드를 삭제할까요?'))return;await supabase.from('leads').delete().eq('id',id);await fetchAll();};
     const fileInputRef=useRef<HTMLInputElement>(null);
 
@@ -564,8 +565,9 @@ export default function GuestView(){
                 </div>
                 <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>리드 내용</label><textarea value={lContent} onChange={e=>setLContent(e.target.value)} placeholder="곡 설명, 레퍼런스 링크 등" rows={4} className={`w-full border rounded-xl px-4 py-3 text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
               </div>
+              {leadSaveError&&<p className="mt-3 text-red-400 text-[12px] bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">{leadSaveError}</p>}
               <div className="flex gap-3 mt-5">
-                <button onClick={()=>setShowLeadForm(false)} disabled={leadSaving} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] transition-all disabled:opacity-40 ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>취소</button>
+                <button onClick={()=>{setShowLeadForm(false);setLeadSaveError('');}} disabled={leadSaving} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] transition-all disabled:opacity-40 ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>취소</button>
                 <button onClick={saveLead} disabled={leadSaving||!lArtist.trim()||!lGender||!lGroup} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-40 disabled:hover:scale-100">{leadSaving?'저장 중...':(editingLead?'수정 완료':'추가')}</button>
               </div>
             </div>
