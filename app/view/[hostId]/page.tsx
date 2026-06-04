@@ -507,6 +507,43 @@ export default function GuestView(){
         </div>
       )}
 
+      {showLeadForm&&(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={()=>setShowLeadForm(false)}>
+          <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl my-4 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className="p-6">
+              <h2 className={`font-black text-[20px] mb-5 ${D?'text-white':'text-[#111]'}`}>{editingLead?'✏️ 리드 수정':'+ 리드 추가'}</h2>
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={lArtist} onChange={e=>setLArtist(e.target.value)} placeholder="아티스트명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>곡 제목</label><input value={lTitle} onChange={e=>setLTitle(e.target.value)} placeholder="곡 제목 (선택)" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                </div>
+                <div>
+                  <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-500':'text-zinc-400'}`}>성별 *</p>
+                  <div className="flex gap-2">{[['male','남자'],['female','여자'],['mixed','혼성']].map(([v,l])=><button key={v} onClick={()=>setLGender(v)} className={`flex-1 py-2 rounded-xl text-[12px] font-bold border transition-all ${lGender===v?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>)}</div>
+                </div>
+                <div>
+                  <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-500':'text-zinc-400'}`}>솔로/그룹 *</p>
+                  <div className="flex gap-2">{[['solo','솔로'],['group','그룹']].map(([v,l])=><button key={v} onClick={()=>setLGroup(v)} className={`flex-1 py-2 rounded-xl text-[12px] font-bold border transition-all ${lGroup===v?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>)}</div>
+                </div>
+                <div>
+                  <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-500':'text-zinc-400'}`}>앨범 타입</p>
+                  <div className="flex gap-2">{[['single','Single'],['ep','EP'],['lp','LP'],['ost','OST']].map(([v,l])=><button key={v} onClick={()=>setLAlbum(v)} className={`flex-1 py-2 rounded-xl text-[12px] font-bold border transition-all ${lAlbum===v?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>)}</div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>1차 마감</label><input type="date" value={lDeadline} onChange={e=>setLDeadline(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>2차 마감</label><input type="date" value={lDeadline2} onChange={e=>setLDeadline2(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                </div>
+                <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>리드 내용</label><textarea value={lContent} onChange={e=>setLContent(e.target.value)} placeholder="곡 설명, 레퍼런스 링크 등" rows={4} className={`w-full border rounded-xl px-4 py-3 text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
+              </div>
+              <div className="flex gap-3 mt-5">
+                <button onClick={()=>setShowLeadForm(false)} disabled={leadSaving} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] transition-all disabled:opacity-40 ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>취소</button>
+                <button onClick={saveLead} disabled={leadSaving||!lArtist.trim()||!lGender||!lGroup} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-40 disabled:hover:scale-100">{leadSaving?'저장 중...':(editingLead?'수정 완료':'추가')}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {pitchingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
           <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl my-4 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
