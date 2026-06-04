@@ -66,10 +66,32 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
     if (data) setFriendships(data);
   }, [user]);
 
+  const autoFriendDone = useRef(false);
+
   useEffect(() => {
     if (!user) return;
     fetchMembers(); fetchConvs(); fetchFriendships();
   }, [fetchMembers, fetchConvs, fetchFriendships]);
+
+  // 호스트 ↔ 멤버 자동 친구 (approved 시 즉시)
+  useEffect(() => {
+    if (!user || !members.length || autoFriendDone.current) return;
+    autoFriendDone.current = true;
+    const doAutoFriend = async () => {
+      const { data: existing } = await supabase.from('friendships').select('requester_id,recipient_id')
+        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
+      const paired = new Set((existing || []).map((f: any) => f.requester_id === user.id ? f.recipient_id : f.requester_id));
+      const isHost = user.id === hostId;
+      const targets = isHost ? members.map(m => m.id) : (paired.has(hostId) ? [] : [hostId]);
+      for (const tid of targets) {
+        if (!paired.has(tid)) {
+          await supabase.from('friendships').insert({ requester_id: user.id, recipient_id: tid, status: 'accepted' });
+        }
+      }
+      if (targets.length > 0) fetchFriendships();
+    };
+    doAutoFriend();
+  }, [members, user, hostId, fetchFriendships]);
 
   const showToast = useCallback((senderName: string, content: string, senderId: string, convId: string, avatar: any) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
