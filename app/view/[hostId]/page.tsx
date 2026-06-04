@@ -60,7 +60,7 @@ const analyzeVocal = async (file: File): Promise<{vocal:'male'|'female'|'unknown
   } catch { return { vocal: 'unknown', duration: 0 }; }
 };
 
-type PitchFileItem = {id:string;file:File;hash:string;vocal:'male'|'female'|'unknown';duration:number;analyzing:boolean;isDuplicate:boolean;bpm:string;genre:string;};
+type PitchFileItem = {id:string;file:File;hash:string;vocal:'male'|'female'|'unknown';duration:number;analyzing:boolean;isDuplicate:boolean;bpm:string;genre:string;key:string;vocalOverride:'male'|'female'|'both'|'';};
 
 const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='group';if(gender==='mixed')return{bg:g?'bg-purple-500/10':'bg-purple-500/20',border:g?'border-purple-500/20':'border-purple-500/40',text:g?'text-purple-400/50':'text-purple-300',dot:g?'bg-purple-400/35':'bg-purple-400',label:g?'혼성 그룹':'혼성'};if(gender==='female')return{bg:g?'bg-pink-500/10':'bg-pink-500/20',border:g?'border-pink-500/20':'border-pink-500/40',text:g?'text-pink-400/50':'text-pink-300',dot:g?'bg-pink-400/35':'bg-pink-400',label:g?'여자 그룹':'여자'};return{bg:g?'bg-blue-500/10':'bg-blue-500/20',border:g?'border-blue-500/20':'border-blue-500/40',text:g?'text-blue-400/50':'text-blue-300',dot:g?'bg-blue-400/35':'bg-blue-400',label:g?'남자 그룹':'남자'};};
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
@@ -196,7 +196,7 @@ export default function GuestView(){
     if(!file.name.toLowerCase().endsWith('.mp3')){alert('MP3 파일만 업로드 가능해요!');return;}
     if(file.size>50*1024*1024){alert('50MB 이하 파일만 가능해요!');return;}
     const id=`f${++fileCounter}`;
-    setPitchFiles(prev=>[...prev,{id,file,hash:'',vocal:'unknown',duration:0,analyzing:true,isDuplicate:false,bpm:'',genre:''}]);
+    setPitchFiles(prev=>[...prev,{id,file,hash:'',vocal:'unknown',duration:0,analyzing:true,isDuplicate:false,bpm:'',genre:'',key:'',vocalOverride:''}]);
     const [hash,analysis]=await Promise.all([getFileHash(file),analyzeVocal(file)]);
     const {data:dup}=await supabase.from('pitch_files').select('id').eq('file_hash',hash).eq('host_id',hostId);
     setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,hash,vocal:analysis.vocal,duration:analysis.duration,isDuplicate:!!(dup&&dup.length>0),analyzing:false}:f));
@@ -220,7 +220,8 @@ export default function GuestView(){
         const {error:upErr}=await supabase.storage.from('pitch-files').upload(path,pf.file,{contentType:'audio/mpeg',upsert:false});
         if(upErr){setPitchLoading(false);setUploadError(`파일 업로드 실패: ${upErr.message}`);return;}
         const fileUrl=supabase.storage.from('pitch-files').getPublicUrl(path).data.publicUrl;
-        const {error:pfErr}=await supabase.from('pitch_files').insert({pitch_id:pitchData.id,host_id:hostId,file_url:fileUrl,file_name:pf.file.name,file_hash:pf.hash||null,bpm:pf.bpm?parseInt(pf.bpm)||null:null,vocal_gender:pf.vocal||null,genre:pf.genre||null,duration:pf.duration||null});
+        const vocalFinal=pf.vocalOverride||pf.vocal||null;
+        const {error:pfErr}=await supabase.from('pitch_files').insert({pitch_id:pitchData.id,host_id:hostId,file_url:fileUrl,file_name:pf.file.name,file_hash:pf.hash||null,bpm:pf.bpm?parseInt(pf.bpm)||null:null,vocal_gender:vocalFinal,genre:pf.genre||null,duration:pf.duration||null,key:pf.key||null});
         if(pfErr){setPitchLoading(false);setUploadError(`파일 정보 저장 실패: ${pfErr.message}`);return;}
         setUploadProgress(Math.round(((i+1)/total)*100));
       }
@@ -358,17 +359,30 @@ export default function GuestView(){
       {!item.analyzing&&(
         <div className={`px-4 pb-4 border-t pt-3 flex flex-col gap-3 ${D?'border-white/5':'border-black/[0.05]'}`}>
           {item.isDuplicate&&<div className="px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20"><p className="text-yellow-400 text-[11px] font-bold">⚠️ 이미 제출된 적 있는 파일이에요</p></div>}
-          {item.vocal!=='unknown'&&(
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-black uppercase tracking-widest ${D?'text-zinc-600':'text-zinc-400'}`}>보컬</span>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${vocalCls(item.vocal)}`}>🎤 {vocalLabel(item.vocal)}</span>
-              <span className={`text-[10px] ${D?'text-zinc-700':'text-zinc-400'}`}>자동 감지</span>
+          {/* 보컬 선택 */}
+          <div>
+            <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-600':'text-zinc-400'}`}>보컬 🎤{item.vocal!=='unknown'&&<span className={`ml-2 font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>자동감지: {vocalLabel(item.vocal)}</span>}</p>
+            <div className="flex gap-1.5">
+              {([['male','남성'],['female','여성'],['both','혼성']] as const).map(([v,l])=>(
+                <button key={v} onClick={()=>updateFile(item.id,{vocalOverride:item.vocalOverride===v?'':v})}
+                  className={`flex-1 py-1.5 rounded-xl text-[10px] font-bold border transition-all ${item.vocalOverride===v?v==='male'?'bg-blue-500/20 border-blue-500/50 text-blue-400':v==='female'?'bg-pink-500/20 border-pink-500/50 text-pink-400':'bg-purple-500/20 border-purple-500/50 text-purple-400':D?'bg-white/5 border-white/10 text-zinc-600 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+                  {l}
+                </button>
+              ))}
             </div>
-          )}
-          <div className="flex items-center gap-3">
-            <label className={`text-[10px] font-black uppercase tracking-widest shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>BPM</label>
-            <input type="number" min="40" max="300" value={item.bpm} onChange={e=>updateFile(item.id,{bpm:e.target.value})} placeholder="직접 입력 (예: 120)"
-              className={`flex-1 border rounded-xl px-3 py-2 text-[12px] outline-none transition-all ${inputCls}`}/>
+          </div>
+          {/* BPM + Key */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-2">
+              <label className={`text-[10px] font-black uppercase tracking-widest shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>BPM</label>
+              <input type="number" min="40" max="300" value={item.bpm} onChange={e=>updateFile(item.id,{bpm:e.target.value})} placeholder="예: 120"
+                className={`flex-1 border rounded-xl px-2.5 py-1.5 text-[12px] outline-none transition-all ${inputCls}`}/>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className={`text-[10px] font-black uppercase tracking-widest shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>KEY</label>
+              <input type="text" value={item.key} onChange={e=>updateFile(item.id,{key:e.target.value})} placeholder="예: C, Am, F#"
+                className={`flex-1 border rounded-xl px-2.5 py-1.5 text-[12px] outline-none transition-all ${inputCls}`}/>
+            </div>
           </div>
           <div>
             <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-600':'text-zinc-400'}`}>장르</p>
@@ -589,7 +603,7 @@ export default function GuestView(){
                         <p className={`text-[11px] mt-0.5 ${D?'text-zinc-800':'text-zinc-300'}`}>클릭 또는 드래그 · 여러 개 동시 선택 가능</p>
                       </div>
                     </div>
-                    <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>메시지 <span className={`font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>(선택)</span></label><textarea value={pitchForm.message} onChange={e=>setPitchForm(p=>({...p,message:e.target.value}))} placeholder="한마디, 포트폴리오 링크 등" rows={2} className={`w-full border rounded-xl px-4 py-3 text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
+                    <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>세부사항 <span className={`font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>(선택)</span></label><textarea value={pitchForm.message} onChange={e=>setPitchForm(p=>({...p,message:e.target.value}))} placeholder="포트폴리오 링크, 제작 의도, 기타 전달사항 등" rows={2} className={`w-full border rounded-xl px-4 py-3 text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
                   </div>
                   {pitchLoading&&<div className="mt-4"><div className="flex items-center justify-between mb-1.5"><span className={`text-[11px] ${dimText}`}>업로드 중...</span><span className={`text-[11px] font-bold ${D?'text-zinc-400':'text-zinc-500'}`}>{uploadProgress}%</span></div><div className={`w-full h-1.5 rounded-full overflow-hidden ${D?'bg-white/10':'bg-black/[0.08]'}`}><div className="h-full bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] rounded-full transition-all" style={{width:`${uploadProgress}%`}}/></div></div>}
                   {uploadError&&<p className="mt-3 text-red-400 text-[12px] bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">{uploadError}</p>}

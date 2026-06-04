@@ -23,6 +23,7 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
   const [emailSearching, setEmailSearching] = useState(false);
   const [emailResult, setEmailResult] = useState<any>(null);
   const [toast, setToast] = useState<{ senderName: string; content: string; senderId: string; convId: string; avatar: any } | null>(null);
+  const [extraProfiles, setExtraProfiles] = useState<Record<string, any>>({});
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,6 +34,28 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
 
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv]);
   useEffect(() => { membersRef.current = members; }, [members]);
+
+  // members에 없는 유저(호스트 등) 프로필 가져오기
+  const getProfile = useCallback(async (uid: string) => {
+    if (!uid) return null;
+    const fromMembers = membersRef.current.find(m => m.id === uid);
+    if (fromMembers) return fromMembers;
+    setExtraProfiles(p => {
+      if (p[uid] !== undefined) return p;
+      // fetch async
+      (async () => {
+        const { data: m } = await supabase.from('members').select('id,artist_name,photo_url,roles').eq('id', uid).single();
+        if (m) { setExtraProfiles(prev => ({ ...prev, [uid]: m })); return; }
+        const { data: h } = await supabase.from('host_profiles').select('id,display_name,photo_url').eq('id', uid).single();
+        if (h) setExtraProfiles(prev => ({ ...prev, [uid]: { ...h, artist_name: h.display_name } }));
+        else setExtraProfiles(prev => ({ ...prev, [uid]: { id: uid, artist_name: '알 수 없음' } }));
+      })();
+      return { ...p, [uid]: null }; // placeholder
+    });
+    return null;
+  }, []);
+
+  const lookupProfile = (uid: string) => membersRef.current.find(m => m.id === uid) || extraProfiles[uid] || null;
 
   const fetchMembers = useCallback(async () => {
     if (!hostId) return;
@@ -73,25 +96,28 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
     fetchMembers(); fetchConvs(); fetchFriendships();
   }, [fetchMembers, fetchConvs, fetchFriendships]);
 
-  // 호스트 ↔ 멤버 자동 친구 (approved 시 즉시)
+  // 호스트 ↔ 멤버 자동 친구
   useEffect(() => {
-    if (!user || !members.length || autoFriendDone.current) return;
+    if (!user || autoFriendDone.current) return;
+    const isHost = user.id === hostId;
+    if (isHost && members.length === 0) return; // 멤버 로딩 기다림
     autoFriendDone.current = true;
     const doAutoFriend = async () => {
-      const { data: existing } = await supabase.from('friendships').select('requester_id,recipient_id')
-        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
-      const paired = new Set((existing || []).map((f: any) => f.requester_id === user.id ? f.recipient_id : f.requester_id));
-      const isHost = user.id === hostId;
-      const targets = isHost ? members.map(m => m.id) : (paired.has(hostId) ? [] : [hostId]);
+      const targets = isHost ? members.map(m => m.id) : [hostId];
       for (const tid of targets) {
-        if (!paired.has(tid)) {
+        const { data: exists } = await supabase.from('friendships').select('id')
+          .or(`and(requester_id.eq.${user.id},recipient_id.eq.${tid}),and(requester_id.eq.${tid},recipient_id.eq.${user.id})`);
+        if (!exists || exists.length === 0) {
           await supabase.from('friendships').insert({ requester_id: user.id, recipient_id: tid, status: 'accepted' });
+        } else if (exists[0] && exists[0].id) {
+          // 이미 있으면 accepted로 업데이트
+          await supabase.from('friendships').update({ status: 'accepted' }).eq('id', exists[0].id);
         }
       }
-      if (targets.length > 0) fetchFriendships();
+      fetchFriendships();
     };
     doAutoFriend();
-  }, [members, user, hostId, fetchFriendships]);
+  }, [members.length, user?.id, hostId, fetchFriendships]);
 
   const showToast = useCallback((senderName: string, content: string, senderId: string, convId: string, avatar: any) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -205,7 +231,9 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
   const getFriendState = (memberId: string) => friendships.find(f => f.requester_id === memberId || f.recipient_id === memberId);
   const getOther = (conv: any) => {
     const oid = conv.participant_1 === user?.id ? conv.participant_2 : conv.participant_1;
-    return members.find(m => m.id === oid);
+    const found = lookupProfile(oid);
+    if (!found) getProfile(oid); // 없으면 비동기 fetch 트리거
+    return found;
   };
   const incomingReqs = friendships.filter(f => f.recipient_id === user?.id && f.status === 'pending');
 
@@ -297,11 +325,11 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
 
             {activeConv && (() => {
               const oid = activeConv.participant_1 === user?.id ? activeConv.participant_2 : activeConv.participant_1;
-              const other = members.find(m => m.id === oid);
+              const other = getOther(activeConv);
               return (
                 <button className="flex items-center gap-1.5 flex-1 min-w-0 text-left" onClick={() => other && openMemberProfile(other)}>
                   <Avatar p={other} />
-                  <span className={`flex-1 text-[13px] font-black truncate ${tx} ml-1`}>{other?.artist_name || '알 수 없음'}</span>
+                  <span className={`flex-1 text-[13px] font-black truncate ${tx} ml-1`}>{other?.artist_name || '...'}</span>
                 </button>
               );
             })()}
