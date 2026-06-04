@@ -76,6 +76,9 @@ export default function MyPage() {
   const [hostPitchFiles, setHostPitchFiles] = useState<any[]>([]);
   const [hostMembers, setHostMembers] = useState<any[]>([]);
   const [hostTab, setHostTab] = useState<'pitches' | 'members'>('pitches');
+  const [hostEditing, setHostEditing] = useState(false);
+  const [hostDisplayName, setHostDisplayName] = useState('');
+  const [hostSaving, setHostSaving] = useState(false);
 
   useEffect(() => {
     const s = localStorage.getItem('lead_theme');
@@ -152,6 +155,19 @@ export default function MyPage() {
       }
     }
     if (approvals) setHostMembers(approvals);
+  };
+
+  const openHostEdit = () => {
+    setHostDisplayName(user?.user_metadata?.display_name || '');
+    setHostEditing(true);
+  };
+  const saveHostProfile = async () => {
+    if (!user || hostSaving) return;
+    setHostSaving(true);
+    await supabase.auth.updateUser({ data: { display_name: hostDisplayName.trim() } });
+    setUser((prev: any) => ({ ...prev, user_metadata: { ...prev.user_metadata, display_name: hostDisplayName.trim() } }));
+    setHostEditing(false); setHostSaving(false);
+    showToast('✅ 저장됐어요!');
   };
 
   // ── 멤버 폼 ──
@@ -297,8 +313,15 @@ export default function MyPage() {
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">HOST</span>
                   </div>
-                  <p className={`text-[13px] font-bold ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{user?.email}</p>
+                  {user?.user_metadata?.display_name && (
+                    <p className={`font-bold text-[16px] ${D ? 'text-white' : 'text-[#111]'}`}>{user.user_metadata.display_name}</p>
+                  )}
+                  <p className={`text-[13px] ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{user?.email}</p>
                 </div>
+                <button onClick={openHostEdit}
+                  className="shrink-0 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-bold hover:bg-amber-500/20 transition-all">
+                  ✏️ 수정
+                </button>
               </div>
             </div>
 
@@ -453,6 +476,39 @@ export default function MyPage() {
               )}
             </div>
           </div>
+
+          {hostEditing && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={() => setHostEditing(false)}>
+              <div className={`w-full max-w-sm border rounded-2xl shadow-2xl ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className={`font-black text-[18px] ${D ? 'text-white' : 'text-[#111]'}`}>프로필 수정</h2>
+                    <button onClick={() => setHostEditing(false)} className={`text-[13px] ${dimText}`}>✕</button>
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <label className={labelCls}>이메일</label>
+                      <p className={`text-[13px] px-3 py-2.5 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06] text-zinc-400' : 'bg-black/[0.02] border-black/[0.06] text-zinc-500'}`}>{user?.email}</p>
+                    </div>
+                    <div>
+                      <label className={labelCls}>표시 이름</label>
+                      <input value={hostDisplayName} onChange={e => setHostDisplayName(e.target.value)} placeholder="이름 또는 닉네임" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-6">
+                    <button onClick={() => setHostEditing(false)}
+                      className={`flex-1 py-3 rounded-xl border font-bold text-[13px] ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>
+                      취소
+                    </button>
+                    <button onClick={saveHostProfile} disabled={hostSaving}
+                      className="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-400 text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50">
+                      {hostSaving ? '저장 중...' : '저장'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {toast && (
             <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-pretendard">{toast}</div>
