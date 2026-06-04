@@ -137,6 +137,9 @@ export default function GuestView(){
   const [myLeadMap,setMyLeadMap]=useState<Record<string,any>>({});
   const [myPitchLoading,setMyPitchLoading]=useState(false);
   const [translatedCache,setTranslatedCache]=useState<Record<string,Section[]>>({});
+  const [showMembers,setShowMembers]=useState(false);
+  const [memberList,setMemberList]=useState<any[]>([]);
+  const [memberLoading,setMemberLoading]=useState(false);
 
   useEffect(()=>{
     const setApproved=(user:any)=>{
@@ -189,6 +192,24 @@ export default function GuestView(){
     await fetchAll();
   };
   const fileInputRef=useRef<HTMLInputElement>(null);
+
+  const fetchMembers=async()=>{
+    if(!hostId)return;
+    setMemberLoading(true);
+    const{data:approvals}=await supabase.from('member_approvals').select('*').eq('host_id',hostId).order('created_at',{ascending:false});
+    if(!approvals){setMemberLoading(false);return;}
+    const ids=approvals.map((a:any)=>a.member_id).filter(Boolean);
+    if(ids.length===0){setMemberList(approvals);setMemberLoading(false);return;}
+    const{data:profiles}=await supabase.from('members').select('*').in('id',ids);
+    const profileMap:Record<string,any>={};
+    if(profiles)profiles.forEach((p:any)=>{profileMap[p.id]=p;});
+    setMemberList(approvals.map((a:any)=>({...a,profile:profileMap[a.member_id]||null})));
+    setMemberLoading(false);
+  };
+  const setMemberRole=async(memberId:string,status:string)=>{
+    await supabase.from('member_approvals').update({status}).eq('member_id',memberId).eq('host_id',hostId);
+    fetchMembers();
+  };
 
   const fetchMyPitches=async()=>{
     if(!guestProfile)return;
@@ -453,19 +474,12 @@ export default function GuestView(){
               <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 달력</button>
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
             </div>
-            {/* ✅ MY 버튼 추가 */}
-            {guestProfile?(
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#5B8CFF]/30 bg-[#5B8CFF]/10">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#5B8CFF]"/>
-                  <span className="text-[#5B8CFF] text-[11px] font-bold">{guestProfile.artist_name}</span>
-                </div>
-                <button onClick={()=>{setShowMyPitches(true);fetchMyPitches();}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>📨 내 피칭</button>
-                <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
-              </div>
-            ):(
-              <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
-            )}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
+              <span className="text-amber-400 text-[11px] font-bold">HOST</span>
+            </div>
+            <button onClick={()=>{setShowMembers(true);fetchMembers();}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👥 멤버</button>
+            <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
           </div>
         </div>
 
@@ -521,11 +535,8 @@ export default function GuestView(){
                 </div>
               )}
               <div className="flex gap-2">
-                <button onClick={()=>{
-                  setPitchingLead(viewingLead);
-                  setPitchForm(guestProfile?{artist_name:guestProfile.artist_name||'',contact:guestProfile.phone||guestProfile.email||'',message:''}:emptyPitch());
-                  setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setUploadError('');setViewingLead(null);
-                }} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 피칭하기</button>
+                <button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>
+                <button onClick={()=>{if(confirm('이 리드를 삭제할까요?')){deleteLead(viewingLead.id);setViewingLead(null);}}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 text-[13px] hover:bg-red-500/10 transition-all">🗑</button>
                 <button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
               </div>
             </div>
@@ -624,6 +635,68 @@ export default function GuestView(){
                               ))}
                             </div>
                           )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showMembers&&(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowMembers(false)}>
+          <div className={`w-full max-w-lg border rounded-2xl shadow-2xl ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className="max-h-[85vh] flex flex-col">
+              <div className={`flex items-center justify-between p-5 border-b ${D?'border-white/10':'border-black/[0.08]'}`}>
+                <div>
+                  <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>👥 멤버 관리</h2>
+                  <p className={`text-[12px] mt-0.5 ${dimText}`}>승인된 멤버 {memberList.filter(m=>m.status==='approved'||m.status==='admin').length}명 · 대기 {memberList.filter(m=>m.status==='pending').length}명</p>
+                </div>
+                <button onClick={()=>setShowMembers(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-[13px] ${D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>✕</button>
+              </div>
+              <div className="overflow-y-auto flex-1 p-5">
+                {memberLoading?(
+                  <div className="flex items-center justify-center py-12"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>
+                ):memberList.length===0?(
+                  <div className="text-center py-12"><p className={`text-[13px] ${dimText}`}>아직 멤버가 없어요</p></div>
+                ):(
+                  <div className="flex flex-col gap-2">
+                    {['pending','approved','admin','rejected'].map(statusGroup=>{
+                      const group=memberList.filter(m=>m.status===statusGroup);
+                      if(group.length===0)return null;
+                      const groupLabel={pending:'⏳ 승인 대기',approved:'✅ 승인됨',admin:'⭐ 관리자',rejected:'🚫 거절됨'}[statusGroup];
+                      return(
+                        <div key={statusGroup} className="mb-2">
+                          <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-600':'text-zinc-400'}`}>{groupLabel}</p>
+                          <div className="flex flex-col gap-2">
+                            {group.map(m=>(
+                              <div key={m.member_id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`font-bold text-[13px] truncate ${D?'text-white':'text-[#111]'}`}>{m.profile?.artist_name||'(이름 없음)'}</p>
+                                  <p className={`text-[11px] truncate ${dimText}`}>{m.profile?.email||m.member_id}</p>
+                                </div>
+                                <div className="flex gap-1.5 shrink-0">
+                                  {statusGroup==='pending'&&<>
+                                    <button onClick={()=>setMemberRole(m.member_id,'approved')} className="px-2.5 py-1 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-black hover:bg-green-500/20 transition-all">승인</button>
+                                    <button onClick={()=>setMemberRole(m.member_id,'rejected')} className="px-2.5 py-1 rounded-lg border border-red-500/20 text-red-400 text-[10px] font-black hover:bg-red-500/10 transition-all">거절</button>
+                                  </>}
+                                  {statusGroup==='approved'&&<>
+                                    <button onClick={()=>setMemberRole(m.member_id,'admin')} className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-black hover:bg-amber-500/20 transition-all">관리자 지정</button>
+                                    <button onClick={()=>setMemberRole(m.member_id,'rejected')} className="px-2.5 py-1 rounded-lg border border-red-500/20 text-red-400 text-[10px] font-black hover:bg-red-500/10 transition-all">해제</button>
+                                  </>}
+                                  {statusGroup==='admin'&&<>
+                                    <button onClick={()=>setMemberRole(m.member_id,'approved')} className="px-2.5 py-1 rounded-lg border border-white/10 text-zinc-500 text-[10px] font-black hover:text-white transition-all">관리자 해제</button>
+                                  </>}
+                                  {statusGroup==='rejected'&&<>
+                                    <button onClick={()=>setMemberRole(m.member_id,'approved')} className="px-2.5 py-1 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-black hover:bg-green-500/20 transition-all">재승인</button>
+                                  </>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       );
                     })}

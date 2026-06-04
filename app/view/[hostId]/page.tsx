@@ -148,7 +148,6 @@ export default function GuestView(){
     const checkAuth=async(user:any)=>{
       if(!user){setAuthStatus('none');setIsHost(false);return;}
       localStorage.setItem('last_host_id',hostId);
-      console.log('[auth] user.id:', user.id, 'hostId:', hostId, 'match:', user.id===hostId);
       if(user.id===hostId){setIsHost(true);setAuthStatus('approved');return;}
       const[profileRes,approvalRes]=await Promise.all([
         supabase.from('members').select('*').eq('id',user.id).single(),
@@ -156,7 +155,11 @@ export default function GuestView(){
       ]);
       if(profileRes.data)setGuestProfile(profileRes.data);
       if(!approvalRes.data){setAuthStatus('none');}
-      else setAuthStatus(approvalRes.data.status as any);
+      else{
+        const s=approvalRes.data.status;
+        if(s==='admin'){setIsHost(true);setAuthStatus('approved');}
+        else setAuthStatus(s as any);
+      }
     };
     // getSession 먼저 (빠름), 없으면 getUser (API 호출)
     supabase.auth.getSession().then(async({data:{session}})=>{
