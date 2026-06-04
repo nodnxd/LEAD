@@ -35,27 +35,31 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv]);
   useEffect(() => { membersRef.current = members; }, [members]);
 
-  // members에 없는 유저(호스트 등) 프로필 가져오기
-  const getProfile = useCallback(async (uid: string) => {
-    if (!uid) return null;
-    const fromMembers = membersRef.current.find(m => m.id === uid);
-    if (fromMembers) return fromMembers;
-    setExtraProfiles(p => {
-      if (p[uid] !== undefined) return p;
-      // fetch async
-      (async () => {
-        const { data: m } = await supabase.from('members').select('id,artist_name,photo_url,roles').eq('id', uid).single();
-        if (m) { setExtraProfiles(prev => ({ ...prev, [uid]: m })); return; }
-        const { data: h } = await supabase.from('host_profiles').select('id,display_name,photo_url').eq('id', uid).single();
-        if (h) setExtraProfiles(prev => ({ ...prev, [uid]: { ...h, artist_name: h.display_name } }));
-        else setExtraProfiles(prev => ({ ...prev, [uid]: { id: uid, artist_name: '알 수 없음' } }));
-      })();
-      return { ...p, [uid]: null }; // placeholder
+  // members에 없는 유저 프로필 fetch (호스트 포함)
+  const fetchExtraProfile = useCallback(async (uid: string) => {
+    if (!uid || membersRef.current.find(m => m.id === uid)) return;
+    setExtraProfiles(prev => {
+      if (prev[uid] !== undefined) return prev; // 이미 있으면 스킵
+      return { ...prev, [uid]: null }; // placeholder 설정 후 fetch
     });
-    return null;
+    const { data: m } = await supabase.from('members').select('id,artist_name,photo_url,roles').eq('id', uid).single();
+    if (m) { setExtraProfiles(prev => ({ ...prev, [uid]: m })); return; }
+    const { data: h } = await supabase.from('host_profiles').select('id,display_name,photo_url').eq('id', uid).single();
+    if (h) { setExtraProfiles(prev => ({ ...prev, [uid]: { ...h, artist_name: h.display_name } })); return; }
+    // members도 host_profiles도 없으면 auth.users에서 이메일 기반으로 표시
+    setExtraProfiles(prev => ({ ...prev, [uid]: { id: uid, artist_name: uid.slice(0,8) } }));
   }, []);
 
   const lookupProfile = (uid: string) => membersRef.current.find(m => m.id === uid) || extraProfiles[uid] || null;
+
+  // convs가 바뀔 때마다 파트너 프로필 미리 로드
+  useEffect(() => {
+    if (!user || !convs.length) return;
+    convs.forEach(conv => {
+      const oid = conv.participant_1 === user.id ? conv.participant_2 : conv.participant_1;
+      fetchExtraProfile(oid);
+    });
+  }, [convs, user, fetchExtraProfile]);
 
   const fetchMembers = useCallback(async () => {
     if (!hostId) return;
@@ -232,7 +236,7 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
   const getOther = (conv: any) => {
     const oid = conv.participant_1 === user?.id ? conv.participant_2 : conv.participant_1;
     const found = lookupProfile(oid);
-    if (!found) getProfile(oid); // 없으면 비동기 fetch 트리거
+    if (!found) fetchExtraProfile(oid);
     return found;
   };
   const incomingReqs = friendships.filter(f => f.recipient_id === user?.id && f.status === 'pending');

@@ -137,7 +137,13 @@ export default function GuestView(){
   const [lContent,setLContent]=useState('');
   const [lDeadline,setLDeadline]=useState('');
   const [lDeadline2,setLDeadline2]=useState('');
-  
+  // 멤버 인라인 로그인 상태
+  const [guestEmail,setGuestEmail]=useState('');
+  const [guestPw,setGuestPw]=useState('');
+  const [guestIsSignUp,setGuestIsSignUp]=useState(false);
+  const [guestLoading,setGuestLoading]=useState(false);
+  const [guestError,setGuestError]=useState('');
+  const [noProfile,setNoProfile]=useState(false); // 로그인됐지만 멤버 프로필 없음
 
   useEffect(()=>{const s=localStorage.getItem('lead_theme');if(s==='light')setTheme('light');},[]);
   const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
@@ -150,7 +156,7 @@ export default function GuestView(){
   useEffect(()=>{
     if(!hostId)return;
     const checkAuth=async(user:any)=>{
-      if(!user){setAuthStatus('none');setIsHost(false);setCurrentUser(null);return;}
+      if(!user){setAuthStatus('none');setIsHost(false);setCurrentUser(null);setNoProfile(false);return;}
       setCurrentUser(user);
       localStorage.setItem('last_host_id',hostId);
       if(user.id===hostId){setIsHost(true);setAuthStatus('approved');fetchAll();return;}
@@ -158,9 +164,13 @@ export default function GuestView(){
         supabase.from('members').select('*').eq('id',user.id).single(),
         supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).single(),
       ]);
-      if(profileRes.data)setGuestProfile(profileRes.data);
-      if(!approvalRes.data){setAuthStatus('none');}
-      else{
+      if(profileRes.data){setGuestProfile(profileRes.data);setNoProfile(false);}
+      else{setNoProfile(true);setAuthStatus('none');return;} // 프로필 없음 → 온보딩으로
+      if(!approvalRes.data){
+        // 프로필은 있는데 접근 요청 없음 → 자동으로 pending 생성
+        await supabase.from('member_approvals').insert({member_id:user.id,host_id:hostId,status:'pending'});
+        setAuthStatus('pending');
+      }else{
         const s=approvalRes.data.status;
         if(s==='admin'){setIsHost(true);setAuthStatus('approved');fetchAll();}
         else if(s==='approved'){setAuthStatus('approved');fetchAll();}
@@ -191,7 +201,7 @@ export default function GuestView(){
     ]);
     if(lr.data)setLeads(lr.data);if(ar.data)setAnnouncements(ar.data);
   };
-  useEffect(()=>{if(!hostId)return;fetchAll();const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
+  useEffect(()=>{if(!hostId)return;const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
   const addFile=async(file:File)=>{
     if(!file.name.toLowerCase().endsWith('.mp3')){alert('MP3 파일만 업로드 가능해요!');return;}
@@ -420,8 +430,65 @@ export default function GuestView(){
     </>
   );
 
+  const handleGuestAuth=async()=>{
+    if(!guestEmail.trim()||!guestPw.trim())return;
+    setGuestLoading(true);setGuestError('');
+    if(guestIsSignUp){
+      const{error}=await supabase.auth.signUp({email:guestEmail.trim(),password:guestPw});
+      if(error){setGuestError(error.message);setGuestLoading(false);return;}
+      // 온보딩으로 이동 (last_host_id 이미 localStorage에 있음)
+      localStorage.setItem('last_host_id',hostId);
+      window.location.href='/onboarding';
+    }else{
+      const{error}=await supabase.auth.signInWithPassword({email:guestEmail.trim(),password:guestPw});
+      if(error){setGuestError(error.message);setGuestLoading(false);return;}
+      // onAuthStateChange가 checkAuth 호출함
+    }
+    setGuestLoading(false);
+  };
+
   if(authStatus==='loading')return(<div className={`min-h-screen ${mainBg} flex items-center justify-center`}><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>);
-  if(authStatus==='none')return(<GateScreen icon="🔐" title="로그인이 필요해요" sub="리드를 보고 피칭하려면 로그인하세요."><a href={`/?redirect=/view/${hostId}`} className="block w-full mt-6 py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">로그인 / 회원가입</a></GateScreen>);
+  if(authStatus==='none')return(
+    <>
+      <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
+      <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-pretendard relative overflow-hidden`}>
+        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] ${D?'opacity-[0.06]':'opacity-[0.04]'} pointer-events-none`}/>
+        <div className="w-full max-w-sm relative z-10">
+          <div className="flex items-baseline justify-center gap-2.5 mb-10"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
+          {noProfile?(
+            <div className={`border rounded-2xl p-8 text-center ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
+              <div className="text-4xl mb-4">📝</div>
+              <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>프로필을 완성해주세요</h2>
+              <p className={`text-[13px] ${dimText} mb-6`}>리드에 참여하려면 멤버 프로필 등록이 필요해요.</p>
+              <a href="/onboarding" className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">프로필 등록하기</a>
+              <button onClick={()=>supabase.auth.signOut().then(()=>{setCurrentUser(null);setNoProfile(false);})} className={`block w-full mt-3 py-2.5 text-[12px] font-bold ${dimText} hover:text-white transition-colors`}>다른 계정으로 로그인</button>
+            </div>
+          ):(
+            <div className={`border rounded-2xl p-6 ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
+              <h2 className={`font-black text-[16px] mb-1 ${D?'text-white':'text-[#111]'}`}>{guestIsSignUp?'멤버 가입':'멤버 로그인'}</h2>
+              <p className={`text-[12px] ${dimText} mb-4`}>호스트 초대를 받으셨나요? 로그인하면 접근 요청이 자동으로 전달돼요.</p>
+              <div className="flex flex-col gap-3 mb-3">
+                <input value={guestEmail} onChange={e=>setGuestEmail(e.target.value)} placeholder="이메일" type="email"
+                  className={`w-full border rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all ${inputCls}`}/>
+                <input value={guestPw} onChange={e=>setGuestPw(e.target.value)} placeholder="비밀번호" type="password"
+                  onKeyDown={e=>e.key==='Enter'&&handleGuestAuth()}
+                  className={`w-full border rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#5B8CFF]/50 transition-all ${inputCls}`}/>
+              </div>
+              {guestError&&<p className="text-red-400 text-[12px] mb-3">{guestError}</p>}
+              <button onClick={handleGuestAuth} disabled={guestLoading||!guestEmail.trim()||!guestPw.trim()}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 mb-3">
+                {guestLoading?'...':guestIsSignUp?'가입하기':'로그인'}
+              </button>
+              <button onClick={()=>{setGuestIsSignUp(s=>!s);setGuestError('');}} className={`w-full text-[12px] ${dimText} hover:text-white transition-colors`}>
+                {guestIsSignUp?'이미 계정이 있어요':'계정이 없어요 (가입하기)'}
+              </button>
+            </div>
+          )}
+          <p className={`text-[11px] mt-6 text-center ${D?'text-zinc-700':'text-zinc-400'}`}>Contact : everplayground@gmail.com</p>
+        </div>
+      </main>
+    </>
+  );
   if(authStatus==='pending')return(<GateScreen icon="⏳" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
   if(authStatus==='rejected')return(<GateScreen icon="🚫" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
 
