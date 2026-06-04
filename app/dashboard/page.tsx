@@ -181,13 +181,16 @@ export default function GuestView(){
     }
     setShowLeadForm(true);
   };
+  const [leadSaveError,setLeadSaveError]=useState('');
   const saveLead=async()=>{
     if(!lArtist.trim()||!lGender||!lGroup||!hostId)return;
-    setLeadSaving(true);
+    setLeadSaving(true);setLeadSaveError('');
     const data={host_id:hostId,artist:lArtist.trim(),title:lTitle.trim()||null,gender:lGender,group_type:lGroup,album_type:lAlbum,content:lContent.trim()||null,deadline:lDeadline||null,deadline2:lDeadline2||null};
-    if(editingLead){await supabase.from('leads').update(data).eq('id',editingLead.id);}
-    else{await supabase.from('leads').insert(data);}
-    await fetchAll();setShowLeadForm(false);setLeadSaving(false);
+    let err:any=null;
+    if(editingLead){const r=await supabase.from('leads').update(data).eq('id',editingLead.id);err=r.error;}
+    else{const r=await supabase.from('leads').insert(data);err=r.error;}
+    if(err){setLeadSaveError(err.message||'저장 실패');setLeadSaving(false);return;}
+    await fetchAll();setShowLeadForm(false);setLeadSaveError('');setLeadSaving(false);
   };
   const deleteLead=async(leadId:string)=>{
     if(!confirm('이 리드를 삭제할까요?'))return;
@@ -240,6 +243,7 @@ export default function GuestView(){
     if(lr.data)setLeads(lr.data);if(ar.data)setAnnouncements(ar.data);
   };
   useEffect(()=>{if(!hostId)return;fetchAll();const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
+  useEffect(()=>{if(!hostId)return;const ch=supabase.channel('members_rt').on('postgres_changes',{event:'*',schema:'public',table:'member_approvals',filter:`host_id=eq.${hostId}`},()=>fetchMembers()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
   const addFile=async(file:File)=>{
     if(!file.name.toLowerCase().endsWith('.mp3')){alert('MP3 파일만 업로드 가능해요!');return;}
@@ -678,11 +682,11 @@ export default function GuestView(){
                           <div className="flex flex-col gap-2">
                             {group.map(m=>(
                               <div key={m.member_id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                                <div className="flex-1 min-w-0">
-                                  <p className={`font-bold text-[13px] truncate ${D?'text-white':'text-[#111]'}`}>{m.profile?.artist_name||'(이름 없음)'}</p>
+                                <button className="flex-1 min-w-0 text-left" onClick={()=>m.member_id&&window.open(`/card/${m.member_id}`,'_blank')}>
+                                  <p className={`font-bold text-[13px] truncate ${D?'text-white hover:text-[#5B8CFF]':'text-[#111] hover:text-[#5B8CFF]'} transition-colors`}>{m.profile?.artist_name||'(이름 없음)'} <span className={`text-[10px] font-normal ${dimText}`}>↗</span></p>
                                   <p className={`text-[11px] truncate ${dimText}`}>{m.profile?.email||m.member_id}</p>
-                                </div>
-                                <div className="flex gap-1.5 shrink-0">
+                                </button>
+                                <div className="flex gap-1.5 shrink-0" onClick={e=>e.stopPropagation()}>
                                   {statusGroup==='pending'&&<>
                                     <button onClick={()=>setMemberRole(m.member_id,'approved')} className="px-2.5 py-1 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-black hover:bg-green-500/20 transition-all">승인</button>
                                     <button onClick={()=>setMemberRole(m.member_id,'rejected')} className="px-2.5 py-1 rounded-lg border border-red-500/20 text-red-400 text-[10px] font-black hover:bg-red-500/10 transition-all">거절</button>
@@ -713,7 +717,7 @@ export default function GuestView(){
       )}
 
       {showLeadForm&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto font-pretendard" onClick={()=>setShowLeadForm(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto font-pretendard">
           <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D?'bg-[#0E0E0E] border-white/[0.07]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="p-6 max-h-[85vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-5">
@@ -747,11 +751,14 @@ export default function GuestView(){
                 <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>내용</label><textarea value={lContent} onChange={e=>setLContent(e.target.value)} rows={5} placeholder="리드 내용, 조건, 링크 등..." className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
               </div>
               <div className="flex gap-3 mt-6">
-                {editingLead&&<button onClick={()=>deleteLead(editingLead.id).then(()=>setShowLeadForm(false))} className="px-4 py-3 rounded-xl border border-red-500/30 text-red-400 text-[13px] font-bold hover:bg-red-500/10 transition-all">삭제</button>}
-                <button onClick={()=>setShowLeadForm(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] ${D?'border-white/10 text-zinc-500':'border-black/[0.08] text-zinc-500'}`}>취소</button>
-                <button onClick={saveLead} disabled={leadSaving||!lArtist.trim()||!lGender||!lGroup} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-40">
-                  {leadSaving?'저장 중...':editingLead?'수정':'추가'}
-                </button>
+                {leadSaveError&&<p className="text-red-400 text-[12px] bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2 mb-1">{leadSaveError}</p>}
+                <div className="flex gap-3">
+                  {editingLead&&<button onClick={()=>deleteLead(editingLead.id).then(()=>setShowLeadForm(false))} className="px-4 py-3 rounded-xl border border-red-500/30 text-red-400 text-[13px] font-bold hover:bg-red-500/10 transition-all">삭제</button>}
+                  <button onClick={()=>{setShowLeadForm(false);setLeadSaveError('');}} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] ${D?'border-white/10 text-zinc-500':'border-black/[0.08] text-zinc-500'}`}>취소</button>
+                  <button onClick={saveLead} disabled={leadSaving||!lArtist.trim()||!lGender||!lGroup} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-40">
+                    {leadSaving?'저장 중...':editingLead?'수정':'추가'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
