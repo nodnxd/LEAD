@@ -13,15 +13,26 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
   const [convs, setConvs] = useState<any[]>([]);
   const [activeConv, setActiveConv] = useState<any>(null);
   const [msgs, setMsgs] = useState<any[]>([]);
-  const [input, setInput] = useState('');
   const [unread, setUnread] = useState(0);
   const [friendships, setFriendships] = useState<any[]>([]);
   const [sending, setSending] = useState(false);
-  const [viewingMember, setViewingMember] = useState<any>(null); // 멤버 프로필 뷰
+  const [inputVal, setInputVal] = useState(''); // send 버튼 disabled용, 실제 값은 ref
+  const [viewingMember, setViewingMember] = useState<any>(null);
   const [memberWorks, setMemberWorks] = useState<any[]>([]);
+  const [emailSearch, setEmailSearch] = useState('');
+  const [emailSearching, setEmailSearching] = useState(false);
+  const [emailResult, setEmailResult] = useState<any>(null);
+  const [toast, setToast] = useState<{ senderName: string; content: string; senderId: string; convId: string; avatar: any } | null>(null);
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const sentIds = useRef<Set<string>>(new Set());
+  const activeConvRef = useRef<any>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const membersRef = useRef<any[]>([]);
+
+  useEffect(() => { activeConvRef.current = activeConv; }, [activeConv]);
+  useEffect(() => { membersRef.current = members; }, [members]);
 
   const fetchMembers = useCallback(async () => {
     if (!hostId) return;
@@ -43,6 +54,8 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
       if (ids.length > 0) {
         const { data: u } = await supabase.from('messages').select('id').in('conversation_id', ids).eq('read', false).neq('sender_id', user.id);
         setUnread(u?.length || 0);
+      } else {
+        setUnread(0);
       }
     }
   }, [user]);
@@ -58,29 +71,48 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
     fetchMembers(); fetchConvs(); fetchFriendships();
   }, [fetchMembers, fetchConvs, fetchFriendships]);
 
+  const showToast = useCallback((senderName: string, content: string, senderId: string, convId: string, avatar: any) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ senderName, content, senderId, convId, avatar });
+    toastTimer.current = setTimeout(() => setToast(null), 5000);
+  }, []);
+
   useEffect(() => {
     if (!user) return;
     const ch = supabase.channel(`chat_${user.id}_${hostId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const msg = payload.new as any;
         if (sentIds.current.has(msg.id)) return;
-        if (activeConv && msg.conversation_id === activeConv.id) {
+        const curConv = activeConvRef.current;
+        if (curConv && msg.conversation_id === curConv.id) {
           setMsgs(p => [...p, msg]);
-          markRead(activeConv.id);
-        } else { fetchConvs(); }
+          markRead(curConv.id);
+        } else {
+          // 새 메시지 토스트 알림
+          fetchConvs();
+          const sender = membersRef.current.find(m => m.id === msg.sender_id);
+          showToast(
+            sender?.artist_name || '누군가',
+            msg.content,
+            msg.sender_id,
+            msg.conversation_id,
+            sender
+          );
+        }
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, (payload) => {
         setMsgs(p => p.filter(m => m.id !== payload.old.id));
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [user, activeConv, hostId, fetchConvs]);
+  }, [user, hostId, fetchConvs, showToast]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
 
   const markRead = async (convId: string) => {
     if (!user) return;
     await supabase.from('messages').update({ read: true }).eq('conversation_id', convId).neq('sender_id', user.id);
+    fetchConvs();
   };
 
   const openConv = async (otherId: string) => {
@@ -96,15 +128,17 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
     setActiveConv(conv);
     const { data: m } = await supabase.from('messages').select('*').eq('conversation_id', conv.id).order('created_at', { ascending: true });
     if (m) setMsgs(m);
-    markRead(conv.id); fetchConvs();
+    markRead(conv.id);
+    fetchConvs();
+    setOpen(true);
+    setMinimized(false);
   };
 
   const sendMsg = async () => {
-    const content = input.trim();
+    const content = inputRef.current?.value.trim() || '';
     if (!content || !activeConv || !user || sending) return;
     setSending(true);
-    setInput('');
-    // IME 버그 방지: DOM 값도 직접 초기화
+    setInputVal('');
     if (inputRef.current) inputRef.current.value = '';
     const { data: msg } = await supabase.from('messages')
       .insert({ conversation_id: activeConv.id, sender_id: user.id, content })
@@ -153,8 +187,15 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
   };
   const incomingReqs = friendships.filter(f => f.recipient_id === user?.id && f.status === 'pending');
 
-  const ROLE: Record<string, string> = { producer: 'Producer', topliner: 'Top-liner', lyricist: 'Lyricist', engineer: 'Engineer', ar: 'A&R' };
+  const searchByEmail = async () => {
+    if (!emailSearch.trim()) return;
+    setEmailSearching(true); setEmailResult(null);
+    const { data } = await supabase.from('members').select('id,artist_name,photo_url,roles,genres,email').eq('email', emailSearch.trim().toLowerCase()).single();
+    setEmailResult(data || 'notfound');
+    setEmailSearching(false);
+  };
 
+  const ROLE: Record<string, string> = { producer: 'Producer', topliner: 'Top-liner', lyricist: 'Lyricist', engineer: 'Engineer', ar: 'A&R' };
   const bd = D ? 'border-white/[0.08]' : 'border-black/[0.08]';
   const tx = D ? 'text-white' : 'text-[#111]';
   const dm = D ? 'text-zinc-500' : 'text-zinc-500';
@@ -168,6 +209,36 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
 
   return (
     <>
+      {/* 새 메시지 토스트 */}
+      {toast && (
+        <div
+          className="fixed top-5 right-5 z-[60] max-w-[280px] rounded-2xl shadow-2xl border cursor-pointer overflow-hidden"
+          style={{ backgroundColor: D ? '#1a1a1a' : '#fff', borderColor: D ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)', fontFamily: 'Pretendard,sans-serif' }}
+          onClick={() => { openConv(toast.senderId); setToast(null); }}
+        >
+          <div className="flex items-start gap-2.5 px-4 py-3">
+            <Avatar p={toast.avatar} size={36} />
+            <div className="flex-1 min-w-0">
+              <p className={`font-black text-[12px] ${tx}`}>{toast.senderName}</p>
+              <p className={`text-[11px] truncate mt-0.5 ${dm}`}>{toast.content}</p>
+            </div>
+            <button onClick={e => { e.stopPropagation(); setToast(null); }} className={`text-[12px] ${dm} hover:text-red-400 mt-0.5 shrink-0`}>✕</button>
+          </div>
+          <div className="flex gap-2 px-4 pb-3">
+            <button
+              onClick={e => { e.stopPropagation(); const s = toast.senderId; const fs = friendships.find(f => f.requester_id === s || f.recipient_id === s); if (!fs) sendFriendReq(s); }}
+              className={`flex-1 py-1.5 rounded-xl border text-[10px] font-black transition-all ${D ? 'border-white/10 text-zinc-400 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}
+            >
+              {(() => { const fs = friendships.find(f => f.requester_id === toast.senderId || f.recipient_id === toast.senderId); return fs?.status === 'accepted' ? '✓ 친구' : fs ? '요청중' : '+친구'; })()}
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); openConv(toast.senderId); setToast(null); }}
+              className="flex-1 py-1.5 rounded-xl bg-[#5B8CFF] text-white text-[10px] font-black"
+            >💬 답장</button>
+          </div>
+        </div>
+      )}
+
       {/* 플로팅 버튼 */}
       <button
         onClick={() => { setOpen(o => !o); setMinimized(false); }}
@@ -175,9 +246,9 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
         style={{ width: 52, height: 52 }}
       >
         <span className="text-[20px]">💬</span>
-        {unread > 0 && (
+        {(unread > 0 || incomingReqs.length > 0) && (
           <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shadow">
-            <span className="text-white text-[10px] font-black">{unread > 9 ? '9+' : unread}</span>
+            <span className="text-white text-[10px] font-black">{unread + incomingReqs.length > 9 ? '9+' : unread + incomingReqs.length}</span>
           </div>
         )}
       </button>
@@ -205,7 +276,12 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
             {activeConv && (() => {
               const oid = activeConv.participant_1 === user?.id ? activeConv.participant_2 : activeConv.participant_1;
               const other = members.find(m => m.id === oid);
-              return <><Avatar p={other} /><span className={`flex-1 text-[13px] font-black truncate ${tx} ml-1.5`}>{other?.artist_name || '알 수 없음'}</span></>;
+              return (
+                <button className="flex items-center gap-1.5 flex-1 min-w-0 text-left" onClick={() => other && openMemberProfile(other)}>
+                  <Avatar p={other} />
+                  <span className={`flex-1 text-[13px] font-black truncate ${tx} ml-1`}>{other?.artist_name || '알 수 없음'}</span>
+                </button>
+              );
             })()}
 
             {viewingMember && (
@@ -214,7 +290,7 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
 
             {!activeConv && !viewingMember && (
               <span className={`font-black text-[14px] flex-1 ${tx}`}>
-                채팅 {incomingReqs.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px]">{incomingReqs.length}</span>}
+                채팅 {(incomingReqs.length > 0) && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px]">{incomingReqs.length}</span>}
               </span>
             )}
 
@@ -223,7 +299,6 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                 className={`text-[12px] font-black px-1.5 py-0.5 rounded-lg ${dm} hover:text-red-400 hover:bg-red-500/10 transition-all`}>✕</button>
             )}
 
-            {/* 투명도 슬라이더 */}
             <input type="range" min={20} max={100} value={opacity}
               onChange={e => setOpacity(Number(e.target.value))}
               className="w-16 cursor-pointer accent-[#5B8CFF]" title="투명도" />
@@ -245,7 +320,7 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                     const m = members.find(x => x.id === req.requester_id);
                     return (
                       <div key={req.id} className="flex items-center gap-2 mb-1">
-                        <Avatar p={m} />
+                        <button onClick={() => m && openMemberProfile(m)}><Avatar p={m} /></button>
                         <span className={`flex-1 text-[11px] font-bold truncate ${tx}`}>{m?.artist_name || '알 수 없음'}</span>
                         <button onClick={() => respondFriend(req.id, 'accepted')} className="px-2 py-0.5 rounded-lg bg-[#5B8CFF]/20 text-[#5B8CFF] text-[10px] font-black">✓</button>
                         <button onClick={() => respondFriend(req.id, 'rejected')} className="px-2 py-0.5 rounded-lg bg-red-500/10 text-red-400 text-[10px] font-black">✕</button>
@@ -269,31 +344,64 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
 
               {/* 멤버 목록 */}
               {!activeConv && !viewingMember && tab === 'members' && (
-                <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-0.5">
-                  {members.length === 0
-                    ? <p className={`text-[11px] text-center py-8 ${dm}`}>승인된 멤버가 없어요</p>
-                    : members.map(m => {
-                      const fs = getFriendState(m.id);
-                      const isFriend = fs?.status === 'accepted';
-                      const isPending = !!fs && fs.status === 'pending';
-                      const iSent = fs?.requester_id === user?.id;
-                      return (
-                        <div key={m.id} className={`flex items-center gap-2.5 px-2 py-2 rounded-xl transition-all cursor-pointer ${D ? 'hover:bg-white/[0.05]' : 'hover:bg-black/[0.04]'}`}
-                          onClick={() => openMemberProfile(m)}>
-                          <Avatar p={m} size={36} />
-                          <div className="flex-1 min-w-0">
-                            <p className={`font-bold text-[12px] truncate ${tx}`}>{m.artist_name}</p>
-                            <p className={`text-[10px] truncate ${dm}`}>{(m.roles || []).slice(0, 2).map((r: string) => ROLE[r] || r).join(' · ')}</p>
+                <div className="flex-1 overflow-y-auto flex flex-col">
+                  {/* 이메일로 친구 추가 */}
+                  <div className={`px-3 pt-3 pb-2 border-b ${bd}`}>
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 ${dm}`}>이메일로 친구 추가</p>
+                    <div className="flex gap-1.5">
+                      <input
+                        value={emailSearch}
+                        onChange={e => { setEmailSearch(e.target.value); setEmailResult(null); }}
+                        onKeyDown={e => e.key === 'Enter' && searchByEmail()}
+                        placeholder="이메일 입력"
+                        className={`flex-1 border rounded-xl px-2.5 py-1.5 text-[11px] outline-none transition-all ${ib}`}
+                      />
+                      <button onClick={searchByEmail} disabled={emailSearching}
+                        className="px-2.5 py-1.5 rounded-xl bg-[#5B8CFF]/20 text-[#5B8CFF] text-[10px] font-black disabled:opacity-40">
+                        {emailSearching ? '...' : '검색'}
+                      </button>
+                    </div>
+                    {emailResult && emailResult !== 'notfound' && (
+                      <div className="flex items-center gap-2 mt-2 px-1 py-1.5 rounded-xl">
+                        <Avatar p={emailResult} size={28} />
+                        <span className={`flex-1 text-[11px] font-bold truncate ${tx}`}>{emailResult.artist_name}</span>
+                        {(() => {
+                          const fs = getFriendState(emailResult.id);
+                          if (emailResult.id === user?.id) return <span className={`text-[9px] ${dm}`}>나</span>;
+                          if (fs?.status === 'accepted') return <span className="text-[9px] text-emerald-400 font-black">친구</span>;
+                          if (fs) return <span className={`text-[9px] ${dm}`}>요청중</span>;
+                          return <button onClick={() => sendFriendReq(emailResult.id)} className="px-2 py-0.5 rounded-lg bg-[#5B8CFF]/20 text-[#5B8CFF] text-[10px] font-black">+추가</button>;
+                        })()}
+                      </div>
+                    )}
+                    {emailResult === 'notfound' && <p className={`text-[10px] mt-1.5 ${dm}`}>해당 이메일의 멤버를 찾을 수 없어요</p>}
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-0.5">
+                    {members.length === 0
+                      ? <p className={`text-[11px] text-center py-8 ${dm}`}>승인된 멤버가 없어요</p>
+                      : members.map(m => {
+                        const fs = getFriendState(m.id);
+                        const isFriend = fs?.status === 'accepted';
+                        const isPending = !!fs && fs.status === 'pending';
+                        const iSent = fs?.requester_id === user?.id;
+                        return (
+                          <div key={m.id} className={`flex items-center gap-2.5 px-2 py-2 rounded-xl transition-all cursor-pointer ${D ? 'hover:bg-white/[0.05]' : 'hover:bg-black/[0.04]'}`}
+                            onClick={() => openMemberProfile(m)}>
+                            <Avatar p={m} size={36} />
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-bold text-[12px] truncate ${tx}`}>{m.artist_name}</p>
+                              <p className={`text-[10px] truncate ${dm}`}>{(m.roles || []).slice(0, 2).map((r: string) => ROLE[r] || r).join(' · ')}</p>
+                            </div>
+                            <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                              {isFriend && <span className="text-[9px] text-emerald-400 font-black px-1">친구</span>}
+                              {isPending && iSent && <span className={`text-[9px] ${dm}`}>요청중</span>}
+                              {!fs && <button onClick={() => sendFriendReq(m.id)} className={`px-1.5 py-0.5 rounded-lg text-[9px] font-black ${D ? 'bg-white/5 text-zinc-500 hover:text-white' : 'bg-black/[0.05] text-zinc-500'}`}>+친구</button>}
+                              <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-[#5B8CFF]/15 text-[#5B8CFF] text-[9px] font-black hover:bg-[#5B8CFF]/25">💬</button>
+                            </div>
                           </div>
-                          <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                            {isFriend && <span className="text-[9px] text-emerald-400 font-black px-1">친구</span>}
-                            {isPending && iSent && <span className={`text-[9px] ${dm}`}>요청중</span>}
-                            {!fs && <button onClick={() => sendFriendReq(m.id)} className={`px-1.5 py-0.5 rounded-lg text-[9px] font-black ${D ? 'bg-white/5 text-zinc-500 hover:text-white' : 'bg-black/[0.05] text-zinc-500'}`}>+친구</button>}
-                            <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-[#5B8CFF]/15 text-[#5B8CFF] text-[9px] font-black hover:bg-[#5B8CFF]/25">💬</button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                  </div>
                 </div>
               )}
 
@@ -324,7 +432,6 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
               {/* 멤버 프로필 뷰 */}
               {viewingMember && !activeConv && (
                 <div className="flex-1 overflow-y-auto">
-                  {/* 배너 */}
                   <div className={`h-16 bg-gradient-to-br from-[#5B8CFF]/30 to-purple-500/20 relative`}>
                     <div className="absolute bottom-[-24px] left-4">
                       <Avatar p={viewingMember} size={48} />
@@ -338,7 +445,6 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                         {viewingMember.company && <p className={`text-[11px] ${dm}`}>{viewingMember.company}</p>}
                       </div>
                     </div>
-                    {/* 역할 */}
                     {(viewingMember.roles || []).length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {viewingMember.roles.map((r: string) => (
@@ -346,7 +452,6 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                         ))}
                       </div>
                     )}
-                    {/* 장르 */}
                     {(viewingMember.genres || []).length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
                         {viewingMember.genres.slice(0, 4).map((g: string) => (
@@ -358,7 +463,6 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                       <a href={`https://instagram.com/${viewingMember.instagram}`} target="_blank" rel="noopener noreferrer"
                         className="block text-[11px] text-[#5B8CFF] hover:underline mb-3">📸 @{viewingMember.instagram}</a>
                     )}
-                    {/* 작업물 */}
                     {memberWorks.length > 0 && (
                       <div className={`border-t ${bd} pt-3 mt-1`}>
                         <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${dm}`}>Released Works</p>
@@ -374,12 +478,11 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                         ))}
                       </div>
                     )}
-                    {/* 액션 버튼 */}
                     <div className={`flex gap-2 mt-4 pt-3 border-t ${bd}`}>
                       {(() => {
                         const fs = getFriendState(viewingMember.id);
                         return !fs ? (
-                          <button onClick={() => { sendFriendReq(viewingMember.id); }}
+                          <button onClick={() => sendFriendReq(viewingMember.id)}
                             className={`flex-1 py-2 rounded-xl border text-[11px] font-black transition-all ${D ? 'border-white/10 text-zinc-400 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>
                             +친구 추가
                           </button>
@@ -425,13 +528,17 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                   <div className={`flex gap-2 p-2.5 border-t ${bd} shrink-0`}>
                     <input
                       ref={inputRef}
-                      value={input}
-                      onChange={e => setInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
+                      onChange={e => setInputVal(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey && !(e.nativeEvent as any).isComposing) {
+                          e.preventDefault();
+                          sendMsg();
+                        }
+                      }}
                       placeholder="메시지..."
                       className={`flex-1 border rounded-xl px-3 py-2 text-[13px] outline-none transition-all ${ib}`}
                     />
-                    <button onClick={sendMsg} disabled={!input.trim() || sending}
+                    <button onClick={sendMsg} disabled={!inputVal.trim() || sending}
                       className="px-3 py-2 rounded-xl bg-[#5B8CFF] text-white text-[14px] font-black disabled:opacity-40 hover:bg-[#4070ee] transition-all">→</button>
                   </div>
                 </>
