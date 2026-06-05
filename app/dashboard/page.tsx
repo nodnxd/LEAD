@@ -273,12 +273,13 @@ export default function GuestView(){
   const fetchHostPitches=async()=>{
     if(!hostId)return;
     setHostPitchLoading(true);
-    const{data:pitches}=await supabase.from('pitches').select('*').eq('host_id',hostId).order('created_at',{ascending:false});
-    if(pitches&&pitches.length>0){
-      setHostPitches(pitches);
-      const{data:files}=await supabase.from('pitch_files').select('*').in('pitch_id',pitches.map((p:any)=>p.id));
-      if(files)setHostPitchFiles(files);else setHostPitchFiles([]);
-    }else{setHostPitches([]);setHostPitchFiles([]);}
+    // 피칭과 파일을 독립적으로 조회 — 파일은 피칭 연결 여부와 무관하게 host 기준 전체
+    const[pr,fr]=await Promise.all([
+      supabase.from('pitches').select('*').eq('host_id',hostId).order('created_at',{ascending:false}),
+      supabase.from('pitch_files').select('*').eq('host_id',hostId).order('created_at',{ascending:false}),
+    ]);
+    setHostPitches(pr.data||[]);
+    setHostPitchFiles(fr.data||[]);
     setHostPitchLoading(false);
   };
   useEffect(()=>{if(!hostId)return;fetchAll();const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
@@ -670,16 +671,16 @@ export default function GuestView(){
                     return(
                     <div key={f.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04]':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]'} transition-all`}>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                          <span className={`font-black text-[16px] leading-tight ${D?'text-white':'text-[#111]'}`}>{f._artist||'—'}</span>
-                          {f._lead&&<span className={`text-[13px] ${dimText}`}>→ {f._lead}</span>}
+                        <div className="flex items-baseline gap-2 mb-1.5">
+                          <span className="text-[15px] shrink-0">🎵</span>
+                          <span className={`font-black text-[16px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{f.file_name||'audio.mp3'}</span>
                         </div>
-                        <p className={`text-[13px] truncate mb-1.5 ${D?'text-zinc-400':'text-zinc-600'}`}>🎵 {f.file_name||'audio.mp3'}</p>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {vLabel&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-[#5B8CFF]/15 text-[#5B8CFF]">{vLabel}</span>}
                           {f.bpm>0&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>{f.bpm} BPM</span>}
                           {f.key&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>KEY {f.key}</span>}
                           {f.genre&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
+                          {(f._artist||f._lead)&&<span className={`text-[12px] ${dimText}`}>{f._artist}{f._artist&&f._lead&&' → '}{f._lead}</span>}
                         </div>
                       </div>
                       {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full sm:w-72 shrink-0" style={{height:'40px'}}/>}
