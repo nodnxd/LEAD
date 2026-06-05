@@ -104,6 +104,7 @@ export default function GuestView(){
   const [view,setView]=useState<'calendar'|'list'>('list');
   const [calView,setCalView]=useState<'month'|'week'>('week');
   const [hidePast,setHidePast]=useState(false);
+  const [demoDrives,setDemoDrives]=useState<any[]>([]);
   const [swipeX,setSwipeX]=useState<number|null>(null);
   const [installPrompt,setInstallPrompt]=useState<any>(null);
   const [showInstall,setShowInstall]=useState(false);
@@ -223,7 +224,8 @@ export default function GuestView(){
       supabase.from('leads').select('*').eq('host_id',hostId).order('deadline',{ascending:true}),
       supabase.from('lead_announcements').select('*').eq('host_id',hostId).order('created_at',{ascending:true}),
     ]);
-    if(lr.data)setLeads(lr.data);if(ar.data)setAnnouncements(ar.data);
+    if(lr.data){setLeads(lr.data.filter((l:any)=>l.kind!=='demo'));setDemoDrives(lr.data.filter((l:any)=>l.kind==='demo'));}
+    if(ar.data)setAnnouncements(ar.data);
   };
   useEffect(()=>{if(!hostId)return;supabase.from('host_profiles').select('company,display_name').eq('id',hostId).single().then(({data})=>{if(data)setHostCompany(data.company||data.display_name||'');});},[hostId]);
   useEffect(()=>{if(!hostId)return;const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
@@ -621,20 +623,39 @@ export default function GuestView(){
           );
         })()}
 
-        {(!isHost||previewMode)&&(
-          <button onClick={()=>{
-            setPitchingLead({id:null,artist:'',title:'',general:true});
+        {(!isHost||previewMode)&&(()=>{
+          const openDemo=(drive?:any)=>{
+            setPitchingLead(drive?{...drive,general:false,demo:true}:{id:null,artist:'',title:'',general:true});
             setPitchForm(guestProfile?{artist_name:guestProfile.artist_name||'',contact:guestProfile.phone||guestProfile.email||'',message:''}:emptyPitch());
             setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setUploadError('');
-          }} className={`relative z-10 w-full mb-6 flex items-center gap-3 p-4 rounded-2xl border text-left transition-all active:scale-[0.99] sm:hover:scale-[1.01] ${D?'border-[#5B8CFF]/30 bg-[#5B8CFF]/10 hover:bg-[#5B8CFF]/15':'border-[#5B8CFF]/25 bg-[#5B8CFF]/5 hover:bg-[#5B8CFF]/10'}`}>
-            <div className="w-11 h-11 rounded-xl bg-[#5B8CFF]/20 flex items-center justify-center text-[20px] shrink-0">🎤</div>
-            <div className="min-w-0">
-              <p className={`font-black text-[15px] ${D?'text-white':'text-[#111]'}`}>{t('자유 데모 보내기','Send a Demo')}</p>
-              <p className={`text-[12px] ${dimText}`}>{t('특정 리드와 상관없이 데모를 직접 전달해요','Submit a demo directly — no lead required')}</p>
+          };
+          return(
+            <div className="relative z-10 mb-6 flex flex-col gap-2.5">
+              {demoDrives.map(d=>{
+                const exp=isExpired(d.deadline);
+                return(
+                  <button key={d.id} onClick={()=>openDemo(d)} disabled={exp} className={`w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition-all active:scale-[0.99] sm:hover:scale-[1.01] ${exp?'opacity-40 grayscale':''} ${D?'border-[#5B8CFF]/30 bg-[#5B8CFF]/10 hover:bg-[#5B8CFF]/15':'border-[#5B8CFF]/25 bg-[#5B8CFF]/5 hover:bg-[#5B8CFF]/10'}`}>
+                    <div className="w-11 h-11 rounded-xl bg-[#5B8CFF]/20 flex items-center justify-center text-[20px] shrink-0">🎤</div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`font-black text-[15px] truncate ${D?'text-white':'text-[#111]'}`}>{d.artist}</p>
+                      <p className={`text-[12px] ${dimText}`}>{d.content?d.content.slice(0,40):t('데모 수급','Demo collection')}{d.deadline&&` · ~${d.deadline}`}</p>
+                    </div>
+                    {d.deadline&&<DeadlineDisplay lead={d} size="normal"/>}
+                    <span className="text-[#5B8CFF] text-[18px] font-black shrink-0">→</span>
+                  </button>
+                );
+              })}
+              <button onClick={()=>openDemo()} className={`w-full flex items-center gap-3 p-4 rounded-2xl border border-dashed text-left transition-all active:scale-[0.99] ${D?'border-white/15 bg-white/[0.02] hover:bg-white/[0.04]':'border-black/15 bg-black/[0.02] hover:bg-black/[0.04]'}`}>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-[20px] shrink-0 ${D?'bg-white/5':'bg-black/[0.05]'}`}>🎤</div>
+                <div className="min-w-0">
+                  <p className={`font-black text-[15px] ${D?'text-white':'text-[#111]'}`}>{t('자유 데모 보내기','Send a Demo')}</p>
+                  <p className={`text-[12px] ${dimText}`}>{t('특정 항목과 상관없이 데모를 직접 전달해요','Submit a demo directly — no slot required')}</p>
+                </div>
+                <span className={`ml-auto text-[18px] font-black shrink-0 ${dimText}`}>→</span>
+              </button>
             </div>
-            <span className="ml-auto text-[#5B8CFF] text-[18px] font-black shrink-0">→</span>
-          </button>
-        )}
+          );
+        })()}
 
         {view==='calendar'&&(
           <div className="relative z-10">
@@ -787,14 +808,14 @@ export default function GuestView(){
                 <div className="text-center py-10">
                   <div className="text-5xl mb-4">🎉</div>
                   <h2 className={`font-black text-[22px] mb-2 ${D?'text-white':'text-[#111]'}`}>{t('피칭 완료!','Pitch sent!')}</h2>
-                  <p className={`text-[13px] ${dimText}`}>{pitchingLead.general?t('자유 데모','Free demo'):<><span className={`font-bold ${D?'text-white':'text-[#111]'}`}>{pitchingLead.artist}</span> — {pitchingLead.title}</>}</p>
+                  <p className={`text-[13px] ${dimText}`}>{pitchingLead.general?t('자유 데모','Free demo'):pitchingLead.demo?<span className={`font-bold ${D?'text-white':'text-[#111]'}`}>{pitchingLead.artist}</span>:<><span className={`font-bold ${D?'text-white':'text-[#111]'}`}>{pitchingLead.artist}</span> — {pitchingLead.title}</>}</p>
                   <p className={`text-[12px] mt-1 ${dimText}`}>{pitchForm.artist_name}{pitchFiles.length>0&&` · ${t('파일','files')} ${pitchFiles.length}`}</p>
                   <p className={`text-[12px] mt-3 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('담당자가 확인 후 연락드릴게요.','We will reach out after review.')}</p>
                   <button onClick={()=>{setPitchingLead(null);setPitchSent(false);}} className={`mt-6 w-full py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{t('닫기','Close')}</button>
                 </div>
               ):(
                 <>
-                  <div className="mb-5"><h2 className={`font-black text-[20px] ${D?'text-white':'text-[#111]'}`}>{pitchingLead.general?`🎤 ${t('자유 데모 보내기','Send a Demo')}`:`🎵 ${t('피칭하기','Pitch')}`}</h2><p className={`text-[12px] mt-0.5 ${dimText}`}>{pitchingLead.general?t('특정 리드와 상관없이 데모를 전달해요','Submit a demo — no lead required'):`${pitchingLead.artist} — ${pitchingLead.title}`}</p></div>
+                  <div className="mb-5"><h2 className={`font-black text-[20px] ${D?'text-white':'text-[#111]'}`}>{(pitchingLead.general||pitchingLead.demo)?`🎤 ${t('데모 보내기','Send a Demo')}`:`🎵 ${t('피칭하기','Pitch')}`}</h2><p className={`text-[12px] mt-0.5 ${dimText}`}>{pitchingLead.general?t('특정 항목과 상관없이 데모를 전달해요','Submit a demo — no slot required'):pitchingLead.demo?pitchingLead.artist:`${pitchingLead.artist} — ${pitchingLead.title}`}</p></div>
                   <div className="flex flex-col gap-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={pitchForm.artist_name} onChange={e=>setPitchForm(p=>({...p,artist_name:e.target.value}))} placeholder="아티스트명" className={`w-full border rounded-xl px-4 py-3 text-[16px] sm:text-[13px] outline-none transition-all ${inputCls}`}/></div>

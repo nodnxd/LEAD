@@ -230,6 +230,35 @@ export default function GuestView(){
     await supabase.from('leads').delete().eq('id',leadId);
     await fetchAll();
   };
+  // ── 데모 수급(리드와 무관한 명명된 데모 슬롯) ──
+  const [demoDrives,setDemoDrives]=useState<any[]>([]);
+  const [showDemoMgr,setShowDemoMgr]=useState(false);
+  const [editingDemo,setEditingDemo]=useState<any>(null);
+  const [demoName,setDemoName]=useState('');
+  const [demoNote,setDemoNote]=useState('');
+  const [demoDeadline,setDemoDeadline]=useState('');
+  const [demoSaving,setDemoSaving]=useState(false);
+  const [demoSaveError,setDemoSaveError]=useState('');
+  const openDemoForm=(d?:any)=>{
+    if(d){setEditingDemo(d);setDemoName(d.artist||'');setDemoNote(d.content||'');setDemoDeadline(d.deadline||'');}
+    else{setEditingDemo(null);setDemoName('');setDemoNote('');setDemoDeadline('');}
+    setDemoSaveError('');
+  };
+  const saveDemo=async()=>{
+    if(!demoName.trim()||!hostId)return;
+    setDemoSaving(true);setDemoSaveError('');
+    const data={host_id:hostId,kind:'demo',artist:demoName.trim(),title:'',gender:'',group_type:'',album_type:'single',content:demoNote.trim()||null,deadline:demoDeadline||null,deadline2:null};
+    let err:any=null;
+    if(editingDemo){const r=await supabase.from('leads').update(data).eq('id',editingDemo.id);err=r.error;}
+    else{const r=await supabase.from('leads').insert(data);err=r.error;}
+    if(err){setDemoSaveError(err.message||'저장 실패');setDemoSaving(false);return;}
+    await fetchAll();setEditingDemo(null);setDemoName('');setDemoNote('');setDemoDeadline('');setDemoSaving(false);
+  };
+  const deleteDemo=async(id:string)=>{
+    if(!confirm('이 데모 수급을 삭제할까요?'))return;
+    await supabase.from('leads').delete().eq('id',id);
+    await fetchAll();
+  };
   const fileInputRef=useRef<HTMLInputElement>(null);
 
   const fetchMembers=async()=>{
@@ -273,7 +302,8 @@ export default function GuestView(){
       supabase.from('leads').select('*').eq('host_id',hostId).order('deadline',{ascending:true}),
       supabase.from('lead_announcements').select('*').eq('host_id',hostId).order('created_at',{ascending:true}),
     ]);
-    if(lr.data)setLeads(lr.data);if(ar.data)setAnnouncements(ar.data);
+    if(lr.data){setLeads(lr.data.filter((l:any)=>l.kind!=='demo'));setDemoDrives(lr.data.filter((l:any)=>l.kind==='demo'));}
+    if(ar.data)setAnnouncements(ar.data);
   };
   const fetchHostPitches=async()=>{
     if(!hostId)return;
@@ -560,6 +590,7 @@ export default function GuestView(){
               <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
               <span className="text-amber-400 text-[11px] font-bold">HOST</span>
             </div>
+            <button onClick={()=>{openDemoForm();setShowDemoMgr(true);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🎤 {t('데모 수급','Demos')}{demoDrives.length>0&&<span className="ml-1 opacity-70">{demoDrives.length}</span>}</button>
             <button onClick={()=>{setShowMembers(true);fetchMembers();}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👥 {t('멤버','Members')}</button>
             <button onClick={()=>{if(navigator.clipboard){navigator.clipboard.writeText(window.location.origin+'/view/'+hostId);setShareToast(true);setTimeout(()=>setShareToast(false),2000);}}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🔗 {t('공유','Share')}</button>
             <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
@@ -642,7 +673,7 @@ export default function GuestView(){
               ):(
                 <div className="flex flex-col gap-3">
                   {order.map(lid=>{
-                    const lead=leads.find(l=>l.id===lid);
+                    const lead=[...leads,...demoDrives].find(l=>l.id===lid);
                     const groupPitches=byLead[lid];
                     const fileCount=groupPitches.reduce((n,p)=>n+hostPitchFiles.filter(f=>f.pitch_id===p.id).length,0);
                     const open=expandedPitchLeads[lid]??false;
@@ -699,7 +730,7 @@ export default function GuestView(){
               <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>
             ):(()=>{
               const pById:Record<string,any>={};hostPitches.forEach(p=>pById[p.id]=p);
-              let fv=hostPitchFiles.map(f=>{const p=pById[f.pitch_id];const lead=p?leads.find(l=>l.id===p.lead_id):null;return{...f,_artist:p?.artist_name||'',_lead:lead?.artist||'',_created:p?.created_at||f.created_at};});
+              let fv=hostPitchFiles.map(f=>{const p=pById[f.pitch_id];const lead=p?[...leads,...demoDrives].find(l=>l.id===p.lead_id):null;return{...f,_artist:p?.artist_name||'',_lead:lead?.artist||'',_created:p?.created_at||f.created_at};});
               if(fileVocalFilter!=='all')fv=fv.filter(f=>f.vocal_gender===fileVocalFilter);
               const q=fileSearch.trim().toLowerCase();
               if(q)fv=fv.filter(f=>[f.file_name,f._artist,f._lead,f.genre,f.key].some((x:any)=>(x||'').toLowerCase().includes(q)));
@@ -742,7 +773,7 @@ export default function GuestView(){
             ):(()=>{
               const activeLeads=leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length;
               const pitchByLead:Record<string,number>={};hostPitches.forEach(p=>{pitchByLead[p.lead_id]=(pitchByLead[p.lead_id]||0)+1;});
-              const leadRank=Object.entries(pitchByLead).map(([lid,n])=>({lead:leads.find(l=>l.id===lid),n})).filter(x=>x.lead).sort((a,b)=>b.n-a.n).slice(0,8);
+              const leadRank=Object.entries(pitchByLead).map(([lid,n])=>({lead:[...leads,...demoDrives].find(l=>l.id===lid),n})).filter(x=>x.lead).sort((a,b)=>b.n-a.n).slice(0,8);
               const maxLead=leadRank.length?leadRank[0].n:1;
               const pitchByMember:Record<string,number>={};hostPitches.forEach(p=>{const k=p.artist_name||'익명';pitchByMember[k]=(pitchByMember[k]||0)+1;});
               const memberRank=Object.entries(pitchByMember).map(([name,n])=>({name,n})).sort((a,b)=>b.n-a.n).slice(0,8);
@@ -949,6 +980,54 @@ export default function GuestView(){
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDemoMgr&&(
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-0 sm:p-4" onClick={()=>setShowDemoMgr(false)}>
+          <div className={`w-full max-w-lg border rounded-t-[2rem] sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
+              <div>
+                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>🎤 {t('데모 수급','Demo Drives')}</h2>
+                <p className={`text-[12px] mt-0.5 ${dimText}`}>{t('리드와 무관하게 데모를 받는 슬롯을 만들어요','Named slots to collect demos, no lead needed')}</p>
+              </div>
+              <button onClick={()=>setShowDemoMgr(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-[13px] ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
+            </div>
+            <div className="overflow-y-auto p-5 flex flex-col gap-4">
+              {/* 생성/수정 폼 */}
+              <div className={`p-4 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                <p className={`text-[13px] font-black mb-3 ${D?'text-white':'text-[#111]'}`}>{editingDemo?t('수정','Edit'):t('새 데모 수급','New demo drive')}</p>
+                <div className="flex flex-col gap-3">
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${dimText}`}>{t('이름','Name')} *</label><input value={demoName} onChange={e=>setDemoName(e.target.value)} placeholder={t('예: EPG 06/25 데모','e.g. EPG 06/25 Demo')} className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${dimText}`}>{t('마감일','Deadline')}</label><input type="date" value={demoDeadline} onChange={e=>setDemoDeadline(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                  </div>
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${dimText}`}>{t('설명','Note')}</label><textarea value={demoNote} onChange={e=>setDemoNote(e.target.value)} rows={2} placeholder={t('원하는 스타일, 조건 등','Style, requirements...')} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none transition-all resize-none ${inputCls}`}/></div>
+                </div>
+                {demoSaveError&&<p className="text-red-400 text-[12px] bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2 mt-3">{demoSaveError}</p>}
+                <div className="flex gap-2 mt-3">
+                  {editingDemo&&<button onClick={()=>openDemoForm()} className={`px-4 py-2.5 rounded-xl border text-[13px] font-bold ${D?'border-white/10 text-zinc-400':'border-black/[0.08] text-zinc-500'}`}>{t('취소','Cancel')}</button>}
+                  <button onClick={saveDemo} disabled={demoSaving||!demoName.trim()} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] disabled:opacity-40">{demoSaving?'...':editingDemo?t('수정 완료','Update'):t('+ 추가','+ Add')}</button>
+                </div>
+              </div>
+              {/* 목록 */}
+              {demoDrives.length===0?<p className={`text-[13px] text-center py-6 ${dimText}`}>{t('아직 만든 데모 수급이 없어요','No demo drives yet')}</p>:(
+                <div className="flex flex-col gap-2">
+                  {demoDrives.map(d=>(
+                    <div key={d.id} className={`flex items-center gap-3 p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
+                      <div className="w-9 h-9 rounded-xl bg-[#5B8CFF]/15 flex items-center justify-center text-[16px] shrink-0">🎤</div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-bold text-[14px] truncate ${D?'text-white':'text-[#111]'}`}>{d.artist}</p>
+                        <p className={`text-[11px] ${dimText}`}>{d.deadline?`~${d.deadline}`:t('마감일 없음','No deadline')}</p>
+                      </div>
+                      <button onClick={()=>openDemoForm(d)} className={`px-2.5 py-1.5 rounded-lg text-[11px] font-black ${D?'bg-white/5 text-zinc-400':'bg-black/[0.05] text-zinc-500'}`}>{t('수정','Edit')}</button>
+                      <button onClick={()=>deleteDemo(d.id)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-black text-red-400 bg-red-500/10">{t('삭제','Delete')}</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
