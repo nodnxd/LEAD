@@ -23,4 +23,53 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
+
+/* ── 프리미엄 글로벌 레이어 ── */
+html { scroll-behavior: smooth; }
+
+* { -webkit-tap-highlight-color: transparent; }
+
+/* 부드러운 상호작용 (전역, 가벼움) */
+button, a, input, textarea, select, [role="button"] {
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease,
+              box-shadow .18s ease, transform .18s ease, opacity .18s ease;
+}
+
+/* 텍스트 선택 색 */
+::selection { background: rgba(91, 140, 255, 0.30); color: inherit; }
+
+/* 포커스 링 정돈 — 마우스 클릭엔 안 뜨고 키보드 탐색에만 */
+:focus { outline: none; }
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(91, 140, 255, 0.55);
+  border-radius: 8px;
+}
+
+/* 얇고 은은한 스크롤바 */
+* { scrollbar-width: thin; scrollbar-color: rgba(140,140,160,0.28) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(140,140,160,0.28);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(140,140,160,0.48); background-clip: content-box; }
+
+/* 숫자 폭 고정 — 카운터/통계 흔들림 방지 */
+.font-pretendard { font-feature-settings: "tnum" 1, "ss01" 1; letter-spacing: -0.01em; }
+
+/* 인라인 오디오 플레이어 톤 정리 */
+audio { color-scheme: dark; border-radius: 10px; }
+
+/* 모달/카드 진입 모션 (원하는 곳에 .anim-rise 부여) */
+@keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.anim-rise { animation: riseIn .28s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.anim-fade { animation: fadeIn .2s ease; }
