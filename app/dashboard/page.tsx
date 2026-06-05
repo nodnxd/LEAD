@@ -136,6 +136,7 @@ export default function GuestView(){
   const [hostPitchLoading,setHostPitchLoading]=useState(false);
   const [pitchSort,setPitchSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [pitchVocalFilter,setPitchVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
+  const [expandedPitchLeads,setExpandedPitchLeads]=useState<Record<string,boolean>>({});
   const [fileSort,setFileSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [fileVocalFilter,setFileVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
   const [fileSearch,setFileSearch]=useState('');
@@ -590,24 +591,51 @@ export default function GuestView(){
               let pv=hostPitches;
               if(pitchVocalFilter!=='all')pv=pv.filter(p=>hostPitchFiles.some(f=>f.pitch_id===p.id&&f.vocal_gender===pitchVocalFilter));
               pv=[...pv].sort((a,b)=>{if(pitchSort==='bpm')return minBpm(a)-minBpm(b);if(pitchSort==='vocal')return firstVocal(a).localeCompare(firstVocal(b));if(pitchSort==='key')return firstKey(a).localeCompare(firstKey(b));return new Date(b.created_at).getTime()-new Date(a.created_at).getTime();});
+              // 리드별 그룹화 (pv 순서 유지)
+              const order:string[]=[];const byLead:Record<string,any[]>={};
+              pv.forEach(p=>{const k=p.lead_id||'none';if(!byLead[k]){byLead[k]=[];order.push(k);}byLead[k].push(p);});
               return pv.length===0?(
-                <div className="text-center py-20"><p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>{hostPitches.length===0?'아직 받은 피칭이 없어요':'조건에 맞는 피칭이 없어요'}</p></div>
+                <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitches.length===0?'아직 받은 피칭이 없어요':'조건에 맞는 피칭이 없어요'}</p></div>
               ):(
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  {pv.map(p=>{
-                    const lead=leads.find(l=>l.id===p.lead_id);
-                    const files=hostPitchFiles.filter(f=>f.pitch_id===p.id);
+                <div className="flex flex-col gap-3">
+                  {order.map(lid=>{
+                    const lead=leads.find(l=>l.id===lid);
+                    const groupPitches=byLead[lid];
+                    const fileCount=groupPitches.reduce((n,p)=>n+hostPitchFiles.filter(f=>f.pitch_id===p.id).length,0);
+                    const open=expandedPitchLeads[lid]??false;
                     return(
-                      <div key={p.id} className={`p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                        <div className="flex items-start justify-between mb-2">
+                      <div key={lid} className={`rounded-2xl border overflow-hidden ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                        <button onClick={()=>setExpandedPitchLeads(prev=>({...prev,[lid]:!open}))} className={`w-full flex items-center gap-3 px-5 py-4 text-left transition-all ${D?'hover:bg-white/[0.03]':'hover:bg-black/[0.03]'}`}>
+                          <span className={`text-[16px] transition-transform shrink-0 ${open?'rotate-90':''} ${dimText}`}>›</span>
                           <div className="flex-1 min-w-0">
-                            <p className={`font-bold text-[13px] ${D?'text-white':'text-[#111]'}`}>{p.artist_name}{lead&&<span className={`font-normal ml-2 text-[12px] ${dimText}`}>→ {lead.artist}</span>}</p>
-                            <p className={`text-[11px] mt-0.5 ${dimText}`}>{p.contact}{p.contact&&' · '}{new Date(p.created_at).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
+                            <p className={`font-black text-[17px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{lead?lead.artist:'삭제된 리드'}</p>
+                            {lead?.title&&<p className={`text-[13px] mt-0.5 truncate ${dimText}`}>{lead.title}</p>}
                           </div>
-                          {files.length>0&&<span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ml-2 ${D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>}
-                        </div>
-                        {p.message&&<p className={`text-[12px] leading-relaxed whitespace-pre-line mt-1 ${D?'text-zinc-400':'text-zinc-600'}`}>{p.message}</p>}
-                        {files.length>0&&<div className="flex flex-col gap-2 mt-2">{files.map((f:any)=><PitchFileRow key={f.id} f={f} D={D} dimText={dimText}/>)}</div>}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[13px] font-black px-3 py-1 rounded-full bg-[#5B8CFF]/15 text-[#5B8CFF]">피칭 {groupPitches.length}</span>
+                            {fileCount>0&&<span className={`text-[13px] font-black px-3 py-1 rounded-full ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>🎵 {fileCount}</span>}
+                          </div>
+                        </button>
+                        {open&&(
+                          <div className={`px-4 pb-4 pt-1 border-t ${D?'border-white/[0.06]':'border-black/[0.06]'}`}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mt-3">
+                              {groupPitches.map(p=>{
+                                const files=hostPitchFiles.filter(f=>f.pitch_id===p.id);
+                                return(
+                                  <div key={p.id} className={`p-4 rounded-xl border ${D?'bg-black/20 border-white/[0.06]':'bg-white border-black/[0.06]'}`}>
+                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                      <p className={`font-black text-[15px] leading-tight ${D?'text-white':'text-[#111]'}`}>{p.artist_name}</p>
+                                      {files.length>0&&<span className={`text-[11px] font-black px-2 py-0.5 rounded-full shrink-0 ${D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>}
+                                    </div>
+                                    <p className={`text-[12px] mb-2 ${dimText}`}>{p.contact}{p.contact&&' · '}{new Date(p.created_at).toLocaleDateString('ko-KR',{month:'short',day:'numeric'})}</p>
+                                    {p.message&&<p className={`text-[13px] leading-relaxed whitespace-pre-line mb-2 ${D?'text-zinc-300':'text-zinc-600'}`}>{p.message}</p>}
+                                    {files.length>0&&<div className="flex flex-col gap-2">{files.map((f:any)=><PitchFileRow key={f.id} f={f} D={D} dimText={dimText}/>)}</div>}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -634,15 +662,30 @@ export default function GuestView(){
               if(q)fv=fv.filter(f=>[f.file_name,f._artist,f._lead,f.genre,f.key].some((x:any)=>(x||'').toLowerCase().includes(q)));
               fv=[...fv].sort((a,b)=>{if(fileSort==='bpm')return(a.bpm||99999)-(b.bpm||99999);if(fileSort==='vocal')return(a.vocal_gender||'zzz').localeCompare(b.vocal_gender||'zzz');if(fileSort==='key')return(a.key||'zzz').localeCompare(b.key||'zzz');return new Date(b._created).getTime()-new Date(a._created).getTime();});
               return fv.length===0?(
-                <div className="text-center py-20"><p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>{hostPitchFiles.length===0?'아직 받은 파일이 없어요':'조건에 맞는 파일이 없어요'}</p></div>
+                <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitchFiles.length===0?'아직 받은 파일이 없어요':'조건에 맞는 파일이 없어요'}</p></div>
               ):(
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-                  {fv.map((f:any)=>(
-                    <div key={f.id} className={`p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                      <p className={`text-[11px] mb-1 ${dimText}`}><span className={`font-bold ${D?'text-zinc-300':'text-zinc-700'}`}>{f._artist||'—'}</span>{f._lead&&<span> → {f._lead}</span>}</p>
-                      <PitchFileRow f={f} D={D} dimText={dimText}/>
+                <div className="flex flex-col gap-2.5">
+                  {fv.map((f:any)=>{
+                    const vLabel=f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
+                    return(
+                    <div key={f.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04]':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]'} transition-all`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <span className={`font-black text-[16px] leading-tight ${D?'text-white':'text-[#111]'}`}>{f._artist||'—'}</span>
+                          {f._lead&&<span className={`text-[13px] ${dimText}`}>→ {f._lead}</span>}
+                        </div>
+                        <p className={`text-[13px] truncate mb-1.5 ${D?'text-zinc-400':'text-zinc-600'}`}>🎵 {f.file_name||'audio.mp3'}</p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {vLabel&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-[#5B8CFF]/15 text-[#5B8CFF]">{vLabel}</span>}
+                          {f.bpm>0&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>{f.bpm} BPM</span>}
+                          {f.key&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>KEY {f.key}</span>}
+                          {f.genre&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
+                        </div>
+                      </div>
+                      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full sm:w-72 shrink-0" style={{height:'40px'}}/>}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               );
             })()}
