@@ -127,6 +127,7 @@ export default function GuestView(){
   const [theme,setTheme]=useState<'dark'|'light'>('dark');
   const [translating,setTranslating]=useState(false);
   const [translatedCache,setTranslatedCache]=useState<Record<string,Section[]>>({});
+  const [globalEn,setGlobalEn]=useState(false);
   const [showLeadForm,setShowLeadForm]=useState(false);
   const [editingLead,setEditingLead]=useState<any>(null);
   const [leadSaving,setLeadSaving]=useState(false);
@@ -248,8 +249,8 @@ export default function GuestView(){
     const data=await res.json();
     return data[0].map((item:any)=>item[0]).join('');
   };
-  const switchToEn=async(lead:any)=>{
-    if(contentLang==='en'){setContentLang('ko');return;}
+  const ensureEn=async(lead:any)=>{
+    if(!lead)return;
     if(lead.content_en){setContentLang('en');return;}
     if(translatedCache[lead.id]){setContentLang('en');return;}
     setTranslating(true);
@@ -270,6 +271,18 @@ export default function GuestView(){
     }catch{}
     setTranslating(false);
   };
+  const switchToEn=async(lead:any)=>{
+    if(contentLang==='en'){setContentLang('ko');return;}
+    await ensureEn(lead);
+  };
+  // 전역 EN 토글: 켜져 있으면 리드 열 때 자동 영어
+  useEffect(()=>{
+    const s=localStorage.getItem('lead_global_en');if(s==='1')setGlobalEn(true);
+  },[]);
+  useEffect(()=>{
+    if(viewingLead&&globalEn)ensureEn(viewingLead);
+    if(!globalEn&&viewingLead)setContentLang('ko');
+  },[viewingLead,globalEn]);
   const getEnContent=(lead:any):Section[]|null=>{
     if(lead.content_en)return parseSections(lead.content_en)||[{id:'en0',title:'',body:lead.content_en}];
     return translatedCache[lead.id]||null;
@@ -510,6 +523,7 @@ export default function GuestView(){
           <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} 활성</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} 마감</span></div>
           <div className="flex items-center gap-2">
             <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
+            <button onClick={()=>{const v=!globalEn;setGlobalEn(v);localStorage.setItem('lead_global_en',v?'1':'0');}} className={`h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-black transition-all ${globalEn?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>🌐 {globalEn?'EN':'KO'}</button>
             <div className={`flex border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
               <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 달력</button>
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
