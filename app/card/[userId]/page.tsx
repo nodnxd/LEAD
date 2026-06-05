@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -9,6 +9,13 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function CardPage() {
   const { userId } = useParams<{ userId: string }>();
+  const router = useRouter();
+  const [imgError, setImgError] = useState(false);
+  const goBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) { router.back(); return; }
+    window.close();
+    setTimeout(() => { if (!window.closed) router.push('/mypage'); }, 200);
+  };
   const [profile, setProfile] = useState<any>(null);
   const [works, setWorks] = useState<any[]>([]);
   const [demos, setDemos] = useState<any[]>([]);
@@ -60,19 +67,26 @@ export default function CardPage() {
   );
 
   const displayName = profile.artist_name || profile.display_name || '—';
+  const rawPhoto = profile.photo_url || '';
+  const photoSrc = rawPhoto && !/^https?:\/\//.test(rawPhoto)
+    ? supabase.storage.from('member-photos').getPublicUrl(rawPhoto).data.publicUrl
+    : rawPhoto;
+  const showPhoto = !!photoSrc && !imgError;
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');.font-pretendard{font-family:'Pretendard',sans-serif;}@media print{.no-print{display:none!important;}body{background:#fff!important;}#comp-card{box-shadow:none!important;border-color:#eee!important;}}` }} />
       <main className={`min-h-screen ${bg} font-pretendard p-5 flex flex-col items-center justify-center`}>
+        {/* 상단 고정 뒤로가기 */}
+        <button onClick={goBack} className={`no-print fixed top-4 left-4 z-50 w-10 h-10 rounded-full border flex items-center justify-center text-[16px] shadow-lg ${D ? 'bg-[#1a1a1a] border-white/10 text-white' : 'bg-white border-black/[0.08] text-[#111]'}`}>←</button>
         {/* 컴카드 */}
         <div id="comp-card" className={`w-full max-w-sm border rounded-3xl overflow-hidden shadow-2xl ${card}`}>
           {/* 헤더 배너 */}
           <div className={`h-24 relative ${isHost ? 'bg-gradient-to-br from-amber-500/40 to-orange-400/20' : 'bg-gradient-to-br from-[#5B8CFF]/40 to-purple-500/20'}`}>
             <div className="absolute bottom-[-36px] left-6">
-              <div className="w-18 h-18 rounded-2xl overflow-hidden border-2 border-white/20 bg-black/30 flex items-center justify-center shadow-xl" style={{ width: 72, height: 72 }}>
-                {profile.photo_url
-                  ? <img src={profile.photo_url} className="w-full h-full object-cover" />
+              <div className="rounded-2xl overflow-hidden border-2 border-white/20 bg-black/30 flex items-center justify-center shadow-xl" style={{ width: 72, height: 72 }}>
+                {showPhoto
+                  ? <img src={photoSrc} alt={displayName} referrerPolicy="no-referrer" onError={() => setImgError(true)} className="w-full h-full object-cover" />
                   : <span className={`text-3xl font-black ${isHost ? 'text-amber-400' : 'text-[#5B8CFF]'}`}>{displayName[0].toUpperCase()}</span>}
               </div>
             </div>
@@ -182,7 +196,7 @@ export default function CardPage() {
             className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all shadow-lg">
             📄 PDF 저장
           </button>
-          <button onClick={() => window.history.back()}
+          <button onClick={goBack}
             className={`px-5 py-3 rounded-xl border font-bold text-[13px] transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
             ← 뒤로
           </button>
