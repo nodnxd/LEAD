@@ -127,7 +127,7 @@ export default function GuestView(){
   const [lDeadline2,setLDeadline2]=useState('');
   const [leads,setLeads]=useState<any[]>([]);
   const [announcements,setAnnouncements]=useState<any[]>([]);
-  const [view,setView]=useState<'calendar'|'list'|'pitches'|'files'>('calendar');
+  const [view,setView]=useState<'calendar'|'list'|'pitches'|'files'|'stats'>('calendar');
   const [hostCompany,setHostCompany]=useState('');
   const [editingCompany,setEditingCompany]=useState(false);
   const [companyDraft,setCompanyDraft]=useState('');
@@ -542,6 +542,7 @@ export default function GuestView(){
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
               <button onClick={()=>{setView('pitches');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='pitches'?'bg-[#5B8CFF] text-white':dimText}`}>📨 수신 피칭{hostPitches.length>0&&<span className="ml-1 opacity-70">{hostPitches.length}</span>}</button>
               <button onClick={()=>{setView('files');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='files'?'bg-[#5B8CFF] text-white':dimText}`}>🎵 파일 관리{hostPitchFiles.length>0&&<span className="ml-1 opacity-70">{hostPitchFiles.length}</span>}</button>
+              <button onClick={()=>{setView('stats');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='stats'?'bg-[#5B8CFF] text-white':dimText}`}>📊 통계</button>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
@@ -678,7 +679,7 @@ export default function GuestView(){
         {view==='files'&&(
           <div className="relative z-10">
             <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
-              <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder="🔍 파일명 · 아티스트 · 장르 검색" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/>
+              <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder="파일명 · 아티스트 · 장르 검색" className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>정렬</span>{([['recent','최신순'],['bpm','BPM'],['vocal','보컬'],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileSort===v} onClick={()=>setFileSort(v)} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>보컬</span>{([['all','전체'],['male','남성'],['female','여성'],['both','혼성']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileVocalFilter===v} onClick={()=>setFileVocalFilter(v)} isDark={D}/>)}</div>
             </div>
@@ -716,6 +717,79 @@ export default function GuestView(){
                     </div>
                     );
                   })}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {view==='stats'&&(
+          <div className="relative z-10">
+            {hostPitchLoading?(
+              <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>
+            ):(()=>{
+              const activeLeads=leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length;
+              const pitchByLead:Record<string,number>={};hostPitches.forEach(p=>{pitchByLead[p.lead_id]=(pitchByLead[p.lead_id]||0)+1;});
+              const leadRank=Object.entries(pitchByLead).map(([lid,n])=>({lead:leads.find(l=>l.id===lid),n})).filter(x=>x.lead).sort((a,b)=>b.n-a.n).slice(0,8);
+              const maxLead=leadRank.length?leadRank[0].n:1;
+              const pitchByMember:Record<string,number>={};hostPitches.forEach(p=>{const k=p.artist_name||'익명';pitchByMember[k]=(pitchByMember[k]||0)+1;});
+              const memberRank=Object.entries(pitchByMember).map(([name,n])=>({name,n})).sort((a,b)=>b.n-a.n).slice(0,8);
+              const maxMember=memberRank.length?memberRank[0].n:1;
+              const genreCount:Record<string,number>={};hostPitchFiles.forEach(f=>{if(f.genre)genreCount[f.genre]=(genreCount[f.genre]||0)+1;});
+              const genreRank=Object.entries(genreCount).map(([g,n])=>({g,n})).sort((a,b)=>b.n-a.n).slice(0,8);
+              const totalGenre=genreRank.reduce((s,x)=>s+x.n,0)||1;
+              const vocalCount={male:0,female:0,both:0,none:0};hostPitchFiles.forEach(f=>{const v=f.vocal_gender;if(v==='male')vocalCount.male++;else if(v==='female')vocalCount.female++;else if(v==='both')vocalCount.both++;else vocalCount.none++;});
+              const totalVocal=hostPitchFiles.length||1;
+              const stat=(label:string,val:number,color:string)=>(
+                <div className={`flex-1 min-w-[140px] p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                  <p className={`text-[12px] font-bold mb-1 ${dimText}`}>{label}</p>
+                  <p className={`text-[32px] font-black leading-none ${color}`}>{val}</p>
+                </div>
+              );
+              const bar=(label:string,n:number,max:number,sub:string,color:string)=>(
+                <div key={label} className="flex items-center gap-3">
+                  <span className={`text-[13px] font-bold w-28 shrink-0 truncate ${D?'text-zinc-300':'text-zinc-700'}`}>{label}</span>
+                  <div className={`flex-1 h-7 rounded-lg overflow-hidden ${D?'bg-white/[0.04]':'bg-black/[0.04]'}`}>
+                    <div className={`h-full rounded-lg ${color} flex items-center justify-end px-2`} style={{width:`${Math.max(8,(n/max)*100)}%`}}><span className="text-[12px] font-black text-white">{sub}</span></div>
+                  </div>
+                </div>
+              );
+              return(
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-wrap gap-3">
+                    {stat('총 리드',leads.length,D?'text-white':'text-[#111]')}
+                    {stat('활성 리드',activeLeads,'text-emerald-400')}
+                    {stat('받은 피칭',hostPitches.length,'text-[#5B8CFF]')}
+                    {stat('받은 파일',hostPitchFiles.length,'text-amber-400')}
+                  </div>
+
+                  <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>📨 리드별 피칭 수</p>
+                    {leadRank.length===0?<p className={`text-[13px] ${dimText}`}>아직 데이터가 없어요</p>:<div className="flex flex-col gap-2.5">{leadRank.map(x=>bar(x.lead.artist,x.n,maxLead,`${x.n}`,'bg-[#5B8CFF]'))}</div>}
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                      <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>👤 멤버별 피칭 수</p>
+                      {memberRank.length===0?<p className={`text-[13px] ${dimText}`}>아직 데이터가 없어요</p>:<div className="flex flex-col gap-2.5">{memberRank.map(x=>bar(x.name,x.n,maxMember,`${x.n}`,'bg-emerald-500'))}</div>}
+                    </div>
+                    <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                      <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>🎼 장르 분포</p>
+                      {genreRank.length===0?<p className={`text-[13px] ${dimText}`}>아직 데이터가 없어요</p>:<div className="flex flex-col gap-2.5">{genreRank.map(x=>bar(x.g,x.n,genreRank[0].n,`${Math.round((x.n/totalGenre)*100)}%`,'bg-amber-500'))}</div>}
+                    </div>
+                  </div>
+
+                  <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>🎤 보컬 분포</p>
+                    <div className="flex gap-3 flex-wrap">
+                      {([['남성',vocalCount.male,'text-blue-400'],['여성',vocalCount.female,'text-pink-400'],['혼성',vocalCount.both,'text-purple-400'],['미지정',vocalCount.none,dimText]] as const).map(([l,n,c])=>(
+                        <div key={l} className={`flex-1 min-w-[100px] text-center p-4 rounded-xl ${D?'bg-white/[0.03]':'bg-black/[0.03]'}`}>
+                          <p className={`text-[26px] font-black ${c}`}>{n as number}</p>
+                          <p className={`text-[12px] font-bold mt-0.5 ${dimText}`}>{l} · {Math.round(((n as number)/totalVocal)*100)}%</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               );
             })()}
@@ -941,7 +1015,7 @@ export default function GuestView(){
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={lArtist} onChange={e=>setLArtist(e.target.value)} placeholder="아티스트명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
-                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>앨범/프로젝트명</label><input value={lTitle} onChange={e=>setLTitle(e.target.value)} placeholder="타이틀명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>앨범/프로젝트명</label><input value={lTitle} onChange={e=>setLTitle(e.target.value)} placeholder="타이틀명" className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/></div>
                 </div>
                 <div><label className={`text-[10px] font-black uppercase tracking-widest mb-2 block ${D?'text-zinc-500':'text-zinc-400'}`}>성별 *</label>
                   <div className="flex gap-2">
