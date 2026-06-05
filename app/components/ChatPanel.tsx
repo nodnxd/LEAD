@@ -319,6 +319,23 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
     setMinimized(false);
   };
 
+  // 대화를 별도 팝업 창으로 띄우기 (없으면 생성). 여러 개 동시 가능.
+  const popOutConv = async (otherId: string) => {
+    if (!user || !otherId) return;
+    const [p1, p2] = [user.id, otherId].sort();
+    let { data: conv } = await supabase.from('conversations').select('*').eq('participant_1', p1).eq('participant_2', p2).single();
+    if (!conv) {
+      const { data: c } = await supabase.from('conversations').insert({ participant_1: p1, participant_2: p2 }).select().single();
+      conv = c;
+    }
+    if (!conv) return;
+    const other = lookupProfile(otherId) || { id: otherId };
+    setPoppedConvs(p => p.find(x => x.conv.id === conv!.id) ? p : [...p, { conv, other }]);
+    // 인라인에서 열려있던 같은 대화는 닫기
+    if (activeConv?.id === conv.id) { setActiveConv(null); setMsgs([]); }
+    fetchConvs();
+  };
+
   const sendMsg = async () => {
     const content = inputRef.current?.value.trim() || '';
     if (!content || !activeConv || !user || sending) return;
@@ -486,7 +503,7 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                 const other = getOther(activeConv);
                 setPoppedConvs(p => p.find(x => x.conv.id === activeConv.id) ? p : [...p, { conv: activeConv, other }]);
                 setActiveConv(null); setMsgs([]);
-              }} className={`text-[12px] font-black px-1.5 py-0.5 rounded-lg ${dm} hover:text-[#5B8CFF] hover:bg-[#5B8CFF]/10 transition-all`}>⧉</button>
+              }} className="text-[11px] font-black px-2 py-0.5 rounded-lg bg-[#5B8CFF]/15 text-[#5B8CFF] hover:bg-[#5B8CFF]/25 transition-all whitespace-nowrap">↗ 분리</button>
             )}
             {activeConv && (
               <button onClick={() => { if (confirm('대화를 삭제할까요?')) deleteConv(activeConv.id); }}
@@ -591,6 +608,7 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                               {isPending && iSent && <span className={`text-[9px] ${dm}`}>요청중</span>}
                               {!fs && <button onClick={() => sendFriendReq(m.id)} className={`px-1.5 py-0.5 rounded-lg text-[9px] font-black ${D ? 'bg-white/5 text-zinc-500 hover:text-white' : 'bg-black/[0.05] text-zinc-500'}`}>+친구</button>}
                               <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-[#5B8CFF]/15 text-[#5B8CFF] text-[9px] font-black hover:bg-[#5B8CFF]/25">💬</button>
+                              <button title="팝업 창으로 띄우기" onClick={() => popOutConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-[#5B8CFF]/15 text-[#5B8CFF] text-[9px] font-black hover:bg-[#5B8CFF]/25">↗</button>
                             </div>
                           </div>
                         );
@@ -615,6 +633,8 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
                               <p className={`text-[10px] truncate ${dm}`}>{conv.last_message || '새 대화'}</p>
                             </div>
                           </button>
+                          <button title="팝업 창으로 띄우기" onClick={() => popOutConv(other?.id || (conv.participant_1 === user?.id ? conv.participant_2 : conv.participant_1))}
+                            className="px-2 py-1 rounded-lg bg-[#5B8CFF]/15 text-[#5B8CFF] text-[11px] font-black hover:bg-[#5B8CFF]/25 transition-all shrink-0">↗ 분리</button>
                           <button onClick={() => { if (confirm('삭제할까요?')) deleteConv(conv.id); }}
                             className={`opacity-0 group-hover:opacity-100 text-[11px] font-black px-1.5 py-0.5 rounded-lg ${dm} hover:text-red-400 hover:bg-red-500/10 transition-all`}>✕</button>
                         </div>
