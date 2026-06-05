@@ -541,6 +541,33 @@ export default function GuestView(){
           </div>
         </div>
 
+        {(()=>{
+          const dayDiff=(d:string)=>Math.ceil((new Date(d).getTime()-new Date(new Date().toDateString()).getTime())/86400000);
+          const urgent=leads.map((l:any)=>{const cs=[l.deadline,l.deadline2].filter((d:any)=>d&&!isExpired(d));if(!cs.length)return null;const up=cs.sort((a:any,b:any)=>new Date(a).getTime()-new Date(b).getTime())[0];const days=dayDiff(up);return days>=0&&days<=3?{lead:l,days}:null;}).filter(Boolean).sort((a:any,b:any)=>a.days-b.days) as {lead:any;days:number}[];
+          if(urgent.length===0)return null;
+          return(
+            <div className="relative z-10 mb-6">
+              <div className="flex items-center gap-2 mb-2.5"><span className="text-[15px]">⏰</span><span className={`text-[14px] font-black ${D?'text-white':'text-[#111]'}`}>마감 임박</span><span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-red-500/15 text-red-400">{urgent.length}</span></div>
+              <div className="flex gap-2.5 overflow-x-auto pb-1.5 -mx-1 px-1">
+                {urgent.map(({lead,days})=>{
+                  const red=days<=1;
+                  return(
+                    <button key={lead.id} onClick={()=>{setViewingLead(lead);setContentLang('ko');}} className={`shrink-0 flex items-center gap-3 pl-3 pr-4 py-3 rounded-2xl border text-left transition-all hover:scale-[1.02] ${red?'border-red-500/40 bg-red-500/10':'border-amber-500/35 bg-amber-500/10'}`}>
+                      <div className={`flex flex-col items-center justify-center px-2.5 py-1 rounded-xl ${red?'bg-red-500/20':'bg-amber-500/20'}`}>
+                        <span className={`text-[16px] font-black leading-none ${red?'text-red-400':'text-amber-400'}`}>{days===0?'D-DAY':`D-${days}`}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`font-black text-[14px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{lead.artist}</p>
+                        {lead.title&&<p className={`text-[12px] truncate ${dimText}`}>{lead.title}</p>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
         {view==='calendar'&&(
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
