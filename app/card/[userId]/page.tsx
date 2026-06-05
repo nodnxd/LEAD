@@ -11,6 +11,7 @@ export default function CardPage() {
   const { userId } = useParams<{ userId: string }>();
   const [profile, setProfile] = useState<any>(null);
   const [works, setWorks] = useState<any[]>([]);
+  const [demos, setDemos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
@@ -25,8 +26,12 @@ export default function CardPage() {
     const { data: m } = await supabase.from('members').select('*').eq('id', userId).single();
     if (m) {
       setProfile({ ...m, userType: 'member' });
-      const { data: w } = await supabase.from('released_works').select('*').eq('member_id', userId).order('order_index');
+      const [{ data: w }, { data: d }] = await Promise.all([
+        supabase.from('released_works').select('*').eq('member_id', userId).order('order_index'),
+        supabase.from('demo_tracks').select('*').eq('member_id', userId).order('order_index'),
+      ]);
       if (w) setWorks(w);
+      if (d) setDemos(d);
     } else {
       // 호스트 프로필
       const { data: h } = await supabase.from('host_profiles').select('*').eq('id', userId).single();
@@ -86,7 +91,7 @@ export default function CardPage() {
             {(profile.roles || []).length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-2.5">
                 {profile.roles.map((r: string) => (
-                  <span key={r} className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${isHost ? 'border-amber-500/30 bg-amber-500/10 text-amber-400' : 'border-[#5B8CFF]/30 bg-[#5B8CFF]/10 text-[#5B8CFF]'}`}>
+                  <span key={r} className={`text-[11px] font-black px-2.5 py-1 rounded-full border ${isHost ? 'border-amber-500/30 bg-amber-500/10 text-amber-400' : 'border-[#5B8CFF]/30 bg-[#5B8CFF]/10 text-[#5B8CFF]'}`}>
                     {ROLE_LABELS[r] || r}
                   </span>
                 ))}
@@ -112,7 +117,7 @@ export default function CardPage() {
                   <span className={`text-[10px] font-black uppercase tracking-widest w-14 shrink-0 mt-0.5 ${dm}`}>장르</span>
                   <div className="flex flex-wrap gap-1">
                     {profile.genres.slice(0, 5).map((g: string) => (
-                      <span key={g} className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-400' : 'bg-black/[0.05] text-zinc-500'}`}>
+                      <span key={g} className={`text-[11px] font-bold px-2 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-300' : 'bg-black/[0.05] text-zinc-600'}`}>
                         {g.startsWith('ETC:') ? g.slice(4) : g}
                       </span>
                     ))}
@@ -128,20 +133,35 @@ export default function CardPage() {
               </div>
             )}
 
+            {/* Demo Tracks (들어보기) */}
+            {demos.length > 0 && (
+              <div className={`mt-4 pt-4 border-t ${dv}`}>
+                <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${dm}`}>🎧 Demo Tracks</p>
+                <div className="flex flex-col gap-2.5">
+                  {demos.slice(0, 4).map((d, i) => (
+                    <div key={i} className={`p-3 rounded-xl ${D ? 'bg-white/[0.03]' : 'bg-black/[0.03]'}`}>
+                      <p className={`text-[12px] font-bold truncate mb-1.5 ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{d.file_name || `Demo ${i + 1}`}</p>
+                      {d.file_url && <audio controls preload="none" src={d.file_url} className="w-full" style={{ height: 34 }} />}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Released Works */}
             {works.length > 0 && (
               <div className={`mt-4 pt-4 border-t ${dv}`}>
-                <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${dm}`}>Released Works</p>
+                <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${dm}`}>💿 Released Works</p>
                 <div className="flex flex-col gap-1.5">
-                  {works.slice(0, 3).map((w, i) => (
+                  {works.slice(0, 5).map((w, i) => (
                     <a key={i} href={w.link} target="_blank" rel="noopener noreferrer"
-                      className={`flex items-center gap-2.5 p-2 rounded-xl transition-all ${D ? 'bg-white/[0.02] hover:bg-white/5' : 'bg-black/[0.02] hover:bg-black/[0.05]'}`}>
-                      <span className="text-[11px]">🎶</span>
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl transition-all ${D ? 'bg-white/[0.02] hover:bg-white/5' : 'bg-black/[0.02] hover:bg-black/[0.05]'}`}>
+                      <span className="text-[13px]">🎶</span>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[11px] font-bold truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{w.song_title}</p>
-                        <p className={`text-[10px] ${dm}`}>{w.artist_name}</p>
+                        <p className={`text-[12px] font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
+                        <p className={`text-[11px] ${dm}`}>{w.artist_name}</p>
                       </div>
-                      <span className="text-[#5B8CFF] text-[11px]">→</span>
+                      <span className="text-[#5B8CFF] text-[12px]">→</span>
                     </a>
                   ))}
                 </div>

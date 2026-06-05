@@ -137,6 +137,8 @@ export default function GuestView(){
   const [pitchSort,setPitchSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [pitchVocalFilter,setPitchVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
   const [expandedPitchLeads,setExpandedPitchLeads]=useState<Record<string,boolean>>({});
+  const [pitchToast,setPitchToast]=useState<{artist:string;lead:string;pitchId:string}|null>(null);
+  const pitchToastTimer=useRef<any>(null);
   const [fileSort,setFileSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [fileVocalFilter,setFileVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
   const [fileSearch,setFileSearch]=useState('');
@@ -283,7 +285,7 @@ export default function GuestView(){
     setHostPitchLoading(false);
   };
   useEffect(()=>{if(!hostId)return;fetchAll();const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
-  useEffect(()=>{if(!hostId)return;fetchHostPitches();const ch=supabase.channel('hp').on('postgres_changes',{event:'*',schema:'public',table:'pitches',filter:`host_id=eq.${hostId}`},()=>fetchHostPitches()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
+  useEffect(()=>{if(!hostId)return;fetchHostPitches();const firstLoad={v:true};const ch=supabase.channel('hp').on('postgres_changes',{event:'*',schema:'public',table:'pitches',filter:`host_id=eq.${hostId}`},(payload)=>{fetchHostPitches();if(payload.eventType==='INSERT'&&payload.new){const np:any=payload.new;const lead=leads.find(l=>l.id===np.lead_id);setPitchToast({artist:np.artist_name||'익명',lead:lead?.artist||'',pitchId:np.id});if(pitchToastTimer.current)clearTimeout(pitchToastTimer.current);pitchToastTimer.current=setTimeout(()=>setPitchToast(null),6000);}}).subscribe();firstLoad.v=false;return()=>{supabase.removeChannel(ch);};},[hostId,leads]);
   useEffect(()=>{if(!hostId)return;supabase.from('host_profiles').select('company,display_name').eq('id',hostId).single().then(({data})=>{if(data)setHostCompany(data.company||data.display_name||'');});},[hostId]);
   const saveCompany=async()=>{const v=companyDraft.trim();setHostCompany(v);setEditingCompany(false);if(hostId)await supabase.from('host_profiles').upsert({id:hostId,company:v||null});};
   useEffect(()=>{if(!hostId)return;const ch=supabase.channel('members_rt').on('postgres_changes',{event:'*',schema:'public',table:'member_approvals',filter:`host_id=eq.${hostId}`},()=>fetchMembers()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
@@ -947,6 +949,18 @@ export default function GuestView(){
           </div>
         </div>
       )}
+
+      {pitchToast&&(
+        <button onClick={()=>{setView('pitches');fetchHostPitches();setPitchToast(null);}} className="fixed top-5 right-5 z-[60] flex items-center gap-3 px-5 py-4 rounded-2xl border border-[#5B8CFF]/40 bg-[#0E1530] shadow-2xl shadow-[#5B8CFF]/20 animate-[slideIn_0.3s_ease] text-left max-w-[340px] hover:scale-[1.02] transition-transform">
+          <div className="w-10 h-10 rounded-full bg-[#5B8CFF]/20 flex items-center justify-center text-[18px] shrink-0">📨</div>
+          <div className="min-w-0">
+            <p className="text-white font-black text-[14px]">새 피칭 도착!</p>
+            <p className="text-zinc-300 text-[12px] truncate"><span className="font-bold">{pitchToast.artist}</span>{pitchToast.lead&&<span className="text-zinc-500"> → {pitchToast.lead}</span>}</p>
+            <p className="text-[#5B8CFF] text-[11px] font-black mt-0.5">탭해서 보기 ›</p>
+          </div>
+        </button>
+      )}
+      <style dangerouslySetInnerHTML={{__html:`@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}`}}/>
 
       {currentUser&&hostId&&(
         <ChatPanel user={currentUser} hostId={hostId} dark={D}/>
