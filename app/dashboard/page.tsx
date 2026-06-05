@@ -66,6 +66,22 @@ const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='gro
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
 const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${t.cls}`}>{t.label}</span>;};
 const getLinkIcon=(url:string)=>{if(!url)return'🔗';if(url.includes('youtube')||url.includes('youtu.be'))return'▶️';if(url.includes('soundcloud'))return'🎵';if(url.includes('spotify'))return'🎧';if(url.includes('instagram'))return'📸';return'🔗';};
+const PitchFileRow=({f,D,dimText}:{f:any;D:boolean;dimText:string})=>{
+  const vLabel=f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
+  return(
+    <div className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D?'bg-black/20':'bg-black/[0.04]'}`}>
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[12px]">🎵</span>
+        <span className={`flex-1 min-w-0 text-[11px] truncate ${D?'text-zinc-300':'text-zinc-700'}`}>{f.file_name||'audio.mp3'}</span>
+        {vLabel&&<span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5B8CFF]/15 text-[#5B8CFF]">{vLabel}</span>}
+        {f.bpm>0&&<span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
+        {f.key&&<span className={`text-[10px] font-black ${dimText}`}>{f.key}</span>}
+        {f.genre&&<span className="text-[10px] font-black text-emerald-400">{f.genre}</span>}
+      </div>
+      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px'}}/>}
+    </div>
+  );
+};
 const isExpired=(d:string|null)=>!!d&&new Date(d)<new Date(new Date().toDateString());
 const getDDay=(d:string|null)=>{if(!d)return null;const diff=Math.ceil((new Date(d).getTime()-new Date(new Date().toDateString()).getTime())/86400000);if(diff===0)return'D-DAY';return diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;};
 const toDateStr=(y:number,m:number,d:number)=>`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -111,7 +127,15 @@ export default function GuestView(){
   const [lDeadline2,setLDeadline2]=useState('');
   const [leads,setLeads]=useState<any[]>([]);
   const [announcements,setAnnouncements]=useState<any[]>([]);
-  const [view,setView]=useState<'calendar'|'list'>('calendar');
+  const [view,setView]=useState<'calendar'|'list'|'pitches'|'files'>('calendar');
+  const [hostPitches,setHostPitches]=useState<any[]>([]);
+  const [hostPitchFiles,setHostPitchFiles]=useState<any[]>([]);
+  const [hostPitchLoading,setHostPitchLoading]=useState(false);
+  const [pitchSort,setPitchSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
+  const [pitchVocalFilter,setPitchVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
+  const [fileSort,setFileSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
+  const [fileVocalFilter,setFileVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
+  const [fileSearch,setFileSearch]=useState('');
   const [calView,setCalView]=useState<'month'|'week'>('month');
   const [currentMonth,setCurrentMonth]=useState(new Date());
   const [weekStart,setWeekStart]=useState(startOfWeek(new Date()));
@@ -242,7 +266,19 @@ export default function GuestView(){
     ]);
     if(lr.data)setLeads(lr.data);if(ar.data)setAnnouncements(ar.data);
   };
+  const fetchHostPitches=async()=>{
+    if(!hostId)return;
+    setHostPitchLoading(true);
+    const{data:pitches}=await supabase.from('pitches').select('*').eq('host_id',hostId).order('created_at',{ascending:false});
+    if(pitches&&pitches.length>0){
+      setHostPitches(pitches);
+      const{data:files}=await supabase.from('pitch_files').select('*').in('pitch_id',pitches.map((p:any)=>p.id));
+      if(files)setHostPitchFiles(files);else setHostPitchFiles([]);
+    }else{setHostPitches([]);setHostPitchFiles([]);}
+    setHostPitchLoading(false);
+  };
   useEffect(()=>{if(!hostId)return;fetchAll();const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
+  useEffect(()=>{if(!hostId)return;fetchHostPitches();const ch=supabase.channel('hp').on('postgres_changes',{event:'*',schema:'public',table:'pitches',filter:`host_id=eq.${hostId}`},()=>fetchHostPitches()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
   useEffect(()=>{if(!hostId)return;const ch=supabase.channel('members_rt').on('postgres_changes',{event:'*',schema:'public',table:'member_approvals',filter:`host_id=eq.${hostId}`},()=>fetchMembers()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
   const addFile=async(file:File)=>{
@@ -480,6 +516,8 @@ export default function GuestView(){
               <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-[#5B8CFF] text-white hover:bg-[#4070ee] transition-all">+ 리드 추가</button>
               <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 달력</button>
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
+              <button onClick={()=>{setView('pitches');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='pitches'?'bg-[#5B8CFF] text-white':dimText}`}>📨 수신 피칭{hostPitches.length>0&&<span className="ml-1 opacity-70">{hostPitches.length}</span>}</button>
+              <button onClick={()=>{setView('files');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='files'?'bg-[#5B8CFF] text-white':dimText}`}>🎵 파일 관리{hostPitchFiles.length>0&&<span className="ml-1 opacity-70">{hostPitchFiles.length}</span>}</button>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
@@ -516,6 +554,81 @@ export default function GuestView(){
             {filteredLeads.length===0?<div className="text-center py-20"><p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>해당하는 리드가 없어요</p></div>:<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{filteredLeads.map(lead=><LeadCard key={lead.id} lead={lead}/>)}</div>}
           </div>
         )}
+
+        {view==='pitches'&&(
+          <div className="relative z-10">
+            <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>정렬</span>{([['recent','최신순'],['bpm','BPM'],['vocal','보컬'],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={pitchSort===v} onClick={()=>setPitchSort(v)} isDark={D}/>)}</div>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>보컬</span>{([['all','전체'],['male','남성'],['female','여성'],['both','혼성']] as const).map(([v,l])=><FilterPill key={v} label={l} active={pitchVocalFilter===v} onClick={()=>setPitchVocalFilter(v)} isDark={D}/>)}</div>
+            </div>
+            {hostPitchLoading?(
+              <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>
+            ):(()=>{
+              const minBpm=(p:any)=>{const fs=hostPitchFiles.filter(f=>f.pitch_id===p.id&&f.bpm>0);return fs.length?Math.min(...fs.map(f=>f.bpm)):99999;};
+              const firstVocal=(p:any)=>{const f=hostPitchFiles.find(x=>x.pitch_id===p.id&&x.vocal_gender);return f?.vocal_gender||'zzz';};
+              const firstKey=(p:any)=>{const f=hostPitchFiles.find(x=>x.pitch_id===p.id&&x.key);return f?.key||'zzz';};
+              let pv=hostPitches;
+              if(pitchVocalFilter!=='all')pv=pv.filter(p=>hostPitchFiles.some(f=>f.pitch_id===p.id&&f.vocal_gender===pitchVocalFilter));
+              pv=[...pv].sort((a,b)=>{if(pitchSort==='bpm')return minBpm(a)-minBpm(b);if(pitchSort==='vocal')return firstVocal(a).localeCompare(firstVocal(b));if(pitchSort==='key')return firstKey(a).localeCompare(firstKey(b));return new Date(b.created_at).getTime()-new Date(a.created_at).getTime();});
+              return pv.length===0?(
+                <div className="text-center py-20"><p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>{hostPitches.length===0?'아직 받은 피칭이 없어요':'조건에 맞는 피칭이 없어요'}</p></div>
+              ):(
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {pv.map(p=>{
+                    const lead=leads.find(l=>l.id===p.lead_id);
+                    const files=hostPitchFiles.filter(f=>f.pitch_id===p.id);
+                    return(
+                      <div key={p.id} className={`p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-bold text-[13px] ${D?'text-white':'text-[#111]'}`}>{p.artist_name}{lead&&<span className={`font-normal ml-2 text-[12px] ${dimText}`}>→ {lead.artist}</span>}</p>
+                            <p className={`text-[11px] mt-0.5 ${dimText}`}>{p.contact}{p.contact&&' · '}{new Date(p.created_at).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
+                          </div>
+                          {files.length>0&&<span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ml-2 ${D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>}
+                        </div>
+                        {p.message&&<p className={`text-[12px] leading-relaxed whitespace-pre-line mt-1 ${D?'text-zinc-400':'text-zinc-600'}`}>{p.message}</p>}
+                        {files.length>0&&<div className="flex flex-col gap-2 mt-2">{files.map((f:any)=><PitchFileRow key={f.id} f={f} D={D} dimText={dimText}/>)}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {view==='files'&&(
+          <div className="relative z-10">
+            <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
+              <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder="🔍 파일명 · 아티스트 · 장르 검색" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>정렬</span>{([['recent','최신순'],['bpm','BPM'],['vocal','보컬'],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileSort===v} onClick={()=>setFileSort(v)} isDark={D}/>)}</div>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>보컬</span>{([['all','전체'],['male','남성'],['female','여성'],['both','혼성']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileVocalFilter===v} onClick={()=>setFileVocalFilter(v)} isDark={D}/>)}</div>
+            </div>
+            {hostPitchLoading?(
+              <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>
+            ):(()=>{
+              const pById:Record<string,any>={};hostPitches.forEach(p=>pById[p.id]=p);
+              let fv=hostPitchFiles.map(f=>{const p=pById[f.pitch_id];const lead=p?leads.find(l=>l.id===p.lead_id):null;return{...f,_artist:p?.artist_name||'',_lead:lead?.artist||'',_created:p?.created_at||f.created_at};});
+              if(fileVocalFilter!=='all')fv=fv.filter(f=>f.vocal_gender===fileVocalFilter);
+              const q=fileSearch.trim().toLowerCase();
+              if(q)fv=fv.filter(f=>[f.file_name,f._artist,f._lead,f.genre,f.key].some((x:any)=>(x||'').toLowerCase().includes(q)));
+              fv=[...fv].sort((a,b)=>{if(fileSort==='bpm')return(a.bpm||99999)-(b.bpm||99999);if(fileSort==='vocal')return(a.vocal_gender||'zzz').localeCompare(b.vocal_gender||'zzz');if(fileSort==='key')return(a.key||'zzz').localeCompare(b.key||'zzz');return new Date(b._created).getTime()-new Date(a._created).getTime();});
+              return fv.length===0?(
+                <div className="text-center py-20"><p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>{hostPitchFiles.length===0?'아직 받은 파일이 없어요':'조건에 맞는 파일이 없어요'}</p></div>
+              ):(
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                  {fv.map((f:any)=>(
+                    <div key={f.id} className={`p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                      <p className={`text-[11px] mb-1 ${dimText}`}><span className={`font-bold ${D?'text-zinc-300':'text-zinc-700'}`}>{f._artist||'—'}</span>{f._lead&&<span> → {f._lead}</span>}</p>
+                      <PitchFileRow f={f} D={D} dimText={dimText}/>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
         <div className={`relative z-10 mt-8 pb-8 text-center`}><p className={`text-[11px] ${D?'text-zinc-600':'text-zinc-400'}`}>Contact : everplayground@gmail.com</p></div>
       </main>
 
