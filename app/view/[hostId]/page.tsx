@@ -658,7 +658,7 @@ export default function GuestView(){
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={lArtist} onChange={e=>setLArtist(e.target.value)} placeholder="아티스트명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
-                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>곡 제목</label><input value={lTitle} onChange={e=>setLTitle(e.target.value)} placeholder="곡 제목 (선택)" className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/></div>
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>제목</label><input value={lTitle} onChange={e=>setLTitle(e.target.value)} placeholder="제목" className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/></div>
                 </div>
                 <div>
                   <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-500':'text-zinc-400'}`}>성별 *</p>
