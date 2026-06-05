@@ -128,6 +128,9 @@ export default function GuestView(){
   const [leads,setLeads]=useState<any[]>([]);
   const [announcements,setAnnouncements]=useState<any[]>([]);
   const [view,setView]=useState<'calendar'|'list'|'pitches'|'files'>('calendar');
+  const [hostCompany,setHostCompany]=useState('');
+  const [editingCompany,setEditingCompany]=useState(false);
+  const [companyDraft,setCompanyDraft]=useState('');
   const [hostPitches,setHostPitches]=useState<any[]>([]);
   const [hostPitchFiles,setHostPitchFiles]=useState<any[]>([]);
   const [hostPitchLoading,setHostPitchLoading]=useState(false);
@@ -279,6 +282,8 @@ export default function GuestView(){
   };
   useEffect(()=>{if(!hostId)return;fetchAll();const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
   useEffect(()=>{if(!hostId)return;fetchHostPitches();const ch=supabase.channel('hp').on('postgres_changes',{event:'*',schema:'public',table:'pitches',filter:`host_id=eq.${hostId}`},()=>fetchHostPitches()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
+  useEffect(()=>{if(!hostId)return;supabase.from('host_profiles').select('company,display_name').eq('id',hostId).single().then(({data})=>{if(data)setHostCompany(data.company||data.display_name||'');});},[hostId]);
+  const saveCompany=async()=>{const v=companyDraft.trim();setHostCompany(v);setEditingCompany(false);if(hostId)await supabase.from('host_profiles').upsert({id:hostId,company:v||null});};
   useEffect(()=>{if(!hostId)return;const ch=supabase.channel('members_rt').on('postgres_changes',{event:'*',schema:'public',table:'member_approvals',filter:`host_id=eq.${hostId}`},()=>fetchMembers()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
   const addFile=async(file:File)=>{
@@ -504,7 +509,22 @@ export default function GuestView(){
       <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
       <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-pretendard relative`}>
         <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] ${D?'opacity-[0.06]':'opacity-[0.04]'} pointer-events-none`}/>
-        <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-8"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
+        <div className="relative z-10 flex flex-col items-center mb-8">
+          <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
+          {editingCompany?(
+            <div className="mt-2 flex items-center gap-1.5">
+              <input autoFocus value={companyDraft} onChange={e=>setCompanyDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')saveCompany();if(e.key==='Escape')setEditingCompany(false);}} placeholder="회사/팀 이름" className={`border rounded-full px-3 py-1 text-[12px] font-black text-center outline-none w-40 ${inputCls}`}/>
+              <button onClick={saveCompany} className="px-2.5 py-1 rounded-full bg-[#5B8CFF] text-white text-[11px] font-black">저장</button>
+              <button onClick={()=>setEditingCompany(false)} className={`px-2 py-1 rounded-full text-[11px] font-black ${dimText}`}>✕</button>
+            </div>
+          ):(
+            <button onClick={()=>{setCompanyDraft(hostCompany);setEditingCompany(true);}} className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10 hover:bg-[#5B8CFF]/20 transition-all group">
+              <span className="text-[10px]">🏢</span>
+              <span className={`text-[12px] font-black ${hostCompany?(D?'text-zinc-200':'text-zinc-700'):dimText}`}>{hostCompany||'회사/팀 이름 추가'}</span>
+              <span className="text-[10px] opacity-0 group-hover:opacity-60 transition-opacity">✏️</span>
+            </button>
+          )}
+        </div>
 
         {announcements.length>0&&<div className="relative z-10 mb-5 flex flex-col gap-2">{announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20"><span className="text-[#5B8CFF] text-[11px] font-black mt-0.5 shrink-0">📢</span><div>{ann.title&&<p className={`font-bold text-[13px] mb-0.5 ${D?'text-white':'text-[#111]'}`}>{ann.title}</p>}<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?"text-zinc-300":"text-zinc-700"}`}>{ann.content}</p></div></div>)}</div>}
 

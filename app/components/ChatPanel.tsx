@@ -112,14 +112,14 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
     fetchMembers(); fetchConvs(); fetchFriendships();
   }, [fetchMembers, fetchConvs, fetchFriendships]);
 
-  // 호스트 ↔ 멤버 자동 친구
+  // 같은 팀(같은 호스트)에 속한 모든 사람끼리 자동 친구
   useEffect(() => {
     if (!user || autoFriendDone.current) return;
-    const isHost = user.id === hostId;
-    if (isHost && members.length === 0) return; // 멤버 로딩 기다림
+    if (members.length === 0) return; // 멤버 로딩 기다림 (게스트는 호스트 포함)
     autoFriendDone.current = true;
     const doAutoFriend = async () => {
-      const targets = isHost ? members.map(m => m.id) : [hostId];
+      // 팀 전원: 멤버 목록(호스트 포함) + 호스트 id, 본인 제외
+      const targets = [...new Set([...members.map(m => m.id), hostId])].filter(id => id && id !== user.id);
       for (const tid of targets) {
         const { data: exists } = await supabase.from('friendships').select('id')
           .or(`and(requester_id.eq.${user.id},recipient_id.eq.${tid}),and(requester_id.eq.${tid},recipient_id.eq.${user.id})`);
