@@ -200,7 +200,7 @@ export default function MyPage() {
   };
 
   const D = theme === 'dark';
-  const bg = D ? 'bg-[#050505] text-white' : 'bg-[#F0F0F5] text-[#111]';
+  const bg = D ? 'bg-[#050505] text-white' : 'bg-[#E6E6EC] text-[#111]';
   const card = D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.1] shadow-sm';
   const inputCls = D
     ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/60'

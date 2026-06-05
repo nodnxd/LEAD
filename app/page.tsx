@@ -112,10 +112,12 @@ export default function LoginPage() {
                 {error && <p className="text-red-400 text-[12px] mb-3">{error}</p>}
                 <div className="flex items-center justify-between mb-3">
                   {!isSignUp ? (
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} className="w-3.5 h-3.5 accent-[#5B8CFF]" />
-                      <span className="text-zinc-500 text-[12px]">아이디 기억하기</span>
-                    </label>
+                    <button type="button" onClick={() => setRememberMe(v => !v)} className="flex items-center gap-2 group">
+                      <span className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${rememberMe ? 'bg-[#5B8CFF]' : 'bg-white/10 border border-white/15'}`}>
+                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200 ${rememberMe ? 'left-[18px]' : 'left-0.5'}`} />
+                      </span>
+                      <span className={`text-[12px] transition-colors ${rememberMe ? 'text-zinc-300' : 'text-zinc-500'}`}>아이디 기억하기</span>
+                    </button>
                   ) : <span />}
                   <button onClick={() => { setForgotMode(true); setError(''); }} className="text-zinc-500 text-[12px] hover:text-[#5B8CFF] transition-colors">비밀번호 찾기</button>
                 </div>

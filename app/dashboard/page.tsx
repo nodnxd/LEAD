@@ -129,6 +129,8 @@ export default function GuestView(){
   const [announcements,setAnnouncements]=useState<any[]>([]);
   const [view,setView]=useState<'calendar'|'list'|'pitches'|'files'|'stats'>('calendar');
   const [hostCompany,setHostCompany]=useState('');
+  const [hostFolders,setHostFolders]=useState<string[]>([]);
+  const [addFolderInput,setAddFolderInput]=useState('');
   const [editingCompany,setEditingCompany]=useState(false);
   const [companyDraft,setCompanyDraft]=useState('');
   const [hostPitches,setHostPitches]=useState<any[]>([]);
@@ -164,6 +166,11 @@ export default function GuestView(){
   const [sortBy,setSortBy]=useState<'dday'|'gender'|'group'|'album'>('dday');
   const [guestProfile,setGuestProfile]=useState<any>(null);
   const [authStatus,setAuthStatus]=useState<'loading'|'none'|'pending'|'rejected'|'approved'>('loading');
+  const SUPER_ADMIN_EMAIL='everplayground@gmail.com'; // 호스트 가입 승인 관리자
+  const [hostStatus,setHostStatus]=useState<'loading'|'pending'|'approved'>('loading');
+  const [isAdmin,setIsAdmin]=useState(false);
+  const [pendingHosts,setPendingHosts]=useState<any[]>([]);
+  const [showHostApprovals,setShowHostApprovals]=useState(false);
   const [theme,setTheme]=useState<'dark'|'light'>('dark');
   const [translating,setTranslating]=useState(false);
   const [globalEn,setGlobalEn]=useState(false);
@@ -179,11 +186,30 @@ export default function GuestView(){
   const [currentUser,setCurrentUser]=useState<any>(null);
 
   useEffect(()=>{
+    const checkHostApproval=async(user:any)=>{
+      const admin=(user.email||'').toLowerCase()===SUPER_ADMIN_EMAIL.toLowerCase();
+      setIsAdmin(admin);
+      if(admin){
+        await supabase.from('host_approvals').upsert({host_id:user.id,email:user.email,status:'approved'},{onConflict:'host_id'});
+        setHostStatus('approved');
+        const{data}=await supabase.from('host_approvals').select('*').eq('status','pending').order('created_at',{ascending:false});
+        setPendingHosts(data||[]);
+        return;
+      }
+      const{data:row}=await supabase.from('host_approvals').select('status').eq('host_id',user.id).maybeSingle();
+      if(!row){
+        await supabase.from('host_approvals').insert({host_id:user.id,email:user.email,status:'pending'});
+        setHostStatus('pending');
+      }else{
+        setHostStatus(row.status==='approved'?'approved':'pending');
+      }
+    };
     const setApproved=(user:any)=>{
       setHostId(user.id);
       setCurrentUser(user);
       localStorage.setItem('last_host_id',user.id);
       setAuthStatus('approved');
+      checkHostApproval(user);
     };
     supabase.auth.getSession().then(async({data:{session}})=>{
       if(session?.user){setApproved(session.user);return;}
@@ -202,7 +228,7 @@ export default function GuestView(){
   const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
   const D=theme==='dark';
   const t=(ko:string,en:string)=>globalEn?en:ko;
-  const mainBg=D?'bg-[#050505] text-white':'bg-[#F2F2F7] text-[#111]';
+  const mainBg=D?'bg-[#050505] text-white':'bg-[#E6E6EC] text-[#111]';
   const dividerCls=D?'border-white/10':'border-black/[0.08]';
   const dimText=D?'text-zinc-500':'text-zinc-500';
   const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
@@ -333,7 +359,12 @@ export default function GuestView(){
   };
   useEffect(()=>{if(!hostId)return;fetchAll();const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
   useEffect(()=>{if(!hostId)return;fetchHostPitches();const firstLoad={v:true};const ch=supabase.channel('hp').on('postgres_changes',{event:'*',schema:'public',table:'pitches',filter:`host_id=eq.${hostId}`},(payload)=>{fetchHostPitches();if(payload.eventType==='INSERT'&&payload.new){const np:any=payload.new;const lead=leads.find(l=>l.id===np.lead_id);setPitchToast({artist:np.artist_name||'익명',lead:lead?.artist||'',pitchId:np.id});if(pitchToastTimer.current)clearTimeout(pitchToastTimer.current);pitchToastTimer.current=setTimeout(()=>setPitchToast(null),6000);}}).subscribe();firstLoad.v=false;return()=>{supabase.removeChannel(ch);};},[hostId,leads]);
-  useEffect(()=>{if(!hostId)return;supabase.from('host_profiles').select('company,display_name').eq('id',hostId).single().then(({data})=>{if(data)setHostCompany(data.company||data.display_name||'');});},[hostId]);
+  useEffect(()=>{if(!hostId)return;supabase.from('host_profiles').select('company,display_name,folders').eq('id',hostId).single().then(({data})=>{if(data){setHostCompany(data.company||data.display_name||'');if(Array.isArray(data.folders))setHostFolders(data.folders);}});},[hostId]);
+  const saveFolders=async(next:string[])=>{setHostFolders(next);if(hostId)await supabase.from('host_profiles').upsert({id:hostId,folders:next});};
+  const addFolder=async(name:string)=>{const n=name.trim();if(!n||hostFolders.includes(n))return;await saveFolders([...hostFolders,n]);setAddFolderInput('');};
+  const removeFolder=async(name:string)=>{if(!confirm(`'${name}' 폴더를 목록에서 제거할까요? (파일은 삭제되지 않아요)`))return;await saveFolders(hostFolders.filter(f=>f!==name));if(fileFolderFilter===name)setFileFolderFilter('all');};
+  const fetchPendingHosts=async()=>{const{data}=await supabase.from('host_approvals').select('*').eq('status','pending').order('created_at',{ascending:false});setPendingHosts(data||[]);};
+  const decideHost=async(h:any,status:'approved'|'rejected')=>{await supabase.from('host_approvals').update({status}).eq('host_id',h.host_id);setPendingHosts(p=>p.filter(x=>x.host_id!==h.host_id));};
   const saveCompany=async()=>{const v=companyDraft.trim();setHostCompany(v);setEditingCompany(false);if(hostId)await supabase.from('host_profiles').upsert({id:hostId,company:v||null});};
   useEffect(()=>{if(!hostId)return;const ch=supabase.channel('members_rt').on('postgres_changes',{event:'*',schema:'public',table:'member_approvals',filter:`host_id=eq.${hostId}`},()=>fetchMembers()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
@@ -560,6 +591,8 @@ export default function GuestView(){
   if(authStatus==='none')return(<GateScreen icon="🔐" title="로그인이 필요해요" sub="리드를 보고 피칭하려면 로그인하세요."><a href={`/guest?hostId=${hostId}&redirect=/view/${hostId}`} className="block w-full mt-6 py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">로그인 / 회원가입</a></GateScreen>);
   if(authStatus==='pending')return(<GateScreen icon="⏳" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
   if(authStatus==='rejected')return(<GateScreen icon="🚫" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  if(authStatus==='approved'&&hostStatus==='loading')return(<div className={`min-h-screen ${mainBg} flex items-center justify-center`}><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>);
+  if(authStatus==='approved'&&hostStatus==='pending')return(<GateScreen icon="⏳" title="호스트 가입 승인 대기 중" sub={"관리자 승인 후 대시보드를 이용할 수 있어요.\n승인되면 새로고침해주세요."}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
 
   return(
     <>
@@ -604,6 +637,7 @@ export default function GuestView(){
               <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
               <span className="text-amber-400 text-[11px] font-bold">HOST</span>
             </div>
+            {isAdmin&&<button onClick={()=>{fetchPendingHosts();setShowHostApprovals(true);}} className="px-3 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400 text-[10px] font-black transition-all whitespace-nowrap hover:bg-amber-500/20">🛡️ {t('호스트 승인','Approvals')}{pendingHosts.length>0&&<span className="ml-1">{pendingHosts.length}</span>}</button>}
             <button onClick={()=>{openDemoForm();setShowDemoMgr(true);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🎤 {t('데모 수급','Demos')}{demoDrives.length>0&&<span className="ml-1 opacity-70">{demoDrives.length}</span>}</button>
             <button onClick={()=>{setShowMembers(true);fetchMembers();}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👥 {t('멤버','Members')}</button>
             <button onClick={()=>{if(navigator.clipboard){navigator.clipboard.writeText(window.location.origin+'/view/'+hostId);setShareToast(true);setTimeout(()=>setShareToast(false),2000);}}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🔗 {t('공유','Share')}</button>
@@ -741,8 +775,17 @@ export default function GuestView(){
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('보컬','Vocal')}</span>{([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileVocalFilter===v} onClick={()=>setFileVocalFilter(v as any)} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>📁 {t('폴더','Folder')}</span>
                 <FilterPill label={t('전체','All')} active={fileFolderFilter==='all'} onClick={()=>setFileFolderFilter('all')} isDark={D}/>
-                {[...new Set(hostPitchFiles.map((f:any)=>f.folder).filter(Boolean))].map((fd:any)=><FilterPill key={fd} label={fd} active={fileFolderFilter===fd} onClick={()=>setFileFolderFilter(fd)} isDark={D}/>)}
+                {[...new Set([...hostFolders,...hostPitchFiles.map((f:any)=>f.folder).filter(Boolean)])].map((fd:any)=>(
+                  <span key={fd} className="inline-flex items-center group">
+                    <FilterPill label={fd} active={fileFolderFilter===fd} onClick={()=>setFileFolderFilter(fd)} isDark={D}/>
+                    {hostFolders.includes(fd)&&<button onClick={()=>removeFolder(fd)} className="ml-0.5 text-[11px] text-zinc-600 hover:text-red-400 transition-colors" title={t('폴더 제거','Remove folder')}>✕</button>}
+                  </span>
+                ))}
                 <FilterPill label={t('미분류','Unsorted')} active={fileFolderFilter==='none'} onClick={()=>setFileFolderFilter('none')} isDark={D}/>
+                <span className="inline-flex items-center gap-1">
+                  <input value={addFolderInput} onChange={e=>setAddFolderInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')addFolder(addFolderInput);}} placeholder={t('+ 새 폴더','+ New folder')} className={`w-28 border rounded-full px-3 py-1 text-[12px] font-bold outline-none transition-all ${inputCls}`}/>
+                  {addFolderInput.trim()&&<button onClick={()=>addFolder(addFolderInput)} className="px-2.5 py-1 rounded-full bg-[#5B8CFF] text-white text-[11px] font-black">{t('추가','Add')}</button>}
+                </span>
               </div>
             </div>
             {hostPitchLoading?(
@@ -763,26 +806,28 @@ export default function GuestView(){
                   {fv.map((f:any)=>{
                     const vLabel=f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
                     return(
-                    <div key={f.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl border transition-all ${D?'bg-white/[0.02] border-white/[0.07] shadow-md shadow-black/20 hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] shadow-sm hover:bg-black/[0.03]'}`}>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline gap-2 mb-1.5">
-                          <span className="text-[15px] shrink-0">🎵</span>
-                          <span className={`font-black text-[16px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{f.file_name||'audio.mp3'}</span>
+                    <div key={f.id} className={`flex flex-col gap-3 p-4 rounded-2xl border transition-all ${D?'bg-white/[0.02] border-white/[0.07] shadow-md shadow-black/20 hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] shadow-sm hover:bg-black/[0.03]'}`}>
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline gap-2 mb-1.5">
+                            <span className="text-[15px] shrink-0">🎵</span>
+                            <span className={`font-black text-[16px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{f.file_name||'audio.mp3'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {vLabel&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-[#5B8CFF]/15 text-[#5B8CFF]">{vLabel}</span>}
+                            {f.bpm>0&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>{f.bpm} BPM</span>}
+                            {f.key&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>KEY {f.key}</span>}
+                            {f.genre&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
+                            {f.folder&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">📁 {f.folder}</span>}
+                            {(f._artist||f._lead)&&<span className={`text-[12px] ${dimText}`}>{f._artist}{f._artist&&f._lead&&' → '}{f._lead}</span>}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {vLabel&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-[#5B8CFF]/15 text-[#5B8CFF]">{vLabel}</span>}
-                          {f.bpm>0&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>{f.bpm} BPM</span>}
-                          {f.key&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>KEY {f.key}</span>}
-                          {f.genre&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
-                          {f.folder&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">📁 {f.folder}</span>}
-                          {(f._artist||f._lead)&&<span className={`text-[12px] ${dimText}`}>{f._artist}{f._artist&&f._lead&&' → '}{f._lead}</span>}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button onClick={()=>{setFileAction(f);setNewFolder('');}} title={t('폴더','Folder')} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[14px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>📁</button>
+                          <button onClick={()=>deleteFile(f)} title={t('삭제','Delete')} className="w-9 h-9 rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[14px] hover:bg-red-500/20 transition-all">🗑</button>
                         </div>
                       </div>
-                      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full sm:w-60 shrink-0" style={{height:'40px'}}/>}
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button onClick={()=>{setFileAction(f);setNewFolder('');}} title={t('폴더','Folder')} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[14px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>📁</button>
-                        <button onClick={()=>deleteFile(f)} title={t('삭제','Delete')} className="w-9 h-9 rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[14px] hover:bg-red-500/20 transition-all">🗑</button>
-                      </div>
+                      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'44px'}}/>}
                     </div>
                     );
                   })}
@@ -1011,6 +1056,33 @@ export default function GuestView(){
         </div>
       )}
 
+      {showHostApprovals&&(
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setShowHostApprovals(false)}>
+          <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
+              <div>
+                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>🛡️ {t('호스트 가입 승인','Host Approvals')}</h2>
+                <p className={`text-[12px] mt-0.5 ${dimText}`}>{t('새로 가입한 호스트를 승인/거절해요','Approve or reject new host signups')}</p>
+              </div>
+              <button onClick={()=>setShowHostApprovals(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-[13px] ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
+            </div>
+            <div className="overflow-y-auto p-5 flex flex-col gap-2">
+              {pendingHosts.length===0?<p className={`text-[13px] text-center py-8 ${dimText}`}>{t('대기 중인 가입 요청이 없어요','No pending requests')}</p>:pendingHosts.map(h=>(
+                <div key={h.host_id} className={`flex items-center gap-3 p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center text-[15px] shrink-0">🏢</div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-bold text-[13px] truncate ${D?'text-white':'text-[#111]'}`}>{h.email||h.host_id}</p>
+                    <p className={`text-[11px] ${dimText}`}>{h.created_at?new Date(h.created_at).toLocaleDateString('ko-KR',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</p>
+                  </div>
+                  <button onClick={()=>decideHost(h,'approved')} className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-[12px] font-black hover:bg-emerald-500/25 transition-all">{t('승인','Approve')}</button>
+                  <button onClick={()=>decideHost(h,'rejected')} className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-[12px] font-black hover:bg-red-500/20 transition-all">{t('거절','Reject')}</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {fileAction&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setFileAction(null)}>
           <div className={`anim-rise w-full max-w-md border rounded-t-[2rem] sm:rounded-2xl shadow-2xl p-6 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
@@ -1019,7 +1091,7 @@ export default function GuestView(){
             <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${dimText}`}>📁 {t('폴더 이동','Move to folder')}</p>
             <div className="flex flex-wrap gap-2 mb-3">
               <button onClick={()=>moveFileFolder(fileAction,null)} className={`px-3 py-1.5 rounded-full text-[12px] font-black border transition-all ${!fileAction.folder?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'border-white/10 bg-white/5 text-zinc-400':'border-black/[0.08] bg-black/[0.04] text-zinc-500'}`}>{t('미분류','Unsorted')}</button>
-              {[...new Set(hostPitchFiles.map((f:any)=>f.folder).filter(Boolean))].map((fd:any)=>(
+              {[...new Set([...hostFolders,...hostPitchFiles.map((f:any)=>f.folder).filter(Boolean)])].map((fd:any)=>(
                 <button key={fd} onClick={()=>moveFileFolder(fileAction,fd)} className={`px-3 py-1.5 rounded-full text-[12px] font-black border transition-all ${fileAction.folder===fd?'bg-amber-500 border-amber-500 text-white':D?'border-white/10 bg-white/5 text-zinc-300':'border-black/[0.08] bg-black/[0.04] text-zinc-600'}`}>📁 {fd}</button>
               ))}
             </div>

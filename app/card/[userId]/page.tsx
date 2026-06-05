@@ -43,7 +43,7 @@ export default function CardPage() {
   };
 
   const D = theme === 'dark';
-  const bg = D ? 'bg-[#050505]' : 'bg-[#F0F0F5]';
+  const bg = D ? 'bg-[#050505]' : 'bg-[#E6E6EC]';
   const card = D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]';
   const tx = D ? 'text-white' : 'text-[#111]';
   const dm = D ? 'text-zinc-500' : 'text-zinc-500';

@@ -173,7 +173,7 @@ export default function GuestView(){
   const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
   const D=theme==='dark';
   const t=(ko:string,en:string)=>globalEn?en:ko;
-  const mainBg=D?'bg-[#050505] text-white':'bg-[#F2F2F7] text-[#111]';
+  const mainBg=D?'bg-[#050505] text-white':'bg-[#E6E6EC] text-[#111]';
   const dividerCls=D?'border-white/10':'border-black/[0.08]';
   const dimText=D?'text-zinc-500':'text-zinc-500';
   const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
