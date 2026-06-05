@@ -15,6 +15,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "LEAD by NEN",
   description: "음악 리드 · 피칭 관리",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "LEAD",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {

@@ -677,6 +677,10 @@ export default function MyPage() {
               <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>MY PAGE</span>
             </div>
             <div className="flex items-center gap-2">
+              <button onClick={() => { if (window.history.length > 1) router.back(); else router.push('/'); }}
+                className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${D ? 'border-white/10 bg-white/5 text-zinc-300 hover:text-white' : 'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>
+                ← 돌아가기
+              </button>
               <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
                 className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
                 {D ? '☀️' : '🌙'}

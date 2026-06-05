@@ -493,7 +493,9 @@ export default function GuestView(){
     }else{
       const{error}=await supabase.auth.signInWithPassword({email:guestEmail.trim(),password:guestPw});
       if(error){setGuestError(error.message);setGuestLoading(false);return;}
-      // onAuthStateChange가 checkAuth 호출함
+      // 로그인 직후 전체 새로고침 → 레이아웃/초기 상태 깔끔하게 적용
+      window.location.reload();
+      return;
     }
     setGuestLoading(false);
   };
