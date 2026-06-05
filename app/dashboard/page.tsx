@@ -465,7 +465,7 @@ export default function GuestView(){
     const allText=lead.content?parseSections(lead.content)?.map((s:any)=>s.body).join('\n')||lead.content:'';
     const urls=extractUrls(allText);
     return(
-      <div onClick={()=>{setViewingLead(lead);setContentLang('ko');}} className={`border rounded-2xl cursor-pointer transition-all hover:scale-[1.02] ${c.bg} ${c.border} ${expired?'opacity-40 grayscale':''} ${compact?'p-2':'p-4'}`}>
+      <div onClick={()=>{setViewingLead(lead);setContentLang('ko');}} className={`relative border rounded-2xl cursor-pointer transition-all duration-300 active:scale-[0.99] sm:hover:scale-[1.02] sm:hover:-translate-y-0.5 ${D?'shadow-lg shadow-black/30 sm:hover:shadow-xl sm:hover:shadow-black/40':'shadow-sm sm:hover:shadow-md'} before:absolute before:inset-x-0 before:top-0 before:h-px before:rounded-t-2xl before:bg-gradient-to-r before:from-transparent before:via-white/15 before:to-transparent ${c.bg} ${c.border} ${expired?'opacity-40 grayscale':''} ${compact?'p-2 before:hidden':'p-4'}`}>
         {compact?(<div className="flex items-center gap-1.5"><div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`}/><span className="text-white text-[11px] font-bold truncate">{lead.artist}</span><DeadlineDisplay lead={lead} size="compact"/></div>):(
           <>
             <div className="flex items-start justify-between mb-2">
@@ -646,7 +646,7 @@ export default function GuestView(){
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('타입','Type')}</span>{[['solo',t('솔로','Solo')],['group',t('그룹','Group')]].map(([v,l])=><FilterPill key={v} label={l} active={filterGroup.includes(v)} onClick={()=>setFilterGroup(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v])} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('앨범','Album')}</span>{[['single','Single'],['ep','EP'],['lp','LP'],['ost','OST']].map(([v,l])=><FilterPill key={v} label={l} active={filterAlbum.includes(v)} onClick={()=>setFilterAlbum(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v])} isDark={D}/>)}</div>
             </div>
-            {filteredLeads.length===0?<div className="text-center py-20"><p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>{t('해당하는 리드가 없어요','No leads found')}</p></div>:<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{filteredLeads.map(lead=><LeadCard key={lead.id} lead={lead}/>)}</div>}
+            {filteredLeads.length===0?<div className="text-center py-20"><p className={`text-[13px] ${D?'text-zinc-700':'text-zinc-400'}`}>{t('해당하는 리드가 없어요','No leads found')}</p></div>:<div className="anim-rise grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{filteredLeads.map(lead=><LeadCard key={lead.id} lead={lead}/>)}</div>}
           </div>
         )}
 
@@ -784,9 +784,9 @@ export default function GuestView(){
               const vocalCount={male:0,female:0,both:0,none:0};hostPitchFiles.forEach(f=>{const v=f.vocal_gender;if(v==='male')vocalCount.male++;else if(v==='female')vocalCount.female++;else if(v==='both')vocalCount.both++;else vocalCount.none++;});
               const totalVocal=hostPitchFiles.length||1;
               const stat=(label:string,val:number,color:string)=>(
-                <div className={`flex-1 min-w-[140px] p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                <div className={`relative flex-1 min-w-[140px] p-5 rounded-2xl border overflow-hidden ${D?'bg-gradient-to-b from-white/[0.04] to-white/[0.01] border-white/[0.08] shadow-lg shadow-black/20':'bg-gradient-to-b from-black/[0.02] to-transparent border-black/[0.08] shadow-sm'} before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/15 before:to-transparent`}>
                   <p className={`text-[12px] font-bold mb-1 ${dimText}`}>{label}</p>
-                  <p className={`text-[32px] font-black leading-none ${color}`}>{val}</p>
+                  <p className={`text-[34px] font-black leading-none tracking-tight ${color}`}>{val}</p>
                 </div>
               );
               const bar=(label:string,n:number,max:number,sub:string,color:string)=>(
