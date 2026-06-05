@@ -843,8 +843,8 @@ export default function GuestView(){
       </main>
 
       {viewingLead&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setViewingLead(null)}>
-          <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-4" onClick={()=>setViewingLead(null)}>
+          <div className={`anim-rise w-full max-w-lg border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
             <div className="p-6 max-h-[85vh] overflow-y-auto">
               <div className="flex items-start justify-between mb-5">
                 <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><span className={`text-[10px] font-black ${getCardColor(viewingLead.gender,viewingLead.group_type).text}`}>{getCardColor(viewingLead.gender,viewingLead.group_type).label}</span><AlbumBadge type={viewingLead.album_type||'single'}/></div><h2 className="text-white font-black text-[22px] leading-tight">{viewingLead.artist}</h2><p className="text-zinc-400 text-[14px] mt-0.5">{viewingLead.title}</p></div>
@@ -876,8 +876,8 @@ export default function GuestView(){
       )}
 
       {pitchingLead&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
-          <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl my-4 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
+          <div className={`anim-rise w-full max-w-lg border rounded-[2rem] shadow-2xl my-4 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="p-6">
               {pitchSent?(
                 <div className="text-center py-10">
@@ -924,8 +924,8 @@ export default function GuestView(){
 
       {/* 내 피칭 모달 */}
       {showMyPitches&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowMyPitches(false)}>
-          <div className={`w-full max-w-lg border rounded-2xl shadow-2xl ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-4" onClick={()=>setShowMyPitches(false)}>
+          <div className={`anim-rise w-full max-w-lg border rounded-2xl shadow-2xl ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="max-h-[85vh] flex flex-col">
               <div className={`flex items-center justify-between p-5 border-b ${D?'border-white/10':'border-black/[0.08]'}`}>
                 <div>
@@ -986,8 +986,8 @@ export default function GuestView(){
       )}
 
       {showDemoMgr&&(
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-0 sm:p-4" onClick={()=>setShowDemoMgr(false)}>
-          <div className={`w-full max-w-lg border rounded-t-[2rem] sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setShowDemoMgr(false)}>
+          <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
               <div>
                 <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>🎤 {t('데모 수급','Demo Drives')}</h2>
@@ -1034,8 +1034,8 @@ export default function GuestView(){
       )}
 
       {showMembers&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setShowMembers(false)}>
-          <div className={`w-full max-w-lg border rounded-2xl shadow-2xl ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-4" onClick={()=>setShowMembers(false)}>
+          <div className={`anim-rise w-full max-w-lg border rounded-2xl shadow-2xl ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="max-h-[85vh] flex flex-col">
               <div className={`flex items-center justify-between p-5 border-b ${D?'border-white/10':'border-black/[0.08]'}`}>
                 <div>
@@ -1096,8 +1096,8 @@ export default function GuestView(){
       )}
 
       {showLeadForm&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto font-pretendard">
-          <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D?'bg-[#0E0E0E] border-white/[0.07]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 overflow-y-auto font-pretendard">
+          <div className={`anim-rise w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D?'bg-[#0E0E0E] border-white/[0.07]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="p-6 max-h-[85vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>{editingLead?'리드 수정':'리드 추가'}</h2>

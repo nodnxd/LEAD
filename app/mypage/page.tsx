@@ -569,7 +569,7 @@ export default function MyPage() {
           </div>
 
           {hostEditing && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={() => setHostEditing(false)}>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-4 overflow-y-auto" onClick={() => setHostEditing(false)}>
               <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
                 <div className="p-6 max-h-[85vh] overflow-y-auto">
                   <div className="flex items-center justify-between mb-5">
@@ -858,7 +858,7 @@ export default function MyPage() {
 
         {/* 수정 모달 */}
         {editing && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={() => setEditing(false)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-4 overflow-y-auto" onClick={() => setEditing(false)}>
             <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
               <div className="p-6 max-h-[85vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-5">
