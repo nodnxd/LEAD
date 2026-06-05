@@ -4,6 +4,110 @@ import { supabase } from '@/lib/supabase';
 
 interface Props { user: any; hostId: string; dark: boolean; }
 
+// 독립적으로 떠다니는 채팅 팝업 창 (이동 + 투명도)
+function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: any; conv: any; other: any; dark: boolean; index: number; onClose: () => void }) {
+  const [msgs, setMsgs] = useState<any[]>([]);
+  const [opacity, setOpacity] = useState(97);
+  const [collapsed, setCollapsed] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [inputVal, setInputVal] = useState('');
+  const [pos, setPos] = useState(() => ({
+    x: Math.max(20, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 420 - index * 34),
+    y: 96 + index * 34,
+  }));
+  const inputRef = useRef<HTMLInputElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
+
+  const bd = D ? 'border-white/[0.08]' : 'border-black/[0.08]';
+  const tx = D ? 'text-white' : 'text-[#111]';
+  const ib = D ? 'bg-white/[0.06] border-white/10 text-white placeholder:text-zinc-600' : 'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400';
+  const name = other?.artist_name || other?.display_name || '채팅';
+
+  const markRead = useCallback(async () => {
+    if (!user) return;
+    await supabase.from('messages').update({ read: true }).eq('conversation_id', conv.id).neq('sender_id', user.id);
+  }, [conv.id, user]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from('messages').select('*').eq('conversation_id', conv.id).order('created_at', { ascending: true });
+      if (data) setMsgs(data);
+      markRead();
+    })();
+    const ch = supabase.channel(`fc_${conv.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conv.id}` }, (payload) => {
+        const m: any = payload.new;
+        setMsgs(p => p.find(x => x.id === m.id) ? p : [...p, m]);
+        if (m.sender_id !== user.id) markRead();
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, (payload) => {
+        setMsgs(p => p.filter(x => x.id !== payload.old.id));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [conv.id, user, markRead]);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+
+  useEffect(() => {
+    const move = (e: MouseEvent) => { if (!dragRef.current) return; setPos({ x: e.clientX - dragRef.current.dx, y: Math.max(0, e.clientY - dragRef.current.dy) }); };
+    const up = () => { dragRef.current = null; };
+    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+  }, []);
+
+  const send = async () => {
+    const content = inputRef.current?.value.trim() || '';
+    if (!content || sending) return;
+    setSending(true); setInputVal('');
+    if (inputRef.current) inputRef.current.value = '';
+    const { data: msg } = await supabase.from('messages').insert({ conversation_id: conv.id, sender_id: user.id, content }).select().single();
+    if (msg) {
+      setMsgs(p => p.find(x => x.id === msg.id) ? p : [...p, msg]);
+      await supabase.from('conversations').update({ last_message: content, last_message_at: new Date().toISOString() }).eq('id', conv.id);
+    }
+    setSending(false);
+  };
+
+  return (
+    <div className={`fixed z-[55] w-[380px] rounded-2xl border shadow-2xl flex flex-col ${bd}`}
+      style={{ left: pos.x, top: pos.y, height: collapsed ? 'auto' : 460, backgroundColor: D ? '#0f0f0f' : '#ffffff', opacity: opacity / 100, fontFamily: 'Pretendard,sans-serif' }}>
+      <div onMouseDown={(e) => { dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y }; }}
+        className={`flex items-center gap-2 px-3 py-2.5 border-b cursor-move select-none ${bd}`}>
+        <div className="w-7 h-7 rounded-full bg-[#5B8CFF]/15 border border-[#5B8CFF]/25 flex items-center justify-center overflow-hidden shrink-0">
+          {other?.photo_url ? <img src={other.photo_url} className="w-full h-full object-cover" alt="" /> : <span className="font-black text-[#5B8CFF] text-[12px]">{name[0].toUpperCase()}</span>}
+        </div>
+        <span className={`flex-1 font-black text-[14px] truncate ${tx}`}>{name}</span>
+        <input type="range" min={20} max={100} value={opacity} onChange={e => setOpacity(Number(e.target.value))} onMouseDown={e => e.stopPropagation()} className="w-14 cursor-pointer accent-[#5B8CFF]" title="투명도" />
+        <button onClick={() => setCollapsed(c => !c)} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-lg text-[11px] font-black ${D ? 'text-zinc-500' : 'text-zinc-500'}`}>{collapsed ? '▲' : '▼'}</button>
+        <button onClick={onClose} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-lg text-[13px] font-black ${D ? 'text-zinc-500' : 'text-zinc-500'} hover:text-red-400 transition-all`}>✕</button>
+      </div>
+      {!collapsed && (
+        <>
+          <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+            {msgs.map(m => {
+              const mine = m.sender_id === user.id;
+              return (
+                <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`px-3 py-2 rounded-2xl text-[13px] leading-relaxed ${mine ? 'bg-[#5B8CFF] text-white' : D ? 'bg-white/[0.08] text-zinc-200' : 'bg-black/[0.05] text-zinc-800'}`} style={{ maxWidth: '82%', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{m.content}</div>
+                </div>
+              );
+            })}
+            <div ref={bottomRef} />
+          </div>
+          <div className={`flex items-center gap-2 p-2.5 border-t ${bd}`}>
+            <input ref={inputRef} defaultValue="" onChange={e => setInputVal(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !(e.nativeEvent as any).isComposing) { e.preventDefault(); send(); } }}
+              placeholder="메시지..." className={`flex-1 px-3 py-2 rounded-xl border text-[14px] outline-none ${ib}`} />
+            <button onClick={send} disabled={sending || !inputVal.trim()} className="px-3 py-2 rounded-xl bg-[#5B8CFF] text-white text-[14px] font-black disabled:opacity-40 hover:bg-[#4070ee] transition-all">→</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function ChatPanel({ user, hostId, dark: D }: Props) {
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
@@ -24,6 +128,9 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
   const [emailResult, setEmailResult] = useState<any>(null);
   const [toast, setToast] = useState<{ senderName: string; content: string; senderId: string; convId: string; avatar: any } | null>(null);
   const [extraProfiles, setExtraProfiles] = useState<Record<string, any>>({});
+  const [poppedConvs, setPoppedConvs] = useState<{ conv: any; other: any }[]>([]);
+  const poppedIds = useRef<Set<string>>(new Set());
+  useEffect(() => { poppedIds.current = new Set(poppedConvs.map(p => p.conv.id)); }, [poppedConvs]);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -151,6 +258,9 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
         if (curConv && msg.conversation_id === curConv.id) {
           setMsgs(p => [...p, msg]);
           markRead(curConv.id);
+        } else if (poppedIds.current.has(msg.conversation_id)) {
+          // 팝업 창이 직접 처리하므로 토스트 생략
+          fetchConvs();
         } else {
           // 새 메시지 토스트 알림
           fetchConvs();
@@ -364,6 +474,13 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
               </span>
             )}
 
+            {activeConv && (
+              <button title="팝업 창으로 분리" onClick={() => {
+                const other = getOther(activeConv);
+                setPoppedConvs(p => p.find(x => x.conv.id === activeConv.id) ? p : [...p, { conv: activeConv, other }]);
+                setActiveConv(null); setMsgs([]);
+              }} className={`text-[12px] font-black px-1.5 py-0.5 rounded-lg ${dm} hover:text-[#5B8CFF] hover:bg-[#5B8CFF]/10 transition-all`}>⧉</button>
+            )}
             {activeConv && (
               <button onClick={() => { if (confirm('대화를 삭제할까요?')) deleteConv(activeConv.id); }}
                 className={`text-[12px] font-black px-1.5 py-0.5 rounded-lg ${dm} hover:text-red-400 hover:bg-red-500/10 transition-all`}>✕</button>
@@ -617,6 +734,11 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
           )}
         </div>
       )}
+
+      {poppedConvs.map((pc, i) => (
+        <FloatingChat key={pc.conv.id} user={user} conv={pc.conv} other={pc.other} dark={D} index={i}
+          onClose={() => setPoppedConvs(p => p.filter(x => x.conv.id !== pc.conv.id))} />
+      ))}
     </>
   );
 }
