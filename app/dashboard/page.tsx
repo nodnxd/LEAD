@@ -651,7 +651,7 @@ export default function GuestView(){
                         <button onClick={()=>setExpandedPitchLeads(prev=>({...prev,[lid]:!open}))} className={`w-full flex items-center gap-3 px-5 py-4 text-left transition-all ${D?'hover:bg-white/[0.03]':'hover:bg-black/[0.03]'}`}>
                           <span className={`text-[16px] transition-transform shrink-0 ${open?'rotate-90':''} ${dimText}`}>›</span>
                           <div className="flex-1 min-w-0">
-                            <p className={`font-black text-[17px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{lead?lead.artist:t('삭제된 리드','Deleted lead')}</p>
+                            <p className={`font-black text-[17px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{lead?lead.artist:(lid==='none'?`🎤 ${t('자유 데모 (직접 수급)','Free Demos')}`:t('삭제된 리드','Deleted lead'))}</p>
                             {lead?.title&&<p className={`text-[13px] mt-0.5 truncate ${dimText}`}>{lead.title}</p>}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
