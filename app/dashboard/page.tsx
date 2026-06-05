@@ -671,14 +671,14 @@ export default function GuestView(){
               return pv.length===0?(
                 <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitches.length===0?t('아직 받은 피칭이 없어요','No pitches yet'):t('조건에 맞는 피칭이 없어요','No matching pitches')}</p></div>
               ):(
-                <div className="flex flex-col gap-3">
+                <div className="anim-rise flex flex-col gap-3">
                   {order.map(lid=>{
                     const lead=[...leads,...demoDrives].find(l=>l.id===lid);
                     const groupPitches=byLead[lid];
                     const fileCount=groupPitches.reduce((n,p)=>n+hostPitchFiles.filter(f=>f.pitch_id===p.id).length,0);
                     const open=expandedPitchLeads[lid]??false;
                     return(
-                      <div key={lid} className={`rounded-2xl border overflow-hidden ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                      <div key={lid} className={`rounded-2xl border overflow-hidden ${D?'bg-white/[0.02] border-white/[0.07] shadow-lg shadow-black/20':'bg-black/[0.02] border-black/[0.08] shadow-sm'}`}>
                         <button onClick={()=>setExpandedPitchLeads(prev=>({...prev,[lid]:!open}))} className={`w-full flex items-center gap-3 px-5 py-4 text-left transition-all ${D?'hover:bg-white/[0.03]':'hover:bg-black/[0.03]'}`}>
                           <span className={`text-[16px] transition-transform shrink-0 ${open?'rotate-90':''} ${dimText}`}>›</span>
                           <div className="flex-1 min-w-0">
@@ -738,11 +738,11 @@ export default function GuestView(){
               return fv.length===0?(
                 <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitchFiles.length===0?t('아직 받은 파일이 없어요','No files yet'):t('조건에 맞는 파일이 없어요','No matching files')}</p></div>
               ):(
-                <div className="flex flex-col gap-2.5">
+                <div className="anim-rise flex flex-col gap-2.5">
                   {fv.map((f:any)=>{
                     const vLabel=f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
                     return(
-                    <div key={f.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04]':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]'} transition-all`}>
+                    <div key={f.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl border transition-all ${D?'bg-white/[0.02] border-white/[0.07] shadow-md shadow-black/20 hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] shadow-sm hover:bg-black/[0.03]'}`}>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline gap-2 mb-1.5">
                           <span className="text-[15px] shrink-0">🎵</span>

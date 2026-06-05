@@ -54,7 +54,7 @@ export default function LoginPage() {
     <>
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }` }} />
       <main className="min-h-screen bg-[#050505] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
-        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.08] pointer-events-none transition-colors ${isHost ? 'bg-[#F5A623]' : 'bg-[#5B8CFF]'}`} />
+        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.1] pointer-events-none transition-colors ${isHost ? 'bg-[#1736B8]' : 'bg-[#9CC0FF]'}`} />
         <div className="w-full max-w-sm relative z-10">
           <div className="text-center mb-8">
             <div className="flex items-baseline justify-center gap-2.5 mb-2">
@@ -69,7 +69,7 @@ export default function LoginPage() {
             {(['host', 'guest'] as const).map(m => (
               <button key={m} onClick={() => { setMode(m); setError(''); setForgotMode(false); setResetSent(false); }}
                 className={`flex-1 py-2.5 rounded-xl text-[13px] font-black transition-all ${mode === m
-                  ? (m === 'host' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' : 'bg-[#5B8CFF]/20 text-[#5B8CFF] border border-[#5B8CFF]/40')
+                  ? (m === 'host' ? 'bg-[#3358E8]/25 text-[#8FB0FF] border border-[#3358E8]/55' : 'bg-[#9CC0FF]/15 text-[#BBD3FF] border border-[#9CC0FF]/45')
                   : 'text-zinc-500 hover:text-zinc-300 border border-transparent'}`}>
                 {m === 'host' ? '🏢 호스트' : '🎤 게스트'}
               </button>
@@ -120,7 +120,7 @@ export default function LoginPage() {
                   <button onClick={() => { setForgotMode(true); setError(''); }} className="text-zinc-500 text-[12px] hover:text-[#5B8CFF] transition-colors">비밀번호 찾기</button>
                 </div>
                 <button onClick={handle} disabled={loading}
-                  className={`w-full py-3 rounded-xl text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 mb-3 ${isHost ? 'bg-gradient-to-r from-amber-500 to-orange-400' : 'bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF]'}`}>
+                  className={`w-full py-3 rounded-xl text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 mb-3 ${isHost ? 'bg-gradient-to-r from-[#1736B8] to-[#3358E8] shadow-lg shadow-[#1736B8]/30' : 'bg-gradient-to-r from-[#7BA4FF] to-[#A9C7FF] shadow-lg shadow-[#7BA4FF]/25'}`}>
                   {loading ? '...' : isSignUp ? (isHost ? '호스트 회원가입' : '게스트 회원가입') : '로그인'}
                 </button>
                 <button onClick={() => { setIsSignUp(!isSignUp); setError(''); }} className="w-full text-zinc-600 text-[12px] hover:text-zinc-400 transition-colors">
