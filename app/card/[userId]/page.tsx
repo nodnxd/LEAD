@@ -18,7 +18,6 @@ export default function CardPage() {
   };
   const [profile, setProfile] = useState<any>(null);
   const [works, setWorks] = useState<any[]>([]);
-  const [demos, setDemos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
@@ -33,12 +32,8 @@ export default function CardPage() {
     const { data: m } = await supabase.from('members').select('*').eq('id', userId).single();
     if (m) {
       setProfile({ ...m, userType: 'member' });
-      const [{ data: w }, { data: d }] = await Promise.all([
-        supabase.from('released_works').select('*').eq('member_id', userId).order('order_index'),
-        supabase.from('demo_tracks').select('*').eq('member_id', userId).order('order_index'),
-      ]);
+      const { data: w } = await supabase.from('released_works').select('*').eq('member_id', userId).order('order_index');
       if (w) setWorks(w);
-      if (d) setDemos(d);
     } else {
       // 호스트 프로필
       const { data: h } = await supabase.from('host_profiles').select('*').eq('id', userId).single();
@@ -144,21 +139,6 @@ export default function CardPage() {
             {profile.bio && (
               <div className={`mt-4 pt-4 border-t ${dv}`}>
                 <p className={`text-[12px] leading-relaxed whitespace-pre-line ${dm}`}>{profile.bio}</p>
-              </div>
-            )}
-
-            {/* Demo Tracks (들어보기) */}
-            {demos.length > 0 && (
-              <div className={`mt-4 pt-4 border-t ${dv}`}>
-                <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${dm}`}>🎧 Demo Tracks</p>
-                <div className="flex flex-col gap-2.5">
-                  {demos.slice(0, 4).map((d, i) => (
-                    <div key={i} className={`p-3 rounded-xl ${D ? 'bg-white/[0.03]' : 'bg-black/[0.03]'}`}>
-                      <p className={`text-[12px] font-bold truncate mb-1.5 ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{d.file_name || `Demo ${i + 1}`}</p>
-                      {d.file_url && <audio controls preload="none" src={d.file_url} className="w-full" style={{ height: 34 }} />}
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
 
