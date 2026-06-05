@@ -632,15 +632,23 @@ export default function GuestView(){
                           </div>
                           {p.message&&<p className={`text-[12px] leading-relaxed whitespace-pre-line mt-1 ${D?'text-zinc-400':'text-zinc-600'}`}>{p.message}</p>}
                           {files.length>0&&(
-                            <div className="flex flex-col gap-1.5 mt-2">
-                              {files.map(f=>(
-                                <div key={f.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${D?'bg-black/20':'bg-black/[0.04]'}`}>
-                                  <span className="text-[12px]">🎵</span>
-                                  <span className={`flex-1 text-[11px] truncate ${D?'text-zinc-300':'text-zinc-700'}`}>{f.file_name||'audio.mp3'}</span>
-                                  {f.bpm>0&&<span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
-                                  {f.genre&&<span className="text-[10px] font-black text-[#5B8CFF]">{f.genre}</span>}
+                            <div className="flex flex-col gap-2 mt-2">
+                              {files.map(f=>{
+                                const vLabel=f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
+                                return(
+                                <div key={f.id} className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D?'bg-black/20':'bg-black/[0.04]'}`}>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-[12px]">🎵</span>
+                                    <span className={`flex-1 min-w-0 text-[11px] truncate ${D?'text-zinc-300':'text-zinc-700'}`}>{f.file_name||'audio.mp3'}</span>
+                                    {vLabel&&<span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5B8CFF]/15 text-[#5B8CFF]">{vLabel}</span>}
+                                    {f.bpm>0&&<span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
+                                    {f.key&&<span className={`text-[10px] font-black ${dimText}`}>{f.key}</span>}
+                                    {f.genre&&<span className="text-[10px] font-black text-emerald-400">{f.genre}</span>}
+                                  </div>
+                                  {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px'}}/>}
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           )}
                         </div>

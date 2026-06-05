@@ -76,6 +76,8 @@ export default function MyPage() {
   const [hostPitchFiles, setHostPitchFiles] = useState<any[]>([]);
   const [hostMembers, setHostMembers] = useState<any[]>([]);
   const [hostTab, setHostTab] = useState<'pitches' | 'members'>('pitches');
+  const [pitchSort, setPitchSort] = useState<'recent' | 'bpm' | 'vocal' | 'key'>('recent');
+  const [pitchVocalFilter, setPitchVocalFilter] = useState<'all' | 'male' | 'female' | 'both'>('all');
   const [hostEditing, setHostEditing] = useState(false);
   const [hostProfile, setHostProfile] = useState<any>(null);
   const [hostDisplayName, setHostDisplayName] = useState('');
@@ -446,9 +448,36 @@ export default function MyPage() {
               {/* 피칭 탭 */}
               {hostTab === 'pitches' && (
                 <div className="p-4 flex flex-col gap-3 max-h-96 overflow-y-auto">
-                  {hostPitches.length === 0
-                    ? <p className={`text-[12px] text-center py-8 ${dimText}`}>아직 피칭이 없어요</p>
-                    : hostPitches.map(p => {
+                  {/* 정렬 / 필터 컨트롤 */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`text-[9px] font-black uppercase tracking-widest w-8 shrink-0 ${dimText}`}>정렬</span>
+                      {([['recent','최신순'],['bpm','BPM'],['vocal','보컬'],['key','Key']] as const).map(([v,l])=>(
+                        <button key={v} onClick={()=>setPitchSort(v)} className={`text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${pitchSort===v?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`text-[9px] font-black uppercase tracking-widest w-8 shrink-0 ${dimText}`}>보컬</span>
+                      {([['all','전체'],['male','남성'],['female','여성'],['both','혼성']] as const).map(([v,l])=>(
+                        <button key={v} onClick={()=>setPitchVocalFilter(v)} className={`text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${pitchVocalFilter===v?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
+                      ))}
+                    </div>
+                  </div>
+                  {(() => {
+                    const minBpm = (p:any) => { const fs=hostPitchFiles.filter(f=>f.pitch_id===p.id&&f.bpm>0); return fs.length?Math.min(...fs.map(f=>f.bpm)):99999; };
+                    const firstVocal = (p:any) => { const f=hostPitchFiles.find(x=>x.pitch_id===p.id&&x.vocal_gender); return f?.vocal_gender||'zzz'; };
+                    const firstKey = (p:any) => { const f=hostPitchFiles.find(x=>x.pitch_id===p.id&&x.key); return f?.key||'zzz'; };
+                    let view = hostPitches;
+                    if (pitchVocalFilter !== 'all') view = view.filter(p => hostPitchFiles.some(f => f.pitch_id===p.id && f.vocal_gender===pitchVocalFilter));
+                    view = [...view].sort((a,b)=>{
+                      if(pitchSort==='bpm')return minBpm(a)-minBpm(b);
+                      if(pitchSort==='vocal')return firstVocal(a).localeCompare(firstVocal(b));
+                      if(pitchSort==='key')return firstKey(a).localeCompare(firstKey(b));
+                      return new Date(b.created_at).getTime()-new Date(a.created_at).getTime();
+                    });
+                    return view.length === 0
+                    ? <p className={`text-[12px] text-center py-8 ${dimText}`}>{hostPitches.length===0?'아직 피칭이 없어요':'조건에 맞는 피칭이 없어요'}</p>
+                    : view.map(p => {
                       const lead = hostLeads.find(l => l.id === p.lead_id);
                       const files = hostPitchFiles.filter(f => f.pitch_id === p.id);
                       return (
@@ -473,20 +502,29 @@ export default function MyPage() {
                             <p className={`text-[12px] leading-relaxed whitespace-pre-line ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>
                           )}
                           {files.length > 0 && (
-                            <div className="flex flex-col gap-1.5 mt-2">
-                              {files.map((f: any) => (
-                                <div key={f.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.04]'}`}>
-                                  <span className="text-[12px]">🎵</span>
-                                  <span className={`flex-1 text-[11px] truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
-                                  {f.bpm > 0 && <span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
-                                  {f.genre && <span className="text-[10px] font-black text-[#5B8CFF]">{f.genre}</span>}
+                            <div className="flex flex-col gap-2 mt-2">
+                              {files.map((f: any) => {
+                                const vLabel = f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
+                                return (
+                                <div key={f.id} className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.04]'}`}>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-[12px]">🎵</span>
+                                    <span className={`flex-1 min-w-0 text-[11px] truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
+                                    {vLabel && <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5B8CFF]/15 text-[#5B8CFF]">{vLabel}</span>}
+                                    {f.bpm > 0 && <span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
+                                    {f.key && <span className={`text-[10px] font-black ${dimText}`}>{f.key}</span>}
+                                    {f.genre && <span className="text-[10px] font-black text-emerald-400">{f.genre}</span>}
+                                  </div>
+                                  {f.file_url && <audio controls preload="none" src={f.file_url} className="w-full h-8" style={{height:'32px'}} />}
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           )}
                         </div>
                       );
-                    })}
+                    });
+                  })()}
                 </div>
               )}
 
@@ -787,15 +825,23 @@ export default function MyPage() {
                       </div>
                       {p.message && <p className={`text-[12px] leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>}
                       {files.length > 0 && (
-                        <div className="flex flex-col gap-1.5 mt-2">
-                          {files.map((f: any) => (
-                            <div key={f.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.03]'}`}>
-                              <span className="text-[12px]">🎵</span>
-                              <span className={`flex-1 text-[11px] truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
-                              {f.bpm > 0 && <span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
-                              {f.genre && <span className="text-[10px] font-black text-[#5B8CFF]">{f.genre}</span>}
+                        <div className="flex flex-col gap-2 mt-2">
+                          {files.map((f: any) => {
+                            const vLabel = f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
+                            return (
+                            <div key={f.id} className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.03]'}`}>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[12px]">🎵</span>
+                                <span className={`flex-1 min-w-0 text-[11px] truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
+                                {vLabel && <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#5B8CFF]/15 text-[#5B8CFF]">{vLabel}</span>}
+                                {f.bpm > 0 && <span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
+                                {f.key && <span className={`text-[10px] font-black ${dimText}`}>{f.key}</span>}
+                                {f.genre && <span className="text-[10px] font-black text-emerald-400">{f.genre}</span>}
+                              </div>
+                              {f.file_url && <audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px'}} />}
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
