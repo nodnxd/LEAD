@@ -167,9 +167,13 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, (payload) => {
         setMsgs(p => p.filter(m => m.id !== payload.old.id));
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'friendships' }, () => {
+        // 누군가 나를 친구추가하면 즉시 반영 (채팅 다시 안 열어도 됨)
+        fetchFriendships(); fetchMembers();
+      })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [user, hostId, fetchConvs, showToast]);
+  }, [user, hostId, fetchConvs, fetchFriendships, fetchMembers, showToast]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
 
