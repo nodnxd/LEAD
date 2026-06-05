@@ -531,7 +531,7 @@ export default function GuestView(){
             </div>
           ):(
             <button onClick={()=>{setCompanyDraft(hostCompany);setEditingCompany(true);}} className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10 hover:bg-[#5B8CFF]/20 transition-all group">
-              <span className="text-[10px]">🏢</span>
+              
               <span className={`text-[12px] font-black ${hostCompany?(D?'text-zinc-200':'text-zinc-700'):dimText}`}>{hostCompany||'회사/팀 이름 추가'}</span>
               <span className="text-[10px] opacity-0 group-hover:opacity-60 transition-opacity">✏️</span>
             </button>
