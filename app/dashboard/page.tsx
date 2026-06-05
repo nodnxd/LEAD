@@ -143,6 +143,9 @@ export default function GuestView(){
   const [fileSort,setFileSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [fileVocalFilter,setFileVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
   const [fileSearch,setFileSearch]=useState('');
+  const [fileFolderFilter,setFileFolderFilter]=useState<string>('all'); // 'all' | 'none' | folderName
+  const [fileAction,setFileAction]=useState<any>(null); // 파일 관리 모달 대상
+  const [newFolder,setNewFolder]=useState('');
   const [calView,setCalView]=useState<'month'|'week'>('month');
   const [currentMonth,setCurrentMonth]=useState(new Date());
   const [weekStart,setWeekStart]=useState(startOfWeek(new Date()));
@@ -258,6 +261,17 @@ export default function GuestView(){
     if(!confirm('이 데모 수급을 삭제할까요?'))return;
     await supabase.from('leads').delete().eq('id',id);
     await fetchAll();
+  };
+  // ── 파일 관리: 삭제 / 폴더 ──
+  const deleteFile=async(f:any)=>{
+    if(!confirm('이 파일을 영구 삭제할까요?'))return;
+    if(f.file_url){const m=f.file_url.split('/pitch-files/')[1];if(m){try{await supabase.storage.from('pitch-files').remove([decodeURIComponent(m)]);}catch{}}}
+    await supabase.from('pitch_files').delete().eq('id',f.id);
+    setFileAction(null);fetchHostPitches();
+  };
+  const moveFileFolder=async(f:any,folder:string|null)=>{
+    await supabase.from('pitch_files').update({folder:folder||null}).eq('id',f.id);
+    setFileAction(null);setNewFolder('');fetchHostPitches();
   };
   const fileInputRef=useRef<HTMLInputElement>(null);
 
@@ -725,6 +739,11 @@ export default function GuestView(){
               <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder={t('파일명 · 아티스트 · 장르 검색','Search file · artist · genre')} className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('정렬','Sort')}</span>{([['recent',t('최신순','Recent')],['bpm','BPM'],['vocal',t('보컬','Vocal')],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileSort===v} onClick={()=>setFileSort(v as any)} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('보컬','Vocal')}</span>{([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileVocalFilter===v} onClick={()=>setFileVocalFilter(v as any)} isDark={D}/>)}</div>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>📁 {t('폴더','Folder')}</span>
+                <FilterPill label={t('전체','All')} active={fileFolderFilter==='all'} onClick={()=>setFileFolderFilter('all')} isDark={D}/>
+                {[...new Set(hostPitchFiles.map((f:any)=>f.folder).filter(Boolean))].map((fd:any)=><FilterPill key={fd} label={fd} active={fileFolderFilter===fd} onClick={()=>setFileFolderFilter(fd)} isDark={D}/>)}
+                <FilterPill label={t('미분류','Unsorted')} active={fileFolderFilter==='none'} onClick={()=>setFileFolderFilter('none')} isDark={D}/>
+              </div>
             </div>
             {hostPitchLoading?(
               <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>
@@ -732,6 +751,8 @@ export default function GuestView(){
               const pById:Record<string,any>={};hostPitches.forEach(p=>pById[p.id]=p);
               let fv=hostPitchFiles.map(f=>{const p=pById[f.pitch_id];const lead=p?[...leads,...demoDrives].find(l=>l.id===p.lead_id):null;return{...f,_artist:p?.artist_name||'',_lead:lead?.artist||'',_created:p?.created_at||f.created_at};});
               if(fileVocalFilter!=='all')fv=fv.filter(f=>f.vocal_gender===fileVocalFilter);
+              if(fileFolderFilter==='none')fv=fv.filter(f=>!f.folder);
+              else if(fileFolderFilter!=='all')fv=fv.filter(f=>f.folder===fileFolderFilter);
               const q=fileSearch.trim().toLowerCase();
               if(q)fv=fv.filter(f=>[f.file_name,f._artist,f._lead,f.genre,f.key].some((x:any)=>(x||'').toLowerCase().includes(q)));
               fv=[...fv].sort((a,b)=>{if(fileSort==='bpm')return(a.bpm||99999)-(b.bpm||99999);if(fileSort==='vocal')return(a.vocal_gender||'zzz').localeCompare(b.vocal_gender||'zzz');if(fileSort==='key')return(a.key||'zzz').localeCompare(b.key||'zzz');return new Date(b._created).getTime()-new Date(a._created).getTime();});
@@ -753,10 +774,15 @@ export default function GuestView(){
                           {f.bpm>0&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>{f.bpm} BPM</span>}
                           {f.key&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>KEY {f.key}</span>}
                           {f.genre&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
+                          {f.folder&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">📁 {f.folder}</span>}
                           {(f._artist||f._lead)&&<span className={`text-[12px] ${dimText}`}>{f._artist}{f._artist&&f._lead&&' → '}{f._lead}</span>}
                         </div>
                       </div>
-                      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full sm:w-72 shrink-0" style={{height:'40px'}}/>}
+                      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full sm:w-60 shrink-0" style={{height:'40px'}}/>}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button onClick={()=>{setFileAction(f);setNewFolder('');}} title={t('폴더','Folder')} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[14px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>📁</button>
+                        <button onClick={()=>deleteFile(f)} title={t('삭제','Delete')} className="w-9 h-9 rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[14px] hover:bg-red-500/20 transition-all">🗑</button>
+                      </div>
                     </div>
                     );
                   })}
@@ -980,6 +1006,30 @@ export default function GuestView(){
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {fileAction&&(
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setFileAction(null)}>
+          <div className={`anim-rise w-full max-w-md border rounded-t-[2rem] sm:rounded-2xl shadow-2xl p-6 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-1"><span className="text-[16px]">🎵</span><p className={`font-black text-[15px] truncate ${D?'text-white':'text-[#111]'}`}>{fileAction.file_name||'audio.mp3'}</p></div>
+            <p className={`text-[12px] mb-4 ${dimText}`}>{t('폴더로 정리하거나 삭제할 수 있어요','Organize into a folder or delete')}</p>
+            <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${dimText}`}>📁 {t('폴더 이동','Move to folder')}</p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <button onClick={()=>moveFileFolder(fileAction,null)} className={`px-3 py-1.5 rounded-full text-[12px] font-black border transition-all ${!fileAction.folder?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'border-white/10 bg-white/5 text-zinc-400':'border-black/[0.08] bg-black/[0.04] text-zinc-500'}`}>{t('미분류','Unsorted')}</button>
+              {[...new Set(hostPitchFiles.map((f:any)=>f.folder).filter(Boolean))].map((fd:any)=>(
+                <button key={fd} onClick={()=>moveFileFolder(fileAction,fd)} className={`px-3 py-1.5 rounded-full text-[12px] font-black border transition-all ${fileAction.folder===fd?'bg-amber-500 border-amber-500 text-white':D?'border-white/10 bg-white/5 text-zinc-300':'border-black/[0.08] bg-black/[0.04] text-zinc-600'}`}>📁 {fd}</button>
+              ))}
+            </div>
+            <div className="flex gap-2 mb-5">
+              <input value={newFolder} onChange={e=>setNewFolder(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&newFolder.trim())moveFileFolder(fileAction,newFolder.trim());}} placeholder={t('새 폴더 이름','New folder name')} className={`flex-1 border rounded-xl px-3 py-2.5 text-[14px] outline-none transition-all ${inputCls}`}/>
+              <button onClick={()=>newFolder.trim()&&moveFileFolder(fileAction,newFolder.trim())} disabled={!newFolder.trim()} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] disabled:opacity-40">{t('만들기','Create')}</button>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={()=>setFileAction(null)} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] ${D?'border-white/10 text-zinc-400':'border-black/[0.08] text-zinc-500'}`}>{t('닫기','Close')}</button>
+              <button onClick={()=>deleteFile(fileAction)} className="px-5 py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 font-black text-[13px] hover:bg-red-500/20 transition-all">🗑 {t('삭제','Delete')}</button>
             </div>
           </div>
         </div>
