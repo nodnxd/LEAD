@@ -139,6 +139,7 @@ export default function GuestView(){
   const [expandedPitchLeads,setExpandedPitchLeads]=useState<Record<string,boolean>>({});
   const [pitchToast,setPitchToast]=useState<{artist:string;lead:string;pitchId:string}|null>(null);
   const pitchToastTimer=useRef<any>(null);
+  const [shareToast,setShareToast]=useState(false);
   const [fileSort,setFileSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [fileVocalFilter,setFileVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
   const [fileSearch,setFileSearch]=useState('');
@@ -560,7 +561,7 @@ export default function GuestView(){
               <span className="text-amber-400 text-[11px] font-bold">HOST</span>
             </div>
             <button onClick={()=>{setShowMembers(true);fetchMembers();}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👥 {t('멤버','Members')}</button>
-            <button onClick={()=>{if(navigator.clipboard)navigator.clipboard.writeText(window.location.origin+'/view/'+hostId);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🔗 {t('공유','Share')}</button>
+            <button onClick={()=>{if(navigator.clipboard){navigator.clipboard.writeText(window.location.origin+'/view/'+hostId);setShareToast(true);setTimeout(()=>setShareToast(false),2000);}}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🔗 {t('공유','Share')}</button>
             <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
           </div>
         </div>
@@ -621,8 +622,8 @@ export default function GuestView(){
         {view==='pitches'&&(
           <div className="relative z-10">
             <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
-              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>정렬</span>{([['recent','최신순'],['bpm','BPM'],['vocal','보컬'],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={pitchSort===v} onClick={()=>setPitchSort(v)} isDark={D}/>)}</div>
-              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>보컬</span>{([['all','전체'],['male','남성'],['female','여성'],['both','혼성']] as const).map(([v,l])=><FilterPill key={v} label={l} active={pitchVocalFilter===v} onClick={()=>setPitchVocalFilter(v)} isDark={D}/>)}</div>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('정렬','Sort')}</span>{([['recent',t('최신순','Recent')],['bpm','BPM'],['vocal',t('보컬','Vocal')],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={pitchSort===v} onClick={()=>setPitchSort(v as any)} isDark={D}/>)}</div>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('보컬','Vocal')}</span>{([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=><FilterPill key={v} label={l} active={pitchVocalFilter===v} onClick={()=>setPitchVocalFilter(v as any)} isDark={D}/>)}</div>
             </div>
             {hostPitchLoading?(
               <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>
@@ -637,7 +638,7 @@ export default function GuestView(){
               const order:string[]=[];const byLead:Record<string,any[]>={};
               pv.forEach(p=>{const k=p.lead_id||'none';if(!byLead[k]){byLead[k]=[];order.push(k);}byLead[k].push(p);});
               return pv.length===0?(
-                <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitches.length===0?'아직 받은 피칭이 없어요':'조건에 맞는 피칭이 없어요'}</p></div>
+                <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitches.length===0?t('아직 받은 피칭이 없어요','No pitches yet'):t('조건에 맞는 피칭이 없어요','No matching pitches')}</p></div>
               ):(
                 <div className="flex flex-col gap-3">
                   {order.map(lid=>{
@@ -650,11 +651,11 @@ export default function GuestView(){
                         <button onClick={()=>setExpandedPitchLeads(prev=>({...prev,[lid]:!open}))} className={`w-full flex items-center gap-3 px-5 py-4 text-left transition-all ${D?'hover:bg-white/[0.03]':'hover:bg-black/[0.03]'}`}>
                           <span className={`text-[16px] transition-transform shrink-0 ${open?'rotate-90':''} ${dimText}`}>›</span>
                           <div className="flex-1 min-w-0">
-                            <p className={`font-black text-[17px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{lead?lead.artist:'삭제된 리드'}</p>
+                            <p className={`font-black text-[17px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{lead?lead.artist:t('삭제된 리드','Deleted lead')}</p>
                             {lead?.title&&<p className={`text-[13px] mt-0.5 truncate ${dimText}`}>{lead.title}</p>}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-[13px] font-black px-3 py-1 rounded-full bg-[#5B8CFF]/15 text-[#5B8CFF]">피칭 {groupPitches.length}</span>
+                            <span className="text-[13px] font-black px-3 py-1 rounded-full bg-[#5B8CFF]/15 text-[#5B8CFF]">{t('피칭','Pitches')} {groupPitches.length}</span>
                             {fileCount>0&&<span className={`text-[13px] font-black px-3 py-1 rounded-full ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>🎵 {fileCount}</span>}
                           </div>
                         </button>
@@ -690,9 +691,9 @@ export default function GuestView(){
         {view==='files'&&(
           <div className="relative z-10">
             <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
-              <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder="파일명 · 아티스트 · 장르 검색" className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/>
-              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>정렬</span>{([['recent','최신순'],['bpm','BPM'],['vocal','보컬'],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileSort===v} onClick={()=>setFileSort(v)} isDark={D}/>)}</div>
-              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>보컬</span>{([['all','전체'],['male','남성'],['female','여성'],['both','혼성']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileVocalFilter===v} onClick={()=>setFileVocalFilter(v)} isDark={D}/>)}</div>
+              <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder={t('파일명 · 아티스트 · 장르 검색','Search file · artist · genre')} className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('정렬','Sort')}</span>{([['recent',t('최신순','Recent')],['bpm','BPM'],['vocal',t('보컬','Vocal')],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileSort===v} onClick={()=>setFileSort(v as any)} isDark={D}/>)}</div>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('보컬','Vocal')}</span>{([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileVocalFilter===v} onClick={()=>setFileVocalFilter(v as any)} isDark={D}/>)}</div>
             </div>
             {hostPitchLoading?(
               <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>
@@ -704,7 +705,7 @@ export default function GuestView(){
               if(q)fv=fv.filter(f=>[f.file_name,f._artist,f._lead,f.genre,f.key].some((x:any)=>(x||'').toLowerCase().includes(q)));
               fv=[...fv].sort((a,b)=>{if(fileSort==='bpm')return(a.bpm||99999)-(b.bpm||99999);if(fileSort==='vocal')return(a.vocal_gender||'zzz').localeCompare(b.vocal_gender||'zzz');if(fileSort==='key')return(a.key||'zzz').localeCompare(b.key||'zzz');return new Date(b._created).getTime()-new Date(a._created).getTime();});
               return fv.length===0?(
-                <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitchFiles.length===0?'아직 받은 파일이 없어요':'조건에 맞는 파일이 없어요'}</p></div>
+                <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitchFiles.length===0?t('아직 받은 파일이 없어요','No files yet'):t('조건에 맞는 파일이 없어요','No matching files')}</p></div>
               ):(
                 <div className="flex flex-col gap-2.5">
                   {fv.map((f:any)=>{
@@ -768,32 +769,32 @@ export default function GuestView(){
               return(
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-wrap gap-3">
-                    {stat('총 리드',leads.length,D?'text-white':'text-[#111]')}
-                    {stat('활성 리드',activeLeads,'text-emerald-400')}
-                    {stat('받은 피칭',hostPitches.length,'text-[#5B8CFF]')}
-                    {stat('받은 파일',hostPitchFiles.length,'text-amber-400')}
+                    {stat(t('총 리드','Total Leads'),leads.length,D?'text-white':'text-[#111]')}
+                    {stat(t('활성 리드','Active Leads'),activeLeads,'text-emerald-400')}
+                    {stat(t('받은 피칭','Pitches'),hostPitches.length,'text-[#5B8CFF]')}
+                    {stat(t('받은 파일','Files'),hostPitchFiles.length,'text-amber-400')}
                   </div>
 
                   <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>📨 리드별 피칭 수</p>
-                    {leadRank.length===0?<p className={`text-[13px] ${dimText}`}>아직 데이터가 없어요</p>:<div className="flex flex-col gap-2.5">{leadRank.map(x=>bar(x.lead.artist,x.n,maxLead,`${x.n}`,'bg-[#5B8CFF]'))}</div>}
+                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>📨 {t('리드별 피칭 수','Pitches per Lead')}</p>
+                    {leadRank.length===0?<p className={`text-[13px] ${dimText}`}>{t('아직 데이터가 없어요','No data yet')}</p>:<div className="flex flex-col gap-2.5">{leadRank.map(x=>bar(x.lead.artist,x.n,maxLead,`${x.n}`,'bg-[#5B8CFF]'))}</div>}
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                      <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>👤 멤버별 피칭 수</p>
-                      {memberRank.length===0?<p className={`text-[13px] ${dimText}`}>아직 데이터가 없어요</p>:<div className="flex flex-col gap-2.5">{memberRank.map(x=>bar(x.name,x.n,maxMember,`${x.n}`,'bg-emerald-500'))}</div>}
+                      <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>👤 {t('멤버별 피칭 수','Pitches per Member')}</p>
+                      {memberRank.length===0?<p className={`text-[13px] ${dimText}`}>{t('아직 데이터가 없어요','No data yet')}</p>:<div className="flex flex-col gap-2.5">{memberRank.map(x=>bar(x.name,x.n,maxMember,`${x.n}`,'bg-emerald-500'))}</div>}
                     </div>
                     <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                      <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>🎼 장르 분포</p>
-                      {genreRank.length===0?<p className={`text-[13px] ${dimText}`}>아직 데이터가 없어요</p>:<div className="flex flex-col gap-2.5">{genreRank.map(x=>bar(x.g,x.n,genreRank[0].n,`${Math.round((x.n/totalGenre)*100)}%`,'bg-amber-500'))}</div>}
+                      <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>🎼 {t('장르 분포','Genre Distribution')}</p>
+                      {genreRank.length===0?<p className={`text-[13px] ${dimText}`}>{t('아직 데이터가 없어요','No data yet')}</p>:<div className="flex flex-col gap-2.5">{genreRank.map(x=>bar(x.g,x.n,genreRank[0].n,`${Math.round((x.n/totalGenre)*100)}%`,'bg-amber-500'))}</div>}
                     </div>
                   </div>
 
                   <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>🎤 보컬 분포</p>
+                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>🎤 {t('보컬 분포','Vocal Distribution')}</p>
                     <div className="flex gap-3 flex-wrap">
-                      {([['남성',vocalCount.male,'text-blue-400'],['여성',vocalCount.female,'text-pink-400'],['혼성',vocalCount.both,'text-purple-400'],['미지정',vocalCount.none,dimText]] as const).map(([l,n,c])=>(
+                      {([[t('남성','Male'),vocalCount.male,'text-blue-400'],[t('여성','Female'),vocalCount.female,'text-pink-400'],[t('혼성','Mixed'),vocalCount.both,'text-purple-400'],[t('미지정','N/A'),vocalCount.none,dimText]] as const).map(([l,n,c])=>(
                         <div key={l} className={`flex-1 min-w-[100px] text-center p-4 rounded-xl ${D?'bg-white/[0.03]':'bg-black/[0.03]'}`}>
                           <p className={`text-[26px] font-black ${c}`}>{n as number}</p>
                           <p className={`text-[12px] font-bold mt-0.5 ${dimText}`}>{l} · {Math.round(((n as number)/totalVocal)*100)}%</p>
@@ -1066,11 +1067,16 @@ export default function GuestView(){
         <button onClick={()=>{setView('pitches');fetchHostPitches();setPitchToast(null);}} className="fixed top-5 right-5 z-[60] flex items-center gap-3 px-5 py-4 rounded-2xl border border-[#5B8CFF]/40 bg-[#0E1530] shadow-2xl shadow-[#5B8CFF]/20 animate-[slideIn_0.3s_ease] text-left max-w-[340px] hover:scale-[1.02] transition-transform">
           <div className="w-10 h-10 rounded-full bg-[#5B8CFF]/20 flex items-center justify-center text-[18px] shrink-0">📨</div>
           <div className="min-w-0">
-            <p className="text-white font-black text-[14px]">새 피칭 도착!</p>
+            <p className="text-white font-black text-[14px]">{t('새 피칭 도착!','New pitch!')}</p>
             <p className="text-zinc-300 text-[12px] truncate"><span className="font-bold">{pitchToast.artist}</span>{pitchToast.lead&&<span className="text-zinc-500"> → {pitchToast.lead}</span>}</p>
-            <p className="text-[#5B8CFF] text-[11px] font-black mt-0.5">탭해서 보기 ›</p>
+            <p className="text-[#5B8CFF] text-[11px] font-black mt-0.5">{t('탭해서 보기','Tap to view')} ›</p>
           </div>
         </button>
+      )}
+      {shareToast&&(
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-5 py-3 rounded-full bg-[#5B8CFF] text-white text-[13px] font-black shadow-2xl shadow-[#5B8CFF]/30 animate-[slideIn_0.25s_ease]">
+          ✅ {t('공유 링크가 복사됐어요','Share link copied')}
+        </div>
       )}
       <style dangerouslySetInnerHTML={{__html:`@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}`}}/>
 
