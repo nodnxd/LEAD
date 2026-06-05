@@ -544,13 +544,15 @@ export default function GuestView(){
           <div className="flex items-center gap-2">
             <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
             <button onClick={()=>{const v=!globalEn;setGlobalEn(v);localStorage.setItem('lead_global_en',v?'1':'0');}} className={`h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-black transition-all ${globalEn?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>🌐 {globalEn?'EN':'KO'}</button>
-            <div className={`flex border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
-              <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-[#5B8CFF] text-white hover:bg-[#4070ee] transition-all">+ 리드 추가</button>
+            <div className="max-w-full overflow-x-auto [&::-webkit-scrollbar]:hidden">
+            <div className={`flex w-max border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
+              <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-[#5B8CFF] text-white hover:bg-[#4070ee] transition-all whitespace-nowrap">+ 리드 추가</button>
               <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 달력</button>
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
               <button onClick={()=>{setView('pitches');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='pitches'?'bg-[#5B8CFF] text-white':dimText}`}>📨 수신 피칭{hostPitches.length>0&&<span className="ml-1 opacity-70">{hostPitches.length}</span>}</button>
               <button onClick={()=>{setView('files');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='files'?'bg-[#5B8CFF] text-white':dimText}`}>🎵 파일 관리{hostPitchFiles.length>0&&<span className="ml-1 opacity-70">{hostPitchFiles.length}</span>}</button>
-              <button onClick={()=>{setView('stats');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='stats'?'bg-[#5B8CFF] text-white':dimText}`}>📊 통계</button>
+              <button onClick={()=>{setView('stats');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${view==='stats'?'bg-[#5B8CFF] text-white':dimText}`}>📊 통계</button>
+            </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>

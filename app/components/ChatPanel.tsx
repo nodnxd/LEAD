@@ -11,10 +11,12 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
   const [collapsed, setCollapsed] = useState(false);
   const [sending, setSending] = useState(false);
   const [inputVal, setInputVal] = useState('');
-  const [pos, setPos] = useState(() => ({
-    x: Math.max(20, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 420 - index * 34),
-    y: 96 + index * 34,
-  }));
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
+  const isMobile = vw < 640;
+  const winW = isMobile ? vw - 16 : 380;
+  const [pos, setPos] = useState(() => isMobile
+    ? { x: 8, y: 70 + index * 12 }
+    : { x: Math.max(20, vw - 420 - index * 34), y: 96 + index * 34 });
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ dx: number; dy: number } | null>(null);
@@ -51,11 +53,15 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
 
   useEffect(() => {
-    const move = (e: MouseEvent) => { if (!dragRef.current) return; setPos({ x: e.clientX - dragRef.current.dx, y: Math.max(0, e.clientY - dragRef.current.dy) }); };
+    const clampX = (x: number) => Math.min(Math.max(0, x), Math.max(0, window.innerWidth - winW));
+    const apply = (cx: number, cy: number) => { if (!dragRef.current) return; setPos({ x: clampX(cx - dragRef.current.dx), y: Math.min(Math.max(0, cy - dragRef.current.dy), window.innerHeight - 80) }); };
+    const move = (e: MouseEvent) => apply(e.clientX, e.clientY);
+    const tmove = (e: TouchEvent) => { if (!dragRef.current) return; const t = e.touches[0]; apply(t.clientX, t.clientY); e.preventDefault(); };
     const up = () => { dragRef.current = null; };
     window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
-    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
-  }, []);
+    window.addEventListener('touchmove', tmove, { passive: false }); window.addEventListener('touchend', up);
+    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); window.removeEventListener('touchmove', tmove); window.removeEventListener('touchend', up); };
+  }, [winW]);
 
   const send = async () => {
     const content = inputRef.current?.value.trim() || '';
@@ -71,10 +77,11 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
   };
 
   return (
-    <div className={`fixed z-[55] w-[380px] rounded-2xl border shadow-2xl flex flex-col ${bd}`}
-      style={{ left: pos.x, top: pos.y, height: collapsed ? 'auto' : 460, backgroundColor: D ? '#0f0f0f' : '#ffffff', opacity: opacity / 100, fontFamily: 'Pretendard,sans-serif' }}>
+    <div className={`fixed z-[55] rounded-2xl border shadow-2xl flex flex-col ${bd}`}
+      style={{ left: pos.x, top: pos.y, width: winW, height: collapsed ? 'auto' : (isMobile ? '70vh' : 460), backgroundColor: D ? '#0f0f0f' : '#ffffff', opacity: opacity / 100, fontFamily: 'Pretendard,sans-serif' }}>
       <div onMouseDown={(e) => { dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y }; }}
-        className={`flex items-center gap-2 px-3 py-2.5 border-b cursor-move select-none ${bd}`}>
+        onTouchStart={(e) => { const t = e.touches[0]; dragRef.current = { dx: t.clientX - pos.x, dy: t.clientY - pos.y }; }}
+        className={`flex items-center gap-2 px-3 py-2.5 border-b cursor-move select-none touch-none ${bd}`}>
         <div className="w-7 h-7 rounded-full bg-[#5B8CFF]/15 border border-[#5B8CFF]/25 flex items-center justify-center overflow-hidden shrink-0">
           {other?.photo_url ? <img src={other.photo_url} className="w-full h-full object-cover" alt="" /> : <span className="font-black text-[#5B8CFF] text-[12px]">{name[0].toUpperCase()}</span>}
         </div>
@@ -436,9 +443,9 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
       {/* 메신저 패널 */}
       {open && (
         <div
-          className={`fixed bottom-[76px] right-6 z-50 w-[360px] rounded-2xl border shadow-2xl flex flex-col transition-all duration-200 ${bd}`}
+          className={`fixed bottom-[76px] right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[360px] rounded-2xl border shadow-2xl flex flex-col transition-all duration-200 ${bd}`}
           style={{
-            height: minimized ? 'auto' : 500,
+            height: minimized ? 'auto' : 'min(500px, 75vh)',
             fontFamily: 'Pretendard,sans-serif',
             opacity: opacity / 100,
             backgroundColor: D ? '#0d0d0d' : '#ffffff',
