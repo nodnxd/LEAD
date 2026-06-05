@@ -150,6 +150,7 @@ export default function GuestView(){
   useEffect(()=>{const s=localStorage.getItem('lead_theme');if(s==='light')setTheme('light');},[]);
   const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
   const D=theme==='dark';
+  const t=(ko:string,en:string)=>globalEn?en:ko;
   const mainBg=D?'bg-[#050505] text-white':'bg-[#F2F2F7] text-[#111]';
   const dividerCls=D?'border-white/10':'border-black/[0.08]';
   const dimText=D?'text-zinc-500':'text-zinc-500';
@@ -368,14 +369,14 @@ export default function GuestView(){
     const allText=lead.content?parseSections(lead.content)?.map((s:any)=>s.body).join('\n')||lead.content:'';
     const urls=extractUrls(allText);
     return(
-      <div onClick={(e)=>{e.stopPropagation();setViewingLead(lead);setContentLang('ko');}} className={`border rounded-2xl cursor-pointer transition-all hover:scale-[1.02] ${c.bg} ${c.border} ${expired?'opacity-40 grayscale':''} ${compact?'p-2':'p-4'}`}>
+      <div onClick={(e)=>{e.stopPropagation();setViewingLead(lead);setContentLang('ko');}} className={`border rounded-2xl cursor-pointer transition-all active:scale-[0.99] sm:hover:scale-[1.02] ${c.bg} ${c.border} ${expired?'opacity-40 grayscale':''} ${compact?'p-2':'p-4 sm:p-4'}`}>
         {compact?(<div className="flex items-center gap-1.5"><div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`}/><span className={`text-[11px] font-bold truncate ${D?"text-white":"text-[#111]"}`}>{lead.artist}</span><DeadlineDisplay lead={lead} size="compact"/></div>):(
           <>
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><div className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`}/><span className={`text-[10px] font-black ${c.text}`}>{c.label}</span><AlbumBadge type={lead.album_type||'single'}/></div><h3 className={`font-black text-[15px] truncate ${D?"text-white":"text-[#111]"}`}>{lead.artist}</h3><p className={`text-[12px] truncate ${D?"text-zinc-400":"text-zinc-600"}`}>{lead.title}</p></div>
-              <div className="ml-2 shrink-0"><DeadlineDisplay lead={lead} size="normal"/></div>
+            <div className="flex items-start justify-between mb-2 gap-2">
+              <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1 flex-wrap"><div className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`}/><span className={`text-[10px] sm:text-[10px] font-black ${c.text}`}>{c.label}</span><AlbumBadge type={lead.album_type||'single'}/></div><h3 className={`font-black text-[17px] sm:text-[15px] truncate ${D?"text-white":"text-[#111]"}`}>{lead.artist}</h3><p className={`text-[13px] sm:text-[12px] truncate ${D?"text-zinc-400":"text-zinc-600"}`}>{lead.title}</p></div>
+              <div className="ml-1 shrink-0"><DeadlineDisplay lead={lead} size="normal"/></div>
             </div>
-            {lead.content&&<p className={`text-[11px] line-clamp-2 mt-1 ${D?"text-zinc-500":"text-zinc-600"}`}>{getLeadPreview(lead)}</p>}
+            {lead.content&&<p className={`text-[12px] sm:text-[11px] line-clamp-2 mt-1 ${D?"text-zinc-500":"text-zinc-600"}`}>{getLeadPreview(lead)}</p>}
             {urls.length>0&&<div className="flex gap-1.5 mt-2 pt-2 border-t border-white/5">{urls.slice(0,3).map((url,i)=><a key={i} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} className="text-[13px] hover:scale-110 transition-transform">{getLinkIcon(url)}</a>)}{urls.length>3&&<span className="text-zinc-700 text-[10px] self-center">+{urls.length-3}</span>}</div>}
           </>
         )}
@@ -523,7 +524,7 @@ export default function GuestView(){
   return(
     <>
       <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
-      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-pretendard relative`}>
+      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 pb-24 sm:pb-5 font-pretendard relative`}>
         <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] ${D?'opacity-[0.06]':'opacity-[0.04]'} pointer-events-none`}/>
         <div className="relative z-10 flex flex-col items-center mb-8">
           <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
@@ -537,9 +538,9 @@ export default function GuestView(){
           <div className="flex items-center gap-2">
             <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
             <button onClick={()=>{const v=!globalEn;setGlobalEn(v);localStorage.setItem('lead_global_en',v?'1':'0');}} className={`h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-black transition-all ${globalEn?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>🌐 {globalEn?'EN':'KO'}</button>
-            <div className={`flex border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
-              <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 달력</button>
-              <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 목록</button>
+            <div className={`hidden sm:flex border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
+              <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 {t('달력','Calendar')}</button>
+              <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 {t('목록','List')}</button>
             </div>
             <button onClick={()=>{navigator.clipboard.writeText(window.location.href);setShareToast(true);setTimeout(()=>setShareToast(false),2000);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🔗 공유</button>
             {/* ✅ MY 버튼 */}
@@ -622,6 +623,23 @@ export default function GuestView(){
         )}
         <div className={`relative z-10 mt-8 pb-8 text-center`}><p className={`text-[11px] ${D?'text-zinc-600':'text-zinc-400'}`}>Contact : everplayground@gmail.com</p></div>
       </main>
+
+      {/* 모바일 하단 고정 탭바 */}
+      <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch border-t backdrop-blur-xl ${D?'bg-[#0a0a0a]/95 border-white/10':'bg-white/95 border-black/[0.08]'}`} style={{paddingBottom:'env(safe-area-inset-bottom)'}}>
+        {([
+          ['list','📋',t('목록','List'),()=>setView('list')],
+          ['calendar','📅',t('달력','Calendar'),()=>setView('calendar')],
+          ['mine','📨',t('내 피칭','My Pitch'),()=>{window.location.href='/mypage';}],
+        ] as const).map(([key,icon,label,fn])=>{
+          const active=(key==='list'&&view==='list')||(key==='calendar'&&view==='calendar');
+          return(
+            <button key={key} onClick={fn as any} className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors ${active?'text-[#5B8CFF]':D?'text-zinc-500':'text-zinc-400'}`}>
+              <span className="text-[19px] leading-none">{icon}</span>
+              <span className="text-[10px] font-black">{label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
       {viewingLead&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-0 sm:p-4" onClick={()=>setViewingLead(null)}>
@@ -718,26 +736,26 @@ export default function GuestView(){
                 <>
                   <div className="mb-5"><h2 className={`font-black text-[20px] ${D?'text-white':'text-[#111]'}`}>🎵 피칭하기</h2><p className={`text-[12px] mt-0.5 ${dimText}`}>{pitchingLead.artist} — {pitchingLead.title}</p></div>
                   <div className="flex flex-col gap-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={pitchForm.artist_name} onChange={e=>setPitchForm(p=>({...p,artist_name:e.target.value}))} placeholder="아티스트명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
-                      <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>연락처 *</label><input value={pitchForm.contact} onChange={e=>setPitchForm(p=>({...p,contact:e.target.value}))} placeholder="이메일/전화/카카오" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={pitchForm.artist_name} onChange={e=>setPitchForm(p=>({...p,artist_name:e.target.value}))} placeholder="아티스트명" className={`w-full border rounded-xl px-4 py-3 text-[16px] sm:text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                      <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>연락처 *</label><input value={pitchForm.contact} onChange={e=>setPitchForm(p=>({...p,contact:e.target.value}))} placeholder="이메일/전화/카카오" className={`w-full border rounded-xl px-4 py-3 text-[16px] sm:text-[13px] outline-none transition-all ${inputCls}`}/></div>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-2"><label className={`text-[10px] font-black uppercase tracking-widest ${D?'text-zinc-500':'text-zinc-400'}`}>데모 파일 <span className={`font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>MP3 · 최대 50MB</span></label>{pitchFiles.length>0&&<span className={`text-[11px] ${D?'text-zinc-600':'text-zinc-400'}`}>{pitchFiles.length}개</span>}</div>
                       {pitchFiles.length>0&&<div className="flex flex-col gap-2 mb-3">{pitchFiles.map(item=><FileItem key={item.id} item={item}/>)}</div>}
                       <input ref={fileInputRef} type="file" accept=".mp3,audio/mpeg" multiple className="hidden" onChange={handleFileInput}/>
-                      <div onDragOver={e=>e.preventDefault()} onDrop={handleFileDrop} onClick={()=>fileInputRef.current?.click()} className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all ${D?'border-white/10 hover:border-white/20 hover:bg-white/[0.02]':'border-black/[0.08] hover:border-black/20 hover:bg-black/[0.02]'}`}>
-                        <p className={`text-[12px] font-bold ${D?'text-zinc-600':'text-zinc-400'}`}>+ 파일 추가</p>
-                        <p className={`text-[11px] mt-0.5 ${D?'text-zinc-800':'text-zinc-300'}`}>클릭 또는 드래그 · 여러 개 동시 선택 가능</p>
+                      <div onDragOver={e=>e.preventDefault()} onDrop={handleFileDrop} onClick={()=>fileInputRef.current?.click()} className={`border-2 border-dashed rounded-2xl p-6 sm:p-4 text-center cursor-pointer transition-all active:scale-[0.99] ${D?'border-white/10 hover:border-white/20 hover:bg-white/[0.02]':'border-black/[0.08] hover:border-black/20 hover:bg-black/[0.02]'}`}>
+                        <p className={`text-[14px] sm:text-[12px] font-bold ${D?'text-zinc-400':'text-zinc-500'}`}>＋ 파일 추가</p>
+                        <p className={`text-[11px] mt-1 ${D?'text-zinc-700':'text-zinc-400'}`}>클릭 또는 드래그 · 여러 개 동시 선택</p>
                       </div>
                     </div>
-                    <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>세부사항 <span className={`font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>(선택)</span></label><textarea value={pitchForm.message} onChange={e=>setPitchForm(p=>({...p,message:e.target.value}))} placeholder="포트폴리오 링크, 제작 의도, 기타 전달사항 등" rows={2} className={`w-full border rounded-xl px-4 py-3 text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
+                    <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>세부사항 <span className={`font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>(선택)</span></label><textarea value={pitchForm.message} onChange={e=>setPitchForm(p=>({...p,message:e.target.value}))} placeholder="포트폴리오 링크, 제작 의도, 기타 전달사항 등" rows={3} className={`w-full border rounded-xl px-4 py-3 text-[16px] sm:text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
                   </div>
                   {pitchLoading&&<div className="mt-4"><div className="flex items-center justify-between mb-1.5"><span className={`text-[11px] ${dimText}`}>업로드 중...</span><span className={`text-[11px] font-bold ${D?'text-zinc-400':'text-zinc-500'}`}>{uploadProgress}%</span></div><div className={`w-full h-1.5 rounded-full overflow-hidden ${D?'bg-white/10':'bg-black/[0.08]'}`}><div className="h-full bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] rounded-full transition-all" style={{width:`${uploadProgress}%`}}/></div></div>}
                   {uploadError&&<p className="mt-3 text-red-400 text-[12px] bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">{uploadError}</p>}
                   <div className="flex gap-3 mt-5">
-                    <button onClick={()=>{setPitchingLead(null);setPitchSent(false);}} disabled={pitchLoading} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] transition-all disabled:opacity-40 ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>취소</button>
-                    <button onClick={submitPitch} disabled={pitchLoading||!pitchForm.artist_name.trim()||!pitchForm.contact.trim()||pitchFiles.some(f=>f.analyzing)} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-40 disabled:hover:scale-100">
+                    <button onClick={()=>{setPitchingLead(null);setPitchSent(false);}} disabled={pitchLoading} className={`py-3.5 px-5 rounded-xl border font-bold text-[14px] transition-all disabled:opacity-40 ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>취소</button>
+                    <button onClick={submitPitch} disabled={pitchLoading||!pitchForm.artist_name.trim()||!pitchForm.contact.trim()||pitchFiles.some(f=>f.analyzing)} className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[14px] active:scale-[0.99] sm:hover:scale-[1.02] transition-all disabled:opacity-40 disabled:hover:scale-100">
                       {pitchLoading?'전송 중...':pitchFiles.length>0?`${pitchFiles.length}개 파일과 함께 제출`:'피칭 제출'}
                     </button>
                   </div>
@@ -750,7 +768,7 @@ export default function GuestView(){
 
       {/* 채팅 패널 */}
       {currentUser&&authStatus==='approved'&&(
-        <ChatPanel user={currentUser} hostId={hostId} dark={D}/>
+        <ChatPanel user={currentUser} hostId={hostId} dark={D} liftMobile/>
       )}
     </>
   );

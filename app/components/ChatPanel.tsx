@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
-interface Props { user: any; hostId: string; dark: boolean; }
+interface Props { user: any; hostId: string; dark: boolean; liftMobile?: boolean; }
 
 // 독립적으로 떠다니는 채팅 팝업 창 (이동 + 투명도)
 function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: any; conv: any; other: any; dark: boolean; index: number; onClose: () => void }) {
@@ -115,7 +115,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
   );
 }
 
-export default function ChatPanel({ user, hostId, dark: D }: Props) {
+export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }: Props) {
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [tab, setTab] = useState<'members' | 'chats'>('members');
@@ -446,7 +446,7 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
       {/* 플로팅 버튼 */}
       <button
         onClick={() => { setOpen(o => !o); setMinimized(false); }}
-        className={`fixed bottom-6 right-6 z-40 rounded-2xl flex items-center justify-center shadow-xl transition-all hover:scale-110 active:scale-95 ${D ? 'bg-[#1a1a1a] border border-white/10' : 'bg-white border border-black/[0.08]'}`}
+        className={`fixed ${liftMobile ? 'bottom-[74px] sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-40 rounded-2xl flex items-center justify-center shadow-xl transition-all hover:scale-110 active:scale-95 ${D ? 'bg-[#1a1a1a] border border-white/10' : 'bg-white border border-black/[0.08]'}`}
         style={{ width: 52, height: 52 }}
       >
         <span className="text-[20px]">💬</span>
@@ -460,7 +460,7 @@ export default function ChatPanel({ user, hostId, dark: D }: Props) {
       {/* 메신저 패널 */}
       {open && (
         <div
-          className={`fixed bottom-[76px] right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[360px] rounded-2xl border shadow-2xl flex flex-col transition-all duration-200 ${bd}`}
+          className={`fixed ${liftMobile ? 'bottom-[140px] sm:bottom-[76px]' : 'bottom-[76px]'} right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[360px] rounded-2xl border shadow-2xl flex flex-col transition-all duration-200 ${bd}`}
           style={{
             height: minimized ? 'auto' : 'min(500px, 75vh)',
             fontFamily: 'Pretendard,sans-serif',
