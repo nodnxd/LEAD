@@ -101,7 +101,7 @@ export default function GuestView(){
   const [leads,setLeads]=useState<any[]>([]);
   const [announcements,setAnnouncements]=useState<any[]>([]);
   const [hostCompany,setHostCompany]=useState('');
-  const [view,setView]=useState<'calendar'|'list'>('calendar');
+  const [view,setView]=useState<'calendar'|'list'>(typeof window!=='undefined'&&window.innerWidth<768?'list':'calendar');
   const [calView,setCalView]=useState<'month'|'week'>('month');
   const [currentMonth,setCurrentMonth]=useState(new Date());
   const [weekStart,setWeekStart]=useState(startOfWeek(new Date()));
@@ -346,7 +346,20 @@ export default function GuestView(){
     if(filterGender.length)l=l.filter(x=>filterGender.includes(x.gender));
     if(filterGroup.length)l=l.filter(x=>filterGroup.includes(x.group_type));
     if(filterAlbum.length)l=l.filter(x=>filterAlbum.includes(x.album_type||'single'));
-    return l.sort((a,b)=>{if(sortBy==='gender')return a.gender.localeCompare(b.gender);if(sortBy==='group')return a.group_type.localeCompare(b.group_type);if(sortBy==='album')return(a.album_type||'single').localeCompare(b.album_type||'single');const aD=a.deadline||a.deadline2,bD=b.deadline||b.deadline2;if(!aD)return 1;if(!bD)return-1;return new Date(aD).getTime()-new Date(bD).getTime();});
+    const nearestActive=(x:any)=>{const cs=[x.deadline,x.deadline2].filter((d:any)=>d&&!isExpired(d));return cs.length?Math.min(...cs.map((d:any)=>new Date(d).getTime())):null;};
+    return l.sort((a,b)=>{
+      if(sortBy==='gender')return a.gender.localeCompare(b.gender);
+      if(sortBy==='group')return a.group_type.localeCompare(b.group_type);
+      if(sortBy==='album')return(a.album_type||'single').localeCompare(b.album_type||'single');
+      // D-Day: 임박(D-day 짧은)순 → 마감된 건 맨 뒤로
+      const aA=nearestActive(a),bA=nearestActive(b);
+      if(aA!==null&&bA!==null)return aA-bA;
+      if(aA!==null)return -1;
+      if(bA!==null)return 1;
+      const aL=a.deadline2||a.deadline,bL=b.deadline2||b.deadline;
+      if(!aL)return 1;if(!bL)return-1;
+      return new Date(bL).getTime()-new Date(aL).getTime();
+    });
   },[leads,filterGender,filterGroup,filterAlbum,sortBy]);
 
   const LeadCard=({lead,compact=false}:{lead:any;compact?:boolean})=>{
@@ -611,9 +624,9 @@ export default function GuestView(){
       </main>
 
       {viewingLead&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={()=>setViewingLead(null)}>
-          <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
-            <div className="p-6 max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-0 sm:p-4" onClick={()=>setViewingLead(null)}>
+          <div className={`w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
+            <div className="p-5 sm:p-6 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
               <div className="flex items-start justify-between mb-5">
                 <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><span className={`text-[10px] font-black ${getCardColor(viewingLead.gender,viewingLead.group_type).text}`}>{getCardColor(viewingLead.gender,viewingLead.group_type).label}</span><AlbumBadge type={viewingLead.album_type||'single'}/></div><h2 className="text-white font-black text-[22px] leading-tight">{viewingLead.artist}</h2><p className="text-zinc-400 text-[14px] mt-0.5">{viewingLead.title}</p></div>
                 <div className="ml-3 shrink-0"><DeadlineDisplay lead={viewingLead} size="large"/></div>
@@ -651,9 +664,9 @@ export default function GuestView(){
       {shareToast&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl">🔗 링크가 복사됐어요!</div>}
 
       {showLeadForm&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto">
-          <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl my-4 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
-            <div className="p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-0 sm:p-4 overflow-y-auto">
+          <div className={`w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl sm:my-4 max-h-[92vh] overflow-y-auto ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className="p-5 sm:p-6">
               <h2 className={`font-black text-[20px] mb-5 ${D?'text-white':'text-[#111]'}`}>{editingLead?'✏️ 리드 수정':'+ 리드 추가'}</h2>
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -689,9 +702,9 @@ export default function GuestView(){
       )}
 
       {pitchingLead&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
-          <div className={`w-full max-w-lg border rounded-[2rem] shadow-2xl my-4 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
-            <div className="p-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-0 sm:p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
+          <div className={`w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl sm:my-4 max-h-[92vh] overflow-y-auto ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className="p-5 sm:p-6">
               {pitchSent?(
                 <div className="text-center py-10">
                   <div className="text-5xl mb-4">🎉</div>
