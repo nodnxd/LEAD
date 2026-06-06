@@ -198,6 +198,13 @@ export default function GuestView(){
   const [isAdmin,setIsAdmin]=useState(false);
   const [pendingHosts,setPendingHosts]=useState<any[]>([]);
   const [showHostApprovals,setShowHostApprovals]=useState(false);
+  const [showHostGrants,setShowHostGrants]=useState(false);
+  const [hostGrants,setHostGrants]=useState<any[]>([]);
+  const [grantEmail,setGrantEmail]=useState('');
+  const [grantMsg,setGrantMsg]=useState('');
+  const fetchHostGrants=async()=>{const{data}=await supabase.from('host_grants').select('*').order('created_at',{ascending:false});setHostGrants(data||[]);};
+  const grantHost=async()=>{const e=grantEmail.trim().toLowerCase();if(!e)return;setGrantMsg('');const{error}=await supabase.from('host_grants').insert({email:e,status:'approved'});if(error){setGrantMsg(error.message||'실패');return;}setGrantEmail('');setGrantMsg('호스트 권한을 줬어요. 그 사람이 로그인하면 회사를 운영할 수 있어요.');fetchHostGrants();};
+  const revokeHost=async(id:string)=>{await supabase.from('host_grants').delete().eq('id',id);fetchHostGrants();};
   const [theme,setTheme]=useState<'dark'|'light'>('dark');
   const [zoom,setZoom]=useState(1);
   const draggingZoom=useRef(false);const zoomStartY=useRef(0);const zoomStart=useRef(1);
@@ -725,6 +732,7 @@ export default function GuestView(){
                 )}
               </div>
             )}
+            {isAdmin&&<button onClick={()=>{fetchHostGrants();setGrantMsg('');setShowHostGrants(true);}} className="px-3 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400 text-[10px] font-black transition-all whitespace-nowrap hover:bg-amber-500/20">🛡️ {t('호스트 권한','Host access')}</button>}
             {isOwner&&<button onClick={()=>{fetchWsAdmins();setWsInviteMsg('');setShowWsAdmins(true);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👑 {t('공동 관리자','Co-admins')}</button>}
             <button onClick={()=>{openDemoForm();setShowDemoMgr(true);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🎤 {t('데모 수급','Demos')}{demoDrives.length>0&&<span className="ml-1 opacity-70">{demoDrives.length}</span>}</button>
             <button onClick={()=>{setShowMembers(true);fetchMembers();}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👥 {t('멤버','Members')}</button>
@@ -1153,6 +1161,42 @@ export default function GuestView(){
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showHostGrants&&(
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setShowHostGrants(false)}>
+          <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
+              <div>
+                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>🛡️ {t('호스트 권한','Host Access')}</h2>
+                <p className={`text-[12px] mt-0.5 ${dimText}`}>{t('회사를 운영할 수 있는 사람(호스트)을 지정해요','Grant who can operate companies as a host')}</p>
+              </div>
+              <button onClick={()=>setShowHostGrants(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-[13px] ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
+            </div>
+            <div className="overflow-y-auto p-5 flex flex-col gap-4">
+              <div className={`p-4 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                <p className={`text-[13px] font-black mb-2 ${D?'text-white':'text-[#111]'}`}>{t('이메일로 호스트 허가','Grant host by email')}</p>
+                <div className="flex gap-2">
+                  <input value={grantEmail} onChange={e=>setGrantEmail(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')grantHost();}} placeholder="host@email.com" className={`flex-1 border rounded-xl px-4 py-2.5 text-[14px] outline-none transition-all ${inputCls}`}/>
+                  <button onClick={grantHost} disabled={!grantEmail.trim()} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-400 text-white font-black text-[13px] disabled:opacity-40">{t('허가','Grant')}</button>
+                </div>
+                {grantMsg&&<p className={`text-[12px] mt-2 ${grantMsg.includes('줬어요')?'text-emerald-400':'text-red-400'}`}>{grantMsg}</p>}
+                <p className={`text-[11px] mt-2 ${dimText}`}>{t('메일은 안 가요 — 명단에만 올라가고, 그 이메일로 로그인하면 호스트가 돼요.','No email is sent — just listed; they become a host when they log in with that email.')}</p>
+              </div>
+              {hostGrants.length===0?<p className={`text-[13px] text-center py-4 ${dimText}`}>{t('아직 허가한 호스트가 없어요','No hosts granted yet')}</p>:(
+                <div className="flex flex-col gap-2">
+                  {hostGrants.map(g=>(
+                    <div key={g.id} className={`flex items-center gap-3 p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center text-[15px] shrink-0">🏢</div>
+                      <div className="flex-1 min-w-0"><p className={`font-bold text-[13px] truncate ${D?'text-white':'text-[#111]'}`}>{g.email}</p></div>
+                      <button onClick={()=>revokeHost(g.id)} className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-[12px] font-black hover:bg-red-500/20 transition-all">{t('해제','Revoke')}</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
