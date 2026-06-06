@@ -824,7 +824,7 @@ export default function MyPage() {
                           </p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          {(() => { const st:any={pending:['검토중','bg-zinc-500/15 text-zinc-400'],accepted:['채택','bg-emerald-500/15 text-emerald-400'],hold:['보류','bg-amber-500/15 text-amber-400'],rejected:['거절','bg-red-500/15 text-red-400']}[p.status||'pending']; return <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${st[1]}`}>{st[0]}</span>; })()}
+                          {(() => { const m:Record<string,[string,string]>={pending:['검토중','bg-zinc-500/15 text-zinc-400'],accepted:['채택','bg-emerald-500/15 text-emerald-400'],hold:['보류','bg-amber-500/15 text-amber-400'],rejected:['거절','bg-red-500/15 text-red-400']}; const st=m[p.status||'pending']||m.pending; return <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${st[1]}`}>{st[0]}</span>; })()}
                           {files.length > 0 && (
                             <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>
                           )}
