@@ -207,8 +207,8 @@ export default function GuestView(){
       localStorage.setItem('last_host_id',hostId);
       if(user.id===hostId){setIsHost(true);setAuthStatus('approved');fetchAll();return;}
       const[profileRes,approvalRes]=await Promise.all([
-        supabase.from('members').select('*').eq('id',user.id).single(),
-        supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).single(),
+        supabase.from('members').select('*').eq('id',user.id).maybeSingle(),
+        supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).maybeSingle(),
       ]);
       if(profileRes.data){setGuestProfile(profileRes.data);setNoProfile(false);}
       else{setNoProfile(true);setAuthStatus('none');return;} // 프로필 없음 → 온보딩으로
@@ -248,7 +248,7 @@ export default function GuestView(){
     if(lr.data){setLeads(lr.data.filter((l:any)=>l.kind!=='demo'));setDemoDrives(lr.data.filter((l:any)=>l.kind==='demo'));}
     if(ar.data)setAnnouncements(ar.data);
   };
-  useEffect(()=>{if(!hostId)return;supabase.from('host_profiles').select('company,display_name').eq('id',hostId).single().then(({data})=>{if(data)setHostCompany(data.company||data.display_name||'');});},[hostId]);
+  useEffect(()=>{if(!hostId)return;supabase.from('host_profiles').select('company,display_name').eq('id',hostId).maybeSingle().then(({data})=>{if(data)setHostCompany(data.company||data.display_name||'');});},[hostId]);
   useEffect(()=>{if(!hostId)return;const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
   const addFile=async(file:File)=>{
