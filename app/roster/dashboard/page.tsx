@@ -1132,6 +1132,7 @@ export default function Dashboard() {
                   <button onClick={() => setShowSessionBoard(!showSessionBoard)} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${btnBg}`}>🗂 {t.history}</button>
                   <button onClick={exportRoster} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${btnBg}`}>📤 {t.export}</button>
                   <button onClick={() => router.push('/roster/artists')} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${btnBg}`}>🎤 {t.artists}</button>
+                  <button onClick={() => router.push('/dashboard')} className="border border-[#5B8CFF]/40 bg-[#5B8CFF]/10 text-[#5B8CFF] px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all hover:bg-[#5B8CFF]/20">📋 LEAD</button>
                   <button onClick={() => { setShowArtistPanel(p => !p); if (!showArtistPanel) fetchArtists(user); }}
                     className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${showArtistPanel ? 'border-[#DE6B35]/50 text-[#DE6B35] bg-[#DE6B35]/10' : btnBg}`}>📥 {t.addFromArtists}</button>
                   <div className={`flex p-1 rounded-lg border gap-1 shadow-lg backdrop-blur-md ${inputBg}`}>
