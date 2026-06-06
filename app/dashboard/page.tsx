@@ -197,6 +197,9 @@ export default function GuestView(){
   const [pendingHosts,setPendingHosts]=useState<any[]>([]);
   const [showHostApprovals,setShowHostApprovals]=useState(false);
   const [theme,setTheme]=useState<'dark'|'light'>('dark');
+  const [zoom,setZoom]=useState(1);
+  useEffect(()=>{const z=localStorage.getItem('lead_zoom');if(z)setZoom(parseFloat(z));},[]);
+  const setZoomLevel=(z:number)=>{const v=Math.min(1.5,Math.max(0.7,Math.round(z*100)/100));setZoom(v);localStorage.setItem('lead_zoom',String(v));};
   const [translating,setTranslating]=useState(false);
   const [globalEn,setGlobalEn]=useState(false);
   const [showMyPitches,setShowMyPitches]=useState(false);
@@ -566,7 +569,7 @@ export default function GuestView(){
     const urls=extractUrls(allText);
     return(
       <div onClick={()=>{setViewingLead(lead);setContentLang('ko');}} className={`relative border rounded-2xl cursor-pointer transition-all duration-300 active:scale-[0.99] sm:hover:scale-[1.02] sm:hover:-translate-y-0.5 ${D?'shadow-lg shadow-black/30 sm:hover:shadow-xl sm:hover:shadow-black/40':'shadow-sm sm:hover:shadow-md'} before:absolute before:inset-x-0 before:top-0 before:h-px before:rounded-t-2xl before:bg-gradient-to-r before:from-transparent before:via-white/15 before:to-transparent ${c.bg} ${c.border} ${expired?'opacity-40 grayscale':''} ${compact?'p-2 before:hidden':'p-4'}`}>
-        {compact?(<div className="flex items-center gap-1.5"><div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`}/><span className="text-white text-[11px] font-bold truncate">{lead.artist}</span><DeadlineDisplay lead={lead} size="compact"/></div>):(
+        {compact?(<div className="flex items-center gap-1.5"><div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`}/><span className={`text-[11px] font-bold truncate ${D?'text-white':'text-[#111]'}`}>{lead.artist}</span><DeadlineDisplay lead={lead} size="compact"/></div>):(
           <>
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><div className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`}/><span className={`text-[10px] font-black ${c.text}`}>{c.label}</span><AlbumBadge type={lead.album_type||'single'}/></div><h3 className={`font-black text-[15px] truncate ${D?"text-white":"text-[#111]"}`}>{lead.artist}</h3><p className={`text-[12px] truncate ${D?"text-zinc-400":"text-zinc-600"}`}>{lead.title}</p></div>
@@ -660,7 +663,7 @@ export default function GuestView(){
   return(
     <>
       <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
-      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-pretendard relative`}>
+      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-pretendard relative`} style={{zoom}}>
         <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] ${D?'opacity-[0.06]':'opacity-[0.04]'} pointer-events-none`}/>
         <div className="relative z-10 flex flex-col items-center mb-8">
           <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
@@ -684,6 +687,11 @@ export default function GuestView(){
         <div className={`relative z-30 flex flex-wrap items-center justify-between gap-3 mb-6 border-b ${dividerCls} pb-4`}>
           <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} {t('활성','Active')}</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} {t('마감','Closed')}</span></div>
           <div className="flex items-center gap-2">
+            <div className={`flex items-center rounded-xl border ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
+              <button onClick={()=>setZoomLevel(zoom-0.1)} className={`w-8 h-9 flex items-center justify-center text-[16px] font-black ${D?'text-zinc-400 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>−</button>
+              <button onClick={()=>setZoomLevel(1)} className={`px-1 text-[10px] font-black ${dimText}`} title="100%">{Math.round(zoom*100)}%</button>
+              <button onClick={()=>setZoomLevel(zoom+0.1)} className={`w-8 h-9 flex items-center justify-center text-[16px] font-black ${D?'text-zinc-400 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>+</button>
+            </div>
             <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
             <button onClick={()=>{const v=!globalEn;setGlobalEn(v);localStorage.setItem('lead_global_en',v?'1':'0');}} className={`h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-black transition-all ${globalEn?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>🌐 {globalEn?'EN':'KO'}</button>
             <div className="max-w-full overflow-x-auto [&::-webkit-scrollbar]:hidden">
