@@ -119,7 +119,14 @@ const PITCH_STATUS_KEYS=['pitched','unpitched','hold'] as const;
 
 export default function GuestView(){
   const params=useParams();
-  const [hostId,setHostId]=useState('');
+  const [hostId,setHostId]=useState(''); // 현재 선택된 워크스페이스(=회사) id
+  const [ownerId,setOwnerId]=useState(''); // 로그인한 본인 user.id
+  const [workspaces,setWorkspaces]=useState<{id:string;name:string;isOwner:boolean}[]>([]);
+  const [showWsPicker,setShowWsPicker]=useState(false);
+  const [showWsAdmins,setShowWsAdmins]=useState(false);
+  const [wsAdmins,setWsAdmins]=useState<any[]>([]);
+  const [wsInviteEmail,setWsInviteEmail]=useState('');
+  const [wsInviteMsg,setWsInviteMsg]=useState('');
   const [showLeadForm,setShowLeadForm]=useState(false);
   const [editingLead,setEditingLead]=useState<any>(null);
   const [leadSaving,setLeadSaving]=useState(false);
@@ -216,12 +223,26 @@ export default function GuestView(){
       const blocked=row&&(row.status==='suspended'||row.status==='rejected');
       setHostStatus(blocked?'pending':'approved');
     };
+    const loadWorkspaces=async(user:any)=>{
+      // 이메일로 초대된 관리자면 admin_id 백필 (본인 행만)
+      try{await supabase.from('workspace_admins').update({admin_id:user.id}).is('admin_id',null).eq('admin_email',(user.email||'').toLowerCase());}catch{}
+      const{data:wa}=await supabase.from('workspace_admins').select('workspace_id').eq('admin_id',user.id);
+      const ids=[...new Set([user.id,...((wa||[]).map((w:any)=>w.workspace_id))])];
+      const{data:hp}=await supabase.from('host_profiles').select('id,company,display_name').in('id',ids);
+      const nm:Record<string,string>={};(hp||[]).forEach((h:any)=>{nm[h.id]=h.company||h.display_name||'';});
+      const list=ids.map(id=>({id,name:nm[id]||(id===user.id?'내 워크스페이스':'워크스페이스'),isOwner:id===user.id}));
+      setWorkspaces(list);
+      const saved=localStorage.getItem('selected_ws');
+      const initial=(saved&&ids.includes(saved))?saved:user.id;
+      setHostId(initial);
+    };
     const setApproved=(user:any)=>{
-      setHostId(user.id);
+      setOwnerId(user.id);
       setCurrentUser(user);
       localStorage.setItem('last_host_id',user.id);
       setAuthStatus('approved');
       checkHostApproval(user);
+      loadWorkspaces(user);
     };
     supabase.auth.getSession().then(async({data:{session}})=>{
       if(session?.user){setApproved(session.user);return;}
@@ -377,6 +398,12 @@ export default function GuestView(){
   const removeFolder=async(name:string)=>{if(!confirm(`'${name}' 폴더를 목록에서 제거할까요? (파일은 삭제되지 않아요)`))return;await saveFolders(hostFolders.filter(f=>f!==name));if(fileFolderFilter===name)setFileFolderFilter('all');};
   const fetchPendingHosts=async()=>{const{data}=await supabase.from('host_approvals').select('*').eq('status','pending').order('created_at',{ascending:false});setPendingHosts(data||[]);};
   const decideHost=async(h:any,status:'approved'|'rejected')=>{await supabase.from('host_approvals').update({status}).eq('host_id',h.host_id);setPendingHosts(p=>p.filter(x=>x.host_id!==h.host_id));};
+  // ── 워크스페이스(회사) 다중 관리자 ──
+  const switchWorkspace=(id:string)=>{setHostId(id);localStorage.setItem('selected_ws',id);setShowWsPicker(false);};
+  const isOwner=hostId===ownerId; // 현재 워크스페이스의 소유자인지
+  const fetchWsAdmins=async()=>{if(!hostId)return;const{data}=await supabase.from('workspace_admins').select('*').eq('workspace_id',hostId).order('created_at',{ascending:false});setWsAdmins(data||[]);};
+  const inviteAdmin=async()=>{const email=wsInviteEmail.trim().toLowerCase();if(!email||!isOwner)return;setWsInviteMsg('');const{error}=await supabase.from('workspace_admins').insert({workspace_id:hostId,admin_email:email});if(error){setWsInviteMsg(error.message||'초대 실패');return;}setWsInviteEmail('');setWsInviteMsg('초대했어요. 상대가 호스트로 로그인하면 이 회사가 보여요.');fetchWsAdmins();};
+  const removeAdmin=async(id:string)=>{await supabase.from('workspace_admins').delete().eq('id',id);fetchWsAdmins();};
   const saveCompany=async()=>{const v=companyDraft.trim();setHostCompany(v);setEditingCompany(false);if(hostId)await supabase.from('host_profiles').upsert({id:hostId,company:v||null});};
   useEffect(()=>{if(!hostId)return;const ch=supabase.channel('members_rt').on('postgres_changes',{event:'*',schema:'public',table:'member_approvals',filter:`host_id=eq.${hostId}`},()=>fetchMembers()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
@@ -649,6 +676,19 @@ export default function GuestView(){
               <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
               <span className="text-amber-400 text-[11px] font-bold">HOST</span>
             </div>
+            {workspaces.length>1&&(
+              <div className="relative">
+                <button onClick={()=>setShowWsPicker(s=>!s)} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-[#5B8CFF]/30 bg-[#5B8CFF]/10 text-[#8FB0FF]':'border-[#5B8CFF]/25 bg-[#5B8CFF]/5 text-[#3358E8]'}`}>🏢 {workspaces.find(w=>w.id===hostId)?.name||t('워크스페이스','Workspace')} ▾</button>
+                {showWsPicker&&(<>
+                  <div className="fixed inset-0 z-40" onClick={()=>setShowWsPicker(false)}/>
+                  <div className={`anim-rise absolute left-0 mt-2 w-56 z-50 rounded-2xl border shadow-2xl overflow-hidden ${D?'bg-[#141414] border-white/10':'bg-white border-black/[0.08]'}`}>
+                    <p className={`text-[10px] font-black uppercase tracking-widest px-4 pt-3 pb-1 ${dimText}`}>{t('워크스페이스','Workspaces')}</p>
+                    {workspaces.map(w=>(<button key={w.id} onClick={()=>switchWorkspace(w.id)} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-[13px] font-bold transition-colors ${w.id===hostId?'text-[#5B8CFF]':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}><span>🏢</span><span className="flex-1 truncate">{w.name}</span>{w.isOwner&&<span className={`text-[9px] ${dimText}`}>{t('소유','owner')}</span>}{w.id===hostId&&<span className="text-[11px]">✓</span>}</button>))}
+                  </div>
+                </>)}
+              </div>
+            )}
+            {isOwner&&<button onClick={()=>{fetchWsAdmins();setWsInviteMsg('');setShowWsAdmins(true);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👤 {t('관리자','Admins')}</button>}
             {isAdmin&&<button onClick={()=>{fetchPendingHosts();setShowHostApprovals(true);}} className="px-3 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400 text-[10px] font-black transition-all whitespace-nowrap hover:bg-amber-500/20">🛡️ {t('호스트 승인','Approvals')}{pendingHosts.length>0&&<span className="ml-1">{pendingHosts.length}</span>}</button>}
             <button onClick={()=>{openDemoForm();setShowDemoMgr(true);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🎤 {t('데모 수급','Demos')}{demoDrives.length>0&&<span className="ml-1 opacity-70">{demoDrives.length}</span>}</button>
             <button onClick={()=>{setShowMembers(true);fetchMembers();}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👥 {t('멤버','Members')}</button>
@@ -1077,6 +1117,45 @@ export default function GuestView(){
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWsAdmins&&(
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setShowWsAdmins(false)}>
+          <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
+              <div>
+                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>👤 {t('워크스페이스 관리자','Workspace Admins')}</h2>
+                <p className={`text-[12px] mt-0.5 ${dimText}`}>{t('이 회사를 함께 관리할 사람을 초대해요','Invite people to co-manage this workspace')}</p>
+              </div>
+              <button onClick={()=>setShowWsAdmins(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-[13px] ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
+            </div>
+            <div className="overflow-y-auto p-5 flex flex-col gap-4">
+              <div className={`p-4 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                <p className={`text-[13px] font-black mb-2 ${D?'text-white':'text-[#111]'}`}>{t('이메일로 초대','Invite by email')}</p>
+                <div className="flex gap-2">
+                  <input value={wsInviteEmail} onChange={e=>setWsInviteEmail(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')inviteAdmin();}} placeholder="admin@email.com" className={`flex-1 border rounded-xl px-4 py-2.5 text-[14px] outline-none transition-all ${inputCls}`}/>
+                  <button onClick={inviteAdmin} disabled={!wsInviteEmail.trim()} className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] disabled:opacity-40">{t('초대','Invite')}</button>
+                </div>
+                {wsInviteMsg&&<p className={`text-[12px] mt-2 ${wsInviteMsg.includes('초대했')?'text-emerald-400':'text-red-400'}`}>{wsInviteMsg}</p>}
+                <p className={`text-[11px] mt-2 ${dimText}`}>{t('초대받은 사람이 호스트로 로그인하면, 헤더의 🏢 워크스페이스 전환에서 이 회사를 선택해 관리할 수 있어요.','The invitee logs in as a host and picks this workspace from the 🏢 switcher.')}</p>
+              </div>
+              {wsAdmins.length===0?<p className={`text-[13px] text-center py-4 ${dimText}`}>{t('아직 추가 관리자가 없어요','No co-admins yet')}</p>:(
+                <div className="flex flex-col gap-2">
+                  {wsAdmins.map(a=>(
+                    <div key={a.id} className={`flex items-center gap-3 p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
+                      <div className="w-9 h-9 rounded-xl bg-[#5B8CFF]/15 flex items-center justify-center text-[15px] shrink-0">👤</div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-bold text-[13px] truncate ${D?'text-white':'text-[#111]'}`}>{a.admin_email}</p>
+                        <p className={`text-[11px] ${dimText}`}>{a.admin_id?t('연결됨','connected'):t('초대 대기','pending')}</p>
+                      </div>
+                      <button onClick={()=>removeAdmin(a.id)} className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-[12px] font-black hover:bg-red-500/20 transition-all">{t('제거','Remove')}</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
