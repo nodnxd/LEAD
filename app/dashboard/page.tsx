@@ -200,6 +200,8 @@ export default function GuestView(){
       if(!row){
         await supabase.from('host_approvals').insert({host_id:user.id,email:user.email,status:'pending'});
         setHostStatus('pending');
+        // 관리자에게 승인 요청 메일 발송 (최초 1회)
+        fetch('/api/notify-host-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,host_id:user.id})}).catch(()=>{});
       }else{
         setHostStatus(row.status==='approved'?'approved':'pending');
       }
