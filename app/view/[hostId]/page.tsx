@@ -216,7 +216,9 @@ export default function GuestView(){
       if(!user){setAuthStatus('none');setIsHost(false);setCurrentUser(null);setNoProfile(false);return;}
       setCurrentUser(user);
       localStorage.setItem('last_host_id',hostId);
-      if(user.id===hostId){setIsHost(true);setAuthStatus('approved');fetchAll();return;}
+      // 게스트로 로그인해 들어온 경우(?guest=1): 본인 회사여도 게스트(미리보기) 화면으로
+      const wantGuest=typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('guest')==='1';
+      if(user.id===hostId){setIsHost(true);if(wantGuest)setPreviewMode(true);setAuthStatus('approved');fetchAll();return;}
       const[profileRes,approvalRes]=await Promise.all([
         supabase.from('members').select('*').eq('id',user.id).maybeSingle(),
         supabase.from('member_approvals').select('status').eq('member_id',user.id).eq('host_id',hostId).maybeSingle(),
@@ -229,7 +231,7 @@ export default function GuestView(){
         setAuthStatus('pending');
       }else{
         const s=approvalRes.data.status;
-        if(s==='admin'){setIsHost(true);setAuthStatus('approved');fetchAll();}
+        if(s==='admin'){setIsHost(true);if(wantGuest)setPreviewMode(true);setAuthStatus('approved');fetchAll();}
         else if(s==='approved'){setAuthStatus('approved');fetchAll();}
         else setAuthStatus(s as any);
       }

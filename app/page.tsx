@@ -53,7 +53,7 @@ export default function LoginPage() {
       const { data } = await supabase.from('member_approvals')
         .select('host_id').eq('member_id', user.id).in('status', ['approved', 'admin'])
         .neq('host_id', user.id).order('created_at', { ascending: false }).limit(1);
-      if (data && data.length) { router.push(`/view/${data[0].host_id}`); return; }
+      if (data && data.length) { router.push(`/view/${data[0].host_id}?guest=1`); return; }
     }
     router.push('/guest');
   };
