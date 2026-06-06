@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<'host' | 'guest'>('host');
   const [product, setProduct] = useState<'lead' | 'cast'>('lead');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,14 +19,11 @@ export default function LoginPage() {
   useEffect(() => {
     const saved = localStorage.getItem('lead_saved_email');
     if (saved) { setEmail(saved); setRememberMe(true); }
-    const savedMode = localStorage.getItem('lead_login_mode');
-    if (savedMode === 'guest' || savedMode === 'host') setMode(savedMode);
     const savedProduct = localStorage.getItem('lead_login_product');
     if (savedProduct === 'lead' || savedProduct === 'cast') setProduct(savedProduct);
   }, []);
   const pickProduct = (p: 'lead' | 'cast') => { setProduct(p); localStorage.setItem('lead_login_product', p); };
 
-  const pickMode = (m: 'host' | 'guest') => { setMode(m); localStorage.setItem('lead_login_mode', m); setError(''); setForgotMode(false); setResetSent(false); };
 
   const handle = async () => {
     setLoading(true); setError('');
@@ -37,25 +33,14 @@ export default function LoginPage() {
       ? await supabase.auth.signUp({ email, password })
       : await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
-    if (mode === 'host') {
-      // 가입 시: 선택한 제품 권한 부여 (lead → 'lead', cast → 'roster')
-      if (isSignUp) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) await supabase.from('user_products').upsert({ user_id: user.id, product: product === 'cast' ? 'roster' : 'lead' }, { onConflict: 'user_id,product' });
-      }
-      router.push(product === 'cast' ? '/roster/dashboard' : '/dashboard');
-      return;
+    // 가입 시 선택한 제품 권한 부여
+    if (isSignUp) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await supabase.from('user_products').upsert({ user_id: user.id, product: product === 'cast' ? 'roster' : 'lead' }, { onConflict: 'user_id,product' });
     }
-    // 게스트: 회원가입이면 온보딩, 아니면 "내가 멤버인 회사"로 (본인 호스트 워크스페이스 제외)
-    if (isSignUp) { router.push('/onboarding'); return; }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase.from('member_approvals')
-        .select('host_id').eq('member_id', user.id).in('status', ['approved', 'admin'])
-        .neq('host_id', user.id).order('created_at', { ascending: false }).limit(1);
-      if (data && data.length) { router.push(`/view/${data[0].host_id}?guest=1`); return; }
-    }
-    router.push('/guest');
+    if (product === 'cast') { router.push('/roster/dashboard'); return; }
+    // LEAD: 가입은 온보딩(프로필 생성), 로그인은 허브(참여/운영 선택)
+    router.push(isSignUp ? '/onboarding' : '/hub');
   };
 
   const handleReset = async () => {
@@ -68,36 +53,24 @@ export default function LoginPage() {
     setResetSent(true); setLoading(false);
   };
 
-  const isHost = mode === 'host';
+  const isCast = product === 'cast';
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }` }} />
       <main className="min-h-screen bg-[#050505] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
-        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.1] pointer-events-none transition-colors ${isHost ? 'bg-[#1736B8]' : 'bg-[#9CC0FF]'}`} />
+        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.1] pointer-events-none transition-colors ${isCast ? 'bg-[#DE6B35]' : 'bg-[#5B8CFF]'}`} />
         <div className="w-full max-w-sm relative z-10">
           <div className="text-center mb-8">
             <div className="flex items-baseline justify-center gap-2.5 mb-2">
               <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1>
               <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
-            <p className="text-zinc-600 text-[12px]">{isHost ? 'Host Dashboard' : 'Member Login'}</p>
+            <p className="text-zinc-600 text-[12px]">{product === 'cast' ? 'CAST · Roster' : 'LEAD · Pitching'}</p>
           </div>
 
-          {/* 호스트 / 게스트 토글 */}
-          <div className="flex gap-1 p-1 bg-white/[0.04] border border-white/10 rounded-2xl mb-4">
-            {(['host', 'guest'] as const).map(m => (
-              <button key={m} onClick={() => pickMode(m)}
-                className={`flex-1 py-2.5 rounded-xl text-[13px] font-black transition-all ${mode === m
-                  ? (m === 'host' ? 'bg-[#3358E8]/25 text-[#8FB0FF] border border-[#3358E8]/55' : 'bg-[#9CC0FF]/15 text-[#BBD3FF] border border-[#9CC0FF]/45')
-                  : 'text-zinc-500 hover:text-zinc-300 border border-transparent'}`}>
-                {m === 'host' ? '🏢 호스트' : '🎤 게스트'}
-              </button>
-            ))}
-          </div>
-
-          {/* 호스트일 때만: LEAD / CAST 선택 */}
-          {mode === 'host' && !forgotMode && (
+          {/* 제품 선택: LEAD / CAST */}
+          {!forgotMode && (
             <div className="flex gap-1 p-1 bg-white/[0.04] border border-white/10 rounded-2xl mb-4">
               {(['lead', 'cast'] as const).map(p => (
                 <button key={p} onClick={() => pickProduct(p)}
@@ -156,8 +129,8 @@ export default function LoginPage() {
                   <button onClick={() => { setForgotMode(true); setError(''); }} className="text-zinc-500 text-[12px] hover:text-[#5B8CFF] transition-colors">비밀번호 찾기</button>
                 </div>
                 <button onClick={handle} disabled={loading}
-                  className={`w-full py-3 rounded-xl text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 mb-3 ${isHost ? 'bg-gradient-to-r from-[#1736B8] to-[#3358E8] shadow-lg shadow-[#1736B8]/30' : 'bg-gradient-to-r from-[#7BA4FF] to-[#A9C7FF] shadow-lg shadow-[#7BA4FF]/25'}`}>
-                  {loading ? '...' : isSignUp ? (isHost ? '호스트 회원가입' : '게스트 회원가입') : '로그인'}
+                  className={`w-full py-3 rounded-xl text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 mb-3 ${isCast ? 'bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] shadow-lg shadow-[#DE6B35]/25' : 'bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] shadow-lg shadow-[#3B6FFF]/25'}`}>
+                  {loading ? '...' : isSignUp ? '회원가입' : '로그인'}
                 </button>
                 <button onClick={() => { setIsSignUp(!isSignUp); setError(''); }} className="w-full text-zinc-600 text-[12px] hover:text-zinc-400 transition-colors">
                   {isSignUp ? '이미 계정이 있어요' : '계정이 없어요'}
@@ -166,7 +139,7 @@ export default function LoginPage() {
             )}
           </div>
           <p className="text-center text-zinc-700 text-[11px] mt-5">
-            {isHost ? '리드를 올리고 데모를 수급하는 담당자용' : '초대받은 멤버 · 데모를 제출하는 분용'}
+            {isCast ? '아티스트 로스터 관리' : '로그인하면 참여·운영할 회사를 선택해요'}
           </p>
         </div>
       </main>
