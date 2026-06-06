@@ -823,9 +823,12 @@ export default function MyPage() {
                             {new Date(p.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
-                        {files.length > 0 && (
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>
-                        )}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {(() => { const st:any={pending:['검토중','bg-zinc-500/15 text-zinc-400'],accepted:['채택','bg-emerald-500/15 text-emerald-400'],hold:['보류','bg-amber-500/15 text-amber-400'],rejected:['거절','bg-red-500/15 text-red-400']}[p.status||'pending']; return <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${st[1]}`}>{st[0]}</span>; })()}
+                          {files.length > 0 && (
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>
+                          )}
+                        </div>
                       </div>
                       {p.message && <p className={`text-[12px] leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>}
                       {files.length > 0 && (
