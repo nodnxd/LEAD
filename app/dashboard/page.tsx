@@ -110,6 +110,8 @@ const FilterPill=({label,active,onClick,isDark}:{label:string;active:boolean;onC
 
 const emptyPitch=()=>({artist_name:'',contact:'',message:''});
 let fileCounter=0;
+// 두 제품(LEAD·CAST)을 모두 쓸 수 있도록 지정된 이메일
+const BOTH_PRODUCT_EMAILS=['hseu2000@gmail.com','everplayground@gmail.com'];
 const PITCH_STATUS:Record<string,{ko:string;en:string;cls:string;dot:string}>={
   pitched:{ko:'피칭',en:'Pitched',cls:'bg-emerald-500/15 text-emerald-400',dot:'bg-emerald-400'},
   unpitched:{ko:'논피칭',en:'Unpitched',cls:'bg-zinc-500/15 text-zinc-400',dot:'bg-zinc-400'},
@@ -198,8 +200,16 @@ export default function GuestView(){
   const [showHostApprovals,setShowHostApprovals]=useState(false);
   const [theme,setTheme]=useState<'dark'|'light'>('dark');
   const [zoom,setZoom]=useState(1);
+  const draggingZoom=useRef(false);const zoomStartY=useRef(0);const zoomStart=useRef(1);
   useEffect(()=>{const z=localStorage.getItem('lead_zoom');if(z)setZoom(parseFloat(z));},[]);
-  const setZoomLevel=(z:number)=>{const v=Math.min(1.5,Math.max(0.7,Math.round(z*100)/100));setZoom(v);localStorage.setItem('lead_zoom',String(v));};
+  const applyZoom=(z:number)=>{const v=Math.min(1.5,Math.max(0.5,Math.round(z*100)/100));setZoom(v);localStorage.setItem('lead_zoom',String(v));};
+  const onZoomDown=(e:React.MouseEvent)=>{draggingZoom.current=true;zoomStartY.current=e.clientY;zoomStart.current=zoom;document.body.style.cursor='ns-resize';document.body.style.userSelect='none';};
+  useEffect(()=>{
+    const mv=(e:MouseEvent)=>{if(!draggingZoom.current)return;const d=(zoomStartY.current-e.clientY)/300;applyZoom(zoomStart.current+d);};
+    const up=()=>{if(!draggingZoom.current)return;draggingZoom.current=false;document.body.style.cursor='';document.body.style.userSelect='';};
+    window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+    return ()=>{window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);};
+  },[]);
   const [translating,setTranslating]=useState(false);
   const [globalEn,setGlobalEn]=useState(false);
   const [showMyPitches,setShowMyPitches]=useState(false);
@@ -634,7 +644,7 @@ export default function GuestView(){
         <div className="w-full max-w-sm text-center">
           <div className="flex items-center justify-center gap-3 mb-10 flex-wrap">
             <div className="flex items-baseline gap-2.5"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
-            {myProducts.includes('roster')&&(
+            {(myProducts.includes('roster')||BOTH_PRODUCT_EMAILS.includes((currentUser?.email||'').toLowerCase()))&&(
               <div className={`flex gap-1 p-1 rounded-full border ${D?'border-white/10 bg-white/5':'border-black/[0.08] bg-black/[0.04]'}`}>
                 <span className="px-3 py-1 rounded-full bg-[#5B8CFF] text-white text-[11px] font-black">LEAD</span>
                 <a href="/roster/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>CAST</a>
@@ -687,11 +697,6 @@ export default function GuestView(){
         <div className={`relative z-30 flex flex-wrap items-center justify-between gap-3 mb-6 border-b ${dividerCls} pb-4`}>
           <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} {t('활성','Active')}</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} {t('마감','Closed')}</span></div>
           <div className="flex items-center gap-2">
-            <div className={`flex items-center rounded-xl border ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
-              <button onClick={()=>setZoomLevel(zoom-0.1)} className={`w-8 h-9 flex items-center justify-center text-[16px] font-black ${D?'text-zinc-400 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>−</button>
-              <button onClick={()=>setZoomLevel(1)} className={`px-1 text-[10px] font-black ${dimText}`} title="100%">{Math.round(zoom*100)}%</button>
-              <button onClick={()=>setZoomLevel(zoom+0.1)} className={`w-8 h-9 flex items-center justify-center text-[16px] font-black ${D?'text-zinc-400 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>+</button>
-            </div>
             <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
             <button onClick={()=>{const v=!globalEn;setGlobalEn(v);localStorage.setItem('lead_global_en',v?'1':'0');}} className={`h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-black transition-all ${globalEn?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>🌐 {globalEn?'EN':'KO'}</button>
             <div className="max-w-full overflow-x-auto [&::-webkit-scrollbar]:hidden">
@@ -1420,6 +1425,17 @@ export default function GuestView(){
       {currentUser&&hostId&&(
         <ChatPanel user={currentUser} hostId={hostId} dark={D}/>
       )}
+
+      {/* 드래그 줌 (왼쪽 하단, 더블클릭 시 100%) */}
+      <div className="fixed bottom-6 left-6 z-50 flex flex-col items-center gap-2 select-none font-pretendard">
+        <div onMouseDown={onZoomDown} onDoubleClick={()=>applyZoom(1)} title="드래그로 확대/축소 · 더블클릭 리셋"
+          className={`w-9 h-14 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[5px] transition-all group hover:border-[#5B8CFF]/40 ${D?'bg-white/[0.05] border-white/10':'bg-black/[0.04] border-black/10'}`}>
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#5B8CFF] transition-colors"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <div className="flex flex-col gap-[3px]">{[0,1,2].map(i=><div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500 group-hover:bg-[#5B8CFF]/50 transition-colors"/>)}</div>
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#5B8CFF] transition-colors"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </div>
+        <span className={`text-[9px] font-black tracking-widest ${dimText}`}>{Math.round(zoom*100)}%</span>
+      </div>
     </>
   );
 }
