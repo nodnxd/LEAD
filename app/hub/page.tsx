@@ -128,6 +128,15 @@ export default function HubPage() {
           {!canHost && member.length === 0 && (
             <p className="text-center text-[12px] text-zinc-700 mt-8">호스트 권한이 필요하면 담당자에게 문의하세요.</p>
           )}
+
+          {/* 다른 서비스 — CAST */}
+          <div className="mt-10 pt-6 border-t border-white/[0.07]">
+            <a href="/roster/dashboard" className="flex items-center gap-3 p-4 rounded-2xl border border-[#DE6B35]/25 bg-[#DE6B35]/[0.06] hover:bg-[#DE6B35]/10 text-left transition-all">
+              <div className="w-11 h-11 rounded-xl bg-[#DE6B35]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
+              <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate text-white">CAST <span className="text-[11px] text-zinc-500 font-bold">로스터 관리</span></p><p className="text-[12px] text-zinc-500">아티스트 로스터 짜기</p></div>
+              <span className="text-[#DE6B35] text-[18px] font-black shrink-0">→</span>
+            </a>
+          </div>
         </div>
       </main>
     </>

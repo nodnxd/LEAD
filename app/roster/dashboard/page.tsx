@@ -1089,12 +1089,10 @@ export default function Dashboard() {
               <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] uppercase tracking-tighter">CAST</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
             </div>
-            {(myProducts.includes('lead')||BOTH_PRODUCT_EMAILS.includes((user?.email||'').toLowerCase()))&&(
-              <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
-                <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
-                <span className="px-3 py-1 rounded-full bg-[#DE6B35] text-white text-[11px] font-black">CAST</span>
-              </div>
-            )}
+            <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
+              <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
+              <span className="px-3 py-1 rounded-full bg-[#DE6B35] text-white text-[11px] font-black">CAST</span>
+            </div>
           </div>
 
           <DragDropContext onDragEnd={onDragEnd}>

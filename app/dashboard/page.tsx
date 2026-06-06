@@ -651,12 +651,10 @@ export default function GuestView(){
         <div className="w-full max-w-sm text-center">
           <div className="flex items-center justify-center gap-3 mb-10 flex-wrap">
             <div className="flex items-baseline gap-2.5"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
-            {(myProducts.includes('roster')||BOTH_PRODUCT_EMAILS.includes((currentUser?.email||'').toLowerCase()))&&(
-              <div className={`flex gap-1 p-1 rounded-full border ${D?'border-white/10 bg-white/5':'border-black/[0.08] bg-black/[0.04]'}`}>
-                <span className="px-3 py-1 rounded-full bg-[#5B8CFF] text-white text-[11px] font-black">LEAD</span>
-                <a href="/roster/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>CAST</a>
-              </div>
-            )}
+            <div className={`flex gap-1 p-1 rounded-full border ${D?'border-white/10 bg-white/5':'border-black/[0.08] bg-black/[0.04]'}`}>
+              <span className="px-3 py-1 rounded-full bg-[#5B8CFF] text-white text-[11px] font-black">LEAD</span>
+              <a href="/roster/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>CAST</a>
+            </div>
           </div>
           <div className={`border rounded-2xl p-8 ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
             <div className="text-4xl mb-4">{icon}</div>
