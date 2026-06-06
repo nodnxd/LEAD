@@ -391,11 +391,18 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
   };
   const incomingReqs = friendships.filter(f => f.recipient_id === user?.id && f.status === 'pending');
 
+  // 이름/활동명/이메일로 사람 검색 (회사 경계 없이 — 디렉토리)
   const searchByEmail = async () => {
-    if (!emailSearch.trim()) return;
+    const q = emailSearch.trim();
+    if (!q) return;
     setEmailSearching(true); setEmailResult(null);
-    const { data } = await supabase.from('members').select('id,artist_name,photo_url,roles,genres,email').eq('email', emailSearch.trim().toLowerCase()).single();
-    setEmailResult(data || 'notfound');
+    const like = `%${q.replace(/[%_]/g, '')}%`;
+    const { data } = await supabase.from('members')
+      .select('id,artist_name,photo_url,roles,genres,email,company,name')
+      .or(`email.ilike.${like},artist_name.ilike.${like},name.ilike.${like}`)
+      .neq('id', user?.id || '')
+      .limit(15);
+    setEmailResult(data && data.length ? data : 'notfound');
     setEmailSearching(false);
   };
 
@@ -556,15 +563,15 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
               {/* 멤버 목록 */}
               {!activeConv && !viewingMember && tab === 'members' && (
                 <div className="flex-1 overflow-y-auto flex flex-col">
-                  {/* 이메일로 친구 추가 */}
+                  {/* 사람 찾기 (이름·이메일 — 회사 무관 디렉토리) */}
                   <div className={`px-3 pt-3 pb-2 border-b ${bd}`}>
-                    <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 ${dm}`}>이메일로 친구 추가</p>
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 ${dm}`}>🔍 사람 찾기 (이름·이메일)</p>
                     <div className="flex gap-1.5">
                       <input
                         value={emailSearch}
                         onChange={e => { setEmailSearch(e.target.value); setEmailResult(null); }}
                         onKeyDown={e => e.key === 'Enter' && searchByEmail()}
-                        placeholder="이메일 입력"
+                        placeholder="이름 또는 이메일"
                         className={`flex-1 border rounded-xl px-2.5 py-1.5 text-[11px] outline-none transition-all ${ib}`}
                       />
                       <button onClick={searchByEmail} disabled={emailSearching}
@@ -572,20 +579,27 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         {emailSearching ? '...' : '검색'}
                       </button>
                     </div>
-                    {emailResult && emailResult !== 'notfound' && (
-                      <div className="flex items-center gap-2 mt-2 px-1 py-1.5 rounded-xl">
-                        <Avatar p={emailResult} size={28} />
-                        <span className={`flex-1 text-[11px] font-bold truncate ${tx}`}>{emailResult.artist_name}</span>
-                        {(() => {
-                          const fs = getFriendState(emailResult.id);
-                          if (emailResult.id === user?.id) return <span className={`text-[9px] ${dm}`}>나</span>;
-                          if (fs?.status === 'accepted') return <span className="text-[9px] text-emerald-400 font-black">친구</span>;
-                          if (fs) return <span className={`text-[9px] ${dm}`}>요청중</span>;
-                          return <button onClick={() => sendFriendReq(emailResult.id)} className="px-2 py-0.5 rounded-lg bg-[#5B8CFF]/20 text-[#5B8CFF] text-[10px] font-black">+추가</button>;
-                        })()}
+                    {Array.isArray(emailResult) && (
+                      <div className="flex flex-col gap-0.5 mt-2 max-h-44 overflow-y-auto">
+                        {emailResult.map((r: any) => {
+                          const fs = getFriendState(r.id);
+                          return (
+                            <div key={r.id} className={`flex items-center gap-2 px-1.5 py-1.5 rounded-xl ${D ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'}`}>
+                              <Avatar p={r} size={30} />
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-[11px] font-bold truncate ${tx}`}>{r.artist_name || r.name || '이름 없음'}</p>
+                                {r.company && <p className={`text-[9px] truncate ${dm}`}>{r.company}</p>}
+                              </div>
+                              {fs?.status === 'accepted'
+                                ? <button onClick={() => openConv(r.id)} className="px-2 py-0.5 rounded-lg bg-[#5B8CFF]/15 text-[#5B8CFF] text-[10px] font-black">💬</button>
+                                : fs ? <span className={`text-[9px] ${dm}`}>요청중</span>
+                                : <button onClick={() => sendFriendReq(r.id)} className="px-2 py-0.5 rounded-lg bg-[#5B8CFF]/20 text-[#5B8CFF] text-[10px] font-black">+추가</button>}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
-                    {emailResult === 'notfound' && <p className={`text-[10px] mt-1.5 ${dm}`}>해당 이메일의 멤버를 찾을 수 없어요</p>}
+                    {emailResult === 'notfound' && <p className={`text-[10px] mt-1.5 ${dm}`}>검색 결과가 없어요</p>}
                   </div>
                   <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-0.5">
                     {members.length === 0
