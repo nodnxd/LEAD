@@ -1074,9 +1074,15 @@ export default function Dashboard() {
           {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#DE6B35] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.08] pointer-events-none" />}
 
           {/* 헤더 */}
-          <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-8">
-            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] uppercase tracking-tighter">CAST</h1>
-            <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
+          <div className="relative z-10 flex items-center justify-center gap-3 mb-8 flex-wrap">
+            <div className="flex items-baseline gap-2.5">
+              <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] uppercase tracking-tighter">CAST</h1>
+              <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
+            </div>
+            <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
+              <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
+              <span className="px-3 py-1 rounded-full bg-[#DE6B35] text-white text-[11px] font-black">CAST</span>
+            </div>
           </div>
 
           <DragDropContext onDragEnd={onDragEnd}>
@@ -1132,7 +1138,6 @@ export default function Dashboard() {
                   <button onClick={() => setShowSessionBoard(!showSessionBoard)} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${btnBg}`}>🗂 {t.history}</button>
                   <button onClick={exportRoster} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${btnBg}`}>📤 {t.export}</button>
                   <button onClick={() => router.push('/roster/artists')} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${btnBg}`}>🎤 {t.artists}</button>
-                  <button onClick={() => router.push('/dashboard')} className="border border-[#5B8CFF]/40 bg-[#5B8CFF]/10 text-[#5B8CFF] px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all hover:bg-[#5B8CFF]/20">📋 LEAD</button>
                   <button onClick={() => { setShowArtistPanel(p => !p); if (!showArtistPanel) fetchArtists(user); }}
                     className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${showArtistPanel ? 'border-[#DE6B35]/50 text-[#DE6B35] bg-[#DE6B35]/10' : btnBg}`}>📥 {t.addFromArtists}</button>
                   <div className={`flex p-1 rounded-lg border gap-1 shadow-lg backdrop-blur-md ${inputBg}`}>
