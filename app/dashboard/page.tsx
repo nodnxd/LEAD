@@ -1427,7 +1427,7 @@ export default function GuestView(){
       )}
 
       {/* 드래그 줌 (왼쪽 하단, 더블클릭 시 100%) */}
-      <div className="fixed bottom-6 left-6 z-50 flex flex-col items-center gap-2 select-none font-pretendard">
+      <div className="hidden sm:flex fixed bottom-6 left-6 z-50 flex-col items-center gap-2 select-none font-pretendard">
         <div onMouseDown={onZoomDown} onDoubleClick={()=>applyZoom(1)} title="드래그로 확대/축소 · 더블클릭 리셋"
           className={`w-9 h-14 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[5px] transition-all group hover:border-[#5B8CFF]/40 ${D?'bg-white/[0.05] border-white/10':'bg-black/[0.04] border-black/10'}`}>
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#5B8CFF] transition-colors"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
