@@ -65,8 +65,8 @@ button, a, input, textarea, select, [role="button"] {
 /* 숫자 폭 고정 — 카운터/통계 흔들림 방지 */
 .font-pretendard { font-feature-settings: "tnum" 1, "ss01" 1; letter-spacing: -0.01em; }
 
-/* 인라인 오디오 플레이어 톤 정리 */
-audio { color-scheme: dark; border-radius: 10px; }
+/* 인라인 오디오 플레이어 톤 정리 (color-scheme은 테마별로 인라인 지정) */
+audio { border-radius: 10px; }
 
 /* 모달/카드 진입 모션 (원하는 곳에 .anim-rise 부여) */
 @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }

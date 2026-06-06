@@ -78,7 +78,7 @@ const PitchFileRow=({f,D,dimText}:{f:any;D:boolean;dimText:string})=>{
         {f.key&&<span className={`text-[10px] font-black ${dimText}`}>{f.key}</span>}
         {f.genre&&<span className="text-[10px] font-black text-emerald-400">{f.genre}</span>}
       </div>
-      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px'}}/>}
+      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px',colorScheme:D?'dark':'light'}}/>}
     </div>
   );
 };
@@ -111,11 +111,11 @@ const FilterPill=({label,active,onClick,isDark}:{label:string;active:boolean;onC
 const emptyPitch=()=>({artist_name:'',contact:'',message:''});
 let fileCounter=0;
 const PITCH_STATUS:Record<string,{ko:string;en:string;cls:string;dot:string}>={
-  pending:{ko:'검토중',en:'Reviewing',cls:'bg-zinc-500/15 text-zinc-400',dot:'bg-zinc-400'},
-  accepted:{ko:'채택',en:'Accepted',cls:'bg-emerald-500/15 text-emerald-400',dot:'bg-emerald-400'},
+  pitched:{ko:'피칭',en:'Pitched',cls:'bg-emerald-500/15 text-emerald-400',dot:'bg-emerald-400'},
+  unpitched:{ko:'논피칭',en:'Unpitched',cls:'bg-zinc-500/15 text-zinc-400',dot:'bg-zinc-400'},
   hold:{ko:'보류',en:'On hold',cls:'bg-amber-500/15 text-amber-400',dot:'bg-amber-400'},
-  rejected:{ko:'거절',en:'Rejected',cls:'bg-red-500/15 text-red-400',dot:'bg-red-400'},
 };
+const PITCH_STATUS_KEYS=['pitched','unpitched','hold'] as const;
 
 export default function GuestView(){
   const params=useParams();
@@ -144,7 +144,7 @@ export default function GuestView(){
   const [hostPitchLoading,setHostPitchLoading]=useState(false);
   const [pitchSort,setPitchSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [pitchVocalFilter,setPitchVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
-  const [pitchStatusFilter,setPitchStatusFilter]=useState<'all'|'pending'|'accepted'|'hold'|'rejected'>('all');
+  const [pitchStatusFilter,setPitchStatusFilter]=useState<'all'|'pitched'|'unpitched'|'hold'|'untriaged'>('all');
   const updatePitchStatus=async(p:any,status:string)=>{
     setHostPitches(prev=>prev.map(x=>x.id===p.id?{...x,status}:x));
     await supabase.from('pitches').update({status}).eq('id',p.id);
@@ -717,7 +717,8 @@ export default function GuestView(){
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('보컬','Vocal')}</span>{([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=><FilterPill key={v} label={l} active={pitchVocalFilter===v} onClick={()=>setPitchVocalFilter(v as any)} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('상태','Status')}</span>
                 <FilterPill label={t('전체','All')} active={pitchStatusFilter==='all'} onClick={()=>setPitchStatusFilter('all')} isDark={D}/>
-                {(['pending','accepted','hold','rejected'] as const).map(s=><FilterPill key={s} label={t(PITCH_STATUS[s].ko,PITCH_STATUS[s].en)} active={pitchStatusFilter===s} onClick={()=>setPitchStatusFilter(s)} isDark={D}/>)}
+                {PITCH_STATUS_KEYS.map(s=><FilterPill key={s} label={t(PITCH_STATUS[s].ko,PITCH_STATUS[s].en)} active={pitchStatusFilter===s} onClick={()=>setPitchStatusFilter(s)} isDark={D}/>)}
+                <FilterPill label={t('미정','Untriaged')} active={pitchStatusFilter==='untriaged'} onClick={()=>setPitchStatusFilter('untriaged')} isDark={D}/>
               </div>
             </div>
             {hostPitchLoading?(
@@ -727,7 +728,8 @@ export default function GuestView(){
               const firstVocal=(p:any)=>{const f=hostPitchFiles.find(x=>x.pitch_id===p.id&&x.vocal_gender);return f?.vocal_gender||'zzz';};
               const firstKey=(p:any)=>{const f=hostPitchFiles.find(x=>x.pitch_id===p.id&&x.key);return f?.key||'zzz';};
               let pv=hostPitches;
-              if(pitchStatusFilter!=='all')pv=pv.filter(p=>(p.status||'pending')===pitchStatusFilter);
+              if(pitchStatusFilter==='untriaged')pv=pv.filter(p=>!PITCH_STATUS[p.status]);
+              else if(pitchStatusFilter!=='all')pv=pv.filter(p=>p.status===pitchStatusFilter);
               if(pitchVocalFilter!=='all')pv=pv.filter(p=>hostPitchFiles.some(f=>f.pitch_id===p.id&&f.vocal_gender===pitchVocalFilter));
               pv=[...pv].sort((a,b)=>{if(pitchSort==='bpm')return minBpm(a)-minBpm(b);if(pitchSort==='vocal')return firstVocal(a).localeCompare(firstVocal(b));if(pitchSort==='key')return firstKey(a).localeCompare(firstKey(b));return new Date(b.created_at).getTime()-new Date(a.created_at).getTime();});
               // 리드별 그룹화 (pv 순서 유지)
@@ -770,8 +772,8 @@ export default function GuestView(){
                                     {p.message&&<p className={`text-[13px] leading-relaxed whitespace-pre-line mb-2 ${D?'text-zinc-300':'text-zinc-600'}`}>{p.message}</p>}
                                     {files.length>0&&<div className="flex flex-col gap-2 mb-2.5">{files.map((f:any)=><PitchFileRow key={f.id} f={f} D={D} dimText={dimText}/>)}</div>}
                                     <div className={`flex items-center gap-1 flex-wrap pt-2 border-t border-dashed ${D?'border-white/[0.07]':'border-black/[0.07]'}`}>
-                                      {(['pending','accepted','hold','rejected'] as const).map(s=>{const cur=(p.status||'pending')===s;return(
-                                        <button key={s} onClick={()=>updatePitchStatus(p,s)} className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-black transition-all ${cur?PITCH_STATUS[s].cls:D?'text-zinc-600 hover:text-zinc-300':'text-zinc-400 hover:text-zinc-700'}`}>
+                                      {PITCH_STATUS_KEYS.map(s=>{const cur=p.status===s;return(
+                                        <button key={s} onClick={()=>updatePitchStatus(p,cur?'pending':s)} className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-black transition-all ${cur?PITCH_STATUS[s].cls:D?'text-zinc-600 hover:text-zinc-300':'text-zinc-400 hover:text-zinc-700'}`}>
                                           {cur&&<span className={`w-1.5 h-1.5 rounded-full ${PITCH_STATUS[s].dot}`}/>}{t(PITCH_STATUS[s].ko,PITCH_STATUS[s].en)}
                                         </button>
                                       );})}
@@ -851,7 +853,7 @@ export default function GuestView(){
                           <button onClick={()=>deleteFile(f)} title={t('삭제','Delete')} className="w-9 h-9 rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[14px] hover:bg-red-500/20 transition-all">🗑</button>
                         </div>
                       </div>
-                      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'44px'}}/>}
+                      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'44px',colorScheme:D?'dark':'light'}}/>}
                     </div>
                     );
                   })}
@@ -1063,7 +1065,7 @@ export default function GuestView(){
                                     {f.key&&<span className={`text-[10px] font-black ${dimText}`}>{f.key}</span>}
                                     {f.genre&&<span className="text-[10px] font-black text-emerald-400">{f.genre}</span>}
                                   </div>
-                                  {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px'}}/>}
+                                  {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px',colorScheme:D?'dark':'light'}}/>}
                                 </div>
                                 );
                               })}
