@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<'host' | 'guest'>('host');
+  const [product, setProduct] = useState<'lead' | 'cast'>('lead');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -21,7 +22,10 @@ export default function LoginPage() {
     if (saved) { setEmail(saved); setRememberMe(true); }
     const savedMode = localStorage.getItem('lead_login_mode');
     if (savedMode === 'guest' || savedMode === 'host') setMode(savedMode);
+    const savedProduct = localStorage.getItem('lead_login_product');
+    if (savedProduct === 'lead' || savedProduct === 'cast') setProduct(savedProduct);
   }, []);
+  const pickProduct = (p: 'lead' | 'cast') => { setProduct(p); localStorage.setItem('lead_login_product', p); };
 
   const pickMode = (m: 'host' | 'guest') => { setMode(m); localStorage.setItem('lead_login_mode', m); setError(''); setForgotMode(false); setResetSent(false); };
 
@@ -34,7 +38,12 @@ export default function LoginPage() {
       : await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
     if (mode === 'host') {
-      router.push('/dashboard');
+      // 가입 시: 선택한 제품 권한 부여 (lead → 'lead', cast → 'roster')
+      if (isSignUp) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) await supabase.from('user_products').upsert({ user_id: user.id, product: product === 'cast' ? 'roster' : 'lead' }, { onConflict: 'user_id,product' });
+      }
+      router.push(product === 'cast' ? '/roster/dashboard' : '/dashboard');
       return;
     }
     // 게스트: 회원가입이면 온보딩, 아니면 "내가 멤버인 회사"로 (본인 호스트 워크스페이스 제외)
@@ -86,6 +95,20 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
+
+          {/* 호스트일 때만: LEAD / CAST 선택 */}
+          {mode === 'host' && !forgotMode && (
+            <div className="flex gap-1 p-1 bg-white/[0.04] border border-white/10 rounded-2xl mb-4">
+              {(['lead', 'cast'] as const).map(p => (
+                <button key={p} onClick={() => pickProduct(p)}
+                  className={`flex-1 py-2.5 rounded-xl text-[13px] font-black transition-all ${product === p
+                    ? (p === 'lead' ? 'bg-[#5B8CFF] text-white' : 'bg-[#DE6B35] text-white')
+                    : 'text-zinc-500 hover:text-zinc-300'}`}>
+                  {p === 'lead' ? '📋 LEAD' : '🎤 CAST'}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
             {forgotMode ? (
