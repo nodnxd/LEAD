@@ -134,6 +134,15 @@ const QUICK_LINKS = [
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [myProducts, setMyProducts] = useState<string[]>([]);
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      await supabase.from('user_products').upsert({ user_id: user.id, product: 'roster' }, { onConflict: 'user_id,product' });
+      const { data } = await supabase.from('user_products').select('product').eq('user_id', user.id);
+      setMyProducts((data || []).map((r: any) => r.product));
+    })();
+  }, [user?.id]);
 
   // members = profiles (이름, role, gender, attendance 등)
   const [members, setMembers] = useState<any[]>([]);
@@ -1079,10 +1088,14 @@ export default function Dashboard() {
               <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] uppercase tracking-tighter">CAST</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
             </div>
-            <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
-              <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
-              <span className="px-3 py-1 rounded-full bg-[#DE6B35] text-white text-[11px] font-black">CAST</span>
-            </div>
+            {myProducts.includes('lead')?(
+              <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
+                <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
+                <span className="px-3 py-1 rounded-full bg-[#DE6B35] text-white text-[11px] font-black">CAST</span>
+              </div>
+            ):(
+              <a href="/dashboard" className={`px-3 py-1.5 rounded-full border border-dashed text-[11px] font-black transition-all ${theme === 'light' ? 'border-black/15 text-zinc-500 hover:text-black' : 'border-white/15 text-zinc-500 hover:text-white'}`}>+ LEAD 둘러보기</a>
+            )}
           </div>
 
           <DragDropContext onDragEnd={onDragEnd}>
