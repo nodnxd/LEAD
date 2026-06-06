@@ -196,15 +196,14 @@ export default function GuestView(){
         setPendingHosts(data||[]);
         return;
       }
+      // 자유 가입: 새 호스트는 바로 활성. host_approvals 행은 향후 구독/제한용으로 유지.
       const{data:row}=await supabase.from('host_approvals').select('status').eq('host_id',user.id).maybeSingle();
       if(!row){
-        await supabase.from('host_approvals').insert({host_id:user.id,email:user.email,status:'pending'});
-        setHostStatus('pending');
-        // 관리자에게 승인 요청 메일 발송 (최초 1회)
-        fetch('/api/notify-host-signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,host_id:user.id})}).catch(()=>{});
-      }else{
-        setHostStatus(row.status==='approved'?'approved':'pending');
+        await supabase.from('host_approvals').insert({host_id:user.id,email:user.email,status:'active'});
       }
+      // 'suspended'/'rejected'만 차단 (미래 구독 미납 등). 그 외엔 모두 통과.
+      const blocked=row&&(row.status==='suspended'||row.status==='rejected');
+      setHostStatus(blocked?'pending':'approved');
     };
     const setApproved=(user:any)=>{
       setHostId(user.id);
@@ -594,7 +593,7 @@ export default function GuestView(){
   if(authStatus==='pending')return(<GateScreen icon="⏳" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
   if(authStatus==='rejected')return(<GateScreen icon="🚫" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
   if(authStatus==='approved'&&hostStatus==='loading')return(<div className={`min-h-screen ${mainBg} flex items-center justify-center`}><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>);
-  if(authStatus==='approved'&&hostStatus==='pending')return(<GateScreen icon="⏳" title="호스트 가입 승인 대기 중" sub={"관리자 승인 후 대시보드를 이용할 수 있어요.\n승인되면 새로고침해주세요."}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  if(authStatus==='approved'&&hostStatus==='pending')return(<GateScreen icon="🔒" title="이용이 제한된 계정이에요" sub={"구독 만료 또는 정지 상태예요.\n문의: everplayground@gmail.com"}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
 
   return(
     <>

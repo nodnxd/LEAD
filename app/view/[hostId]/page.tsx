@@ -105,6 +105,8 @@ export default function GuestView(){
   const [calView,setCalView]=useState<'month'|'week'>('week');
   const [hidePast,setHidePast]=useState(false);
   const [demoDrives,setDemoDrives]=useState<any[]>([]);
+  const [myHosts,setMyHosts]=useState<{host_id:string;name:string}[]>([]);
+  const [showHostSwitcher,setShowHostSwitcher]=useState(false);
   const [swipeX,setSwipeX]=useState<number|null>(null);
   const [installPrompt,setInstallPrompt]=useState<any>(null);
   const [showInstall,setShowInstall]=useState(false);
@@ -141,6 +143,18 @@ export default function GuestView(){
   const [filterAlbum,setFilterAlbum]=useState<string[]>([]);
   const [sortBy,setSortBy]=useState<'dday'|'gender'|'group'|'album'>('dday');
   const [currentUser,setCurrentUser]=useState<any>(null);
+  // 한 계정이 속한 모든 회사(호스트) 목록 — 회사 전환기
+  useEffect(()=>{
+    if(!currentUser?.id)return;
+    (async()=>{
+      const{data}=await supabase.from('member_approvals').select('host_id,status').eq('member_id',currentUser.id).in('status',['approved','admin']);
+      const ids=[...new Set((data||[]).map((a:any)=>a.host_id))];
+      if(ids.length===0){setMyHosts([]);return;}
+      const{data:hp}=await supabase.from('host_profiles').select('id,company,display_name').in('id',ids);
+      const map:Record<string,string>={};(hp||[]).forEach((h:any)=>{map[h.id]=h.company||h.display_name||'';});
+      setMyHosts(ids.map(id=>({host_id:id,name:map[id]||'이름 없는 회사'})));
+    })();
+  },[currentUser?.id]);
   const [guestProfile,setGuestProfile]=useState<any>(null);
   const [authStatus,setAuthStatus]=useState<'loading'|'none'|'pending'|'rejected'|'approved'>('loading');
   const [isHost,setIsHost]=useState(false);
@@ -584,6 +598,24 @@ export default function GuestView(){
               <button onClick={()=>setPreviewMode(false)} className="px-3 py-1.5 rounded-full border border-amber-500/50 bg-amber-500/20 text-amber-400 text-[10px] font-black hover:bg-amber-500/30 transition-all animate-pulse">👁 미리보기 중 — 탭하면 HOST로</button>
             ):guestProfile?(
               <div className="flex items-center gap-2">
+                {myHosts.length>1&&(
+                  <div className="relative">
+                    <button onClick={()=>setShowHostSwitcher(s=>!s)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-300 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>🏢 {t('회사 전환','Switch')} <span className="opacity-60">▾</span></button>
+                    {showHostSwitcher&&(
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={()=>setShowHostSwitcher(false)}/>
+                        <div className={`anim-rise absolute right-0 mt-2 w-56 z-50 rounded-2xl border shadow-2xl overflow-hidden ${D?'bg-[#141414] border-white/10':'bg-white border-black/[0.08]'}`}>
+                          <p className={`text-[10px] font-black uppercase tracking-widest px-4 pt-3 pb-1 ${dimText}`}>{t('내 회사','My companies')}</p>
+                          {myHosts.map(h=>(
+                            <button key={h.host_id} onClick={()=>{setShowHostSwitcher(false);if(h.host_id!==hostId)window.location.href=`/view/${h.host_id}`;}} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-[13px] font-bold transition-colors ${h.host_id===hostId?'text-[#5B8CFF]':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}>
+                              <span className="text-[14px]">🏢</span><span className="flex-1 truncate">{h.name}</span>{h.host_id===hostId&&<span className="text-[11px]">✓</span>}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#5B8CFF]/30 bg-[#5B8CFF]/10">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#5B8CFF]"/>
                   <span className="text-[#5B8CFF] text-[11px] font-bold">{guestProfile.artist_name}</span>
