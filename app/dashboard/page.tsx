@@ -239,7 +239,7 @@ export default function GuestView(){
     const setApproved=(user:any)=>{
       setOwnerId(user.id);
       setCurrentUser(user);
-      localStorage.setItem('last_host_id',user.id);
+      // 주의: last_host_id(게스트가 마지막 방문한 회사)를 본인 id로 덮어쓰지 않음 — 게스트 로그인 오염 방지
       setAuthStatus('approved');
       checkHostApproval(user);
       loadWorkspaces(user);

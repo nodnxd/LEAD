@@ -19,7 +19,11 @@ export default function LoginPage() {
   useEffect(() => {
     const saved = localStorage.getItem('lead_saved_email');
     if (saved) { setEmail(saved); setRememberMe(true); }
+    const savedMode = localStorage.getItem('lead_login_mode');
+    if (savedMode === 'guest' || savedMode === 'host') setMode(savedMode);
   }, []);
+
+  const pickMode = (m: 'host' | 'guest') => { setMode(m); localStorage.setItem('lead_login_mode', m); setError(''); setForgotMode(false); setResetSent(false); };
 
   const handle = async () => {
     setLoading(true); setError('');
@@ -31,11 +35,18 @@ export default function LoginPage() {
     if (error) { setError(error.message); setLoading(false); return; }
     if (mode === 'host') {
       router.push('/dashboard');
-    } else {
-      if (isSignUp) { router.push('/onboarding'); return; }
-      const lastHost = localStorage.getItem('last_host_id');
-      router.push(lastHost ? `/view/${lastHost}` : '/guest');
+      return;
     }
+    // 게스트: 회원가입이면 온보딩, 아니면 "내가 멤버인 회사"로 (본인 호스트 워크스페이스 제외)
+    if (isSignUp) { router.push('/onboarding'); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase.from('member_approvals')
+        .select('host_id').eq('member_id', user.id).in('status', ['approved', 'admin'])
+        .neq('host_id', user.id).order('created_at', { ascending: false }).limit(1);
+      if (data && data.length) { router.push(`/view/${data[0].host_id}`); return; }
+    }
+    router.push('/guest');
   };
 
   const handleReset = async () => {
@@ -67,7 +78,7 @@ export default function LoginPage() {
           {/* 호스트 / 게스트 토글 */}
           <div className="flex gap-1 p-1 bg-white/[0.04] border border-white/10 rounded-2xl mb-4">
             {(['host', 'guest'] as const).map(m => (
-              <button key={m} onClick={() => { setMode(m); setError(''); setForgotMode(false); setResetSent(false); }}
+              <button key={m} onClick={() => pickMode(m)}
                 className={`flex-1 py-2.5 rounded-xl text-[13px] font-black transition-all ${mode === m
                   ? (m === 'host' ? 'bg-[#3358E8]/25 text-[#8FB0FF] border border-[#3358E8]/55' : 'bg-[#9CC0FF]/15 text-[#BBD3FF] border border-[#9CC0FF]/45')
                   : 'text-zinc-500 hover:text-zinc-300 border border-transparent'}`}>
