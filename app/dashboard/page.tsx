@@ -123,6 +123,13 @@ export default function GuestView(){
   const [ownerId,setOwnerId]=useState(''); // 로그인한 본인 user.id
   const [workspaces,setWorkspaces]=useState<{id:string;name:string;isOwner:boolean}[]>([]);
   const [showWsPicker,setShowWsPicker]=useState(false);
+  const wsPickerRef=useRef<HTMLDivElement>(null);
+  useEffect(()=>{
+    if(!showWsPicker)return;
+    const h=(e:MouseEvent)=>{if(wsPickerRef.current&&!wsPickerRef.current.contains(e.target as Node))setShowWsPicker(false);};
+    document.addEventListener('mousedown',h);
+    return ()=>document.removeEventListener('mousedown',h);
+  },[showWsPicker]);
   const [showWsAdmins,setShowWsAdmins]=useState(false);
   const [wsAdmins,setWsAdmins]=useState<any[]>([]);
   const [wsInviteEmail,setWsInviteEmail]=useState('');
@@ -677,16 +684,15 @@ export default function GuestView(){
               <span className="text-amber-400 text-[11px] font-bold">HOST</span>
             </div>
             {workspaces.length>=1&&(
-              <div className="relative">
+              <div className="relative" ref={wsPickerRef}>
                 <button onClick={()=>setShowWsPicker(s=>!s)} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-[#5B8CFF]/30 bg-[#5B8CFF]/10 text-[#8FB0FF]':'border-[#5B8CFF]/25 bg-[#5B8CFF]/5 text-[#3358E8]'}`}>🏢 {workspaces.find(w=>w.id===hostId)?.name||t('워크스페이스','Workspace')} ▾</button>
-                {showWsPicker&&(<>
-                  <div className="fixed inset-0 z-40" onClick={()=>setShowWsPicker(false)}/>
-                  <div className={`anim-rise absolute left-0 mt-2 w-60 z-50 rounded-2xl border shadow-2xl overflow-hidden ${D?'bg-[#141414] border-white/10':'bg-white border-black/[0.08]'}`}>
+                {showWsPicker&&(
+                  <div className={`anim-rise absolute left-0 mt-2 w-60 z-[80] rounded-2xl border shadow-2xl overflow-hidden ${D?'bg-[#141414] border-white/10':'bg-white border-black/[0.08]'}`}>
                     <p className={`text-[10px] font-black uppercase tracking-widest px-4 pt-3 pb-1 ${dimText}`}>{t('내 워크스페이스','My workspaces')}</p>
                     {workspaces.map(w=>(<button key={w.id} onClick={()=>switchWorkspace(w.id)} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-[13px] font-bold transition-colors ${w.id===hostId?'text-[#5B8CFF]':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}><span>🏢</span><span className="flex-1 truncate">{w.name}</span>{w.isOwner&&<span className={`text-[9px] ${dimText}`}>{t('소유','owner')}</span>}{w.id===hostId&&<span className="text-[11px]">✓</span>}</button>))}
                     {workspaces.length===1&&<p className={`text-[11px] px-4 py-2.5 border-t ${dividerCls} ${dimText}`}>{t('다른 회사에 관리자로 초대받으면 여기에 함께 떠요.','Workspaces you are invited to manage appear here too.')}</p>}
                   </div>
-                </>)}
+                )}
               </div>
             )}
             {isOwner&&<button onClick={()=>{fetchWsAdmins();setWsInviteMsg('');setShowWsAdmins(true);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>👑 {t('공동 관리자','Co-admins')}</button>}

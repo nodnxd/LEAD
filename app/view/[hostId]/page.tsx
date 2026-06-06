@@ -107,6 +107,13 @@ export default function GuestView(){
   const [demoDrives,setDemoDrives]=useState<any[]>([]);
   const [myHosts,setMyHosts]=useState<{host_id:string;name:string}[]>([]);
   const [showHostSwitcher,setShowHostSwitcher]=useState(false);
+  const switcherRef=useRef<HTMLDivElement>(null);
+  useEffect(()=>{
+    if(!showHostSwitcher)return;
+    const h=(e:MouseEvent)=>{if(switcherRef.current&&!switcherRef.current.contains(e.target as Node))setShowHostSwitcher(false);};
+    document.addEventListener('mousedown',h);
+    return ()=>document.removeEventListener('mousedown',h);
+  },[showHostSwitcher]);
   const [swipeX,setSwipeX]=useState<number|null>(null);
   const [installPrompt,setInstallPrompt]=useState<any>(null);
   const [showInstall,setShowInstall]=useState(false);
@@ -599,20 +606,17 @@ export default function GuestView(){
             ):guestProfile?(
               <div className="flex items-center gap-2">
                 {myHosts.length>1&&(
-                  <div className="relative">
+                  <div className="relative" ref={switcherRef}>
                     <button onClick={()=>setShowHostSwitcher(s=>!s)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-300 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>🏢 {t('회사 전환','Switch')} <span className="opacity-60">▾</span></button>
                     {showHostSwitcher&&(
-                      <>
-                        <div className="fixed inset-0 z-40" onClick={()=>setShowHostSwitcher(false)}/>
-                        <div className={`anim-rise absolute right-0 mt-2 w-56 z-50 rounded-2xl border shadow-2xl overflow-hidden ${D?'bg-[#141414] border-white/10':'bg-white border-black/[0.08]'}`}>
-                          <p className={`text-[10px] font-black uppercase tracking-widest px-4 pt-3 pb-1 ${dimText}`}>{t('내 회사','My companies')}</p>
-                          {myHosts.map(h=>(
-                            <button key={h.host_id} onClick={()=>{setShowHostSwitcher(false);if(h.host_id!==hostId)window.location.href=`/view/${h.host_id}`;}} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-[13px] font-bold transition-colors ${h.host_id===hostId?'text-[#5B8CFF]':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}>
-                              <span className="text-[14px]">🏢</span><span className="flex-1 truncate">{h.name}</span>{h.host_id===hostId&&<span className="text-[11px]">✓</span>}
-                            </button>
-                          ))}
-                        </div>
-                      </>
+                      <div className={`anim-rise absolute right-0 mt-2 w-56 z-[80] rounded-2xl border shadow-2xl overflow-hidden ${D?'bg-[#141414] border-white/10':'bg-white border-black/[0.08]'}`}>
+                        <p className={`text-[10px] font-black uppercase tracking-widest px-4 pt-3 pb-1 ${dimText}`}>{t('내 회사','My companies')}</p>
+                        {myHosts.map(h=>(
+                          <button key={h.host_id} onClick={()=>{setShowHostSwitcher(false);if(h.host_id!==hostId)window.location.href=`/view/${h.host_id}`;}} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-[13px] font-bold transition-colors ${h.host_id===hostId?'text-[#5B8CFF]':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}>
+                            <span className="text-[14px]">🏢</span><span className="flex-1 truncate">{h.name}</span>{h.host_id===hostId&&<span className="text-[11px]">✓</span>}
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
                 )}
