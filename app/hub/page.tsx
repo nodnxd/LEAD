@@ -80,7 +80,7 @@ export default function HubPage() {
         <div className="relative z-10 max-w-xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-3xl font-light text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="text-3xl font-semibold text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
               <span className="text-zinc-600 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <div className="flex items-center gap-2">

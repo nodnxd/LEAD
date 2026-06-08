@@ -63,26 +63,28 @@ export default function LoginPage() {
         <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none transition-colors`} style={{background: isCast ? '#DE6B35' : '#5B8CFF', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
         <div className="w-full max-w-sm relative z-10">
           <div className="text-center mb-8">
-            <div className="flex items-baseline justify-center gap-2.5 mb-2">
-              <h1 className="text-5xl font-light text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
-              <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="flex items-baseline gap-2">
+                <h1 className={`text-5xl font-semibold uppercase tracking-tighter transition-colors ${isCast ? 'text-[#DE6B35]' : 'text-[#5B8CFF]'}`}>
+                  {isCast ? 'CAST' : 'LEAD'}
+                </h1>
+                <span className="text-zinc-500 text-[11px] font-normal tracking-[0.2em]">by NEN</span>
+              </div>
+              {!forgotMode && (
+                <div className="flex gap-0.5 p-0.5 bg-white/[0.06] border border-white/10 rounded-full">
+                  {(['lead', 'cast'] as const).map(p => (
+                    <button key={p} onClick={() => pickProduct(p)}
+                      className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${product === p
+                        ? (p === 'lead' ? 'bg-[#5B8CFF] text-white' : 'bg-[#DE6B35] text-white')
+                        : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      {p === 'lead' ? 'LEAD' : 'CAST'}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <p className="text-zinc-600 text-[12px]">{product === 'cast' ? 'CAST · Roster' : 'LEAD · Pitching'}</p>
+            <p className="text-zinc-600 text-[11px]">{isCast ? 'Roster Manager' : 'Pitching Platform'}</p>
           </div>
-
-          {/* 제품 선택: LEAD / CAST */}
-          {!forgotMode && (
-            <div className="flex gap-1 p-1 bg-white/[0.04] border border-white/10 rounded-2xl mb-4">
-              {(['lead', 'cast'] as const).map(p => (
-                <button key={p} onClick={() => pickProduct(p)}
-                  className={`flex-1 py-2.5 rounded-xl text-[13px] font-normal transition-all ${product === p
-                    ? (p === 'lead' ? 'bg-[#5B8CFF] text-white' : 'bg-[#DE6B35] text-white')
-                    : 'text-zinc-500 hover:text-zinc-300'}`}>
-                  {p === 'lead' ? 'LEAD' : 'CAST'}
-                </button>
-              ))}
-            </div>
-          )}
 
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
             {forgotMode ? (

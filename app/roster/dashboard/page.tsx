@@ -1086,7 +1086,7 @@ export default function Dashboard() {
           {/* 헤더 */}
           <div className="relative z-10 flex items-center justify-center gap-3 mb-8 flex-wrap">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-4xl font-light text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
+              <h1 className="text-4xl font-semibold text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
             </div>
             <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
@@ -1494,7 +1494,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-pretendard">
           <div className={`w-full max-w-sm mx-4 border rounded-2xl p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <div className="text-center mb-6">
-              <h1 className="text-4xl font-light text-[#DE6B35] uppercase tracking-tighter mb-2">CAST</h1>
+              <h1 className="text-4xl font-semibold text-[#DE6B35] uppercase tracking-tighter mb-2">CAST</h1>
               <p className={`text-[13px] ${textSub}`}>{t.firstRosterTitle}</p>
             </div>
             <input autoFocus value={firstRosterName} onChange={e => setFirstRosterName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createFirstRoster()}
