@@ -68,18 +68,19 @@ export default function HubPage() {
   const enterMember = (id: string) => { router.push(`/view/${id}?guest=1`); };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin" /></div>
+    <div className="min-h-screen bg-[#141414] flex items-center justify-center"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin" /></div>
   );
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}` }} />
-      <main className="min-h-screen bg-[#050505] text-white font-pretendard p-5 lg:p-8 relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.07] pointer-events-none" />
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
+      <main className="min-h-screen bg-[#141414] text-white font-pretendard p-5 lg:p-8 relative overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
         <div className="relative z-10 max-w-xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="text-3xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
               <span className="text-zinc-600 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <div className="flex items-center gap-2">

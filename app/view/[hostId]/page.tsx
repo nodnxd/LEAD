@@ -205,7 +205,7 @@ export default function GuestView(){
   const toggleTheme=()=>{const n=theme==='dark'?'light':'dark';setTheme(n);localStorage.setItem('lead_theme',n);};
   const D=theme==='dark';
   const t=(ko:string,en:string)=>globalEn?en:ko;
-  const mainBg=D?'bg-[#050505] text-white':'bg-[#E6E6EC] text-[#111]';
+  const mainBg=D?'bg-[#141414] text-white':'bg-[#E6E6EC] text-[#111]';
   const dividerCls=D?'border-white/10':'border-black/[0.08]';
   const dimText=D?'text-zinc-500':'text-zinc-500';
   const inputCls=D?'bg-white/5 border-white/10 text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/50':'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/50';
@@ -500,11 +500,11 @@ export default function GuestView(){
 
   const GateScreen=({icon,title,sub,children}:{icon:string;title:string;sub:string;children?:React.ReactNode})=>(
     <>
-      <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
+      <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}}/>
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-pretendard relative overflow-hidden`}>
-        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] ${D?'opacity-[0.06]':'opacity-[0.04]'} pointer-events-none`}/>
+        {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}}/>}
         <div className="w-full max-w-sm text-center">
-          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-black ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
+          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-black ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           <div className={`border rounded-2xl p-8 ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
             <div className="text-4xl mb-4">{icon}</div>
             <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>{title}</h2>
@@ -539,17 +539,17 @@ export default function GuestView(){
   if(authStatus==='loading')return(<div className={`min-h-screen ${mainBg} flex items-center justify-center`}><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin"/></div>);
   if(authStatus==='none')return(
     <>
-      <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
+      <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}}/>
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-pretendard relative overflow-hidden`}>
-        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] ${D?'opacity-[0.06]':'opacity-[0.04]'} pointer-events-none`}/>
+        {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}}/>}
         <div className="w-full max-w-sm relative z-10">
-          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-black ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
+          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-black ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           {noProfile?(
             <div className={`border rounded-2xl p-8 text-center ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
               <div className="text-4xl mb-4">📝</div>
               <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>프로필을 완성해주세요</h2>
               <p className={`text-[13px] ${dimText} mb-6`}>리드에 참여하려면 멤버 프로필 등록이 필요해요.</p>
-              <a href="/onboarding" className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">프로필 등록하기</a>
+              <a href="/onboarding" className="block w-full py-3.5 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all">프로필 등록하기</a>
               <button onClick={()=>supabase.auth.signOut().then(()=>{setCurrentUser(null);setNoProfile(false);})} className={`block w-full mt-3 py-2.5 text-[12px] font-bold ${dimText} hover:text-white transition-colors`}>다른 계정으로 로그인</button>
             </div>
           ):(
@@ -565,7 +565,7 @@ export default function GuestView(){
               </div>
               {guestError&&<p className="text-red-400 text-[12px] mb-3">{guestError}</p>}
               <button onClick={handleGuestAuth} disabled={guestLoading||!guestEmail.trim()||!guestPw.trim()}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 mb-3">
+                className="w-full py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50 mb-3">
                 {guestLoading?'...':guestIsSignUp?'가입하기':'로그인'}
               </button>
               <button onClick={()=>{setGuestIsSignUp(s=>!s);setGuestError('');}} className={`w-full text-[12px] ${dimText} hover:text-white transition-colors`}>
@@ -583,11 +583,11 @@ export default function GuestView(){
 
   return(
     <>
-      <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}`}}/>
+      <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}}/>
       <main className={`min-h-screen ${mainBg} p-5 lg:p-8 pb-24 sm:pb-5 font-pretendard relative`} style={{zoom}}>
-        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] ${D?'opacity-[0.06]':'opacity-[0.04]'} pointer-events-none`}/>
+        {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}}/>}
         <div className="relative z-10 flex flex-col items-center mb-8">
-          <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
+          <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
           {hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-black ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}
         </div>
 
@@ -772,7 +772,7 @@ export default function GuestView(){
       </nav>
 
       {viewingLead&&(
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setViewingLead(null)}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setViewingLead(null)}>
           <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
             <div className="p-5 sm:p-6 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
               <div className="flex items-start justify-between mb-5">
@@ -799,7 +799,7 @@ export default function GuestView(){
                   setPitchingLead(viewingLead);
                   setPitchForm(guestProfile?{artist_name:guestProfile.artist_name||'',contact:guestProfile.phone||guestProfile.email||'',message:''}:emptyPitch());
                   setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setUploadError('');setViewingLead(null);
-                }} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">🎵 {t('피칭하기','Pitch')}</button>)}
+                }} className="flex-1 py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all">🎵 {t('피칭하기','Pitch')}</button>)}
                 {isHost&&!previewMode&&<button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>}
                 {isHost&&!previewMode&&<button onClick={()=>{if(confirm('삭제?')){deleteLead(viewingLead.id);setViewingLead(null);}}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 text-[13px] hover:bg-red-500/10 transition-all">🗑</button>}
                 <button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">{t('닫기','Close')}</button>
@@ -812,8 +812,8 @@ export default function GuestView(){
       {shareToast&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl">🔗 링크가 복사됐어요!</div>}
 
       {showLeadForm&&(
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4 overflow-y-auto">
-          <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl sm:my-4 max-h-[92vh] overflow-y-auto ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4 overflow-y-auto">
+          <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl sm:my-4 max-h-[92vh] overflow-y-auto ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="p-5 sm:p-6">
               <h2 className={`font-black text-[20px] mb-5 ${D?'text-white':'text-[#111]'}`}>{editingLead?'✏️ 리드 수정':'+ 리드 추가'}</h2>
               <div className="flex flex-col gap-4">
@@ -842,7 +842,7 @@ export default function GuestView(){
               {leadSaveError&&<p className="mt-3 text-red-400 text-[12px] bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">{leadSaveError}</p>}
               <div className="flex gap-3 mt-5">
                 <button onClick={()=>{setShowLeadForm(false);setLeadSaveError('');}} disabled={leadSaving} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] transition-all disabled:opacity-40 ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>취소</button>
-                <button onClick={saveLead} disabled={leadSaving||!lArtist.trim()||!lGender||!lGroup} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-40 disabled:hover:scale-100">{leadSaving?'저장 중...':(editingLead?'수정 완료':'추가')}</button>
+                <button onClick={saveLead} disabled={leadSaving||!lArtist.trim()||!lGender||!lGroup} className="flex-1 py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-40 disabled:hover:scale-100">{leadSaving?'저장 중...':(editingLead?'수정 완료':'추가')}</button>
               </div>
             </div>
           </div>
@@ -850,8 +850,8 @@ export default function GuestView(){
       )}
 
       {pitchingLead&&(
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
-          <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl sm:my-4 max-h-[92vh] overflow-y-auto ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
+          <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl sm:my-4 max-h-[92vh] overflow-y-auto ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="p-5 sm:p-6">
               {pitchSent?(
                 <div className="text-center py-10">
@@ -885,7 +885,7 @@ export default function GuestView(){
                   {uploadError&&<p className="mt-3 text-red-400 text-[12px] bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">{uploadError}</p>}
                   <div className="flex gap-3 mt-5">
                     <button onClick={()=>{setPitchingLead(null);setPitchSent(false);}} disabled={pitchLoading} className={`py-3.5 px-5 rounded-xl border font-bold text-[14px] transition-all disabled:opacity-40 ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>취소</button>
-                    <button onClick={submitPitch} disabled={pitchLoading||!pitchForm.artist_name.trim()||!pitchForm.contact.trim()||pitchFiles.some(f=>f.analyzing)} className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[14px] active:scale-[0.99] sm:hover:scale-[1.02] transition-all disabled:opacity-40 disabled:hover:scale-100">
+                    <button onClick={submitPitch} disabled={pitchLoading||!pitchForm.artist_name.trim()||!pitchForm.contact.trim()||pitchFiles.some(f=>f.analyzing)} className="flex-1 py-3.5 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[14px] active:scale-[0.99] hover:opacity-90 transition-all disabled:opacity-40">
                       {pitchLoading?'전송 중...':pitchFiles.length>0?`${pitchFiles.length}개 파일과 함께 제출`:'피칭 제출'}
                     </button>
                   </div>
@@ -915,8 +915,8 @@ export default function GuestView(){
       )}
 
       {showInstall&&(
-        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setShowInstall(false)}>
-          <div className={`anim-rise w-full max-w-sm border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl p-6 ${D?'bg-[#111] border-white/10':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setShowInstall(false)}>
+          <div className={`anim-rise w-full max-w-sm border rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl p-6 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="text-center">
               <div className="text-4xl mb-3">📲</div>
               <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>{t('홈 화면에 추가','Add to Home Screen')}</h2>

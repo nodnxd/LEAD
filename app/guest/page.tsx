@@ -200,8 +200,8 @@ export default function MyPage() {
   };
 
   const D = theme === 'dark';
-  const bg = D ? 'bg-[#050505] text-white' : 'bg-[#E6E6EC] text-[#111]';
-  const card = D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.1] shadow-sm';
+  const bg = D ? 'bg-[#141414] text-white' : 'bg-[#E6E6EC] text-[#111]';
+  const card = D ? 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.1] shadow-sm';
   const inputCls = D
     ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/60'
     : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/60';
@@ -221,17 +221,17 @@ export default function MyPage() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}` }} />
+      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
       <main className={`min-h-screen ${bg} font-pretendard p-5 lg:p-8 relative overflow-hidden`}>
 
-        <div className={`absolute top-[-15%] left-[-10%] w-[500px] h-[500px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[180px] ${D ? 'opacity-[0.06]' : 'opacity-[0.03]'} pointer-events-none`} />
+        {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(180px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
         <div className="relative z-10 max-w-2xl mx-auto">
 
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="text-2xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>MY PAGE</span>
             </div>
             <div className="flex items-center gap-2">
@@ -527,7 +527,7 @@ export default function MyPage() {
 
                 <div className="flex gap-3 mt-6">
                   <button onClick={() => setEditing(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>취소</button>
-                  <button onClick={handleSave} disabled={saving} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50">
+                  <button onClick={handleSave} disabled={saving} className="flex-1 py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50">
                     {saving ? '저장 중...' : '저장'}
                   </button>
                 </div>

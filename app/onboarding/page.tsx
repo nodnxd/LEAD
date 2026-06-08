@@ -107,8 +107,8 @@ export default function OnboardingPage() {
   };
 
   const D = theme === 'dark';
-  const bg = D ? 'bg-[#050505]' : 'bg-[#F2F2F7]';
-  const card = D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]';
+  const bg = D ? 'bg-[#141414]' : 'bg-[#F2F2F7]';
+  const card = D ? 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]';
   const inputCls = D
     ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-[#5B8CFF]/60'
     : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#5B8CFF]/60';
@@ -213,15 +213,14 @@ export default function OnboardingPage() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}` }} />
+      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
       <main className={`min-h-screen ${bg} font-pretendard flex flex-col items-center justify-center p-5 relative overflow-hidden`}>
 
-        <div className={`absolute top-[-15%] left-[-10%] w-[500px] h-[500px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[180px] ${D ? 'opacity-[0.07]' : 'opacity-[0.04]'} pointer-events-none`} />
-        <div className={`absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-[#a78bfa] rounded-full mix-blend-screen filter blur-[180px] ${D ? 'opacity-[0.05]' : 'opacity-[0.03]'} pointer-events-none`} />
+        {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(180px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
         <div className="relative z-10 w-full max-w-lg">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter mb-1">LEAD</h1>
+            <h1 className="text-3xl font-black text-[#5B8CFF] uppercase tracking-tighter mb-1">LEAD</h1>
             <p className={`text-[12px] font-bold ${dimText}`}>프로필을 완성해주세요</p>
           </div>
 
@@ -415,9 +414,9 @@ export default function OnboardingPage() {
               <button onClick={() => setStep(s => s - 1)} className={`flex-1 py-3.5 rounded-xl border font-bold text-[13px] transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>이전</button>
             )}
             {step < 4 ? (
-              <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className={`flex-1 py-3.5 rounded-xl font-black text-[13px] transition-all ${canNext() ? 'bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white hover:scale-[1.02]' : D ? 'bg-white/5 text-zinc-700 cursor-not-allowed' : 'bg-black/5 text-zinc-400 cursor-not-allowed'}`}>다음 →</button>
+              <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className={`flex-1 py-3.5 rounded-xl font-black text-[13px] transition-all ${canNext() ? 'bg-[#5B8CFF] text-white hover:opacity-90' : D ? 'bg-white/5 text-zinc-700 cursor-not-allowed' : 'bg-black/5 text-zinc-400 cursor-not-allowed'}`}>다음 →</button>
             ) : (
-              <button onClick={handleFinish} disabled={saving} className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] transition-all hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100">
+              <button onClick={handleFinish} disabled={saving} className="flex-1 py-3.5 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] transition-all hover:opacity-90 disabled:opacity-50">
                 {saving ? '저장 중...' : '완료 🎉'}
               </button>
             )}

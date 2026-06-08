@@ -58,12 +58,13 @@ export default function LoginPage() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }` }} />
-      <main className="min-h-screen bg-[#050505] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
-        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.1] pointer-events-none transition-colors ${isCast ? 'bg-[#DE6B35]' : 'bg-[#5B8CFF]'}`} />
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
+      <main className="min-h-screen bg-[#141414] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
+        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none transition-colors`} style={{background: isCast ? '#DE6B35' : '#5B8CFF', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
         <div className="w-full max-w-sm relative z-10">
           <div className="text-center mb-8">
             <div className="flex items-baseline justify-center gap-2.5 mb-2">
-              <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="text-5xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
               <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <p className="text-zinc-600 text-[12px]">{product === 'cast' ? 'CAST · Roster' : 'LEAD · Pitching'}</p>
@@ -101,7 +102,7 @@ export default function LoginPage() {
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white mb-3" />
                   {error && <p className="text-red-400 text-[12px] mb-3">{error}</p>}
                   <button onClick={handleReset} disabled={loading}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 mb-2">
+                    className="w-full py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50 mb-2">
                     {loading ? '...' : '재설정 메일 보내기'}
                   </button>
                   <button onClick={() => { setForgotMode(false); setError(''); }} className="w-full text-zinc-600 text-[12px] hover:text-zinc-400 transition-colors">← 돌아가기</button>
@@ -129,7 +130,7 @@ export default function LoginPage() {
                   <button onClick={() => { setForgotMode(true); setError(''); }} className="text-zinc-500 text-[12px] hover:text-[#5B8CFF] transition-colors">비밀번호 찾기</button>
                 </div>
                 <button onClick={handle} disabled={loading}
-                  className={`w-full py-3 rounded-xl text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50 mb-3 ${isCast ? 'bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] shadow-lg shadow-[#DE6B35]/25' : 'bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] shadow-lg shadow-[#3B6FFF]/25'}`}>
+                  className={`w-full py-3 rounded-xl text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50 mb-3 ${isCast ? 'bg-[#DE6B35]' : 'bg-[#5B8CFF]'}`}>
                   {loading ? '...' : isSignUp ? '회원가입' : '로그인'}
                 </button>
                 <button onClick={() => { setIsSignUp(!isSignUp); setError(''); }} className="w-full text-zinc-600 text-[12px] hover:text-zinc-400 transition-colors">

@@ -87,8 +87,8 @@ export default function GuestView() {
   };
 
   // 테마 변수
-  const bg = theme === 'light' ? 'bg-[#f5f5f5]' : 'bg-[#050505]';
-  const cardBg = theme === 'light' ? 'bg-white border-black/10' : 'bg-white/[0.03] border-white/5';
+  const bg = theme === 'light' ? 'bg-[#f5f5f5]' : 'bg-[#141414]';
+  const cardBg = theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]';
   const textMain = theme === 'light' ? 'text-black' : 'text-white';
   const textSub = theme === 'light' ? 'text-zinc-500' : 'text-zinc-400';
   const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-600' : 'bg-white/5 border-white/10 text-zinc-500';
@@ -268,14 +268,14 @@ export default function GuestView() {
 
   if (notFound) return (
     <div className={`min-h-screen ${bg} flex flex-col items-center justify-center font-pretendard`}>
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }`}} />
+      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
       <p className="text-zinc-600 text-[12px] font-bold tracking-widest uppercase">{tv.notFound}</p>
     </div>
   );
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }`}} />
+      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
 
       {/* 링크 팝오버 */}
       {linkPopover && (
@@ -300,11 +300,11 @@ export default function GuestView() {
 
       <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: `${100 / zoom}%`, minHeight: `${100 / zoom}vh` }}>
         <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-300`}>
-          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#DE6B35] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.08] pointer-events-none" />}
+          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#DE6B35',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
           {/* 헤더 */}
           <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-6">
-            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] uppercase tracking-tighter">CAST</h1>
+            <h1 className="text-4xl font-black text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
             <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
           </div>
 

@@ -32,12 +32,12 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }` }} />
-      <main className="min-h-screen bg-[#050505] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#5B8CFF] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.08] pointer-events-none" />
+      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
+      <main className="min-h-screen bg-[#141414] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />
         <div className="w-full max-w-sm relative z-10">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#5B8CFF] to-[#a5c0ff] uppercase tracking-tighter">LEAD</h1>
+            <h1 className="text-4xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
             <p className="text-zinc-600 text-[12px] mt-1">비밀번호 재설정</p>
           </div>
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
@@ -46,7 +46,7 @@ export default function ResetPasswordPage() {
                 <div className="text-4xl mb-3">✅</div>
                 <p className="text-white font-black text-[15px] mb-1">변경 완료!</p>
                 <p className="text-zinc-500 text-[12px] mb-5">새 비밀번호로 로그인할 수 있어요.</p>
-                <button onClick={() => router.push('/')} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all">로그인하러 가기</button>
+                <button onClick={() => router.push('/')} className="w-full py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all">로그인하러 가기</button>
               </div>
             ) : !ready ? (
               <div className="text-center py-6">
@@ -66,7 +66,7 @@ export default function ResetPasswordPage() {
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white" />
                 </div>
                 {error && <p className="text-red-400 text-[12px] mb-3">{error}</p>}
-                <button onClick={submit} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all disabled:opacity-50">
+                <button onClick={submit} disabled={loading} className="w-full py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50">
                   {loading ? '...' : '비밀번호 변경'}
                 </button>
               </>

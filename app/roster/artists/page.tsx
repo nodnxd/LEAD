@@ -212,17 +212,17 @@ export default function ArtistsPage() {
 
   const filtered = sortedFiltered;
 
-  if (!user) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><div className="text-zinc-600 text-[11px] font-black tracking-widest">Loading...</div></div>;
+  if (!user) return <div className="min-h-screen bg-[#141414] flex items-center justify-center"><div className="text-zinc-600 text-[11px] font-black tracking-widest">Loading...</div></div>;
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }`}} />
-      <main className="min-h-screen bg-[#050505] text-white p-5 lg:p-8 font-pretendard relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#DE6B35] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.06] pointer-events-none" />
+      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
+      <main className="min-h-screen bg-[#141414] text-white p-5 lg:p-8 font-pretendard relative overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#DE6B35',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-8">
-          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] uppercase tracking-tighter">CAST</h1>
+          <h1 className="text-4xl font-black text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
           <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
         </div>
 
@@ -250,7 +250,7 @@ export default function ArtistsPage() {
                   </button>
                 ))}
               </div>
-              <button onClick={openCreate} className="bg-gradient-to-r from-orange-600 to-orange-400 text-white px-5 py-2 rounded-xl font-black text-[11px] hover:scale-105 transition-all shadow-lg shadow-orange-900/20">+ 추가</button>
+              <button onClick={openCreate} className="bg-[#DE6B35] text-white px-5 py-2 rounded-xl font-semibold text-[11px] hover:opacity-90 transition-all">+ 추가</button>
             </div>
           </div>
 
@@ -338,7 +338,7 @@ export default function ArtistsPage() {
 
       {/* 아티스트 상세 모달 */}
       {viewingArtist && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={() => setViewingArtist(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4" onClick={() => setViewingArtist(null)}>
           <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="relative h-56 bg-white/5">
               {viewingArtist.photo_url ? (
@@ -406,7 +406,7 @@ export default function ArtistsPage() {
 
       {/* 로스터 추가 모달 */}
       {addToRosterArtist && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4" onClick={() => setAddToRosterArtist(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4" onClick={() => setAddToRosterArtist(null)}>
           <div className="w-full max-w-sm bg-[#111] border border-white/10 rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h2 className="text-white font-black text-[16px] mb-1">{addToRosterArtist.name}</h2>
             <p className="text-zinc-500 text-[12px] mb-5">로스터에 추가할 프로젝트를 선택하세요</p>
@@ -442,7 +442,7 @@ export default function ArtistsPage() {
 
             <div className="flex gap-3">
               <button onClick={() => setAddToRosterArtist(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">취소</button>
-              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-600 to-orange-400 text-white font-black text-[12px] hover:scale-[1.02] transition-all disabled:opacity-40">추가</button>
+              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-xl bg-[#DE6B35] text-white font-semibold text-[12px] hover:opacity-90 transition-all disabled:opacity-40">추가</button>
             </div>
           </div>
         </div>
@@ -450,7 +450,7 @@ export default function ArtistsPage() {
 
       {/* 추가/수정 모달 */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4 overflow-y-auto">
           <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl shadow-2xl my-4">
             <div className="p-6">
               <h2 className="text-white font-black text-[16px] mb-5">{editingArtist ? '아티스트 수정' : '아티스트 추가'}</h2>
@@ -503,7 +503,7 @@ export default function ArtistsPage() {
 
               <div className="flex gap-3 mt-5">
                 <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">취소</button>
-                <button onClick={saveArtist} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-600 to-orange-400 text-white font-black text-[12px] hover:scale-[1.02] transition-all">저장</button>
+                <button onClick={saveArtist} className="flex-1 py-3 rounded-xl bg-[#DE6B35] text-white font-semibold text-[12px] hover:opacity-90 transition-all">저장</button>
               </div>
             </div>
           </div>

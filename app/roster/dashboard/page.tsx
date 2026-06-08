@@ -1019,8 +1019,8 @@ export default function Dashboard() {
   }
 
   // ── 스타일 ──────────────────────────────────────────
-  const bg = theme === 'light' ? 'bg-[#f5f5f5]' : 'bg-[#050505]';
-  const cardBg = theme === 'light' ? 'bg-white border-black/10' : 'bg-white/[0.03] border-white/5';
+  const bg = theme === 'light' ? 'bg-[#f5f5f5]' : 'bg-[#141414]';
+  const cardBg = theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]';
   const textMain = theme === 'light' ? 'text-black' : 'text-white';
   const textSub = theme === 'light' ? 'text-zinc-500' : 'text-zinc-400';
   const inputBg = theme === 'light' ? 'bg-black/5 border-black/10' : 'bg-white/5 border-white/10';
@@ -1078,15 +1078,15 @@ export default function Dashboard() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }`}} />
+      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
       <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: `${100 / zoom}%`, minHeight: `${100 / zoom}vh` }}>
         <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-300`}>
-          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#DE6B35] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.08] pointer-events-none" />}
+          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#DE6B35',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
           {/* 헤더 */}
           <div className="relative z-10 flex items-center justify-center gap-3 mb-8 flex-wrap">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] uppercase tracking-tighter">CAST</h1>
+              <h1 className="text-4xl font-black text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
             </div>
             <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
@@ -1181,7 +1181,7 @@ export default function Dashboard() {
                 <button onClick={() => setShowNoticeBoard(!showNoticeBoard)} className={`border px-4 py-1.5 rounded-xl font-bold text-[11px] transition-all ${btnBg}`}>📋 {t.notice}</button>
                 <button onClick={copyShareLink} className={`border px-4 py-1.5 rounded-xl font-bold text-[11px] transition-all ${btnBg}`}>🔗 {t.share}</button>
                 <button onClick={() => showPrompt(t.randomMatch, t.teamCount, '2', async (v) => { const n = parseInt(v); setPromptModal(null); if (n > 0) await generateRandomRoster(n)(); })}
-                  className="bg-gradient-to-r from-orange-600 to-orange-400 text-white px-5 py-1.5 rounded-xl font-black text-[11px] hover:scale-105 transition-all shadow-lg shadow-orange-900/20 uppercase tracking-tighter">🎲 {t.random}</button>
+                  className="bg-[#DE6B35] text-white px-5 py-1.5 rounded-xl font-semibold text-[11px] hover:opacity-90 transition-all uppercase tracking-tighter">🎲 {t.random}</button>
                 <button onClick={toggleTheme} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
                 <button onClick={toggleLang} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
               </div>
@@ -1494,14 +1494,14 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-pretendard">
           <div className={`w-full max-w-sm mx-4 border rounded-2xl p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <div className="text-center mb-6">
-              <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] uppercase tracking-tighter mb-2">CAST</h1>
+              <h1 className="text-4xl font-black text-[#DE6B35] uppercase tracking-tighter mb-2">CAST</h1>
               <p className={`text-[13px] ${textSub}`}>{t.firstRosterTitle}</p>
             </div>
             <input autoFocus value={firstRosterName} onChange={e => setFirstRosterName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createFirstRoster()}
               placeholder={t.firstRosterPlaceholder}
               className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#DE6B35]/50 transition-all mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
             <button onClick={createFirstRoster} disabled={!firstRosterName.trim()}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-600 to-orange-400 text-white font-black text-[13px] uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-40">{t.start}</button>
+              className="w-full py-3 rounded-xl bg-[#DE6B35] text-white font-semibold text-[13px] uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-40">{t.start}</button>
           </div>
         </div>
       )}

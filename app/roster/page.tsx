@@ -53,16 +53,15 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white flex items-center justify-center font-pretendard relative overflow-hidden">
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }`}} />
-      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-[#DE6B35] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.07] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[#DE6B35] rounded-full mix-blend-screen filter blur-[200px] opacity-[0.04] pointer-events-none" />
+    <main className="min-h-screen bg-[#141414] text-white flex items-center justify-center font-pretendard relative overflow-hidden">
+      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#DE6B35', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
 
       <div className="relative z-10 w-full max-w-sm px-6">
         {/* 로고 */}
         <div className="text-center mb-10">
           <div className="flex items-baseline justify-center gap-2.5">
-            <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#DE6B35] to-[#f3a17a] uppercase tracking-tighter">CAST</h1>
+            <h1 className="text-6xl font-black text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
             <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
           </div>
           <p className="text-[9px] font-bold tracking-[0.5em] uppercase mt-2" style={{ color: '#4a7fa5', opacity: 0.7 }}>Roster Manager</p>
@@ -96,7 +95,7 @@ export default function LandingPage() {
                 </label>
               )}
               {error && <p className="text-red-400 text-[11px]">{error}</p>}
-              <button onClick={handleAuth} disabled={loading} className="w-full bg-gradient-to-r from-orange-600 to-orange-400 text-white py-3 rounded-xl font-black text-[12px] uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50 mt-1 shadow-lg shadow-orange-900/20">
+              <button onClick={handleAuth} disabled={loading} className="w-full bg-[#DE6B35] text-white py-3 rounded-xl font-semibold text-[12px] uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-50 mt-1">
                 {loading ? '...' : authMode === 'login' ? '로그인' : '회원가입'}
               </button>
             </div>

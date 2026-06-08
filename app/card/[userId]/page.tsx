@@ -43,8 +43,8 @@ export default function CardPage() {
   };
 
   const D = theme === 'dark';
-  const bg = D ? 'bg-[#050505]' : 'bg-[#E6E6EC]';
-  const card = D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]';
+  const bg = D ? 'bg-[#141414]' : 'bg-[#E6E6EC]';
+  const card = D ? 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]';
   const tx = D ? 'text-white' : 'text-[#111]';
   const dm = D ? 'text-zinc-500' : 'text-zinc-500';
   const dv = D ? 'border-white/[0.07]' : 'border-black/[0.07]';
@@ -173,7 +173,7 @@ export default function CardPage() {
         {/* 액션 버튼 */}
         <div className="no-print flex gap-3 mt-4 w-full max-w-sm">
           <button onClick={() => window.print()}
-            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] text-white font-black text-[13px] hover:scale-[1.02] transition-all shadow-lg">
+            className="flex-1 py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all">
             📄 PDF 저장
           </button>
           <button onClick={goBack}
