@@ -231,7 +231,7 @@ export default function MyPage() {
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-2xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="text-2xl font-semibold text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>MY PAGE</span>
             </div>
             <div className="flex items-center gap-2">
@@ -242,7 +242,7 @@ export default function MyPage() {
               )}
               <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
                 className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
-                {D ? '☀️' : '🌙'}
+                {D ? '☀' : '◑'}
               </button>
               <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))}
                 className={`text-[11px] font-bold transition-colors ${D ? 'text-zinc-600 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>
@@ -398,8 +398,8 @@ export default function MyPage() {
 
         {/* 수정 모달 */}
         {editing && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm font-pretendard p-4 overflow-y-auto" onClick={() => setEditing(false)}>
-            <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4 overflow-y-auto" onClick={() => setEditing(false)}>
+            <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
               <div className="p-6 max-h-[85vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className={`font-black text-[18px] ${D ? 'text-white' : 'text-[#111]'}`}>프로필 수정</h2>

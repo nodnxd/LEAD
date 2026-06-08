@@ -304,7 +304,7 @@ export default function GuestView() {
 
           {/* 헤더 */}
           <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-6">
-            <h1 className="text-4xl font-black text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
+            <h1 className="text-4xl font-semibold text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
             <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
           </div>
 
@@ -312,13 +312,13 @@ export default function GuestView() {
           <header className={`relative z-10 mb-4 border-b pb-3 flex justify-between items-center ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`}>
             <p className={`text-[16px] font-bold ${textSub}`}>{currentProject}</p>
             <div className="flex items-center gap-2">
-              <button onClick={toggleTheme} className={`px-3 py-1.5 rounded-full border font-bold text-[11px] transition-all ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
-              <button onClick={toggleLang} className={`px-3 py-1.5 rounded-full border font-bold text-[10px] uppercase tracking-widest transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
+              <button onClick={toggleTheme} className={`px-3 py-1.5 rounded-full border font-normal text-[11px] transition-all ${btnBg}`}>{theme === 'dark' ? '☀' : '◑'}</button>
+              <button onClick={toggleLang} className={`px-3 py-1.5 rounded-full border font-normal text-[10px] uppercase tracking-widest transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
               {sessions.length > 0 && (
                 <button onClick={() => setShowHistory(!showHistory)}
-                  className={`px-3 py-1.5 rounded-full border font-bold text-[10px] uppercase tracking-widest transition-all ${showHistory ? 'border-[#DE6B35]/50 text-[#DE6B35] bg-[#DE6B35]/10' : btnBg}`}>🗂 {tv.history}</button>
+                  className={`px-3 py-1.5 rounded-full border font-normal text-[10px] uppercase tracking-widest transition-all ${showHistory ? 'border-[#DE6B35]/50 text-[#DE6B35] bg-[#DE6B35]/10' : btnBg}`}>{tv.history}</button>
               )}
-              <span className={`px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${btnBg}`}>{tv.guest}</span>
+              <span className={`px-3 py-1.5 rounded-full border text-[10px] font-normal uppercase tracking-widest ${btnBg}`}>{tv.guest}</span>
             </div>
           </header>
 
@@ -326,7 +326,7 @@ export default function GuestView() {
           <div className="relative z-10 flex items-center gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
             {projects.map(p => (
               <button key={p} onClick={() => setCurrentProject(p)}
-                className={`px-4 py-1.5 rounded-full font-bold text-[11px] tracking-widest uppercase border transition-all ${currentProject === p ? 'border-[#DE6B35]/50 bg-gradient-to-r from-[#DE6B35]/30 to-[#f3a17a]/10 text-white shadow-[0_0_20px_rgba(222,107,53,0.3)]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-400'}`}>{p}</button>
+                className={`px-4 py-1.5 rounded-full font-normal text-[11px] tracking-widest uppercase border transition-all ${currentProject === p ? 'border-[#DE6B35]/50 bg-[#DE6B35]/20 text-[#DE6B35]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-400'}`}>{p}</button>
             ))}
           </div>
 
@@ -335,7 +335,7 @@ export default function GuestView() {
             <div className="relative z-10 flex items-center gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
               {days.map(d => (
                 <button key={d} onClick={() => setCurrentDay(d)}
-                  className={`px-4 py-1.5 rounded-full font-bold text-[11px] transition-all border ${currentDay === d ? 'border-[#DE6B35]/40 bg-[#DE6B35]/10 text-[#DE6B35]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
+                  className={`px-4 py-1.5 rounded-full font-normal text-[11px] transition-all border ${currentDay === d ? 'border-[#DE6B35]/40 bg-[#DE6B35]/10 text-[#DE6B35]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
               ))}
             </div>
           )}
@@ -345,7 +345,7 @@ export default function GuestView() {
             <div className="relative z-10 mb-6 flex flex-col gap-3">
               {notices.map(n => (
                 <div key={n.id} className="rounded-2xl border border-[#DE6B35]/20 bg-[#DE6B35]/5 p-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[#DE6B35]/60 mb-1">📋 {tv.notice}</p>
+                  <p className="text-[10px] font-normal uppercase tracking-widest text-[#DE6B35]/60 mb-1">{tv.notice}</p>
                   <p className={`font-bold text-[14px] mb-1 ${textMain}`}>{n.title}</p>
                   {n.content && <p className={`text-[12px] leading-relaxed whitespace-pre-line ${textSub}`}>{n.content}</p>}
                 </div>
@@ -355,7 +355,7 @@ export default function GuestView() {
 
           {/* 투표 배너 */}
           {votingOpen && (
-            <div className={`relative z-10 mb-8 rounded-2xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-white/[0.03] border-white/10'}`}>
+            <div className={`relative z-10 mb-8 rounded-2xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]'}`}>
               <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${textSub}`}>{tv.vote}</p>
               <p className={`font-black text-[18px] mb-1 ${textMain}`}>{votingTitle || (lang === 'ko' ? '참여 여부 투표' : 'Attendance Vote')}</p>
               {votingMemo && <p className={`text-[12px] mb-6 leading-relaxed whitespace-pre-line ${textSub}`}>{votingMemo}</p>}
@@ -420,8 +420,8 @@ export default function GuestView() {
 
           {/* 세션 히스토리 */}
           {showHistory && (
-            <div className={`relative z-10 mb-8 rounded-2xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-white/[0.03] border-white/10'}`}>
-              <p className={`font-black text-[16px] mb-5 ${textMain}`}>🗂 {tv.history}</p>
+            <div className={`relative z-10 mb-8 rounded-2xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]'}`}>
+              <p className={`font-semibold text-[16px] mb-5 ${textMain}`}>{tv.history}</p>
               <div className="flex flex-col gap-4">
                 {Object.keys(sessionsByCamp).length === 0 ? <p className={`text-[12px] ${textSub}`}>{tv.noSession}</p> :
                   Object.entries(sessionsByCamp).map(([campName, campSessions]: any) => (

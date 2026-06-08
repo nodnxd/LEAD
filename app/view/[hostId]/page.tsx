@@ -443,7 +443,7 @@ export default function GuestView(){
   };
 
   const FileItem=({item}:{item:PitchFileItem})=>(
-    <div className={`border rounded-2xl overflow-hidden ${D?'border-white/10 bg-white/[0.03]':'border-black/[0.08] bg-black/[0.02]'}`}>
+    <div className={`border rounded-2xl overflow-hidden ${D?'border-[rgba(255,255,255,0.08)] bg-[#1e1e1e]':'border-black/[0.08] bg-black/[0.02]'}`}>
       <div className="flex items-center gap-3 px-4 py-3">
         <span className="text-[16px]">🎵</span>
         <div className="flex-1 min-w-0">
@@ -504,8 +504,8 @@ export default function GuestView(){
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-pretendard relative overflow-hidden`}>
         {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}}/>}
         <div className="w-full max-w-sm text-center">
-          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-black ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
-          <div className={`border rounded-2xl p-8 ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
+          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
+          <div className={`border rounded-2xl p-8 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
             <div className="text-4xl mb-4">{icon}</div>
             <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>{title}</h2>
             <p className={`text-[13px] leading-relaxed ${dimText}`}>{sub}</p>
@@ -543,9 +543,9 @@ export default function GuestView(){
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-pretendard relative overflow-hidden`}>
         {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}}/>}
         <div className="w-full max-w-sm relative z-10">
-          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-black ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
+          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           {noProfile?(
-            <div className={`border rounded-2xl p-8 text-center ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
+            <div className={`border rounded-2xl p-8 text-center ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
               <div className="text-4xl mb-4">📝</div>
               <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>프로필을 완성해주세요</h2>
               <p className={`text-[13px] ${dimText} mb-6`}>리드에 참여하려면 멤버 프로필 등록이 필요해요.</p>
@@ -553,8 +553,8 @@ export default function GuestView(){
               <button onClick={()=>supabase.auth.signOut().then(()=>{setCurrentUser(null);setNoProfile(false);})} className={`block w-full mt-3 py-2.5 text-[12px] font-bold ${dimText} hover:text-white transition-colors`}>다른 계정으로 로그인</button>
             </div>
           ):(
-            <div className={`border rounded-2xl p-6 ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
-              <h2 className={`font-black text-[16px] mb-1 ${D?'text-white':'text-[#111]'}`}>{guestIsSignUp?'멤버 가입':'멤버 로그인'}</h2>
+            <div className={`border rounded-2xl p-6 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
+              <h2 className={`font-semibold text-[16px] mb-1 ${D?'text-white':'text-[#111]'}`}>{guestIsSignUp?'멤버 가입':'멤버 로그인'}</h2>
               <p className={`text-[12px] ${dimText} mb-4`}>호스트 초대를 받으셨나요? 로그인하면 접근 요청이 자동으로 전달돼요.</p>
               <div className="flex flex-col gap-3 mb-3">
                 <input value={guestEmail} onChange={e=>setGuestEmail(e.target.value)} placeholder="이메일" type="email"
@@ -587,8 +587,8 @@ export default function GuestView(){
       <main className={`min-h-screen ${mainBg} p-5 lg:p-8 pb-24 sm:pb-5 font-pretendard relative`} style={{zoom}}>
         {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}}/>}
         <div className="relative z-10 flex flex-col items-center mb-8">
-          <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
-          {hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-black ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}
+          <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
+          {hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#5B8CFF]/25 bg-[#5B8CFF]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}
         </div>
 
         {announcements.length>0&&<div className="relative z-10 mb-5 flex flex-col gap-2">{announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20"><span className="text-[#5B8CFF] text-[11px] font-black mt-0.5 shrink-0">📢</span><div>{ann.title&&<p className={`font-bold text-[13px] mb-0.5 ${D?'text-white':'text-[#111]'}`}>{ann.title}</p>}<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?'text-zinc-300':'text-zinc-600'}`}>{ann.content}</p></div></div>)}</div>}
@@ -596,14 +596,14 @@ export default function GuestView(){
         <div className={`relative z-30 flex flex-wrap items-center justify-between gap-3 mb-6 border-b ${dividerCls} pb-4`}>
           <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} 활성</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} 마감</span></div>
           <div className="flex items-center gap-2">
-            <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
-            <button onClick={()=>{const v=!globalEn;setGlobalEn(v);localStorage.setItem('lead_global_en',v?'1':'0');}} className={`h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-black transition-all ${globalEn?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>🌐 {globalEn?'EN':'KO'}</button>
-            {!isStandalone&&<button onClick={handleInstall} className={`sm:hidden h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-black transition-all ${D?'bg-white/5 border-white/10 text-zinc-400':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>📲</button>}
+            <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀':'◑'}</button>
+            <button onClick={()=>{const v=!globalEn;setGlobalEn(v);localStorage.setItem('lead_global_en',v?'1':'0');}} className={`h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-normal transition-all ${globalEn?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{globalEn?'EN':'KO'}</button>
+            {!isStandalone&&<button onClick={handleInstall} className={`sm:hidden h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-normal transition-all ${D?'bg-white/5 border-white/10 text-zinc-400':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>앱 설치</button>}
             <div className={`hidden sm:flex border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
-              <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>📅 {t('달력','Calendar')}</button>
-              <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>📋 {t('목록','List')}</button>
+              <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-normal transition-all ${view==='calendar'?'bg-[#5B8CFF] text-white':dimText}`}>{t('달력','Calendar')}</button>
+              <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-normal transition-all ${view==='list'?'bg-[#5B8CFF] text-white':dimText}`}>{t('목록','List')}</button>
             </div>
-            <button onClick={()=>{navigator.clipboard.writeText(window.location.href);setShareToast(true);setTimeout(()=>setShareToast(false),2000);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>🔗 공유</button>
+            <button onClick={()=>{navigator.clipboard.writeText(window.location.href);setShareToast(true);setTimeout(()=>setShareToast(false),2000);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>공유</button>
             {/* ✅ MY 버튼 */}
             {isHost&&!previewMode?(
               <div className="flex items-center gap-2">
@@ -620,13 +620,13 @@ export default function GuestView(){
               <div className="flex items-center gap-2">
                 {myHosts.length>1&&(
                   <div className="relative" ref={switcherRef}>
-                    <button onClick={()=>setShowHostSwitcher(s=>!s)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-black transition-all ${D?'border-white/10 bg-white/5 text-zinc-300 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>🏢 {t('회사 전환','Switch')} <span className="opacity-60">▾</span></button>
+                    <button onClick={()=>setShowHostSwitcher(s=>!s)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-normal transition-all ${D?'border-white/10 bg-white/5 text-zinc-300 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>{t('회사 전환','Switch')} <span className="opacity-60">▾</span></button>
                     {showHostSwitcher&&(
                       <div className={`anim-rise absolute right-0 mt-2 w-56 z-[80] rounded-2xl border shadow-2xl overflow-hidden ${D?'bg-[#141414] border-white/10':'bg-white border-black/[0.08]'}`}>
                         <p className={`text-[10px] font-black uppercase tracking-widest px-4 pt-3 pb-1 ${dimText}`}>{t('내 회사','My companies')}</p>
                         {myHosts.map(h=>(
-                          <button key={h.host_id} onClick={()=>{setShowHostSwitcher(false);if(h.host_id!==hostId)window.location.href=`/view/${h.host_id}`;}} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-[13px] font-bold transition-colors ${h.host_id===hostId?'text-[#5B8CFF]':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}>
-                            <span className="text-[14px]">🏢</span><span className="flex-1 truncate">{h.name}</span>{h.host_id===hostId&&<span className="text-[11px]">✓</span>}
+                          <button key={h.host_id} onClick={()=>{setShowHostSwitcher(false);if(h.host_id!==hostId)window.location.href=`/view/${h.host_id}`;}} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-[13px] font-normal transition-colors ${h.host_id===hostId?'text-[#5B8CFF]':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}>
+                            <span className="flex-1 truncate">{h.name}</span>{h.host_id===hostId&&<span className="text-[11px]">✓</span>}
                           </button>
                         ))}
                       </div>
@@ -757,15 +757,14 @@ export default function GuestView(){
       {/* 모바일 하단 고정 탭바 */}
       <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch border-t backdrop-blur-xl ${D?'bg-[#0a0a0a]/95 border-white/10':'bg-white/95 border-black/[0.08]'}`} style={{paddingBottom:'env(safe-area-inset-bottom)'}}>
         {([
-          ['list','📋',t('목록','List'),()=>setView('list')],
-          ['calendar','📅',t('달력','Calendar'),()=>setView('calendar')],
-          ['mine','📨',t('내 피칭','My Pitch'),()=>{window.location.href='/mypage';}],
-        ] as const).map(([key,icon,label,fn])=>{
+          ['list',t('목록','List'),()=>setView('list')],
+          ['calendar',t('달력','Calendar'),()=>setView('calendar')],
+          ['mine',t('내 피칭','My Pitch'),()=>{window.location.href='/mypage';}],
+        ] as const).map(([key,label,fn])=>{
           const active=(key==='list'&&view==='list')||(key==='calendar'&&view==='calendar');
           return(
             <button key={key} onClick={fn as any} className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors ${active?'text-[#5B8CFF]':D?'text-zinc-500':'text-zinc-400'}`}>
-              <span className="text-[19px] leading-none">{icon}</span>
-              <span className="text-[10px] font-black">{label}</span>
+              <span className="text-[11px] font-normal">{label}</span>
             </button>
           );
         })}
@@ -881,7 +880,7 @@ export default function GuestView(){
                     </div>
                     <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>세부사항 <span className={`font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>(선택)</span></label><textarea value={pitchForm.message} onChange={e=>setPitchForm(p=>({...p,message:e.target.value}))} placeholder="포트폴리오 링크, 제작 의도, 기타 전달사항 등" rows={3} className={`w-full border rounded-xl px-4 py-3 text-[16px] sm:text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
                   </div>
-                  {pitchLoading&&<div className="mt-4"><div className="flex items-center justify-between mb-1.5"><span className={`text-[11px] ${dimText}`}>업로드 중...</span><span className={`text-[11px] font-bold ${D?'text-zinc-400':'text-zinc-500'}`}>{uploadProgress}%</span></div><div className={`w-full h-1.5 rounded-full overflow-hidden ${D?'bg-white/10':'bg-black/[0.08]'}`}><div className="h-full bg-gradient-to-r from-[#3B6FFF] to-[#7BA4FF] rounded-full transition-all" style={{width:`${uploadProgress}%`}}/></div></div>}
+                  {pitchLoading&&<div className="mt-4"><div className="flex items-center justify-between mb-1.5"><span className={`text-[11px] ${dimText}`}>업로드 중...</span><span className={`text-[11px] font-bold ${D?'text-zinc-400':'text-zinc-500'}`}>{uploadProgress}%</span></div><div className={`w-full h-1.5 rounded-full overflow-hidden ${D?'bg-white/10':'bg-black/[0.08]'}`}><div className="h-full bg-[#5B8CFF] rounded-full transition-all" style={{width:`${uploadProgress}%`}}/></div></div>}
                   {uploadError&&<p className="mt-3 text-red-400 text-[12px] bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">{uploadError}</p>}
                   <div className="flex gap-3 mt-5">
                     <button onClick={()=>{setPitchingLead(null);setPitchSent(false);}} disabled={pitchLoading} className={`py-3.5 px-5 rounded-xl border font-bold text-[14px] transition-all disabled:opacity-40 ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>취소</button>
