@@ -220,7 +220,7 @@ export default function OnboardingPage() {
 
         <div className="relative z-10 w-full max-w-lg">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-black text-[#5B8CFF] uppercase tracking-tighter mb-1">LEAD</h1>
+            <h1 className="text-3xl font-light text-[#5B8CFF] uppercase tracking-tighter mb-1">LEAD</h1>
             <p className={`text-[12px] font-bold ${dimText}`}>프로필을 완성해주세요</p>
           </div>
 

@@ -314,7 +314,7 @@ export default function MyPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-baseline gap-2.5">
-                <h1 className="text-2xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
+                <h1 className="text-2xl font-light text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
                 <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>HOST PAGE</span>
               </div>
               <div className="flex items-center gap-2">

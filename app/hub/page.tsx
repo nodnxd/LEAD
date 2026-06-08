@@ -80,18 +80,18 @@ export default function HubPage() {
         <div className="relative z-10 max-w-xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-3xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="text-3xl font-light text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
               <span className="text-zinc-600 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <div className="flex items-center gap-2">
-              <a href="/mypage" className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-[11px] font-black hover:text-white transition-all">MY</a>
+              <a href="/mypage" className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-[11px] font-normal hover:text-white transition-all">MY</a>
               <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="text-[11px] font-bold text-zinc-600 hover:text-red-400 transition-colors">로그아웃</button>
             </div>
           </div>
 
           {/* 참여 중인 회사 */}
           <section className="mb-8">
-            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500 mb-3">🎤 참여 중인 회사</p>
+            <p className="text-[11px] font-normal uppercase tracking-widest text-zinc-500 mb-3">참여 중인 회사</p>
             {member.length === 0 ? (
               <div className="p-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] text-center">
                 <p className="text-[13px] text-zinc-500">아직 참여 중인 회사가 없어요.</p>
@@ -113,7 +113,7 @@ export default function HubPage() {
           {/* 운영 중인 회사 (호스트 권한자만) */}
           {canHost && (
             <section>
-              <p className="text-[11px] font-black uppercase tracking-widest text-zinc-500 mb-3">🏢 운영 중인 회사 (호스트)</p>
+              <p className="text-[11px] font-normal uppercase tracking-widest text-zinc-500 mb-3">운영 중인 회사 (호스트)</p>
               <div className="flex flex-col gap-2.5">
                 {operate.map(c => (
                   <button key={c.id} onClick={() => enterOperate(c.id)} className="flex items-center gap-3 p-4 rounded-2xl border border-amber-500/25 bg-amber-500/[0.06] hover:bg-amber-500/10 text-left transition-all">

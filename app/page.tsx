@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm relative z-10">
           <div className="text-center mb-8">
             <div className="flex items-baseline justify-center gap-2.5 mb-2">
-              <h1 className="text-5xl font-black text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="text-5xl font-light text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
               <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <p className="text-zinc-600 text-[12px]">{product === 'cast' ? 'CAST · Roster' : 'LEAD · Pitching'}</p>
@@ -75,10 +75,10 @@ export default function LoginPage() {
             <div className="flex gap-1 p-1 bg-white/[0.04] border border-white/10 rounded-2xl mb-4">
               {(['lead', 'cast'] as const).map(p => (
                 <button key={p} onClick={() => pickProduct(p)}
-                  className={`flex-1 py-2.5 rounded-xl text-[13px] font-black transition-all ${product === p
+                  className={`flex-1 py-2.5 rounded-xl text-[13px] font-normal transition-all ${product === p
                     ? (p === 'lead' ? 'bg-[#5B8CFF] text-white' : 'bg-[#DE6B35] text-white')
                     : 'text-zinc-500 hover:text-zinc-300'}`}>
-                  {p === 'lead' ? '📋 LEAD' : '🎤 CAST'}
+                  {p === 'lead' ? 'LEAD' : 'CAST'}
                 </button>
               ))}
             </div>

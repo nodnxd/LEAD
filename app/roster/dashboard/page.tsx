@@ -1086,12 +1086,12 @@ export default function Dashboard() {
           {/* 헤더 */}
           <div className="relative z-10 flex items-center justify-center gap-3 mb-8 flex-wrap">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-4xl font-black text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
+              <h1 className="text-4xl font-light text-[#DE6B35] uppercase tracking-tighter">CAST</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
             </div>
             <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
-              <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
-              <span className="px-3 py-1 rounded-full bg-[#DE6B35] text-white text-[11px] font-black">CAST</span>
+              <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
+              <span className="px-3 py-1 rounded-full bg-[#DE6B35] text-white text-[11px] font-normal">CAST</span>
             </div>
           </div>
 
@@ -1145,11 +1145,11 @@ export default function Dashboard() {
                     for (const c of alphabet) { if (!teams.includes(`Studio ${c}`)) { n = `Studio ${c}`; break; } }
                     if (n) { const next = [...teams, n]; setTeams(next); await saveTeamOrder(user.id, currentProject, currentDay, next); }
                   }} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all text-[#DE6B35] ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
-                  <button onClick={() => setShowSessionBoard(!showSessionBoard)} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${btnBg}`}>🗂 {t.history}</button>
-                  <button onClick={exportRoster} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${btnBg}`}>📤 {t.export}</button>
-                  <button onClick={() => router.push('/roster/artists')} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${btnBg}`}>🎤 {t.artists}</button>
+                  <button onClick={() => setShowSessionBoard(!showSessionBoard)} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.history}</button>
+                  <button onClick={exportRoster} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.export}</button>
+                  <button onClick={() => router.push('/roster/artists')} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.artists}</button>
                   <button onClick={() => { setShowArtistPanel(p => !p); if (!showArtistPanel) fetchArtists(user); }}
-                    className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all ${showArtistPanel ? 'border-[#DE6B35]/50 text-[#DE6B35] bg-[#DE6B35]/10' : btnBg}`}>📥 {t.addFromArtists}</button>
+                    className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${showArtistPanel ? 'border-[#DE6B35]/50 text-[#DE6B35] bg-[#DE6B35]/10' : btnBg}`}>{t.addFromArtists}</button>
                   <div className={`flex p-1 rounded-lg border gap-1 shadow-lg backdrop-blur-md ${inputBg}`}>
                     <input value={name} onChange={e => setName(e.target.value)}
                       onCompositionStart={() => { isComposing.current = true; }}
@@ -1175,13 +1175,13 @@ export default function Dashboard() {
                 <button onClick={() => votingOpen
                   ? showConfirm(t.voteClose, t.closeVoteConfirm, async () => { await closeVoting(); setConfirmModal(null); })
                   : setShowVotingModal(true)}
-                  className={`px-4 py-1.5 rounded-xl font-black text-[11px] transition-all border ${votingOpen ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30' : btnBg}`}>
+                  className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${votingOpen ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30' : btnBg}`}>
                   {votingOpen ? t.voteClose : t.voteOpen}
                 </button>
-                <button onClick={() => setShowNoticeBoard(!showNoticeBoard)} className={`border px-4 py-1.5 rounded-xl font-bold text-[11px] transition-all ${btnBg}`}>📋 {t.notice}</button>
-                <button onClick={copyShareLink} className={`border px-4 py-1.5 rounded-xl font-bold text-[11px] transition-all ${btnBg}`}>🔗 {t.share}</button>
+                <button onClick={() => setShowNoticeBoard(!showNoticeBoard)} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.notice}</button>
+                <button onClick={copyShareLink} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.share}</button>
                 <button onClick={() => showPrompt(t.randomMatch, t.teamCount, '2', async (v) => { const n = parseInt(v); setPromptModal(null); if (n > 0) await generateRandomRoster(n)(); })}
-                  className="bg-[#DE6B35] text-white px-5 py-1.5 rounded-xl font-semibold text-[11px] hover:opacity-90 transition-all uppercase tracking-tighter">🎲 {t.random}</button>
+                  className="bg-[#DE6B35] text-white px-5 py-1.5 rounded-xl font-normal text-[11px] hover:opacity-90 transition-all uppercase tracking-tighter">{t.random}</button>
                 <button onClick={toggleTheme} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
                 <button onClick={toggleLang} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
               </div>
@@ -1494,7 +1494,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-pretendard">
           <div className={`w-full max-w-sm mx-4 border rounded-2xl p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <div className="text-center mb-6">
-              <h1 className="text-4xl font-black text-[#DE6B35] uppercase tracking-tighter mb-2">CAST</h1>
+              <h1 className="text-4xl font-light text-[#DE6B35] uppercase tracking-tighter mb-2">CAST</h1>
               <p className={`text-[13px] ${textSub}`}>{t.firstRosterTitle}</p>
             </div>
             <input autoFocus value={firstRosterName} onChange={e => setFirstRosterName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createFirstRoster()}
