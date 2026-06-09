@@ -497,11 +497,26 @@ export default function GuestView(){
     setPitchLoading(false);setPitchSent(true);
   };
 
-  const gTranslate=async(text:string):Promise<string>=>{
-    if(!text.trim())return'';
+  const gTranslateChunk=async(text:string):Promise<string>=>{
+    if(!text.trim())return text;
     const res=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ko&tl=en&dt=t&q=${encodeURIComponent(text)}`);
     const data=await res.json();
-    return data[0].map((item:any)=>item[0]).join('');
+    return (data[0]||[]).map((item:any)=>item[0]).join('');
+  };
+  // Google's GET endpoint truncates long input — split on line boundaries so nothing is dropped.
+  const gTranslate=async(text:string):Promise<string>=>{
+    if(!text.trim())return'';
+    const LIMIT=1200;
+    if(text.length<=LIMIT)return gTranslateChunk(text);
+    const lines=text.split('\n');
+    const chunks:string[]=[];let cur='';
+    for(const ln of lines){
+      if((cur+'\n'+ln).length>LIMIT&&cur){chunks.push(cur);cur=ln;}
+      else cur=cur?cur+'\n'+ln:ln;
+    }
+    if(cur)chunks.push(cur);
+    const out=await Promise.all(chunks.map(c=>gTranslateChunk(c)));
+    return out.join('\n');
   };
   const ensureEn=async(lead:any)=>{
     if(!lead)return;
