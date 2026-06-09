@@ -137,6 +137,8 @@ export default function GuestView(){
   const [wsInviteEmail,setWsInviteEmail]=useState('');
   const [wsInviteMsg,setWsInviteMsg]=useState('');
   const [showLeadForm,setShowLeadForm]=useState(false);
+  const [leadFormExpanded,setLeadFormExpanded]=useState(false);
+  const [viewExpanded,setViewExpanded]=useState(false);
   const [editingLead,setEditingLead]=useState<any>(null);
   const [leadSaving,setLeadSaving]=useState(false);
   const [lArtist,setLArtist]=useState('');
@@ -1028,14 +1030,20 @@ export default function GuestView(){
 
       {viewingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4" onClick={()=>setViewingLead(null)}>
-          <div className={`anim-rise w-full max-w-lg border rounded-[2rem] shadow-2xl ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
-            <div className="p-6 max-h-[85vh] overflow-y-auto">
+          <div className={`anim-rise w-full ${viewExpanded?'max-w-5xl':'max-w-lg'} border rounded-[2rem] shadow-2xl transition-all ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
+            <div className={`p-6 ${viewExpanded?'max-h-[90vh]':'max-h-[85vh]'} overflow-y-auto`}>
+              <div className={viewExpanded&&viewingLead.content?'grid grid-cols-[0.85fr_1.25fr] gap-6 items-start mb-5':''}>
+              <div>
               <div className="flex items-start justify-between mb-5">
                 <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><span className={`text-[10px] font-black ${getCardColor(viewingLead.gender,viewingLead.group_type).text}`}>{getCardColor(viewingLead.gender,viewingLead.group_type).label}</span><AlbumBadge type={viewingLead.album_type||'single'}/></div><h2 className="text-white font-black text-[22px] leading-tight">{viewingLead.artist}</h2><p className="text-zinc-400 text-[14px] mt-0.5">{viewingLead.title}</p></div>
-                <div className="ml-3 shrink-0"><DeadlineDisplay lead={viewingLead} size="large"/></div>
+                <div className="ml-3 shrink-0 flex flex-col items-end gap-2">
+                  <button onClick={()=>setViewExpanded(e=>!e)} title={viewExpanded?'작게':'크게'} className="text-zinc-500 hover:text-white text-[14px] transition-colors">{viewExpanded?'⤡':'⤢'}</button>
+                  <DeadlineDisplay lead={viewingLead} size="large"/>
+                </div>
+              </div>
               </div>
               {viewingLead.content&&(
-                <div className="mb-5">
+                <div className={viewExpanded?'':'mb-5'}>
                   <div className="flex gap-1 mb-3">
                     <button onClick={()=>setContentLang('ko')} className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all border ${contentLang==='ko'?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'border-white/10 text-zinc-500 hover:text-white'}`}>KO</button>
                     <button onClick={()=>switchToEn(viewingLead)} disabled={translating} className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black transition-all border disabled:opacity-50 ${contentLang==='en'?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':'border-white/10 text-zinc-500 hover:text-white'}`}>
@@ -1049,6 +1057,7 @@ export default function GuestView(){
                   </div>
                 </div>
               )}
+              </div>
               <div className="flex gap-2">
                 <button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>
                 <button onClick={()=>{if(confirm('이 리드를 삭제할까요?')){deleteLead(viewingLead.id);setViewingLead(null);}}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 text-[13px] hover:bg-red-500/10 transition-all">🗑</button>
@@ -1407,13 +1416,17 @@ export default function GuestView(){
 
       {showLeadForm&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-y-auto font-pretendard">
-          <div className={`anim-rise w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
-            <div className="p-6 max-h-[85vh] overflow-y-auto">
+          <div className={`anim-rise w-full ${leadFormExpanded?'max-w-5xl':'max-w-lg'} border rounded-2xl shadow-2xl my-4 transition-all ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className={`p-6 ${leadFormExpanded?'max-h-[90vh]':'max-h-[85vh]'} overflow-y-auto`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>{editingLead?'리드 수정':'리드 추가'}</h2>
-                <button onClick={()=>setShowLeadForm(false)} className={dimText}>✕</button>
+                <div className="flex items-center gap-3">
+                  <button onClick={()=>setLeadFormExpanded(e=>!e)} title={leadFormExpanded?'작게':'크게'} className={`${dimText} hover:opacity-80 transition-opacity`}>{leadFormExpanded?'⤡':'⤢'}</button>
+                  <button onClick={()=>setShowLeadForm(false)} className={dimText}>✕</button>
+                </div>
               </div>
-              <div className="flex flex-col gap-4">
+              <div className={leadFormExpanded?'grid grid-cols-2 gap-6 items-start':'flex flex-col gap-4'}>
+                <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={lArtist} onChange={e=>setLArtist(e.target.value)} placeholder="아티스트명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
                   <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>{t('레이블','Label')}</label><input value={lTitle} onChange={e=>setLTitle(e.target.value)} placeholder={t('레이블','Label')} className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/></div>
@@ -1437,7 +1450,8 @@ export default function GuestView(){
                   <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>1차 마감일</label><input type="date" value={lDeadline} onChange={e=>setLDeadline(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
                   <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>2차 마감일</label><input type="date" value={lDeadline2} onChange={e=>setLDeadline2(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
                 </div>
-                <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>내용</label><textarea value={lContent} onChange={e=>setLContent(e.target.value)} rows={5} placeholder="리드 내용, 조건, 링크 등..." className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
+                </div>
+                <div className={leadFormExpanded?'flex flex-col h-full':''}><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>내용</label><textarea value={lContent} onChange={e=>setLContent(e.target.value)} rows={leadFormExpanded?20:5} placeholder="리드 내용, 조건, 링크 등..." className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all resize-none leading-relaxed ${leadFormExpanded?'min-h-[460px] flex-1':''} ${inputCls}`}/></div>
               </div>
               {leadSaveError&&<p className="text-red-400 text-[12px] bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2 mt-4">{leadSaveError}</p>}
               <div className="flex gap-3 mt-4">
