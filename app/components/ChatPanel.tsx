@@ -4,6 +4,15 @@ import { supabase } from '@/lib/supabase';
 
 interface Props { user: any; hostId: string; dark: boolean; liftMobile?: boolean; }
 
+const fmtTime = (iso: string) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  let h = d.getHours(); const m = d.getMinutes();
+  const ap = h < 12 ? '오전' : '오후';
+  h = h % 12 || 12;
+  return `${ap} ${h}:${String(m).padStart(2, '0')}`;
+};
+
 // 독립적으로 떠다니는 채팅 팝업 창 (이동 + 투명도)
 function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: any; conv: any; other: any; dark: boolean; index: number; onClose: () => void }) {
   const [msgs, setMsgs] = useState<any[]>([]);
@@ -97,7 +106,10 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
               const mine = m.sender_id === user.id;
               return (
                 <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`px-3 py-2 rounded-2xl text-[13px] leading-relaxed ${mine ? 'bg-[#5B8CFF] text-white' : D ? 'bg-white/[0.08] text-zinc-200' : 'bg-black/[0.05] text-zinc-800'}`} style={{ maxWidth: '82%', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{m.content}</div>
+                  <div className={`flex flex-col gap-0.5 ${mine ? 'items-end' : 'items-start'}`} style={{ maxWidth: '82%' }}>
+                    <div className={`px-3 py-2 rounded-2xl text-[13px] leading-relaxed ${mine ? 'bg-[#5B8CFF] text-white rounded-br-md' : D ? 'bg-white/[0.08] text-zinc-200 rounded-bl-md' : 'bg-black/[0.05] text-zinc-800 rounded-bl-md'}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{m.content}</div>
+                    <span className="text-[9px] px-1 text-zinc-500">{fmtTime(m.created_at)}</span>
+                  </div>
                 </div>
               );
             })}
@@ -742,11 +754,14 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                             <button onClick={() => deleteMsg(msg.id)}
                               className="opacity-0 group-hover:opacity-100 text-[10px] font-black text-red-400/50 hover:text-red-400 transition-all mb-0.5 shrink-0">✕</button>
                           )}
-                          <div className={`px-3 py-2 rounded-2xl text-[14px] leading-snug break-keep whitespace-pre-wrap ${mine
-                            ? 'bg-[#5B8CFF] text-white rounded-br-sm'
-                            : D ? 'bg-white/[0.1] text-white rounded-bl-sm' : 'bg-black/[0.08] text-[#111] rounded-bl-sm'}`}
-                            style={{ maxWidth: '82%', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                            {msg.content}
+                          <div className={`flex flex-col gap-0.5 ${mine ? 'items-end' : 'items-start'}`} style={{ maxWidth: '82%' }}>
+                            <div className={`px-3 py-2 rounded-2xl text-[14px] leading-snug break-keep whitespace-pre-wrap ${mine
+                              ? 'bg-[#5B8CFF] text-white rounded-br-md'
+                              : D ? 'bg-white/[0.1] text-white rounded-bl-md' : 'bg-black/[0.06] text-[#111] rounded-bl-md'}`}
+                              style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                              {msg.content}
+                            </div>
+                            <span className={`text-[9px] px-1 ${dm}`}>{fmtTime(msg.created_at)}</span>
                           </div>
                         </div>
                       );
