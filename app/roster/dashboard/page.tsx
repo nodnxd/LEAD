@@ -1028,7 +1028,7 @@ export default function Dashboard() {
 
   const getRoleCardStyle = (r: string, excluded: boolean) => {
     if (excluded) return theme === 'light' ? "border border-black/5 bg-black/[0.02] grayscale opacity-50" : "border border-white/5 bg-white/[0.01] grayscale opacity-60 backdrop-blur-sm";
-    const base = "border-l-[4px] backdrop-blur-md transition-all duration-300 ";
+    const base = "border-l-[4px] backdrop-blur-md transition-all duration-150 ";
     switch(r) {
       case 'Producer': return base + (theme === 'light' ? "border-l-[#DE6B35] bg-gradient-to-r from-[#DE6B35]/10 to-black/[0.01]" : "border-l-[#DE6B35] bg-gradient-to-r from-[#DE6B35]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(222,107,53,0.25)]");
       case 'Topliner': return base + (theme === 'light' ? "border-l-[#C49740] bg-gradient-to-r from-[#C49740]/10 to-black/[0.01]" : "border-l-[#C49740] bg-gradient-to-r from-[#C49740]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(196,151,64,0.25)]");
@@ -1080,7 +1080,7 @@ export default function Dashboard() {
     <>
       <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
       <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: `${100 / zoom}%`, minHeight: `${100 / zoom}vh` }}>
-        <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-300`}>
+        <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-150`}>
           {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#DE6B35',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
           {/* 헤더 */}
