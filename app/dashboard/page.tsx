@@ -151,6 +151,11 @@ export default function GuestView(){
   const [lDeadline2,setLDeadline2]=useState('');
   const [leads,setLeads]=useState<any[]>([]);
   const [announcements,setAnnouncements]=useState<any[]>([]);
+  const [showAnnModal,setShowAnnModal]=useState(false);
+  const [annTitle,setAnnTitle]=useState('');
+  const [annContent,setAnnContent]=useState('');
+  const [editingAnnId,setEditingAnnId]=useState<string|null>(null);
+  const [annSaving,setAnnSaving]=useState(false);
   const [view,setView]=useState<'calendar'|'list'|'pitches'|'files'|'stats'>('calendar');
   const [hostCompany,setHostCompany]=useState('');
   const [hostFolders,setHostFolders]=useState<string[]>([]);
@@ -416,6 +421,17 @@ export default function GuestView(){
     if(lr.data){setLeads(lr.data.filter((l:any)=>l.kind!=='demo'));setDemoDrives(lr.data.filter((l:any)=>l.kind==='demo'));}
     if(ar.data)setAnnouncements(ar.data);
   };
+  const openAnnForm=(ann?:any)=>{if(ann){setEditingAnnId(ann.id);setAnnTitle(ann.title||'');setAnnContent(ann.content||'');}else{setEditingAnnId(null);setAnnTitle('');setAnnContent('');}setShowAnnModal(true);};
+  const saveAnnouncement=async()=>{
+    if(!annContent.trim()||!hostId)return;
+    setAnnSaving(true);
+    const data={host_id:hostId,title:annTitle.trim()||null,content:annContent.trim()};
+    if(editingAnnId)await supabase.from('lead_announcements').update(data).eq('id',editingAnnId);
+    else await supabase.from('lead_announcements').insert(data);
+    setAnnSaving(false);setShowAnnModal(false);setEditingAnnId(null);setAnnTitle('');setAnnContent('');
+    fetchAll();
+  };
+  const deleteAnnouncement=async(id:string)=>{await supabase.from('lead_announcements').delete().eq('id',id);fetchAll();};
   const fetchHostPitches=async()=>{
     if(!hostId)return;
     setHostPitchLoading(true);
@@ -705,7 +721,10 @@ export default function GuestView(){
           )}
         </div>
 
-        {announcements.length>0&&<div className="relative z-10 mb-5 flex flex-col gap-2">{announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20"><span className="text-[#5B8CFF] text-[11px] font-black mt-0.5 shrink-0">📢</span><div>{ann.title&&<p className={`font-bold text-[13px] mb-0.5 ${D?'text-white':'text-[#111]'}`}>{ann.title}</p>}<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?"text-zinc-300":"text-zinc-700"}`}>{ann.content}</p></div></div>)}</div>}
+        {(announcements.length>0||isOwner)&&<div className="relative z-10 mb-5 flex flex-col gap-2">
+          {isOwner&&<div className="flex items-center justify-between"><span className={`text-[11px] font-black uppercase tracking-widest ${dimText}`}>{t('공지','Notice')}</span><button onClick={()=>openAnnForm()} className="px-3 py-1 rounded-lg text-[11px] font-bold border border-[#5B8CFF]/30 text-[#5B8CFF] hover:bg-[#5B8CFF]/10 transition-all">+ {t('공지','Notice')}</button></div>}
+          {announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#5B8CFF]/10 border border-[#5B8CFF]/20"><span className="text-[#5B8CFF] text-[11px] font-black mt-0.5 shrink-0">📢</span><div className="flex-1 min-w-0">{ann.title&&<p className={`font-bold text-[13px] mb-0.5 ${D?'text-white':'text-[#111]'}`}>{ann.title}</p>}<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?"text-zinc-300":"text-zinc-700"}`}>{ann.content}</p></div>{isOwner&&<div className="flex gap-2 shrink-0 ml-2"><button onClick={()=>openAnnForm(ann)} className={`text-[11px] font-bold ${dimText} hover:text-[#5B8CFF] transition-colors`}>{t('수정','Edit')}</button><button onClick={()=>{if(confirm(t('이 공지를 삭제할까요?','Delete this notice?')))deleteAnnouncement(ann.id);}} className="text-[11px] font-bold text-zinc-500 hover:text-red-500 transition-colors">{t('삭제','Delete')}</button></div>}</div>)}
+        </div>}
 
         <div className={`relative z-30 flex flex-wrap items-center justify-between gap-3 mb-6 border-b ${dividerCls} pb-4`}>
           <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} {t('활성','Active')}</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} {t('마감','Closed')}</span></div>
@@ -1460,6 +1479,27 @@ export default function GuestView(){
                 <button onClick={saveLead} disabled={leadSaving||!lArtist.trim()||!lGender||!lGroup} className="flex-1 py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-40">
                   {leadSaving?'저장 중...':editingLead?'수정':'추가'}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAnnModal&&(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-y-auto font-pretendard" onClick={()=>setShowAnnModal(false)}>
+          <div className={`anim-rise w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>{editingAnnId?t('공지 수정','Edit Notice'):t('공지 추가','Add Notice')}</h2>
+                <button onClick={()=>setShowAnnModal(false)} className={dimText}>✕</button>
+              </div>
+              <div className="flex flex-col gap-4">
+                <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>{t('제목','Title')}</label><input value={annTitle} onChange={e=>setAnnTitle(e.target.value)} placeholder={t('공지 제목 (선택)','Notice title (optional)')} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>{t('내용','Content')} *</label><textarea value={annContent} onChange={e=>setAnnContent(e.target.value)} rows={5} placeholder={t('공지 내용...','Notice content...')} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all resize-none leading-relaxed ${inputCls}`}/></div>
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button onClick={()=>setShowAnnModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] ${D?'border-white/10 text-zinc-500':'border-black/[0.08] text-zinc-500'}`}>{t('취소','Cancel')}</button>
+                <button onClick={saveAnnouncement} disabled={annSaving||!annContent.trim()} className="flex-1 py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-40">{annSaving?t('저장 중...','Saving...'):editingAnnId?t('수정','Update'):t('추가','Add')}</button>
               </div>
             </div>
           </div>
