@@ -42,6 +42,14 @@ button, a, input, textarea, select, [role="button"] {
 /* 텍스트 선택 색 */
 ::selection { background: rgba(91, 140, 255, 0.30); color: inherit; }
 
+/* macOS WebKit가 select에 입히는 네이티브 스타일(이중 화살표) 제거 */
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: none;
+}
+select::-ms-expand { display: none; }
+
 /* 포커스 링 정돈 — 마우스 클릭엔 안 뜨고 키보드 탐색에만 */
 :focus { outline: none; }
 :focus-visible {

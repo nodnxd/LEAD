@@ -751,14 +751,13 @@ export default function GuestView(){
           if(urgent.length===0)return null;
           return(
             <div className="relative z-10 mb-6">
-              <div className="flex items-center gap-2 mb-2.5"><span className="text-[15px]">⏰</span><span className={`text-[14px] font-black ${D?'text-white':'text-[#111]'}`}>{t('마감 임박','Deadline Soon')}</span><span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-red-500/15 text-red-400">{urgent.length}</span></div>
+              <div className="flex items-center gap-2 mb-2.5"><span className={`text-[14px] font-black ${D?'text-white':'text-[#111]'}`}>{t('마감 임박','Deadline Soon')}</span><span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-[#5B8CFF]/15 text-[#5B8CFF]">{urgent.length}</span></div>
               <div className="flex gap-2.5 overflow-x-auto pb-1.5 -mx-1 px-1">
                 {urgent.map(({lead,days})=>{
-                  const red=days<=1;
                   return(
-                    <button key={lead.id} onClick={()=>{setViewingLead(lead);setContentLang('ko');}} className={`shrink-0 flex items-center gap-3 pl-3 pr-4 py-3 rounded-2xl border text-left transition-all hover:scale-[1.02] ${red?'border-red-500/40 bg-red-500/10':'border-amber-500/35 bg-amber-500/10'}`}>
-                      <div className={`flex flex-col items-center justify-center px-2.5 py-1 rounded-xl ${red?'bg-red-500/20':'bg-amber-500/20'}`}>
-                        <span className={`text-[16px] font-black leading-none ${red?'text-red-400':'text-amber-400'}`}>{days===0?'D-DAY':`D-${days}`}</span>
+                    <button key={lead.id} onClick={()=>{setViewingLead(lead);setContentLang('ko');}} className="shrink-0 flex items-center gap-3 pl-3 pr-4 py-3 rounded-2xl border text-left transition-all hover:scale-[1.02] border-[#5B8CFF]/40 bg-[#5B8CFF]/10">
+                      <div className="flex flex-col items-center justify-center px-2.5 py-1 rounded-xl bg-[#5B8CFF]/20">
+                        <span className="text-[16px] font-black leading-none text-[#5B8CFF]">{days===0?'D-DAY':`D-${days}`}</span>
                       </div>
                       <div className="min-w-0">
                         <p className={`font-black text-[14px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{lead.artist}</p>
