@@ -307,7 +307,7 @@ export default function MyPage() {
     return (
       <>
         <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
-        <main className={`min-h-screen ${bg} font-pretendard p-5 lg:p-8 relative overflow-hidden`}>
+        <main className={`min-h-screen ${bg} font-pretendard p-5 lg:p-8 relative overflow-hidden`} style={{zoom:1.1}}>
           {D && <div className="absolute top-[-15%] right-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(180px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
           <div className="relative z-10 max-w-2xl mx-auto">
@@ -665,7 +665,7 @@ export default function MyPage() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
-      <main className={`min-h-screen ${bg} font-pretendard p-5 lg:p-8 relative overflow-hidden`}>
+      <main className={`min-h-screen ${bg} font-pretendard p-5 lg:p-8 relative overflow-hidden`} style={{zoom:1.1}}>
         {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(180px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
         <div className="relative z-10 max-w-2xl mx-auto">

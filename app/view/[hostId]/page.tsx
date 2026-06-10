@@ -301,11 +301,26 @@ export default function GuestView(){
     setPitchLoading(false);setPitchSent(true);
   };
 
-  const gTranslate=async(text:string):Promise<string>=>{
-    if(!text.trim())return'';
+  const gTranslateChunk=async(text:string):Promise<string>=>{
+    if(!text.trim())return text;
     const res=await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ko&tl=en&dt=t&q=${encodeURIComponent(text)}`);
     const data=await res.json();
-    return data[0].map((item:any)=>item[0]).join('');
+    return (data[0]||[]).map((item:any)=>item[0]).join('');
+  };
+  // Google's GET endpoint truncates long input — split on line boundaries so nothing is dropped.
+  const gTranslate=async(text:string):Promise<string>=>{
+    if(!text.trim())return'';
+    const LIMIT=1200;
+    if(text.length<=LIMIT)return gTranslateChunk(text);
+    const lines=text.split('\n');
+    const chunks:string[]=[];let cur='';
+    for(const ln of lines){
+      if((cur+'\n'+ln).length>LIMIT&&cur){chunks.push(cur);cur=ln;}
+      else cur=cur?cur+'\n'+ln:ln;
+    }
+    if(cur)chunks.push(cur);
+    const out=await Promise.all(chunks.map(c=>gTranslateChunk(c)));
+    return out.join('\n');
   };
   const ensureEn=async(lead:any)=>{
     if(!lead)return;
@@ -584,7 +599,7 @@ export default function GuestView(){
   return(
     <>
       <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}}/>
-      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 pb-24 sm:pb-5 font-pretendard relative`} style={{zoom}}>
+      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 pb-24 sm:pb-5 font-pretendard relative`} style={{zoom: zoom*1.1}}>
         {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}}/>}
         <div className="relative z-10 flex flex-col items-center mb-8">
           <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
@@ -715,7 +730,7 @@ export default function GuestView(){
             </div>
             <div className="hidden sm:grid grid-cols-7 mb-2">{DAYS.map((d,i)=><div key={d} className={`text-center text-[11px] font-black py-2 ${i===0?'text-red-400':i===6?'text-blue-400':D?'text-zinc-600':'text-zinc-400'}`}>{d}</div>)}</div>
             {calView==='month'&&<div className="hidden sm:grid grid-cols-7 gap-1">{Array.from({length:firstDay}).map((_,i)=><div key={`e-${i}`}/>)}{Array.from({length:daysInMonth}).map((_,i)=>{const day=i+1,ds=toDateStr(year,month+1,day),isToday=today.getFullYear()===year&&today.getMonth()===month&&today.getDate()===day,isPast=new Date(year,month,day)<new Date(new Date().toDateString());return<div key={day} onClick={()=>isHost&&!previewMode&&openLeadForm(undefined,ds)} className={`min-h-[80px] rounded-xl p-1.5 border ${isToday?'border-[#5B8CFF]/50 bg-[#5B8CFF]/10':D?'border-white/5 bg-white/[0.02]':'border-black/[0.06] bg-white/60'} ${isPast&&!isToday?'opacity-50':''} ${isHost&&!previewMode?'cursor-pointer':''}`}><div className={`text-[11px] font-black mb-1 ${isToday?'text-[#5B8CFF]':isPast?D?'text-zinc-700':'text-zinc-400':D?'text-zinc-400':'text-zinc-500'}`}>{day}</div><div className="flex flex-col gap-0.5">{getLeadsForDate(ds).map(l=><LeadCard key={l.id} lead={l} compact/>)}</div></div>;})}</div>}
-            {calView==='week'&&<div className="hidden sm:grid grid-cols-7 gap-1">{weekDays.map((d,i)=>{const ds=toDateStr(d.getFullYear(),d.getMonth()+1,d.getDate()),isToday=d.toDateString()===today.toDateString(),isPast=d<new Date(new Date().toDateString()),dl=getLeadsForDate(ds);return<div key={ds} className={`min-h-[200px] rounded-xl p-2 border ${isToday?'border-[#5B8CFF]/50 bg-[#5B8CFF]/10':D?'border-white/5 bg-white/[0.02]':'border-black/[0.06] bg-white/60'} ${isPast&&!isToday?'opacity-50':''}`}><div className={`text-[11px] font-black mb-2 ${isToday?'text-[#5B8CFF]':isPast?D?'text-zinc-700':'text-zinc-400':i===0?'text-red-400':i===6?'text-blue-400':D?'text-zinc-400':'text-zinc-500'}`}>{DAYS[i]} {d.getDate()}</div><div className="flex flex-col gap-1">{dl.map(l=><LeadCard key={l.id} lead={l} compact/>)}{dl.length===0&&<div className={`text-[10px] text-center mt-4 ${D?'text-zinc-800':'text-zinc-300'}`}>—</div>}</div></div>;})}</div>}
+            {calView==='week'&&<div className="hidden sm:grid grid-cols-7 gap-1.5" style={{zoom:1.18}}>{weekDays.map((d,i)=>{const ds=toDateStr(d.getFullYear(),d.getMonth()+1,d.getDate()),isToday=d.toDateString()===today.toDateString(),isPast=d<new Date(new Date().toDateString()),dl=getLeadsForDate(ds);return<div key={ds} className={`min-h-[240px] rounded-xl p-2.5 border ${isToday?'border-[#5B8CFF]/50 bg-[#5B8CFF]/10':D?'border-white/5 bg-white/[0.02]':'border-black/[0.06] bg-white/60'} ${isPast&&!isToday?'opacity-50':''}`}><div className={`text-[12px] font-black mb-2 ${isToday?'text-[#5B8CFF]':isPast?D?'text-zinc-700':'text-zinc-400':i===0?'text-red-400':i===6?'text-blue-400':D?'text-zinc-400':'text-zinc-500'}`}>{DAYS[i]} {d.getDate()}</div><div className="flex flex-col gap-1.5">{dl.map(l=><LeadCard key={l.id} lead={l}/>)}{dl.length===0&&<div className={`text-[10px] text-center mt-4 ${D?'text-zinc-800':'text-zinc-300'}`}>—</div>}</div></div>;})}</div>}
 
             {/* 모바일: 주간 세로 리스트 (좌우 스와이프로 주 이동) */}
             <div className="sm:hidden"
