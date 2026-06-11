@@ -194,7 +194,7 @@ export default function GuestView() {
 
   const getRoleColor = (r: string) => {
     switch(r) {
-      case 'Producer': return { bg: 'bg-[#1F9E81]/15', border: 'border-[#1F9E81]/30', text: 'text-[#1F9E81]', activeBg: 'bg-[#1F9E81]/25', activeBorder: 'border-[#1F9E81]/50', dim: 'text-[#1F9E81]/50' };
+      case 'Producer': return { bg: 'bg-[#5E8B6E]/15', border: 'border-[#5E8B6E]/30', text: 'text-[#5E8B6E]', activeBg: 'bg-[#5E8B6E]/25', activeBorder: 'border-[#5E8B6E]/50', dim: 'text-[#5E8B6E]/50' };
       case 'Topliner': return { bg: 'bg-[#C49740]/15', border: 'border-[#C49740]/30', text: 'text-[#C49740]', activeBg: 'bg-[#C49740]/25', activeBorder: 'border-[#C49740]/50', dim: 'text-[#C49740]/50' };
       case 'Engineer': return { bg: 'bg-[#3FA857]/15', border: 'border-[#3FA857]/30', text: 'text-[#3FA857]', activeBg: 'bg-[#3FA857]/25', activeBorder: 'border-[#3FA857]/50', dim: 'text-[#3FA857]/50' };
       case 'A&R': return { bg: 'bg-[#9C32C6]/15', border: 'border-[#9C32C6]/30', text: 'text-[#9C32C6]', activeBg: 'bg-[#9C32C6]/25', activeBorder: 'border-[#9C32C6]/50', dim: 'text-[#9C32C6]/50' };
@@ -205,7 +205,7 @@ export default function GuestView() {
   const getRoleCardStyle = (r: string) => {
     const base = "border-l-[4px] backdrop-blur-md ";
     switch(r) {
-      case 'Producer': return base + (theme === 'light' ? "border-l-[#1F9E81] bg-gradient-to-r from-[#1F9E81]/10 to-black/[0.01]" : "border-l-[#1F9E81] bg-gradient-to-r from-[#1F9E81]/10 to-white/[0.02]");
+      case 'Producer': return base + (theme === 'light' ? "border-l-[#5E8B6E] bg-gradient-to-r from-[#5E8B6E]/10 to-black/[0.01]" : "border-l-[#5E8B6E] bg-gradient-to-r from-[#5E8B6E]/10 to-white/[0.02]");
       case 'Topliner': return base + (theme === 'light' ? "border-l-[#C49740] bg-gradient-to-r from-[#C49740]/10 to-black/[0.01]" : "border-l-[#C49740] bg-gradient-to-r from-[#C49740]/10 to-white/[0.02]");
       case 'Engineer': return base + (theme === 'light' ? "border-l-[#3FA857] bg-gradient-to-r from-[#3FA857]/10 to-black/[0.01]" : "border-l-[#3FA857] bg-gradient-to-r from-[#3FA857]/10 to-white/[0.02]");
       case 'A&R': return base + (theme === 'light' ? "border-l-[#9C32C6] bg-gradient-to-r from-[#9C32C6]/10 to-black/[0.01]" : "border-l-[#9C32C6] bg-gradient-to-r from-[#9C32C6]/10 to-white/[0.02]");
@@ -300,11 +300,11 @@ export default function GuestView() {
 
       <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: `${100 / zoom}%`, minHeight: `${100 / zoom}vh` }}>
         <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-150`}>
-          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#1F9E81',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
+          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5E8B6E',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
           {/* 헤더 */}
           <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-6">
-            <h1 className="text-4xl font-semibold text-[#1F9E81] uppercase tracking-tighter">CAST</h1>
+            <h1 className="text-4xl font-semibold text-[#5E8B6E] uppercase tracking-tighter">CAST</h1>
             <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
           </div>
 
@@ -316,7 +316,7 @@ export default function GuestView() {
               <button onClick={toggleLang} className={`px-3 py-1.5 rounded-full border font-normal text-[10px] uppercase tracking-widest transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
               {sessions.length > 0 && (
                 <button onClick={() => setShowHistory(!showHistory)}
-                  className={`px-3 py-1.5 rounded-full border font-normal text-[10px] uppercase tracking-widest transition-all ${showHistory ? 'border-[#1F9E81]/50 text-[#1F9E81] bg-[#1F9E81]/10' : btnBg}`}>{tv.history}</button>
+                  className={`px-3 py-1.5 rounded-full border font-normal text-[10px] uppercase tracking-widest transition-all ${showHistory ? 'border-[#5E8B6E]/50 text-[#5E8B6E] bg-[#5E8B6E]/10' : btnBg}`}>{tv.history}</button>
               )}
               <span className={`px-3 py-1.5 rounded-full border text-[10px] font-normal uppercase tracking-widest ${btnBg}`}>{tv.guest}</span>
             </div>
@@ -326,7 +326,7 @@ export default function GuestView() {
           <div className="relative z-10 flex items-center gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
             {projects.map(p => (
               <button key={p} onClick={() => setCurrentProject(p)}
-                className={`px-4 py-1.5 rounded-full font-normal text-[11px] tracking-widest uppercase border transition-all ${currentProject === p ? 'border-[#1F9E81]/50 bg-[#1F9E81]/20 text-[#1F9E81]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-400'}`}>{p}</button>
+                className={`px-4 py-1.5 rounded-full font-normal text-[11px] tracking-widest uppercase border transition-all ${currentProject === p ? 'border-[#5E8B6E]/50 bg-[#5E8B6E]/20 text-[#5E8B6E]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-400'}`}>{p}</button>
             ))}
           </div>
 
@@ -335,7 +335,7 @@ export default function GuestView() {
             <div className="relative z-10 flex items-center gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
               {days.map(d => (
                 <button key={d} onClick={() => setCurrentDay(d)}
-                  className={`px-4 py-1.5 rounded-full font-normal text-[11px] transition-all border ${currentDay === d ? 'border-[#1F9E81]/40 bg-[#1F9E81]/10 text-[#1F9E81]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
+                  className={`px-4 py-1.5 rounded-full font-normal text-[11px] transition-all border ${currentDay === d ? 'border-[#5E8B6E]/40 bg-[#5E8B6E]/10 text-[#5E8B6E]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
               ))}
             </div>
           )}
@@ -344,8 +344,8 @@ export default function GuestView() {
           {notices.length > 0 && (
             <div className="relative z-10 mb-6 flex flex-col gap-3">
               {notices.map(n => (
-                <div key={n.id} className="rounded-2xl border border-[#1F9E81]/20 bg-[#1F9E81]/5 p-4">
-                  <p className="text-[10px] font-normal uppercase tracking-widest text-[#1F9E81]/60 mb-1">{tv.notice}</p>
+                <div key={n.id} className="rounded-2xl border border-[#5E8B6E]/20 bg-[#5E8B6E]/5 p-4">
+                  <p className="text-[10px] font-normal uppercase tracking-widest text-[#5E8B6E]/60 mb-1">{tv.notice}</p>
                   <p className={`font-bold text-[14px] mb-1 ${textMain}`}>{n.title}</p>
                   {n.content && <p className={`text-[12px] leading-relaxed whitespace-pre-line ${textSub}`}>{n.content}</p>}
                 </div>
@@ -431,7 +431,7 @@ export default function GuestView() {
                         {campSessions.sort((a: any, b: any) => a.day_number - b.day_number).map((s: any) => (
                           <div key={s.id} className={`rounded-2xl border overflow-hidden ${theme === 'light' ? 'border-black/10 bg-black/[0.02]' : 'border-white/10 bg-white/[0.02]'}`}>
                             <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setExpandedSession(expandedSession === s.id ? null : s.id)}>
-                              <div className="flex items-center gap-3"><span className="text-[#1F9E81] font-black text-[13px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
+                              <div className="flex items-center gap-3"><span className="text-[#5E8B6E] font-black text-[13px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                               <div className="flex items-center gap-3">
                                 <span className="text-zinc-600 text-[10px]">{new Date(s.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</span>
                                 {s.links?.length > 0 && <div className="flex gap-1">{s.links.map((link: string, i: number) => (<a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[12px]">{getLinkIcon(link)}</a>))}</div>}
@@ -440,7 +440,7 @@ export default function GuestView() {
                             </div>
                             {expandedSession === s.id && s.roster && (
                               <div className={`px-4 pb-4 flex flex-wrap gap-4 border-t pt-4 ${theme === 'light' ? 'border-black/5' : 'border-white/5'}`}>
-                                {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-[10px] font-black uppercase tracking-widest mb-2 border-l-2 border-[#1F9E81] pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-[12px] font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-600 text-[9px] uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
+                                {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-[10px] font-black uppercase tracking-widest mb-2 border-l-2 border-[#5E8B6E] pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-[12px] font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-600 text-[9px] uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
                               </div>
                             )}
                           </div>
@@ -458,7 +458,7 @@ export default function GuestView() {
               {teams.map(tName => (
                 <div key={tName} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
                   <div className={`backdrop-blur-2xl border rounded-[2rem] p-6 min-h-[200px] shadow-2xl flex flex-col ${cardBg}`}>
-                    <div className={`flex items-center mb-6 px-1 border-l-4 border-[#1F9E81] pl-4`}>
+                    <div className={`flex items-center mb-6 px-1 border-l-4 border-[#5E8B6E] pl-4`}>
                       <h2 className={`text-[14px] font-black uppercase ${textMain}`}>{tName}</h2>
                       <span className="ml-auto text-[10px] font-bold text-zinc-600">{tv.members(getSortedMembers(tName).length)}</span>
                     </div>
@@ -479,11 +479,11 @@ export default function GuestView() {
 
       {/* 줌 컨트롤 */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-2 select-none">
-        <button onClick={() => setZoom(1)} className={`w-9 h-9 rounded-xl border backdrop-blur-md transition-all text-[9px] font-black tracking-widest flex items-center justify-center shadow-xl hover:text-[#1F9E81] hover:border-[#1F9E81]/30 ${btnBg}`}>1:1</button>
-        <div onMouseDown={onZoomMouseDown} className={`w-9 h-14 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[5px] transition-all group hover:border-[#1F9E81]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.04] border-white/10'}`}>
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#1F9E81] transition-colors"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <div className="flex flex-col gap-[3px]">{[0,1,2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500 group-hover:bg-[#1F9E81]/50 transition-colors" />)}</div>
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#1F9E81] transition-colors"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <button onClick={() => setZoom(1)} className={`w-9 h-9 rounded-xl border backdrop-blur-md transition-all text-[9px] font-black tracking-widest flex items-center justify-center shadow-xl hover:text-[#5E8B6E] hover:border-[#5E8B6E]/30 ${btnBg}`}>1:1</button>
+        <div onMouseDown={onZoomMouseDown} className={`w-9 h-14 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[5px] transition-all group hover:border-[#5E8B6E]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.04] border-white/10'}`}>
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#5E8B6E] transition-colors"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <div className="flex flex-col gap-[3px]">{[0,1,2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500 group-hover:bg-[#5E8B6E]/50 transition-colors" />)}</div>
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#5E8B6E] transition-colors"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>
         <span className="text-[9px] font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
       </div>

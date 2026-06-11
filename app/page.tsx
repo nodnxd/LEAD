@@ -24,8 +24,8 @@ export default function LoginPage() {
   }, []);
   const pickProduct = (p: 'lead' | 'cast') => { setProduct(p); localStorage.setItem('lead_login_product', p); };
 
-
   const handle = async () => {
+    if (!email || !password) return setError('이메일과 비밀번호를 입력해주세요.');
     setLoading(true); setError('');
     if (rememberMe && email) localStorage.setItem('lead_saved_email', email);
     else localStorage.removeItem('lead_saved_email');
@@ -33,13 +33,11 @@ export default function LoginPage() {
       ? await supabase.auth.signUp({ email, password })
       : await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
-    // 가입 시 선택한 제품 권한 부여
     if (isSignUp) {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) await supabase.from('user_products').upsert({ user_id: user.id, product: product === 'cast' ? 'roster' : 'lead' }, { onConflict: 'user_id,product' });
     }
     if (product === 'cast') { router.push('/roster/dashboard'); return; }
-    // LEAD: 가입은 온보딩(프로필 생성), 로그인은 허브(참여/운영 선택)
     router.push(isSignUp ? '/onboarding' : '/hub');
   };
 
@@ -54,94 +52,118 @@ export default function LoginPage() {
   };
 
   const isCast = product === 'cast';
+  // 제품별 액센트
+  const accent = isCast ? '#5E8B6E' : '#368B78';
+  const accentHover = isCast ? '#4E7A5D' : '#2C7665';
+  const accentLight = isCast ? '#A7C8A9' : '#94D1BE';
+  const inputCls = 'w-full rounded-xl bg-white/5 border border-white/10 px-5 py-4 text-lg text-white placeholder:text-white/30 focus:outline-none transition-colors';
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }` }} />
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
-      <main className="min-h-screen bg-[#141414] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
-        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none transition-colors`} style={{background: isCast ? '#1F9E81' : '#5B8CFF', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
-        <div className="w-full max-w-sm relative z-10">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="flex items-baseline gap-2">
-                <h1 className={`text-5xl font-semibold uppercase tracking-tighter transition-colors ${isCast ? 'text-[#1F9E81]' : 'text-[#5B8CFF]'}`}>
-                  {isCast ? 'CAST' : 'LEAD'}
-                </h1>
-                <span className="text-zinc-500 text-[11px] font-normal tracking-[0.2em]">by NEN</span>
-              </div>
-              {!forgotMode && (
-                <div className="flex gap-0.5 p-0.5 bg-white/[0.06] border border-white/10 rounded-full">
-                  {(['lead', 'cast'] as const).map(p => (
+      <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        .font-pretendard { font-family: 'Pretendard', sans-serif; }
+        @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.05;}50%{transform:scale(1.1);opacity:0.09;}}
+        .login-input:focus { border-color: ${accent} !important; }
+      `}} />
+      <main className="min-h-screen bg-[#141414] text-white flex items-center justify-center px-6 font-pretendard relative overflow-hidden">
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none transition-colors"
+          style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 70%)`, animation: 'orb-pulse 6s ease-in-out infinite' }} />
+
+        <div className="relative z-10 w-full max-w-md">
+          {/* 로고 + 제품 토글 */}
+          <div className="mb-12">
+            <div className="flex items-baseline gap-3">
+              <h1 className="text-6xl font-black uppercase tracking-tighter text-transparent bg-clip-text transition-colors"
+                style={{ backgroundImage: `linear-gradient(to right, ${accent}, ${accentLight})` }}>
+                {isCast ? 'CAST' : 'LEAD'}
+              </h1>
+              <span className="text-white/30 text-xs font-bold tracking-[0.2em]">by NEN</span>
+            </div>
+            <p className="mt-3 text-lg text-white/40">{isCast ? 'manage your roster' : 'find your next lead'}</p>
+
+            {!forgotMode && (
+              <div className="mt-6 inline-flex gap-1 p-1 bg-white/5 border border-white/10 rounded-full">
+                {(['lead', 'cast'] as const).map(p => {
+                  const on = product === p;
+                  return (
                     <button key={p} onClick={() => pickProduct(p)}
-                      className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${product === p
-                        ? (p === 'lead' ? 'bg-[#5B8CFF] text-white' : 'bg-[#1F9E81] text-white')
-                        : 'text-zinc-500 hover:text-zinc-300'}`}>
+                      className="px-5 py-1.5 rounded-full text-sm font-bold transition-all"
+                      style={on
+                        ? { background: p === 'lead' ? '#368B78' : '#5E8B6E', color: '#fff' }
+                        : { color: 'rgba(255,255,255,0.35)' }}>
                       {p === 'lead' ? 'LEAD' : 'CAST'}
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <p className="text-zinc-600 text-[11px]">{isCast ? 'Roster Manager' : 'Pitching Platform'}</p>
-          </div>
-
-          <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
-            {forgotMode ? (
-              resetSent ? (
-                <div className="text-center py-4">
-                  <div className="text-4xl mb-3">📩</div>
-                  <p className="text-white font-black text-[15px] mb-1">재설정 메일을 보냈어요</p>
-                  <p className="text-zinc-500 text-[12px] leading-relaxed">{email}로<br />비밀번호 재설정 링크를 보냈어요.<br />메일함을 확인해주세요.</p>
-                  <button onClick={() => { setForgotMode(false); setResetSent(false); }} className="mt-5 w-full py-3 rounded-xl border border-white/10 text-zinc-400 font-bold text-[13px] hover:text-white transition-all">로그인으로 돌아가기</button>
-                </div>
-              ) : (
-                <>
-                  <p className="text-white font-black text-[15px] mb-1">비밀번호 찾기</p>
-                  <p className="text-zinc-500 text-[12px] mb-4">가입한 이메일로 재설정 링크를 보내드려요.</p>
-                  <input value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" type="email"
-                    onKeyDown={e => e.key === 'Enter' && handleReset()}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white mb-3" />
-                  {error && <p className="text-red-400 text-[12px] mb-3">{error}</p>}
-                  <button onClick={handleReset} disabled={loading}
-                    className="w-full py-3 rounded-xl bg-[#5B8CFF] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50 mb-2">
-                    {loading ? '...' : '재설정 메일 보내기'}
-                  </button>
-                  <button onClick={() => { setForgotMode(false); setError(''); }} className="w-full text-zinc-600 text-[12px] hover:text-zinc-400 transition-colors">← 돌아가기</button>
-                </>
-              )
-            ) : (
-              <>
-                <div className="flex flex-col gap-3 mb-4">
-                  <input value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" type="email"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white" />
-                  <input value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호" type="password"
-                    onKeyDown={e => e.key === 'Enter' && handle()}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#5B8CFF]/50 transition-all placeholder:text-zinc-600 text-white" />
-                </div>
-                {error && <p className="text-red-400 text-[12px] mb-3">{error}</p>}
-                <div className="flex items-center justify-between mb-3">
-                  {!isSignUp ? (
-                    <button type="button" onClick={() => setRememberMe(v => !v)} className="flex items-center gap-2 group">
-                      <span className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${rememberMe ? 'bg-[#5B8CFF]' : 'bg-white/10 border border-white/15'}`}>
-                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200 ${rememberMe ? 'left-[18px]' : 'left-0.5'}`} />
-                      </span>
-                      <span className={`text-[12px] transition-colors ${rememberMe ? 'text-zinc-300' : 'text-zinc-500'}`}>아이디 기억하기</span>
-                    </button>
-                  ) : <span />}
-                  <button onClick={() => { setForgotMode(true); setError(''); }} className="text-zinc-500 text-[12px] hover:text-[#5B8CFF] transition-colors">비밀번호 찾기</button>
-                </div>
-                <button onClick={handle} disabled={loading}
-                  className={`w-full py-3 rounded-xl text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50 mb-3 ${isCast ? 'bg-[#1F9E81]' : 'bg-[#5B8CFF]'}`}>
-                  {loading ? '...' : isSignUp ? '회원가입' : '로그인'}
-                </button>
-                <button onClick={() => { setIsSignUp(!isSignUp); setError(''); }} className="w-full text-zinc-600 text-[12px] hover:text-zinc-400 transition-colors">
-                  {isSignUp ? '이미 계정이 있어요' : '계정이 없어요'}
-                </button>
-              </>
+                  );
+                })}
+              </div>
             )}
           </div>
-          <p className="text-center text-zinc-700 text-[11px] mt-5">
+
+          {forgotMode ? (
+            resetSent ? (
+              <div className="text-center">
+                <div className="text-4xl mb-3">📩</div>
+                <p className="text-white font-bold text-lg mb-1">재설정 메일을 보냈어요</p>
+                <p className="text-white/40 text-sm leading-relaxed">{email}로<br />비밀번호 재설정 링크를 보냈어요.</p>
+                <button onClick={() => { setForgotMode(false); setResetSent(false); }} className="mt-6 text-base text-white/40 hover:text-white/70 transition-colors">← 로그인으로 돌아가기</button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-5">
+                <p className="text-white/50 text-base">가입한 이메일로 재설정 링크를 보내드려요.</p>
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" type="email"
+                  onKeyDown={e => e.key === 'Enter' && handleReset()} className={`login-input ${inputCls}`} />
+                {error && <p className="text-base text-red-400">{error}</p>}
+                <button onClick={handleReset} disabled={loading}
+                  className="w-full rounded-xl px-5 py-4 text-lg font-medium text-white transition-colors disabled:opacity-50"
+                  style={{ background: accent }}
+                  onMouseEnter={e => (e.currentTarget.style.background = accentHover)}
+                  onMouseLeave={e => (e.currentTarget.style.background = accent)}>
+                  {loading ? '...' : '재설정 메일 보내기'}
+                </button>
+                <button onClick={() => { setForgotMode(false); setError(''); }} className="text-base text-white/30 hover:text-white/60 transition-colors">← 돌아가기</button>
+              </div>
+            )
+          ) : (
+            <>
+              <div className="flex flex-col gap-5">
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" type="email" className={`login-input ${inputCls}`} />
+                <input value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호" type="password"
+                  onKeyDown={e => e.key === 'Enter' && handle()} className={`login-input ${inputCls}`} />
+
+                <div className="flex items-center justify-between">
+                  {!isSignUp ? (
+                    <button type="button" onClick={() => setRememberMe(v => !v)} className="flex items-center gap-3 select-none">
+                      <span className="relative w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
+                        style={rememberMe ? { background: accent, borderColor: accent } : { borderColor: 'rgba(255,255,255,0.2)' }}>
+                        {rememberMe && <span className="text-[10px] text-white leading-none">✓</span>}
+                      </span>
+                      <span className="text-base text-white/40">아이디 기억하기</span>
+                    </button>
+                  ) : <span />}
+                  <button onClick={() => { setForgotMode(true); setError(''); }} className="text-base text-white/30 hover:text-white/60 transition-colors">비밀번호 찾기</button>
+                </div>
+
+                {error && <p className="text-base text-red-400">{error}</p>}
+
+                <button onClick={handle} disabled={loading}
+                  className="w-full rounded-xl px-5 py-4 text-lg font-medium text-white transition-colors disabled:opacity-50"
+                  style={{ background: accent }}
+                  onMouseEnter={e => (e.currentTarget.style.background = accentHover)}
+                  onMouseLeave={e => (e.currentTarget.style.background = accent)}>
+                  {loading ? '...' : isSignUp ? '회원가입' : '로그인'}
+                </button>
+              </div>
+
+              <div className="mt-5 flex justify-center">
+                <button onClick={() => { setIsSignUp(!isSignUp); setError(''); }} className="text-base text-white/30 hover:text-white/60 transition-colors">
+                  {isSignUp ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
+                </button>
+              </div>
+            </>
+          )}
+
+          <p className="text-center text-white/20 text-xs mt-10">
             {isCast ? '아티스트 로스터 관리' : '로그인하면 참여·운영할 회사를 선택해요'}
           </p>
         </div>

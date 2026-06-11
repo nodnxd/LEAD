@@ -68,7 +68,7 @@ export default function HubPage() {
   const enterMember = (id: string) => { router.push(`/view/${id}?guest=1`); };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#141414] flex items-center justify-center"><div className="w-6 h-6 border-2 border-[#5B8CFF] border-t-transparent rounded-full animate-spin" /></div>
+    <div className="min-h-screen bg-[#141414] flex items-center justify-center"><div className="w-6 h-6 border-2 border-[#368B78] border-t-transparent rounded-full animate-spin" /></div>
   );
 
   return (
@@ -76,11 +76,11 @@ export default function HubPage() {
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}` }} />
       <style dangerouslySetInnerHTML={{ __html: `@keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
       <main className="min-h-screen bg-[#141414] text-white font-pretendard p-5 lg:p-8 relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5B8CFF', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#368B78', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
         <div className="relative z-10 max-w-xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-3xl font-semibold text-[#5B8CFF] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="text-3xl font-semibold text-[#368B78] uppercase tracking-tighter">LEAD</h1>
               <span className="text-zinc-600 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <div className="flex items-center gap-2">
@@ -101,9 +101,9 @@ export default function HubPage() {
               <div className="flex flex-col gap-2.5">
                 {member.map(c => (
                   <button key={c.id} onClick={() => enterMember(c.id)} className="flex items-center gap-3 p-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.05] text-left transition-all">
-                    <div className="w-11 h-11 rounded-xl bg-[#5B8CFF]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
+                    <div className="w-11 h-11 rounded-xl bg-[#368B78]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
                     <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate">{c.name}</p><p className="text-[12px] text-zinc-500">게스트로 입장</p></div>
-                    <span className="text-[#5B8CFF] text-[18px] font-black shrink-0">→</span>
+                    <span className="text-[#368B78] text-[18px] font-black shrink-0">→</span>
                   </button>
                 ))}
               </div>
@@ -132,10 +132,10 @@ export default function HubPage() {
 
           {/* 다른 서비스 — CAST */}
           <div className="mt-10 pt-6 border-t border-white/[0.07]">
-            <a href="/roster/dashboard" className="flex items-center gap-3 p-4 rounded-2xl border border-[#1F9E81]/25 bg-[#1F9E81]/[0.06] hover:bg-[#1F9E81]/10 text-left transition-all">
-              <div className="w-11 h-11 rounded-xl bg-[#1F9E81]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
+            <a href="/roster/dashboard" className="flex items-center gap-3 p-4 rounded-2xl border border-[#5E8B6E]/25 bg-[#5E8B6E]/[0.06] hover:bg-[#5E8B6E]/10 text-left transition-all">
+              <div className="w-11 h-11 rounded-xl bg-[#5E8B6E]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
               <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate text-white">CAST <span className="text-[11px] text-zinc-500 font-bold">로스터 관리</span></p><p className="text-[12px] text-zinc-500">아티스트 로스터 짜기</p></div>
-              <span className="text-[#1F9E81] text-[18px] font-black shrink-0">→</span>
+              <span className="text-[#5E8B6E] text-[18px] font-black shrink-0">→</span>
             </a>
           </div>
         </div>
