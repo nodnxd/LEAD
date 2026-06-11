@@ -53,9 +53,9 @@ export default function LoginPage() {
 
   const isCast = product === 'cast';
   // 제품별 액센트
-  const accent = isCast ? '#7F5A83' : '#80A1D4';
-  const accentHover = isCast ? '#664768' : '#5E83BC';
-  const accentLight = isCast ? '#A188A6' : '#B8CCE8';
+  const accent = isCast ? '#5A9E7B' : '#3E78DB';
+  const accentHover = isCast ? '#4A8566' : '#2F62C2';
+  const accentLight = isCast ? '#9FB8AD' : '#A9C4F0';
   const inputCls = 'w-full rounded-xl bg-white/5 border border-white/10 px-5 py-4 text-lg text-white placeholder:text-white/30 focus:outline-none transition-colors';
 
   return (
@@ -90,7 +90,7 @@ export default function LoginPage() {
                     <button key={p} onClick={() => pickProduct(p)}
                       className="px-5 py-1.5 rounded-full text-sm font-bold transition-all"
                       style={on
-                        ? { background: p === 'lead' ? '#80A1D4' : '#7F5A83', color: '#fff' }
+                        ? { background: p === 'lead' ? '#3E78DB' : '#5A9E7B', color: '#fff' }
                         : { color: 'rgba(255,255,255,0.35)' }}>
                       {p === 'lead' ? 'LEAD' : 'CAST'}
                     </button>

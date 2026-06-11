@@ -14,7 +14,7 @@ const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
 const ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R'];
 const DEVELOPER_EMAILS = ['nodnxd@gmail.com', 'hseu2000@gmail.com'];
 const ROLE_COLORS: Record<string, string> = {
-  'Producer': '#7F5A83', 'Topliner': '#A188A6', 'Engineer': '#9DA2AB', 'A&R': '#3E6E96'
+  'Producer': '#5A9E7B', 'Topliner': '#9FB8AD', 'Engineer': '#7E9A8A', 'A&R': '#4F7A62'
 };
 
 const T = {
@@ -740,7 +740,7 @@ export default function Dashboard() {
   const exportAllDays = async (format: 'jpeg' | 'pdf' = 'jpeg') => {
     showToastMsg('📸 ' + (lang === 'ko' ? '생성 중...' : 'Generating...'));
     try {
-      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#7F5A83', 'Topliner': '#A188A6', 'Engineer': '#9DA2AB', 'A&R': '#3E6E96' };
+      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#5A9E7B', 'Topliner': '#9FB8AD', 'Engineer': '#7E9A8A', 'A&R': '#4F7A62' };
       const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
       const SCALE = 2;
       const PAD = 40;
@@ -796,7 +796,7 @@ export default function Dashboard() {
       ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, totalW, totalH);
 
       // 헤더
-      ctx.font = 'bold 28px system-ui, sans-serif'; ctx.fillStyle = '#7F5A83';
+      ctx.font = 'bold 28px system-ui, sans-serif'; ctx.fillStyle = '#5A9E7B';
       ctx.fillText('CAST', PAD, PAD + 30);
       const castW = ctx.measureText('CAST').width;
       ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = '#555';
@@ -807,7 +807,7 @@ export default function Dashboard() {
         const dayY = PAD + HEADER_H + di * dayRowH;
 
         // Day 라벨
-        ctx.font = 'bold 12px system-ui, sans-serif'; ctx.fillStyle = '#7F5A83';
+        ctx.font = 'bold 12px system-ui, sans-serif'; ctx.fillStyle = '#5A9E7B';
         ctx.fillText(dayLabel.toUpperCase(), PAD, dayY + 18);
 
         // 팀 카드
@@ -851,7 +851,7 @@ export default function Dashboard() {
             ctx.font = 'bold 15px system-ui, sans-serif'; ctx.fillStyle = '#fff';
             ctx.fillText(m.name, mx + 14, my + mh * 0.46);
             const nameW = ctx.measureText(m.name).width;
-            const gColor = m.gender === 'female' ? '#A188A6' : '#3E6E96';
+            const gColor = m.gender === 'female' ? '#9FB8AD' : '#4F7A62';
             const gLabel = m.gender === 'female' ? 'F' : 'M';
             const bx2 = mx + 14 + nameW + 6; const by2 = my + mh * 0.2;
             const bw = 20; const bh = 15;
@@ -913,7 +913,7 @@ export default function Dashboard() {
   };;
 
   const buildRosterCanvas = (teamData: any[], dayLabel: string) => {
-    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#7F5A83', 'Topliner': '#A188A6', 'Engineer': '#9DA2AB', 'A&R': '#3E6E96' };
+    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#5A9E7B', 'Topliner': '#9FB8AD', 'Engineer': '#7E9A8A', 'A&R': '#4F7A62' };
     const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
     const SCALE = 2; const PAD = 40; const HEADER_H = 60;
     const TEAM_GAP = 16; const MEMBER_H = 60; const BADGE_H = 24;
@@ -938,7 +938,7 @@ export default function Dashboard() {
     canvas.width = totalW * SCALE; canvas.height = totalH * SCALE;
     const ctx = canvas.getContext('2d')!; ctx.scale(SCALE, SCALE);
     ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, totalW, totalH);
-    ctx.font = 'bold 28px system-ui, sans-serif'; ctx.fillStyle = '#7F5A83';
+    ctx.font = 'bold 28px system-ui, sans-serif'; ctx.fillStyle = '#5A9E7B';
     ctx.fillText('CAST', PAD, PAD + 30);
     const castW = ctx.measureText('CAST').width;
     ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = '#555';
@@ -983,7 +983,7 @@ export default function Dashboard() {
         ctx.fillText(m.name, mx + 16, my + mh * 0.44);
         const nameW = ctx.measureText(m.name).width;
         // M/F 뱃지 (UI처럼 배경 있는 둥근 뱃지)
-        const gColor = m.gender === 'female' ? '#A188A6' : '#3E6E96';
+        const gColor = m.gender === 'female' ? '#9FB8AD' : '#4F7A62';
         const gLabel = m.gender === 'female' ? 'F' : 'M';
         const bx2 = mx + 22 + nameW; const by2 = my + mh * 0.2;
         const bw = 20; const bh = 15;
@@ -1030,18 +1030,18 @@ export default function Dashboard() {
     if (excluded) return theme === 'light' ? "border border-black/5 bg-black/[0.02] grayscale opacity-50" : "border border-white/5 bg-white/[0.01] grayscale opacity-60 backdrop-blur-sm";
     const base = "border-l-[4px] backdrop-blur-md transition-all duration-150 ";
     switch(r) {
-      case 'Producer': return base + (theme === 'light' ? "border-l-[#7F5A83] bg-gradient-to-r from-[#7F5A83]/10 to-black/[0.01]" : "border-l-[#7F5A83] bg-gradient-to-r from-[#7F5A83]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(127,90,131,0.25)]");
-      case 'Topliner': return base + (theme === 'light' ? "border-l-[#A188A6] bg-gradient-to-r from-[#A188A6]/10 to-black/[0.01]" : "border-l-[#A188A6] bg-gradient-to-r from-[#A188A6]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(161,136,166,0.25)]");
-      case 'Engineer': return base + (theme === 'light' ? "border-l-[#9DA2AB] bg-gradient-to-r from-[#9DA2AB]/10 to-black/[0.01]" : "border-l-[#9DA2AB] bg-gradient-to-r from-[#9DA2AB]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(157,162,171,0.25)]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#3E6E96] bg-gradient-to-r from-[#3E6E96]/10 to-black/[0.01]" : "border-l-[#3E6E96] bg-gradient-to-r from-[#3E6E96]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(62,110,150,0.25)]");
+      case 'Producer': return base + (theme === 'light' ? "border-l-[#5A9E7B] bg-gradient-to-r from-[#5A9E7B]/10 to-black/[0.01]" : "border-l-[#5A9E7B] bg-gradient-to-r from-[#5A9E7B]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(90,158,123,0.25)]");
+      case 'Topliner': return base + (theme === 'light' ? "border-l-[#9FB8AD] bg-gradient-to-r from-[#9FB8AD]/10 to-black/[0.01]" : "border-l-[#9FB8AD] bg-gradient-to-r from-[#9FB8AD]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(159,184,173,0.25)]");
+      case 'Engineer': return base + (theme === 'light' ? "border-l-[#7E9A8A] bg-gradient-to-r from-[#7E9A8A]/10 to-black/[0.01]" : "border-l-[#7E9A8A] bg-gradient-to-r from-[#7E9A8A]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(126,154,138,0.25)]");
+      case 'A&R': return base + (theme === 'light' ? "border-l-[#4F7A62] bg-gradient-to-r from-[#4F7A62]/10 to-black/[0.01]" : "border-l-[#4F7A62] bg-gradient-to-r from-[#4F7A62]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(79,122,98,0.25)]");
       default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02] backdrop-blur-md";
     }
   };
 
   const getAttendanceBadge = (attendance: string | null) => {
-    if (attendance === 'attending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">{t.attending}</span>;
-    if (attendance === 'absent') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 shrink-0">{t.absent}</span>;
-    if (attendance === 'pending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 shrink-0">{t.pending}</span>;
+    if (attendance === 'attending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#5A9E7B]/20 text-[#6FA98A] border border-[#5A9E7B]/30 shrink-0">{t.attending}</span>;
+    if (attendance === 'absent') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#C0716B]/20 text-[#CB827C] border border-[#C0716B]/30 shrink-0">{t.absent}</span>;
+    if (attendance === 'pending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#B5A36A]/20 text-[#C7B27A] border border-[#B5A36A]/30 shrink-0">{t.pending}</span>;
     return votingOpen ? <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-600 border border-white/10 shrink-0">{t.noResponse}</span> : null;
   };
 
@@ -1081,17 +1081,17 @@ export default function Dashboard() {
       <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
       <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: `${100 / zoom}%`, minHeight: `${100 / zoom}vh` }}>
         <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-150`}>
-          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#7F5A83',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
+          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#5A9E7B',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
           {/* 헤더 */}
           <div className="relative z-10 flex items-center justify-center gap-3 mb-8 flex-wrap">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-4xl font-semibold text-[#7F5A83] uppercase tracking-tighter">CAST</h1>
+              <h1 className="text-4xl font-semibold text-[#5A9E7B] uppercase tracking-tighter">CAST</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
             </div>
             <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
               <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
-              <span className="px-3 py-1 rounded-full bg-[#7F5A83] text-white text-[11px] font-normal">CAST</span>
+              <span className="px-3 py-1 rounded-full bg-[#5A9E7B] text-white text-[11px] font-normal">CAST</span>
             </div>
           </div>
 
@@ -1104,7 +1104,7 @@ export default function Dashboard() {
                     <Draggable key={p} draggableId={`proj-${p}`} index={index}>
                       {(provided) => (
                         <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
-                          className={`flex items-center rounded-full border transition-all overflow-hidden ${currentProject === p ? 'border-[#7F5A83]/50 bg-gradient-to-r from-[#7F5A83]/30 to-[#A188A6]/10 shadow-[0_0_20px_rgba(127,90,131,0.3)]' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
+                          className={`flex items-center rounded-full border transition-all overflow-hidden ${currentProject === p ? 'border-[#5A9E7B]/50 bg-gradient-to-r from-[#5A9E7B]/30 to-[#9FB8AD]/10 shadow-[0_0_20px_rgba(90,158,123,0.3)]' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
                           <button onClick={() => setCurrentProject(p)} className={`px-4 py-1.5 font-bold text-[11px] tracking-widest uppercase transition-all ${currentProject === p ? textMain : textSub}`}>{p}</button>
                           <button onClick={() => showConfirm(t.rosterDelete, t.rosterDeleteMsg(p), () => {
                             supabase.from('profiles').delete().eq('project', p).eq('user_id', user.id).then(async () => {
@@ -1119,7 +1119,7 @@ export default function Dashboard() {
                   ))}
                   {provided.placeholder}
                   <button onClick={() => showPrompt(t.newRoster, t.rosterNamePlaceholder, '', async (n) => { if (n) { const next = [...projects, n]; setProjects(next); await saveProjectOrder(user.id, next); setCurrentProject(n); } setPromptModal(null); })}
-                    className={`px-3 py-1.5 rounded-full font-bold text-[12px] border border-dashed hover:text-[#7F5A83] transition-all ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>+</button>
+                    className={`px-3 py-1.5 rounded-full font-bold text-[12px] border border-dashed hover:text-[#5A9E7B] transition-all ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>+</button>
                 </div>
               )}
             </Droppable>
@@ -1132,9 +1132,9 @@ export default function Dashboard() {
                   <p className={`text-[16px] font-bold ${textSub}`}>{currentProject}</p>
                   {votingOpen && (
                     <div className="flex items-center gap-2 ml-2">
-                      <span className="text-[10px] font-bold text-emerald-400">{t.attending} {attendingCount}</span>
-                      <span className="text-[10px] font-bold text-red-400">{t.absent} {absentCount}</span>
-                      <span className="text-[10px] font-bold text-yellow-400">{t.pending} {pendingCount}</span>
+                      <span className="text-[10px] font-bold text-[#6FA98A]">{t.attending} {attendingCount}</span>
+                      <span className="text-[10px] font-bold text-[#CB827C]">{t.absent} {absentCount}</span>
+                      <span className="text-[10px] font-bold text-[#C7B27A]">{t.pending} {pendingCount}</span>
                       <span className={`text-[10px] font-bold ${textSub}`}>{t.noResponse} {noResponseCount}</span>
                     </div>
                   )}
@@ -1144,12 +1144,12 @@ export default function Dashboard() {
                     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; let n = '';
                     for (const c of alphabet) { if (!teams.includes(`Studio ${c}`)) { n = `Studio ${c}`; break; } }
                     if (n) { const next = [...teams, n]; setTeams(next); await saveTeamOrder(user.id, currentProject, currentDay, next); }
-                  }} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all text-[#7F5A83] ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
+                  }} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all text-[#5A9E7B] ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
                   <button onClick={() => setShowSessionBoard(!showSessionBoard)} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.history}</button>
                   <button onClick={exportRoster} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.export}</button>
                   <button onClick={() => router.push('/roster/artists')} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.artists}</button>
                   <button onClick={() => { setShowArtistPanel(p => !p); if (!showArtistPanel) fetchArtists(user); }}
-                    className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${showArtistPanel ? 'border-[#7F5A83]/50 text-[#7F5A83] bg-[#7F5A83]/10' : btnBg}`}>{t.addFromArtists}</button>
+                    className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${showArtistPanel ? 'border-[#5A9E7B]/50 text-[#5A9E7B] bg-[#5A9E7B]/10' : btnBg}`}>{t.addFromArtists}</button>
                   <div className={`flex p-1 rounded-lg border gap-1 shadow-lg backdrop-blur-md ${inputBg}`}>
                     <input value={name} onChange={e => setName(e.target.value)}
                       onCompositionStart={() => { isComposing.current = true; }}
@@ -1175,13 +1175,13 @@ export default function Dashboard() {
                 <button onClick={() => votingOpen
                   ? showConfirm(t.voteClose, t.closeVoteConfirm, async () => { await closeVoting(); setConfirmModal(null); })
                   : setShowVotingModal(true)}
-                  className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${votingOpen ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30' : btnBg}`}>
+                  className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${votingOpen ? 'bg-[#5A9E7B]/20 border-[#5A9E7B]/40 text-[#6FA98A] hover:bg-[#5A9E7B]/30' : btnBg}`}>
                   {votingOpen ? t.voteClose : t.voteOpen}
                 </button>
                 <button onClick={() => setShowNoticeBoard(!showNoticeBoard)} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.notice}</button>
                 <button onClick={copyShareLink} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.share}</button>
                 <button onClick={() => showPrompt(t.randomMatch, t.teamCount, '2', async (v) => { const n = parseInt(v); setPromptModal(null); if (n > 0) await generateRandomRoster(n)(); })}
-                  className="bg-[#7F5A83] text-white px-5 py-1.5 rounded-xl font-normal text-[11px] hover:opacity-90 transition-all uppercase tracking-tighter">{t.random}</button>
+                  className="bg-[#5A9E7B] text-white px-5 py-1.5 rounded-xl font-normal text-[11px] hover:opacity-90 transition-all uppercase tracking-tighter">{t.random}</button>
                 <button onClick={toggleTheme} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
                 <button onClick={toggleLang} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
               </div>
@@ -1190,20 +1190,20 @@ export default function Dashboard() {
             {/* Day 탭 */}
             <div className="relative z-10 flex items-center gap-2 mb-6">
               {days.map(d => (
-                <div key={d} className={`flex items-center rounded-full border overflow-hidden transition-all ${currentDay === d ? 'border-[#7F5A83]/50 bg-gradient-to-r from-[#7F5A83]/20 to-transparent' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
+                <div key={d} className={`flex items-center rounded-full border overflow-hidden transition-all ${currentDay === d ? 'border-[#5A9E7B]/50 bg-gradient-to-r from-[#5A9E7B]/20 to-transparent' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
                   {editingDayName === d ? (
                     <input autoFocus value={dayNameInput} onChange={e => setDayNameInput(e.target.value)}
                       onBlur={() => saveDayName(d, dayNameInput || `Day ${d}`)}
                       onKeyDown={e => { if (e.key === 'Enter') saveDayName(d, dayNameInput || `Day ${d}`); if (e.key === 'Escape') setEditingDayName(null); }}
-                      className="bg-transparent px-3 py-1.5 text-[11px] font-bold outline-none text-[#7F5A83] w-24" />
+                      className="bg-transparent px-3 py-1.5 text-[11px] font-bold outline-none text-[#5A9E7B] w-24" />
                   ) : (
                     <button onClick={() => setCurrentDay(d)} onDoubleClick={() => { setEditingDayName(d); setDayNameInput(dayNames[d] || `Day ${d}`); }}
-                      className={`px-4 py-1.5 font-bold text-[11px] transition-all ${currentDay === d ? 'text-[#7F5A83]' : textSub}`}>{getDayLabel(d)}</button>
+                      className={`px-4 py-1.5 font-bold text-[11px] transition-all ${currentDay === d ? 'text-[#5A9E7B]' : textSub}`}>{getDayLabel(d)}</button>
                   )}
                   {days.length > 1 && <button onClick={() => showConfirm(t.dayDelete(getDayLabel(d)), t.dayDeleteMsg(getDayLabel(d)), () => { removeDay(d); setConfirmModal(null); })} className="pr-3 text-zinc-700 hover:text-red-500 text-[12px]">×</button>}
                 </div>
               ))}
-              <button onClick={addDay} className={`px-3 py-1.5 rounded-full font-bold text-[12px] border border-dashed hover:text-[#7F5A83] transition-all ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>{t.addDay}</button>
+              <button onClick={addDay} className={`px-3 py-1.5 rounded-full font-bold text-[12px] border border-dashed hover:text-[#5A9E7B] transition-all ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>{t.addDay}</button>
             </div>
 
             {/* 공지사항 */}
@@ -1249,7 +1249,7 @@ export default function Dashboard() {
                           {campSessions.sort((a: any, b: any) => a.day_number - b.day_number).map((s: any) => (
                             <div key={s.id} className={`rounded-2xl border overflow-hidden ${theme === 'light' ? 'border-black/10 bg-black/[0.02]' : 'border-white/10 bg-white/[0.02]'}`}>
                               <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setExpandedSession(expandedSession === s.id ? null : s.id)}>
-                                <div className="flex items-center gap-3"><span className="text-[#7F5A83] font-black text-[13px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
+                                <div className="flex items-center gap-3"><span className="text-[#5A9E7B] font-black text-[13px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                                 <div className="flex items-center gap-3">
                                   <span className="text-zinc-600 text-[10px]">{new Date(s.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</span>
                                   <button onClick={(e) => { e.stopPropagation(); showConfirm(t.sessionDelete, t.sessionDeleteMsg(s.day_number), () => { supabase.from('sessions').delete().eq('id', s.id).then(() => { fetchSessions(user); setConfirmModal(null); }); }); }} className="text-zinc-700 hover:text-red-500 text-[11px]">×</button>
@@ -1276,11 +1276,11 @@ export default function Dashboard() {
                                       setConfirmModal(null);
                                       showToastMsg(lang === 'ko' ? '✅ 로스터를 불러왔어요!' : '✅ Roster loaded!');
                                     });
-                                  }} className="mb-3 px-3 py-1.5 rounded-lg bg-[#7F5A83]/20 text-[#7F5A83] text-[11px] font-bold border border-[#7F5A83]/30 hover:bg-[#7F5A83]/30 transition-all">
+                                  }} className="mb-3 px-3 py-1.5 rounded-lg bg-[#5A9E7B]/20 text-[#5A9E7B] text-[11px] font-bold border border-[#5A9E7B]/30 hover:bg-[#5A9E7B]/30 transition-all">
                                     {lang === 'ko' ? '⬆ 현재 로스터로 불러오기' : '⬆ Load to Current Roster'}
                                   </button>
                                   <div className="flex flex-wrap gap-4">
-                                    {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-[10px] font-black uppercase tracking-widest mb-2 border-l-2 border-[#7F5A83] pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-[12px] font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-600 text-[9px] uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
+                                    {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-[10px] font-black uppercase tracking-widest mb-2 border-l-2 border-[#5A9E7B] pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-[12px] font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-600 text-[9px] uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
                                   </div>
                                 </div>
                               )}
@@ -1327,7 +1327,7 @@ export default function Dashboard() {
                                   {artist.photo_url && <img src={artist.photo_url} className="w-6 h-6 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />}
                                   <span className={`text-[12px] font-bold ${textMain}`}>{artist.name}</span>
                                   <span className={`text-[9px] ${textSub}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
-                                  {inRoster ? <span className="text-[10px] text-zinc-600 font-black">✓</span> : <span className="text-[10px] text-[#7F5A83] font-black">+</span>}
+                                  {inRoster ? <span className="text-[10px] text-zinc-600 font-black">✓</span> : <span className="text-[10px] text-[#5A9E7B] font-black">+</span>}
                                 </button>
                               );
                             })}
@@ -1365,7 +1365,7 @@ export default function Dashboard() {
                                     ) : (
                                       <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                         {m.name}
-                                        <span className={`px-1 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#A188A6]/10 text-[#A188A6] border-[#A188A6]/30' : 'bg-[#3E6E96]/10 text-[#3E6E96] border-[#3E6E96]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                        <span className={`px-1 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#9FB8AD]/10 text-[#9FB8AD] border-[#9FB8AD]/30' : 'bg-[#4F7A62]/10 text-[#4F7A62] border-[#4F7A62]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
                                         {getAttendanceBadge(m.attendance)}
                                         {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                       </span>
@@ -1398,7 +1398,7 @@ export default function Dashboard() {
                         {(provided) => (
                           <div ref={provided.innerRef} {...provided.draggableProps} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
                             <div className={`backdrop-blur-2xl border rounded-[2rem] p-6 min-h-[400px] shadow-2xl flex flex-col ${cardBg}`}>
-                              <div {...provided.dragHandleProps} className="flex justify-between items-start mb-4 px-1 border-l-4 border-[#7F5A83] pl-4 cursor-grab">
+                              <div {...provided.dragHandleProps} className="flex justify-between items-start mb-4 px-1 border-l-4 border-[#5A9E7B] pl-4 cursor-grab">
                                 <div className="flex flex-col gap-1.5 flex-1">
                                   {editingTeam === tName ? (
                                     <input autoFocus value={teamEditValue} onChange={e => setTeamEditValue(e.target.value)}
@@ -1453,7 +1453,7 @@ export default function Dashboard() {
                                               <div className="flex flex-col overflow-hidden">
                                                 <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[15px] font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                                   {m.name}
-                                                  <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#A188A6]/10 text-[#A188A6] border-[#A188A6]/30' : 'bg-[#3E6E96]/10 text-[#3E6E96] border-[#3E6E96]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                                  <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#9FB8AD]/10 text-[#9FB8AD] border-[#9FB8AD]/30' : 'bg-[#4F7A62]/10 text-[#4F7A62] border-[#4F7A62]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
                                                   {getAttendanceBadge(m.attendance)}
                                                   {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                                 </span>
@@ -1494,14 +1494,14 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-pretendard">
           <div className={`w-full max-w-sm mx-4 border rounded-2xl p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <div className="text-center mb-6">
-              <h1 className="text-4xl font-semibold text-[#7F5A83] uppercase tracking-tighter mb-2">CAST</h1>
+              <h1 className="text-4xl font-semibold text-[#5A9E7B] uppercase tracking-tighter mb-2">CAST</h1>
               <p className={`text-[13px] ${textSub}`}>{t.firstRosterTitle}</p>
             </div>
             <input autoFocus value={firstRosterName} onChange={e => setFirstRosterName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createFirstRoster()}
               placeholder={t.firstRosterPlaceholder}
-              className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#7F5A83]/50 transition-all mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+              className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#5A9E7B]/50 transition-all mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
             <button onClick={createFirstRoster} disabled={!firstRosterName.trim()}
-              className="w-full py-3 rounded-xl bg-[#7F5A83] text-white font-semibold text-[13px] uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-40">{t.start}</button>
+              className="w-full py-3 rounded-xl bg-[#5A9E7B] text-white font-semibold text-[13px] uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-40">{t.start}</button>
           </div>
         </div>
       )}
@@ -1575,7 +1575,7 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-3">
             <button onClick={() => setShowVotingModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
-            <button onClick={openVoting} className="flex-1 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-black text-[12px] hover:bg-emerald-500/30 transition-all">{t.voteStart}</button>
+            <button onClick={openVoting} className="flex-1 py-3 rounded-xl bg-[#5A9E7B]/20 border border-[#5A9E7B]/40 text-[#6FA98A] font-black text-[12px] hover:bg-[#5A9E7B]/30 transition-all">{t.voteStart}</button>
           </div>
         </Modal>
       )}
@@ -1610,7 +1610,7 @@ export default function Dashboard() {
               <button key={r} onClick={() => updateMemberRole(roleDropdown.id, r)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`} style={{ color: ROLE_COLORS[r] }}>{r}</button>
             ))}
             <div className={`border-t ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`} />
-            <button onClick={() => toggleExcludeMember(roleDropdown.id, roleDropdown.excluded)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${roleDropdown.excluded ? 'text-emerald-400' : 'text-zinc-500'}`}>
+            <button onClick={() => toggleExcludeMember(roleDropdown.id, roleDropdown.excluded)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${roleDropdown.excluded ? 'text-[#6FA98A]' : 'text-zinc-500'}`}>
               {roleDropdown.excluded ? t.include : t.exclude}
             </button>
           </div>
@@ -1673,11 +1673,11 @@ export default function Dashboard() {
 
       {/* 줌 컨트롤 */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-2 select-none">
-        <button onClick={() => setZoom(1)} className={`w-9 h-9 rounded-xl border backdrop-blur-md transition-all text-[9px] font-black tracking-widest flex items-center justify-center shadow-xl hover:text-[#7F5A83] hover:border-[#7F5A83]/30 ${btnBg}`}>1:1</button>
-        <div onMouseDown={onZoomMouseDown} className={`w-9 h-14 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[5px] transition-all group hover:border-[#7F5A83]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.04] border-white/10'}`}>
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#7F5A83] transition-colors"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <div className="flex flex-col gap-[3px]">{[0,1,2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500 group-hover:bg-[#7F5A83]/50 transition-colors" />)}</div>
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#7F5A83] transition-colors"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <button onClick={() => setZoom(1)} className={`w-9 h-9 rounded-xl border backdrop-blur-md transition-all text-[9px] font-black tracking-widest flex items-center justify-center shadow-xl hover:text-[#5A9E7B] hover:border-[#5A9E7B]/30 ${btnBg}`}>1:1</button>
+        <div onMouseDown={onZoomMouseDown} className={`w-9 h-14 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[5px] transition-all group hover:border-[#5A9E7B]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.04] border-white/10'}`}>
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#5A9E7B] transition-colors"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <div className="flex flex-col gap-[3px]">{[0,1,2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500 group-hover:bg-[#5A9E7B]/50 transition-colors" />)}</div>
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#5A9E7B] transition-colors"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>
         <span className="text-[9px] font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
       </div>
