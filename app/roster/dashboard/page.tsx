@@ -14,7 +14,7 @@ const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
 const ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R'];
 const DEVELOPER_EMAILS = ['nodnxd@gmail.com', 'hseu2000@gmail.com'];
 const ROLE_COLORS: Record<string, string> = {
-  'Producer': '#DE3C4B', 'Topliner': '#E97582', 'Engineer': '#7C7F65', 'A&R': '#3E78DB'
+  'Producer': '#3E78DB', 'Topliner': '#E97582', 'Engineer': '#7C7F65', 'A&R': '#7C7F65'
 };
 
 const T = {
@@ -740,7 +740,7 @@ export default function Dashboard() {
   const exportAllDays = async (format: 'jpeg' | 'pdf' = 'jpeg') => {
     showToastMsg('📸 ' + (lang === 'ko' ? '생성 중...' : 'Generating...'));
     try {
-      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#DE3C4B', 'Topliner': '#E97582', 'Engineer': '#7C7F65', 'A&R': '#3E78DB' };
+      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#3E78DB', 'Topliner': '#E97582', 'Engineer': '#7C7F65', 'A&R': '#7C7F65' };
       const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
       const SCALE = 2;
       const PAD = 40;
@@ -913,7 +913,7 @@ export default function Dashboard() {
   };;
 
   const buildRosterCanvas = (teamData: any[], dayLabel: string) => {
-    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#DE3C4B', 'Topliner': '#E97582', 'Engineer': '#7C7F65', 'A&R': '#3E78DB' };
+    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#3E78DB', 'Topliner': '#E97582', 'Engineer': '#7C7F65', 'A&R': '#7C7F65' };
     const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
     const SCALE = 2; const PAD = 40; const HEADER_H = 60;
     const TEAM_GAP = 16; const MEMBER_H = 60; const BADGE_H = 24;
@@ -1030,10 +1030,10 @@ export default function Dashboard() {
     if (excluded) return theme === 'light' ? "border border-black/5 bg-black/[0.02] grayscale opacity-50" : "border border-white/5 bg-white/[0.01] grayscale opacity-60 backdrop-blur-sm";
     const base = "border-l-[4px] backdrop-blur-md transition-all duration-150 ";
     switch(r) {
-      case 'Producer': return base + (theme === 'light' ? "border-l-[#DE3C4B] bg-gradient-to-r from-[#DE3C4B]/10 to-black/[0.01]" : "border-l-[#DE3C4B] bg-gradient-to-r from-[#DE3C4B]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(222,60,75,0.25)]");
+      case 'Producer': return base + (theme === 'light' ? "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-black/[0.01]" : "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(222,60,75,0.25)]");
       case 'Topliner': return base + (theme === 'light' ? "border-l-[#E97582] bg-gradient-to-r from-[#E97582]/10 to-black/[0.01]" : "border-l-[#E97582] bg-gradient-to-r from-[#E97582]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(233,117,130,0.25)]");
       case 'Engineer': return base + (theme === 'light' ? "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-black/[0.01]" : "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(124,127,101,0.25)]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-black/[0.01]" : "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(62,120,219,0.25)]");
+      case 'A&R': return base + (theme === 'light' ? "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-black/[0.01]" : "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(62,120,219,0.25)]");
       default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02] backdrop-blur-md";
     }
   };

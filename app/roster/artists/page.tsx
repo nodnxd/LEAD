@@ -13,8 +13,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R', 'Artist', 'Other'];
 const ROSTER_ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R']; // 로스터에서 쓰는 role
 const ROLE_COLORS: Record<string, string> = {
-  'Producer': '#DE3C4B', 'Topliner': '#E97582', 'Engineer': '#7C7F65',
-  'A&R': '#3E78DB', 'Artist': '#3B82F6', 'Other': '#6B7280'
+  'Producer': '#3E78DB', 'Topliner': '#E97582', 'Engineer': '#7C7F65',
+  'A&R': '#7C7F65', 'Artist': '#3B82F6', 'Other': '#6B7280'
 };
 
 const QUICK_LINKS = [

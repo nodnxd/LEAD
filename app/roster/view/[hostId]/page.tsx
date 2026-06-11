@@ -194,10 +194,10 @@ export default function GuestView() {
 
   const getRoleColor = (r: string) => {
     switch(r) {
-      case 'Producer': return { bg: 'bg-[#DE3C4B]/15', border: 'border-[#DE3C4B]/30', text: 'text-[#DE3C4B]', activeBg: 'bg-[#DE3C4B]/25', activeBorder: 'border-[#DE3C4B]/50', dim: 'text-[#DE3C4B]/50' };
+      case 'Producer': return { bg: 'bg-[#3E78DB]/15', border: 'border-[#3E78DB]/30', text: 'text-[#3E78DB]', activeBg: 'bg-[#3E78DB]/25', activeBorder: 'border-[#3E78DB]/50', dim: 'text-[#3E78DB]/50' };
       case 'Topliner': return { bg: 'bg-[#E97582]/15', border: 'border-[#E97582]/30', text: 'text-[#E97582]', activeBg: 'bg-[#E97582]/25', activeBorder: 'border-[#E97582]/50', dim: 'text-[#E97582]/50' };
       case 'Engineer': return { bg: 'bg-[#7C7F65]/15', border: 'border-[#7C7F65]/30', text: 'text-[#7C7F65]', activeBg: 'bg-[#7C7F65]/25', activeBorder: 'border-[#7C7F65]/50', dim: 'text-[#7C7F65]/50' };
-      case 'A&R': return { bg: 'bg-[#3E78DB]/15', border: 'border-[#3E78DB]/30', text: 'text-[#3E78DB]', activeBg: 'bg-[#3E78DB]/25', activeBorder: 'border-[#3E78DB]/50', dim: 'text-[#3E78DB]/50' };
+      case 'A&R': return { bg: 'bg-[#7C7F65]/15', border: 'border-[#7C7F65]/30', text: 'text-[#7C7F65]', activeBg: 'bg-[#7C7F65]/25', activeBorder: 'border-[#7C7F65]/50', dim: 'text-[#7C7F65]/50' };
       default: return { bg: 'bg-white/5', border: 'border-white/10', text: 'text-zinc-400', activeBg: 'bg-white/10', activeBorder: 'border-white/20', dim: 'text-zinc-600' };
     }
   };
@@ -205,10 +205,10 @@ export default function GuestView() {
   const getRoleCardStyle = (r: string) => {
     const base = "border-l-[4px] backdrop-blur-md ";
     switch(r) {
-      case 'Producer': return base + (theme === 'light' ? "border-l-[#DE3C4B] bg-gradient-to-r from-[#DE3C4B]/10 to-black/[0.01]" : "border-l-[#DE3C4B] bg-gradient-to-r from-[#DE3C4B]/10 to-white/[0.02]");
+      case 'Producer': return base + (theme === 'light' ? "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-black/[0.01]" : "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-white/[0.02]");
       case 'Topliner': return base + (theme === 'light' ? "border-l-[#E97582] bg-gradient-to-r from-[#E97582]/10 to-black/[0.01]" : "border-l-[#E97582] bg-gradient-to-r from-[#E97582]/10 to-white/[0.02]");
       case 'Engineer': return base + (theme === 'light' ? "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-black/[0.01]" : "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-white/[0.02]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-black/[0.01]" : "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-white/[0.02]");
+      case 'A&R': return base + (theme === 'light' ? "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-black/[0.01]" : "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-white/[0.02]");
       default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02]";
     }
   };
@@ -238,7 +238,8 @@ export default function GuestView() {
   };
 
   const allMembers = members.filter(m => m.project === currentProject && !m.excluded);
-  const membersByRole = ROLE_ORDER.map(r => ({ role: r, items: allMembers.filter(m => m.role === r) })).filter(g => g.items.length > 0);
+  const ROLE_GROUPS: string[][] = [['Producer'], ['Topliner'], ['Engineer', 'A&R']];
+  const membersByRole = ROLE_GROUPS.map(roles => ({ role: roles[0], label: roles.join(' / '), items: allMembers.filter(m => roles.includes(m.role)) })).filter(g => g.items.length > 0);
   const attending = allMembers.filter(m => m.attendance === 'attending');
   const absent = allMembers.filter(m => m.attendance === 'absent');
   const pending = allMembers.filter(m => m.attendance === 'pending');
@@ -361,11 +362,11 @@ export default function GuestView() {
               {votingMemo && <p className={`text-[12px] mb-6 leading-relaxed whitespace-pre-line ${textSub}`}>{votingMemo}</p>}
               {!votingMemo && <div className="mb-5" />}
               <div className="flex flex-col gap-5 mb-8">
-                {membersByRole.map(({ role, items }) => {
+                {membersByRole.map(({ role, label, items }) => {
                   const c = getRoleColor(role);
                   return (
                     <div key={role}>
-                      <p className={`text-[10px] font-black uppercase tracking-widest mb-2.5 ${c.dim}`}>{role}</p>
+                      <p className={`text-[10px] font-black uppercase tracking-widest mb-2.5 ${c.dim}`}>{label}</p>
                       <div className="flex flex-wrap gap-x-3 gap-y-3">
                         {items.map(m => {
                           const isSelected = selectedMemberId === m.id;
