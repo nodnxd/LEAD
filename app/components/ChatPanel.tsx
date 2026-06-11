@@ -91,11 +91,11 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
       <div onMouseDown={(e) => { dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y }; }}
         onTouchStart={(e) => { const t = e.touches[0]; dragRef.current = { dx: t.clientX - pos.x, dy: t.clientY - pos.y }; }}
         className={`flex items-center gap-2 px-3 py-2.5 border-b cursor-move select-none touch-none ${bd}`}>
-        <div className="w-7 h-7 rounded-full bg-[#368B78]/15 border border-[#368B78]/25 flex items-center justify-center overflow-hidden shrink-0">
-          {other?.photo_url ? <img src={other.photo_url} className="w-full h-full object-cover" alt="" /> : <span className="font-black text-[#368B78] text-[12px]">{name[0].toUpperCase()}</span>}
+        <div className="w-7 h-7 rounded-full bg-[#80A1D4]/15 border border-[#80A1D4]/25 flex items-center justify-center overflow-hidden shrink-0">
+          {other?.photo_url ? <img src={other.photo_url} className="w-full h-full object-cover" alt="" /> : <span className="font-black text-[#80A1D4] text-[12px]">{name[0].toUpperCase()}</span>}
         </div>
         <span className={`flex-1 font-black text-[14px] truncate ${tx}`}>{name}</span>
-        <input type="range" min={20} max={100} value={opacity} onChange={e => setOpacity(Number(e.target.value))} onMouseDown={e => e.stopPropagation()} className="w-14 cursor-pointer accent-[#368B78]" title="투명도" />
+        <input type="range" min={20} max={100} value={opacity} onChange={e => setOpacity(Number(e.target.value))} onMouseDown={e => e.stopPropagation()} className="w-14 cursor-pointer accent-[#80A1D4]" title="투명도" />
         <button onClick={() => setCollapsed(c => !c)} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-lg text-[11px] font-black ${D ? 'text-zinc-500' : 'text-zinc-500'}`}>{collapsed ? '▲' : '▼'}</button>
         <button onClick={onClose} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-lg text-[13px] font-black ${D ? 'text-zinc-500' : 'text-zinc-500'} hover:text-red-400 transition-all`}>✕</button>
       </div>
@@ -107,7 +107,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
               return (
                 <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex flex-col gap-0.5 ${mine ? 'items-end' : 'items-start'}`} style={{ maxWidth: '82%' }}>
-                    <div className={`px-3 py-2 rounded-2xl text-[13px] leading-relaxed ${mine ? 'bg-[#368B78] text-white rounded-br-md' : D ? 'bg-white/[0.08] text-zinc-200 rounded-bl-md' : 'bg-black/[0.05] text-zinc-800 rounded-bl-md'}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{m.content}</div>
+                    <div className={`px-3 py-2 rounded-2xl text-[13px] leading-relaxed ${mine ? 'bg-[#80A1D4] text-white rounded-br-md' : D ? 'bg-white/[0.08] text-zinc-200 rounded-bl-md' : 'bg-black/[0.05] text-zinc-800 rounded-bl-md'}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{m.content}</div>
                     <span className="text-[9px] px-1 text-zinc-500">{fmtTime(m.created_at)}</span>
                   </div>
                 </div>
@@ -119,7 +119,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
             <input ref={inputRef} defaultValue="" onChange={e => setInputVal(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !(e.nativeEvent as any).isComposing) { e.preventDefault(); send(); } }}
               placeholder="메시지..." className={`flex-1 px-3 py-2 rounded-xl border text-[14px] outline-none ${ib}`} />
-            <button onClick={send} disabled={sending || !inputVal.trim()} className="px-3 py-2 rounded-xl bg-[#368B78] text-white text-[14px] font-black disabled:opacity-40 hover:bg-[#2C7665] transition-all">→</button>
+            <button onClick={send} disabled={sending || !inputVal.trim()} className="px-3 py-2 rounded-xl bg-[#80A1D4] text-white text-[14px] font-black disabled:opacity-40 hover:bg-[#5E83BC] transition-all">→</button>
           </div>
         </>
       )}
@@ -425,8 +425,8 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
   const ib = D ? 'bg-white/[0.06] border-white/10 text-white placeholder:text-zinc-600' : 'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400';
 
   const Avatar = ({ p, size = 32 }: { p: any; size?: number }) => (
-    <div className="rounded-full bg-[#368B78]/15 border border-[#368B78]/25 flex items-center justify-center overflow-hidden shrink-0" style={{ width: size, height: size }}>
-      {p?.photo_url ? <img src={p.photo_url} className="w-full h-full object-cover" alt="" /> : <span className="font-black text-[#368B78]" style={{ fontSize: size * 0.38 }}>{(p?.artist_name || p?.display_name || '?')[0].toUpperCase()}</span>}
+    <div className="rounded-full bg-[#80A1D4]/15 border border-[#80A1D4]/25 flex items-center justify-center overflow-hidden shrink-0" style={{ width: size, height: size }}>
+      {p?.photo_url ? <img src={p.photo_url} className="w-full h-full object-cover" alt="" /> : <span className="font-black text-[#80A1D4]" style={{ fontSize: size * 0.38 }}>{(p?.artist_name || p?.display_name || '?')[0].toUpperCase()}</span>}
     </div>
   );
 
@@ -456,7 +456,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
             </button>
             <button
               onClick={e => { e.stopPropagation(); openConv(toast.senderId); setToast(null); }}
-              className="flex-1 py-1.5 rounded-xl bg-[#368B78] text-white text-[10px] font-black"
+              className="flex-1 py-1.5 rounded-xl bg-[#80A1D4] text-white text-[10px] font-black"
             >💬 답장</button>
           </div>
         </div>
@@ -522,7 +522,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                 const other = getOther(activeConv);
                 setPoppedConvs(p => p.find(x => x.conv.id === activeConv.id) ? p : [...p, { conv: activeConv, other }]);
                 setActiveConv(null); setMsgs([]);
-              }} className="text-[11px] font-black px-2 py-0.5 rounded-lg bg-[#368B78]/15 text-[#368B78] hover:bg-[#368B78]/25 transition-all whitespace-nowrap">↗ 분리</button>
+              }} className="text-[11px] font-black px-2 py-0.5 rounded-lg bg-[#80A1D4]/15 text-[#80A1D4] hover:bg-[#80A1D4]/25 transition-all whitespace-nowrap">↗ 분리</button>
             )}
             {activeConv && (
               <button onClick={() => { if (confirm('대화를 삭제할까요?')) deleteConv(activeConv.id); }}
@@ -531,7 +531,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
 
             <input type="range" min={20} max={100} value={opacity}
               onChange={e => setOpacity(Number(e.target.value))}
-              className="w-16 cursor-pointer accent-[#368B78]" title="투명도" />
+              className="w-16 cursor-pointer accent-[#80A1D4]" title="투명도" />
             <button onClick={() => setMinimized(m => !m)}
               className={`w-6 h-6 flex items-center justify-center rounded-lg text-[11px] font-black ${dm} hover:${tx} transition-all`}>
               {minimized ? '▲' : '▼'}
@@ -552,7 +552,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                       <div key={req.id} className="flex items-center gap-2 mb-1">
                         <button onClick={() => m && openMemberProfile(m)}><Avatar p={m} /></button>
                         <span className={`flex-1 text-[11px] font-bold truncate ${tx}`}>{m?.artist_name || '알 수 없음'}</span>
-                        <button onClick={() => respondFriend(req.id, 'accepted')} className="px-2 py-0.5 rounded-lg bg-[#368B78]/20 text-[#368B78] text-[10px] font-black">✓</button>
+                        <button onClick={() => respondFriend(req.id, 'accepted')} className="px-2 py-0.5 rounded-lg bg-[#80A1D4]/20 text-[#80A1D4] text-[10px] font-black">✓</button>
                         <button onClick={() => respondFriend(req.id, 'rejected')} className="px-2 py-0.5 rounded-lg bg-red-500/10 text-red-400 text-[10px] font-black">✕</button>
                       </div>
                     );
@@ -565,7 +565,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                 <div className={`flex border-b ${bd} shrink-0`}>
                   {(['members', 'chats'] as const).map(t => (
                     <button key={t} onClick={() => setTab(t)}
-                      className={`flex-1 py-2.5 text-[11px] font-black transition-all ${tab === t ? `${tx} border-b-2 border-[#368B78]` : dm}`}>
+                      className={`flex-1 py-2.5 text-[11px] font-black transition-all ${tab === t ? `${tx} border-b-2 border-[#80A1D4]` : dm}`}>
                       {t === 'members' ? `멤버 (${members.length})` : `대화 (${convs.length})`}
                     </button>
                   ))}
@@ -587,7 +587,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         className={`flex-1 border rounded-xl px-2.5 py-1.5 text-[11px] outline-none transition-all ${ib}`}
                       />
                       <button onClick={searchByEmail} disabled={emailSearching}
-                        className="px-2.5 py-1.5 rounded-xl bg-[#368B78]/20 text-[#368B78] text-[10px] font-black disabled:opacity-40">
+                        className="px-2.5 py-1.5 rounded-xl bg-[#80A1D4]/20 text-[#80A1D4] text-[10px] font-black disabled:opacity-40">
                         {emailSearching ? '...' : '검색'}
                       </button>
                     </div>
@@ -603,9 +603,9 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                                 {r.company && <p className={`text-[9px] truncate ${dm}`}>{r.company}</p>}
                               </div>
                               {fs?.status === 'accepted'
-                                ? <button onClick={() => openConv(r.id)} className="px-2 py-0.5 rounded-lg bg-[#368B78]/15 text-[#368B78] text-[10px] font-black">💬</button>
+                                ? <button onClick={() => openConv(r.id)} className="px-2 py-0.5 rounded-lg bg-[#80A1D4]/15 text-[#80A1D4] text-[10px] font-black">💬</button>
                                 : fs ? <span className={`text-[9px] ${dm}`}>요청중</span>
-                                : <button onClick={() => sendFriendReq(r.id)} className="px-2 py-0.5 rounded-lg bg-[#368B78]/20 text-[#368B78] text-[10px] font-black">+추가</button>}
+                                : <button onClick={() => sendFriendReq(r.id)} className="px-2 py-0.5 rounded-lg bg-[#80A1D4]/20 text-[#80A1D4] text-[10px] font-black">+추가</button>}
                             </div>
                           );
                         })}
@@ -633,8 +633,8 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                               {isFriend && <span className="text-[9px] text-emerald-400 font-black px-1">친구</span>}
                               {isPending && iSent && <span className={`text-[9px] ${dm}`}>요청중</span>}
                               {!fs && <button onClick={() => sendFriendReq(m.id)} className={`px-1.5 py-0.5 rounded-lg text-[9px] font-black ${D ? 'bg-white/5 text-zinc-500 hover:text-white' : 'bg-black/[0.05] text-zinc-500'}`}>+친구</button>}
-                              <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-[#368B78]/15 text-[#368B78] text-[9px] font-black hover:bg-[#368B78]/25">💬</button>
-                              <button title="팝업 창으로 띄우기" onClick={() => popOutConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-[#368B78]/15 text-[#368B78] text-[9px] font-black hover:bg-[#368B78]/25">↗</button>
+                              <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-[#80A1D4]/15 text-[#80A1D4] text-[9px] font-black hover:bg-[#80A1D4]/25">💬</button>
+                              <button title="팝업 창으로 띄우기" onClick={() => popOutConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-[#80A1D4]/15 text-[#80A1D4] text-[9px] font-black hover:bg-[#80A1D4]/25">↗</button>
                             </div>
                           </div>
                         );
@@ -660,7 +660,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                             </div>
                           </button>
                           <button title="팝업 창으로 띄우기" onClick={() => popOutConv(other?.id || (conv.participant_1 === user?.id ? conv.participant_2 : conv.participant_1))}
-                            className="px-2 py-1 rounded-lg bg-[#368B78]/15 text-[#368B78] text-[11px] font-black hover:bg-[#368B78]/25 transition-all shrink-0">↗ 분리</button>
+                            className="px-2 py-1 rounded-lg bg-[#80A1D4]/15 text-[#80A1D4] text-[11px] font-black hover:bg-[#80A1D4]/25 transition-all shrink-0">↗ 분리</button>
                           <button onClick={() => { if (confirm('삭제할까요?')) deleteConv(conv.id); }}
                             className={`opacity-0 group-hover:opacity-100 text-[11px] font-black px-1.5 py-0.5 rounded-lg ${dm} hover:text-red-400 hover:bg-red-500/10 transition-all`}>✕</button>
                         </div>
@@ -672,7 +672,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
               {/* 멤버 프로필 뷰 */}
               {viewingMember && !activeConv && (
                 <div className="flex-1 overflow-y-auto">
-                  <div className={`h-16 bg-gradient-to-br from-[#368B78]/30 to-purple-500/20 relative`}>
+                  <div className={`h-16 bg-gradient-to-br from-[#80A1D4]/30 to-purple-500/20 relative`}>
                     <div className="absolute bottom-[-24px] left-4">
                       <Avatar p={viewingMember} size={48} />
                     </div>
@@ -688,7 +688,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                     {(viewingMember.roles || []).length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {viewingMember.roles.map((r: string) => (
-                          <span key={r} className="text-[10px] font-black px-2 py-0.5 rounded-full border border-[#368B78]/30 bg-[#368B78]/10 text-[#368B78]">{ROLE[r] || r}</span>
+                          <span key={r} className="text-[10px] font-black px-2 py-0.5 rounded-full border border-[#80A1D4]/30 bg-[#80A1D4]/10 text-[#80A1D4]">{ROLE[r] || r}</span>
                         ))}
                       </div>
                     )}
@@ -701,7 +701,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                     )}
                     {viewingMember.instagram && (
                       <a href={`https://instagram.com/${viewingMember.instagram}`} target="_blank" rel="noopener noreferrer"
-                        className="block text-[11px] text-[#368B78] hover:underline mb-3">📸 @{viewingMember.instagram}</a>
+                        className="block text-[11px] text-[#80A1D4] hover:underline mb-3">📸 @{viewingMember.instagram}</a>
                     )}
                     {memberWorks.length > 0 && (
                       <div className={`border-t ${bd} pt-3 mt-1`}>
@@ -733,7 +733,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         );
                       })()}
                       <button onClick={() => openConv(viewingMember.id)}
-                        className="flex-1 py-2 rounded-xl bg-[#368B78] text-white text-[11px] font-black hover:bg-[#2C7665] transition-all">
+                        className="flex-1 py-2 rounded-xl bg-[#80A1D4] text-white text-[11px] font-black hover:bg-[#5E83BC] transition-all">
                         💬 채팅하기
                       </button>
                     </div>
@@ -756,7 +756,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                           )}
                           <div className={`flex flex-col gap-0.5 ${mine ? 'items-end' : 'items-start'}`} style={{ maxWidth: '82%' }}>
                             <div className={`px-3 py-2 rounded-2xl text-[14px] leading-snug break-keep whitespace-pre-wrap ${mine
-                              ? 'bg-[#368B78] text-white rounded-br-md'
+                              ? 'bg-[#80A1D4] text-white rounded-br-md'
                               : D ? 'bg-white/[0.1] text-white rounded-bl-md' : 'bg-black/[0.06] text-[#111] rounded-bl-md'}`}
                               style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                               {msg.content}
@@ -782,7 +782,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                       className={`flex-1 border rounded-xl px-3 py-2 text-[13px] outline-none transition-all ${ib}`}
                     />
                     <button onClick={sendMsg} disabled={!inputVal.trim() || sending}
-                      className="px-3 py-2 rounded-xl bg-[#368B78] text-white text-[14px] font-black disabled:opacity-40 hover:bg-[#2C7665] transition-all">→</button>
+                      className="px-3 py-2 rounded-xl bg-[#80A1D4] text-white text-[14px] font-black disabled:opacity-40 hover:bg-[#5E83BC] transition-all">→</button>
                   </div>
                 </>
               )}
