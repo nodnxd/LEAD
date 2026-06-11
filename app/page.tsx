@@ -60,12 +60,12 @@ export default function LoginPage() {
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }` }} />
       <style dangerouslySetInnerHTML={{ __html: `@keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
       <main className="min-h-screen bg-[#141414] flex items-center justify-center p-5 font-pretendard relative overflow-hidden">
-        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none transition-colors`} style={{background: isCast ? '#DE6B35' : '#5B8CFF', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
+        <div className={`absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none transition-colors`} style={{background: isCast ? '#1F9E81' : '#5B8CFF', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
         <div className="w-full max-w-sm relative z-10">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-2">
               <div className="flex items-baseline gap-2">
-                <h1 className={`text-5xl font-semibold uppercase tracking-tighter transition-colors ${isCast ? 'text-[#DE6B35]' : 'text-[#5B8CFF]'}`}>
+                <h1 className={`text-5xl font-semibold uppercase tracking-tighter transition-colors ${isCast ? 'text-[#1F9E81]' : 'text-[#5B8CFF]'}`}>
                   {isCast ? 'CAST' : 'LEAD'}
                 </h1>
                 <span className="text-zinc-500 text-[11px] font-normal tracking-[0.2em]">by NEN</span>
@@ -75,7 +75,7 @@ export default function LoginPage() {
                   {(['lead', 'cast'] as const).map(p => (
                     <button key={p} onClick={() => pickProduct(p)}
                       className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${product === p
-                        ? (p === 'lead' ? 'bg-[#5B8CFF] text-white' : 'bg-[#DE6B35] text-white')
+                        ? (p === 'lead' ? 'bg-[#5B8CFF] text-white' : 'bg-[#1F9E81] text-white')
                         : 'text-zinc-500 hover:text-zinc-300'}`}>
                       {p === 'lead' ? 'LEAD' : 'CAST'}
                     </button>
@@ -132,7 +132,7 @@ export default function LoginPage() {
                   <button onClick={() => { setForgotMode(true); setError(''); }} className="text-zinc-500 text-[12px] hover:text-[#5B8CFF] transition-colors">비밀번호 찾기</button>
                 </div>
                 <button onClick={handle} disabled={loading}
-                  className={`w-full py-3 rounded-xl text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50 mb-3 ${isCast ? 'bg-[#DE6B35]' : 'bg-[#5B8CFF]'}`}>
+                  className={`w-full py-3 rounded-xl text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50 mb-3 ${isCast ? 'bg-[#1F9E81]' : 'bg-[#5B8CFF]'}`}>
                   {loading ? '...' : isSignUp ? '회원가입' : '로그인'}
                 </button>
                 <button onClick={() => { setIsSignUp(!isSignUp); setError(''); }} className="w-full text-zinc-600 text-[12px] hover:text-zinc-400 transition-colors">
