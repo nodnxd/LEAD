@@ -1074,7 +1074,7 @@ export default function GuestView(){
       </main>
 
       {viewingLead&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4" onClick={()=>setViewingLead(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4">
           <div className={`anim-rise w-full ${viewExpanded?'max-w-5xl':'max-w-lg'} border rounded-[2rem] shadow-2xl transition-all ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
             <div className={`p-6 ${viewExpanded?'max-h-[90vh]':'max-h-[85vh]'} overflow-y-auto`}>
               <div className={viewExpanded&&viewingLead.content?'grid grid-cols-[0.85fr_1.25fr] gap-6 items-start mb-5':''}>
