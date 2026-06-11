@@ -306,7 +306,7 @@ export default function GuestView() {
           {/* 헤더 */}
           <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-6">
             <h1 className="text-4xl font-semibold text-[#DE3C4B] uppercase tracking-tighter">CAST</h1>
-            <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
+            <span className={`text-[11px] font-normal tracking-[0.2em] ${textSub}`}>by NEN</span>
           </div>
 
           {/* 서브 헤더 */}

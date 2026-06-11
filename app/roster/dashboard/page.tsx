@@ -1087,7 +1087,7 @@ export default function Dashboard() {
           <div className="relative z-10 flex items-center justify-center gap-3 mb-8 flex-wrap">
             <div className="flex items-baseline gap-2.5">
               <h1 className="text-4xl font-semibold text-[#DE3C4B] uppercase tracking-tighter">CAST</h1>
-              <span className={`text-[11px] font-bold tracking-[0.2em] ${textSub}`}>by NEN</span>
+              <span className={`text-[11px] font-normal tracking-[0.2em] ${textSub}`}>by NEN</span>
             </div>
             <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
               <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
@@ -1344,11 +1344,12 @@ export default function Dashboard() {
             <div className="relative z-10 mb-10">
               <h2 className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-4 ${textSub}`}>{t.rosterPool}</h2>
               <div className="flex flex-col gap-3">
-                {ROLES.map(r => {
-                  const poolMembers = getPoolMembers(r);
+                {[['Producer'], ['Topliner'], ['Engineer', 'A&R']].map(roles => {
+                  const r = roles[0];
+                  const poolMembers = members.filter(m => m.project === currentProject && roles.includes(m.role) && !getAssignment(m.id)).sort((a, b) => a.name.localeCompare(b.name));
                   return (
                     <div key={r} className="flex items-center gap-3">
-                      <span className="text-[9px] font-black uppercase tracking-widest shrink-0 w-16" style={{ color: ROLE_COLORS[r] + '99' }}>{r.slice(0, 3)}</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest shrink-0 w-16" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
                       <Droppable droppableId={`pool_${r}`} direction="horizontal" type="MEMBER">
                         {(provided) => (
                           <div {...provided.droppableProps} ref={provided.innerRef} className="flex gap-2 overflow-x-auto pb-1 no-scrollbar min-h-[52px] flex-1 items-center">
