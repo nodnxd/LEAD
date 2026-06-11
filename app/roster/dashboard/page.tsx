@@ -1086,8 +1086,8 @@ export default function Dashboard() {
           {/* 헤더 */}
           <div className="relative z-10 flex items-center justify-center gap-3 mb-8 flex-wrap">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-4xl font-semibold text-[#DE3C4B] uppercase tracking-tighter">CAST</h1>
-              <span className={`text-[11px] font-normal tracking-[0.2em] ${textSub}`}>by NEN</span>
+              <h1 className="text-[40px] font-semibold text-[#DE3C4B] uppercase tracking-tighter leading-none">CAST</h1>
+              <span className={`text-[12px] font-normal tracking-[0.2em] ${textSub}`}>by NEN</span>
             </div>
             <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
               <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>

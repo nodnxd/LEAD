@@ -746,15 +746,15 @@ export default function GuestView(){
           {announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#3E78DB]/10 border border-[#3E78DB]/20"><span className="text-[#3E78DB] text-[11px] font-black mt-0.5 shrink-0">📢</span><div className="flex-1 min-w-0">{ann.title&&<p className={`font-bold text-[13px] mb-0.5 ${D?'text-white':'text-[#111]'}`}>{ann.title}</p>}<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?"text-zinc-300":"text-zinc-700"}`}>{ann.content}</p></div>{isOwner&&<div className="flex gap-2 shrink-0 ml-2"><button onClick={()=>openAnnForm(ann)} className={`text-[11px] font-bold ${dimText} hover:text-[#3E78DB] transition-colors`}>{t('수정','Edit')}</button><button onClick={()=>{if(confirm(t('이 공지를 삭제할까요?','Delete this notice?')))deleteAnnouncement(ann.id);}} className="text-[11px] font-bold text-zinc-500 hover:text-red-500 transition-colors">{t('삭제','Delete')}</button></div>}</div>)}
         </div>}
 
-        <div className={`relative z-30 flex flex-wrap items-center justify-between gap-3 mb-6 border-b ${dividerCls} pb-4`}>
-          <div className="flex items-center gap-3">
+        <div className={`relative z-30 flex flex-col gap-3 mb-6 border-b ${dividerCls} pb-4`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
             <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} {t('활성','Active')}</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} {t('마감','Closed')}</span></div>
             <button onClick={()=>{const v=!hidePast;setHidePast(v);localStorage.setItem('lead_hide_past',v?'1':'0');}}
               className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${hidePast?'bg-[#3E78DB]/20 border-[#3E78DB]/50 text-[#3E78DB]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
               {hidePast?t('지난 리드 숨김','Hiding past'):t('지난 리드 숨기기','Hide past')}
             </button>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
             <div className="max-w-full overflow-x-auto [&::-webkit-scrollbar]:hidden">
             <div className={`flex w-max border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
               <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-[#3E78DB] text-white hover:bg-[#2F62C2] transition-all whitespace-nowrap">+ {t('리드 추가','Add Lead')}</button>
@@ -765,6 +765,8 @@ export default function GuestView(){
               <button onClick={()=>{setView('stats');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-normal transition-all whitespace-nowrap ${view==='stats'?'bg-[#3E78DB] text-white':dimText}`}>{t('통계','Stats')}</button>
             </div>
             </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
               <span className="text-amber-400 text-[11px] font-bold">HOST</span>
