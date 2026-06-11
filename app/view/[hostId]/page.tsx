@@ -66,8 +66,8 @@ const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='gro
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
 const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${t.cls}`}>{t.label}</span>;};
 const getLinkIcon=(url:string)=>{if(!url)return'🔗';if(url.includes('youtube')||url.includes('youtu.be'))return'▶️';if(url.includes('soundcloud'))return'🎵';if(url.includes('spotify'))return'🎧';if(url.includes('instagram'))return'📸';return'🔗';};
-const isExpired=(d:string|null)=>!!d&&new Date(d)<new Date(new Date().toDateString());
-const getDDay=(d:string|null)=>{if(!d)return null;const diff=Math.ceil((new Date(d).getTime()-new Date(new Date().toDateString()).getTime())/86400000);if(diff===0)return'D-DAY';return diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;};
+const isExpired=(d:string|null)=>{if(!d)return false;return d.includes('T')?new Date(d)<new Date():new Date(d)<new Date(new Date().toDateString());};
+const getDDay=(d:string|null)=>{if(!d)return null;const dp=d.includes('T')?d.split('T')[0]:d;const diff=Math.ceil((new Date(dp).getTime()-new Date(new Date().toDateString()).getTime())/86400000);if(diff===0)return'D-DAY';return diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;};
 const toDateStr=(y:number,m:number,d:number)=>`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 const extractUrls=(t:string)=>t.match(/https?:\/\/[^\s]+/g)||[];
 const startOfWeek=(d:Date)=>{const r=new Date(d);r.setDate(r.getDate()-r.getDay());r.setHours(0,0,0,0);return r;};
@@ -411,7 +411,7 @@ export default function GuestView(){
   };
 
   const getDaysInMonth=(date:Date)=>{const y=date.getFullYear(),m=date.getMonth();return{firstDay:new Date(y,m,1).getDay(),daysInMonth:new Date(y,m+1,0).getDate(),year:y,month:m};};
-  const getLeadsForDate=(ds:string)=>leads.filter(l=>l.deadline===ds||l.deadline2===ds);
+  const getLeadsForDate=(ds:string)=>leads.filter(l=>(l.deadline||'').split('T')[0]===ds||(l.deadline2||'').split('T')[0]===ds);
   const weekDays=useMemo(()=>Array.from({length:7},(_,i)=>{const d=new Date(weekStart);d.setDate(d.getDate()+i);return d;}),[weekStart]);
   const today=new Date();
   const {firstDay,daysInMonth,year,month}=getDaysInMonth(currentMonth);

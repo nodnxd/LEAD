@@ -82,8 +82,9 @@ const PitchFileRow=({f,D,dimText}:{f:any;D:boolean;dimText:string})=>{
     </div>
   );
 };
-const isExpired=(d:string|null)=>!!d&&new Date(d)<new Date(new Date().toDateString());
-const getDDay=(d:string|null)=>{if(!d)return null;const diff=Math.ceil((new Date(d).getTime()-new Date(new Date().toDateString()).getTime())/86400000);if(diff===0)return'D-DAY';return diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;};
+const isExpired=(d:string|null)=>{if(!d)return false;return d.includes('T')?new Date(d)<new Date():new Date(d)<new Date(new Date().toDateString());};
+const getDDay=(d:string|null)=>{if(!d)return null;const dp=d.includes('T')?d.split('T')[0]:d;const diff=Math.ceil((new Date(dp).getTime()-new Date(new Date().toDateString()).getTime())/86400000);if(diff===0)return'D-DAY';return diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;};
+const fmtDeadline=(d:string|null)=>{if(!d)return'';if(!d.includes('T'))return d;const[date,tm]=d.split('T');return`${date} ${tm}`;};
 const toDateStr=(y:number,m:number,d:number)=>`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 const extractUrls=(t:string)=>t.match(/https?:\/\/[^\s]+/g)||[];
 const startOfWeek=(d:Date)=>{const r=new Date(d);r.setDate(r.getDate()-r.getDay());r.setHours(0,0,0,0);return r;};
@@ -95,7 +96,7 @@ const DeadlineDisplay=({lead,size='normal'}:{lead:any;size?:'compact'|'normal'|'
   const d1=lead.deadline,d2=lead.deadline2;if(!d1&&!d2)return null;
   if(d1&&d2){const dd1=getDDay(d1),dd2=getDDay(d2),e1=isExpired(d1),e2=isExpired(d2);
     if(size==='compact')return<div className="flex flex-col gap-0.5 ml-auto shrink-0"><span className={`text-[8px] font-black ${e1?'text-red-400/60':'text-zinc-700'}`}>1st {dd1}</span><span className={`text-[9px] font-black ${e2?'text-red-400':'text-zinc-400'}`}>2nd {dd2}</span></div>;
-    if(size==='large')return<div className="flex flex-col items-end gap-2"><div className="flex items-center gap-2"><span className="text-zinc-600 text-[10px] font-black tracking-widest">1ST</span><span className={`text-[12px] font-black px-2.5 py-0.5 rounded-full border ${e1?'text-red-400/60 border-red-500/20 bg-red-500/5':'text-zinc-500 border-zinc-700/60 bg-zinc-800/40'}`}>{dd1}</span></div><div className="flex items-center gap-2"><span className="text-zinc-300 text-[10px] font-black tracking-widest">2ND</span><span className={`text-[15px] font-black px-3 py-0.5 rounded-full border ${e2?'text-red-400 border-red-500/30 bg-red-500/10':dd2==='D-DAY'?'text-yellow-400 border-yellow-500/30 bg-yellow-500/10':'text-zinc-100 border-zinc-500 bg-zinc-800/60'}`}>{dd2}</span></div><span className="text-zinc-700 text-[10px]">{d1} → {d2}</span></div>;
+    if(size==='large')return<div className="flex flex-col items-end gap-2"><div className="flex items-center gap-2"><span className="text-zinc-600 text-[10px] font-black tracking-widest">1ST</span><span className={`text-[12px] font-black px-2.5 py-0.5 rounded-full border ${e1?'text-red-400/60 border-red-500/20 bg-red-500/5':'text-zinc-500 border-zinc-700/60 bg-zinc-800/40'}`}>{dd1}</span></div><div className="flex items-center gap-2"><span className="text-zinc-300 text-[10px] font-black tracking-widest">2ND</span><span className={`text-[15px] font-black px-3 py-0.5 rounded-full border ${e2?'text-red-400 border-red-500/30 bg-red-500/10':dd2==='D-DAY'?'text-yellow-400 border-yellow-500/30 bg-yellow-500/10':'text-zinc-100 border-zinc-500 bg-zinc-800/60'}`}>{dd2}</span></div><span className="text-zinc-700 text-[10px]">{fmtDeadline(d1)} → {fmtDeadline(d2)}</span></div>;
     return<div className="flex flex-col items-end gap-1"><div className="flex items-center gap-1.5"><span className="text-zinc-700 text-[9px] font-black">1st</span><span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${e1?'text-red-400/60 border-red-500/20 bg-red-500/5':'text-zinc-600 border-zinc-700/50 bg-zinc-800/30'}`}>{dd1}</span></div><div className="flex items-center gap-1.5"><span className="text-zinc-400 text-[9px] font-black">2nd</span><span className={`text-[12px] font-black px-2 py-0.5 rounded-full border ${e2?'text-red-400 border-red-500/30 bg-red-500/10':dd2==='D-DAY'?'text-yellow-400 border-yellow-500/30 bg-yellow-500/10':'text-zinc-300 border-zinc-600 bg-zinc-800/50'}`}>{dd2}</span></div></div>;
   }
   const deadline=d1||d2,dday=getDDay(deadline),exp=isExpired(deadline);
@@ -149,6 +150,8 @@ export default function GuestView(){
   const [lContent,setLContent]=useState('');
   const [lDeadline,setLDeadline]=useState('');
   const [lDeadline2,setLDeadline2]=useState('');
+  const [hidePast,setHidePast]=useState(false);
+  useEffect(()=>{setHidePast(localStorage.getItem('lead_hide_past')==='1');},[]);
   const [leads,setLeads]=useState<any[]>([]);
   const [announcements,setAnnouncements]=useState<any[]>([]);
   const [showAnnModal,setShowAnnModal]=useState(false);
@@ -598,19 +601,21 @@ export default function GuestView(){
   };
 
   const getDaysInMonth=(date:Date)=>{const y=date.getFullYear(),m=date.getMonth();return{firstDay:new Date(y,m,1).getDay(),daysInMonth:new Date(y,m+1,0).getDate(),year:y,month:m};};
-  const getLeadsForDate=(ds:string)=>leads.filter(l=>l.deadline===ds||l.deadline2===ds);
+  const getLeadsForDate=(ds:string)=>shownLeads.filter(l=>(l.deadline||'').split('T')[0]===ds||(l.deadline2||'').split('T')[0]===ds);
   const weekDays=useMemo(()=>Array.from({length:7},(_,i)=>{const d=new Date(weekStart);d.setDate(d.getDate()+i);return d;}),[weekStart]);
   const today=new Date();
   const {firstDay,daysInMonth,year,month}=getDaysInMonth(currentMonth);
   const DAYS=['일','월','화','수','목','금','토'];
 
+  // 지난(마감된) 리드 숨기기 — 달력·목록 양쪽에 적용
+  const shownLeads=useMemo(()=>hidePast?leads.filter(l=>!isExpired(l.deadline2||l.deadline)):leads,[leads,hidePast]);
   const filteredLeads=useMemo(()=>{
-    let l=[...leads];
+    let l=[...shownLeads];
     if(filterGender.length)l=l.filter(x=>filterGender.includes(x.gender));
     if(filterGroup.length)l=l.filter(x=>filterGroup.includes(x.group_type));
     if(filterAlbum.length)l=l.filter(x=>filterAlbum.includes(x.album_type||'single'));
     return l.sort((a,b)=>{if(sortBy==='gender')return a.gender.localeCompare(b.gender);if(sortBy==='group')return a.group_type.localeCompare(b.group_type);if(sortBy==='album')return(a.album_type||'single').localeCompare(b.album_type||'single');const aD=a.deadline||a.deadline2,bD=b.deadline||b.deadline2;if(!aD)return 1;if(!bD)return-1;return new Date(aD).getTime()-new Date(bD).getTime();});
-  },[leads,filterGender,filterGroup,filterAlbum,sortBy]);
+  },[shownLeads,filterGender,filterGroup,filterAlbum,sortBy]);
 
   const LeadCard=({lead,compact=false}:{lead:any;compact?:boolean})=>{
     const c=getCardColor(lead.gender,lead.group_type);
@@ -742,7 +747,13 @@ export default function GuestView(){
         </div>}
 
         <div className={`relative z-30 flex flex-wrap items-center justify-between gap-3 mb-6 border-b ${dividerCls} pb-4`}>
-          <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} {t('활성','Active')}</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} {t('마감','Closed')}</span></div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} {t('활성','Active')}</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} {t('마감','Closed')}</span></div>
+            <button onClick={()=>{const v=!hidePast;setHidePast(v);localStorage.setItem('lead_hide_past',v?'1':'0');}}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${hidePast?'bg-[#5B8CFF]/20 border-[#5B8CFF]/50 text-[#5B8CFF]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+              {hidePast?t('지난 리드 숨김','Hiding past'):t('지난 리드 숨기기','Hide past')}
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <button onClick={toggleTheme} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[15px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
             <button onClick={()=>{const v=!globalEn;setGlobalEn(v);localStorage.setItem('lead_global_en',v?'1':'0');}} className={`h-9 px-3 rounded-xl border flex items-center justify-center text-[12px] font-black transition-all ${globalEn?'bg-[#5B8CFF] border-[#5B8CFF] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>🌐 {globalEn?'EN':'KO'}</button>
@@ -1481,8 +1492,8 @@ export default function GuestView(){
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>1차 마감일</label><input type="date" value={lDeadline} onChange={e=>setLDeadline(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
-                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>2차 마감일</label><input type="date" value={lDeadline2} onChange={e=>setLDeadline2(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>1차 마감 (날짜·시간)</label><input type="datetime-local" value={lDeadline} onChange={e=>setLDeadline(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
+                  <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>2차 마감 (날짜·시간)</label><input type="datetime-local" value={lDeadline2} onChange={e=>setLDeadline2(e.target.value)} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
                 </div>
                 </div>
                 <div className={leadFormExpanded?'flex flex-col h-full':''}><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>내용</label><textarea value={lContent} onChange={e=>setLContent(e.target.value)} rows={leadFormExpanded?20:5} placeholder="리드 내용, 조건, 링크 등..." className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all resize-none leading-relaxed ${leadFormExpanded?'min-h-[460px] flex-1':''} ${inputCls}`}/></div>

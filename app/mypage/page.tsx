@@ -25,7 +25,7 @@ const GENRES = [
 type Work = { id?: string; song_title: string; artist_name: string; link: string; order_index?: number };
 type Demo = { id?: string; file_url: string; file_name: string; order_index?: number };
 
-const isExpired = (d: string | null) => !!d && new Date(d) < new Date(new Date().toDateString());
+const isExpired = (d: string | null) => { if (!d) return false; return d.includes('T') ? new Date(d) < new Date() : new Date(d) < new Date(new Date().toDateString()); };
 const getDDay = (d: string | null) => {
   if (!d) return null;
   const diff = Math.ceil((new Date(d).getTime() - new Date(new Date().toDateString()).getTime()) / 86400000);
