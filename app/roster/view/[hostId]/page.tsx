@@ -479,13 +479,17 @@ export default function GuestView() {
       </div>
 
       {/* 줌 컨트롤 */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-2 select-none">
-        <button onClick={() => setZoom(1)} className={`w-9 h-9 rounded-xl border backdrop-blur-md transition-all text-[9px] font-black tracking-widest flex items-center justify-center shadow-xl hover:text-[#DE3C4B] hover:border-[#DE3C4B]/30 ${btnBg}`}>1:1</button>
-        <div onMouseDown={onZoomMouseDown} className={`w-9 h-14 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[5px] transition-all group hover:border-[#DE3C4B]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.04] border-white/10'}`}>
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#DE3C4B] transition-colors"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <div className="flex flex-col gap-[3px]">{[0,1,2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500 group-hover:bg-[#DE3C4B]/50 transition-colors" />)}</div>
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="text-zinc-500 group-hover:text-[#DE3C4B] transition-colors"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      <div className="flex fixed bottom-6 left-6 z-50 flex-col items-center gap-1.5 select-none font-pretendard">
+        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#DE3C4B]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-600' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+          <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
+        <div onMouseDown={onZoomMouseDown} onDoubleClick={() => setZoom(1)} title="드래그로 확대/축소 · 더블클릭 리셋"
+          className={`w-9 h-10 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[3px] transition-all hover:border-[#DE3C4B]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.05] border-white/10'}`}>
+          {[0, 1, 2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500" />)}
         </div>
+        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#DE3C4B]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-600' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+          <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
         <span className="text-[9px] font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
       </div>
     </>
