@@ -45,10 +45,14 @@
 - CAST 대시보드 1.1× 스케일·줌위치·pool wrap·로고크기 — **배포 후 로그인해서 LEAD와 나란히 확인**. 어긋나면 헤더 레이아웃(로고+토글 위치) 추가 정렬.
 - LEAD/CAST 헤더 "위치"가 여전히 다르면: LEAD는 `flex-col items-center`(로고 위, 회사 pill 아래), CAST는 `items-center justify-center`(로고+토글 한 줄). 완전 동일하게 맞추려면 구조 통일 필요.
 
-### room 미니홈피 (신규, 큰 작업 — 보류 중)
+### room 미니홈피 (진행 중)
 - 위치: `/Users/newnormal/Desktop/room`
-- 컨셉: "공개한 방 + 프로필"이 미니홈피. 이미 `/square`(feed·오픈콜·채팅), `/profile`, `profiles`/`connections` 테이블 존재.
-- **시작 전 범위 합의 필요**: 대표곡(BGM)+공개방+글+꾸미기 중 1차 범위.
+- 2026-06-13 작업분:
+  - room/roof/square switcher 위치 통일 — `dashboard`만 어긋나서 로고 `mb-10`/pill `mb-8`로 Shell에 맞춤(roof·square는 Shell 공유).
+  - `Shell`에 `hideZen` prop 추가 → roof에서 zen 버튼·글로우 숨김(square엔 유지).
+  - roof EditModal에 BGM 파일 업로드 추가(`media` 버킷, `uid/bgm-*`. 기존 버킷이라 SQL 불필요). URL 붙여넣기도 그대로.
+  - roof를 "방(rooms)" 구조로: 왼쪽 메뉴가 about·posts·guestbook 방 네비게이터(문처럼, 들어가면 ›). 헤더는 아바타+이름+장르+intro로 슬림화, 상세(bio·roles·genres·featured·links)는 **about 방**으로 이동. 기본 진입 = about.
+- **남은 설계 결정(유저 확인 필요)**: "자유도 있는 방" = 오너가 방을 직접 추가/이름/순서 지정하려면 스키마 필요(예: `roof_posts.room` text 컬럼 또는 `roof_rooms` 테이블). 현재는 고정 3방. 커스텀 방 원하면 범위 합의 후 마이그레이션.
 
 ## 작업 방식 메모
 - 색 hex가 brand/카테고리(역할·성별·출석)로 얽혀 있어 **global sed 주의**. 같은 hex가 brand+status 양쪽이면 분리 먼저(예: 참석 green을 brand sed 전에 분리).
