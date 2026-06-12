@@ -51,8 +51,14 @@
   - room/roof/square switcher 위치 통일 — `dashboard`만 어긋나서 로고 `mb-10`/pill `mb-8`로 Shell에 맞춤(roof·square는 Shell 공유).
   - `Shell`에 `hideZen` prop 추가 → roof에서 zen 버튼·글로우 숨김(square엔 유지).
   - roof EditModal에 BGM 파일 업로드 추가(`media` 버킷, `uid/bgm-*`. 기존 버킷이라 SQL 불필요). URL 붙여넣기도 그대로.
-  - roof를 "방(rooms)" 구조로: 왼쪽 메뉴가 about·posts·guestbook 방 네비게이터(문처럼, 들어가면 ›). 헤더는 아바타+이름+장르+intro로 슬림화, 상세(bio·roles·genres·featured·links)는 **about 방**으로 이동. 기본 진입 = about.
-- **남은 설계 결정(유저 확인 필요)**: "자유도 있는 방" = 오너가 방을 직접 추가/이름/순서 지정하려면 스키마 필요(예: `roof_posts.room` text 컬럼 또는 `roof_rooms` 테이블). 현재는 고정 3방. 커스텀 방 원하면 범위 합의 후 마이그레이션.
+- 2026-06-13 2차(현재):
+  - roof EditModal에서 accent color 슬라이더 + background 프리셋 **제거**(per-roof 색 적용 로직도 제거 → 글로벌 accent + 기본 배경). featured 라벨 'featured song'으로.
+  - roof zen **되돌림**: `Shell.hideZen` 제거 → room/roof/square 좌하단 zen·color·size 동일 노출.
+  - square에서 people·open calls 메뉴 **숨김**(feed만). 코드는 남겨둠.
+  - roof를 **자유 꾸미기 캔버스 방** 구조로 전면 개편: 프로필 헤더(풀) 복원 → 그 밑 방 박스 그리드(오너가 +new room, 이름/칸모양 사각·둥근·원 지정) → 방 클릭 시 캔버스 진입. 캔버스에서 오너가 'decorate' 모드로 텍스트/이미지 추가·드래그 배치·삭제. guestbook은 그리드 아래 섹션 유지. 기존 about/posts 좌측 네비·posts 보드는 제거.
+  - **DB 필요**: `supabase-roof-rooms.sql` (roof_rooms + roof_room_items + RLS). 유저가 SQL 에디터에서 1회 실행해야 작동. 이미지/오디오는 기존 `media` 버킷.
+- requests·messages: 좌하단 유지, 클릭 시 별도창(인스타 DM처럼) — messages는 이미 RoomChat 패널로 그렇게 열림(추가작업 보류).
+- **남은/후속**: 캔버스 resize·rotate·z순서 컨트롤은 v1에서 생략(드래그+삭제만). 텍스트 편집은 더블클릭→textarea. 배포+로그인 후 실동작 확인 필요(로컬은 세션 없어 미검증, tsc만 통과).
 
 ## 작업 방식 메모
 - 색 hex가 brand/카테고리(역할·성별·출석)로 얽혀 있어 **global sed 주의**. 같은 hex가 brand+status 양쪽이면 분리 먼저(예: 참석 green을 brand sed 전에 분리).
