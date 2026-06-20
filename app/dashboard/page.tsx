@@ -374,6 +374,21 @@ export default function GuestView(){
     await supabase.from('pitch_files').delete().eq('id',f.id);
     setFileAction(null);fetchHostPitches();
   };
+  // 다운로드 — 보낸 사람이 올린 원본 파일명 그대로 저장
+  const downloadFile=async(f:any)=>{
+    try{
+      let src=f.file_url as string;
+      const m=f.file_url?.split('/pitch-files/')[1];
+      if(m){const{data:signed}=await supabase.storage.from('pitch-files').createSignedUrl(decodeURIComponent(m),60);if(signed?.signedUrl)src=signed.signedUrl;}
+      const res=await fetch(src);
+      const blob=await res.blob();
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download=f.file_name||'audio.mp3';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }catch{alert('다운로드 실패');}
+  };
   const moveFileFolder=async(f:any,folder:string|null)=>{
     await supabase.from('pitch_files').update({folder:folder||null}).eq('id',f.id);
     setFileAction(null);setNewFolder('');fetchHostPitches();
@@ -982,10 +997,12 @@ export default function GuestView(){
                             {f.key&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>KEY {f.key}</span>}
                             {f.genre&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
                             {f.folder&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">📁 {f.folder}</span>}
-                            {(f._artist||f._lead)&&<span className={`text-[12px] ${dimText}`}>{f._artist}{f._artist&&f._lead&&' → '}{f._lead}</span>}
+                            {f._artist&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-200':'bg-black/[0.06] text-zinc-700'}`}>👤 {f._artist}</span>}
+                            {f._lead&&<span className={`text-[12px] ${dimText}`}>→ {f._lead}</span>}
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
+                          <button onClick={()=>downloadFile(f)} title={t('다운로드','Download')} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[14px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>⬇</button>
                           <button onClick={()=>{setFileAction(f);setNewFolder('');}} title={t('폴더','Folder')} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[14px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>📁</button>
                           <button onClick={()=>deleteFile(f)} title={t('삭제','Delete')} className="w-9 h-9 rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[14px] hover:bg-red-500/20 transition-all">🗑</button>
                         </div>
@@ -1332,6 +1349,8 @@ export default function GuestView(){
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setFileAction(null)}>
           <div className={`anim-rise w-full max-w-md border rounded-t-[2rem] sm:rounded-2xl shadow-2xl p-6 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-1"><span className="text-[16px]">🎵</span><p className={`font-black text-[15px] truncate ${D?'text-white':'text-[#111]'}`}>{fileAction.file_name||'audio.mp3'}</p></div>
+            {(fileAction._artist||fileAction.vocal_gender)&&<p className={`text-[12px] mb-2 ${dimText}`}>{fileAction._artist?`👤 ${fileAction._artist}`:''}{fileAction._artist&&fileAction.vocal_gender?'  ·  ':''}{fileAction.vocal_gender==='male'?t('남성','Male'):fileAction.vocal_gender==='female'?t('여성','Female'):fileAction.vocal_gender==='both'?t('혼성','Mixed'):''}</p>}
+            <button onClick={()=>downloadFile(fileAction)} className="w-full mb-4 py-2.5 rounded-xl bg-[#3E78DB] text-white font-bold text-[13px] hover:opacity-90 transition-all">⬇ {t('원본 파일명으로 다운로드','Download with original name')}</button>
             <p className={`text-[12px] mb-4 ${dimText}`}>{t('폴더로 정리하거나 삭제할 수 있어요','Organize into a folder or delete')}</p>
             <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${dimText}`}>📁 {t('폴더 이동','Move to folder')}</p>
             <div className="flex flex-wrap gap-2 mb-3">
