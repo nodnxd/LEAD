@@ -189,6 +189,8 @@ export default function GuestView(){
   const [fileVocalFilter,setFileVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
   const [fileSearch,setFileSearch]=useState('');
   const [playingFileId,setPlayingFileId]=useState<string|null>(null);
+  const [hiddenFilesView,setHiddenFilesView]=useState(false);
+  const [selFiles,setSelFiles]=useState<Set<string>>(new Set());
   const [fileFolderFilter,setFileFolderFilter]=useState<string>('all'); // 'all' | 'none' | folderName
   const [fileAction,setFileAction]=useState<any>(null); // 파일 관리 모달 대상
   const [newFolder,setNewFolder]=useState('');
@@ -395,6 +397,13 @@ export default function GuestView(){
       document.body.appendChild(a);a.click();document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }catch{alert('다운로드 실패');}
+  };
+  // 파일 소프트 히드 — 목록에서만 숨김, DB(히스토리)엔 남김. 하나/여러개 모두 처리
+  const setFilesHidden=async(ids:string[],hidden:boolean)=>{
+    if(ids.length===0)return;
+    setHostPitchFiles(prev=>prev.map(x=>ids.includes(x.id)?{...x,hidden}:x));
+    setSelFiles(new Set());
+    await supabase.from('pitch_files').update({hidden}).in('id',ids);
   };
   const moveFileFolder=async(f:any,folder:string|null)=>{
     await supabase.from('pitch_files').update({folder:folder||null}).eq('id',f.id);
@@ -984,6 +993,7 @@ export default function GuestView(){
             ):(()=>{
               const pById:Record<string,any>={};hostPitches.forEach(p=>pById[p.id]=p);
               let fv=hostPitchFiles.map(f=>{const p=pById[f.pitch_id];const lead=p?[...leads,...demoDrives].find(l=>l.id===p.lead_id):null;return{...f,_artist:p?.artist_name||'',_lead:lead?.artist||'',_created:p?.created_at||f.created_at};});
+              fv=fv.filter(f=>hiddenFilesView?f.hidden:!f.hidden);
               if(fileVocalFilter!=='all')fv=fv.filter(f=>f.vocal_gender===fileVocalFilter);
               if(fileFolderFilter==='none')fv=fv.filter(f=>!f.folder);
               else if(fileFolderFilter!=='all')fv=fv.filter(f=>f.folder===fileFolderFilter);
@@ -992,8 +1002,15 @@ export default function GuestView(){
               fv=[...fv].sort((a,b)=>{if(fileSort==='bpm')return(a.bpm||99999)-(b.bpm||99999);if(fileSort==='vocal')return(a.vocal_gender||'zzz').localeCompare(b.vocal_gender||'zzz');if(fileSort==='key')return(a.key||'zzz').localeCompare(b.key||'zzz');return new Date(b._created).getTime()-new Date(a._created).getTime();});
               return (
                 <>
-                  <div className="flex items-center gap-2 mb-3 px-1">
+                  <div className="flex items-center gap-2 mb-3 px-1 flex-wrap">
                     <span className={`text-[12px] font-black ${dimText}`}>{fv.length}{t('개 파일',' files')}</span>
+                    <button onClick={()=>{setHiddenFilesView(v=>!v);setSelFiles(new Set());}} className={`px-2.5 py-1 rounded-full text-[11px] font-black border transition-all ${hiddenFilesView?'bg-amber-500/15 border-amber-500/40 text-amber-400':D?'border-white/10 text-zinc-500 hover:text-zinc-300':'border-black/[0.08] text-zinc-400 hover:text-zinc-700'}`}>{hiddenFilesView?t('🗂 숨김 보는 중','🗂 Viewing hidden'):t('🗂 숨김','🗂 Hidden')}</button>
+                    {fv.length>0&&<button onClick={()=>setSelFiles(selFiles.size===fv.length?new Set():new Set(fv.map((f:any)=>f.id)))} className={`px-2.5 py-1 rounded-full text-[11px] font-black border transition-all ${D?'border-white/10 text-zinc-400 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{selFiles.size===fv.length&&fv.length>0?t('전체 해제','Deselect'):t('전체 선택','Select all')}</button>}
+                    {selFiles.size>0&&<div className="ml-auto flex items-center gap-2">
+                      <span className="text-[12px] font-black text-[#3E78DB]">{selFiles.size}{t('개 선택',' selected')}</span>
+                      <button onClick={()=>setFilesHidden([...selFiles],!hiddenFilesView)} className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${hiddenFilesView?'bg-[#3E78DB] text-white hover:opacity-90':'bg-red-500/15 text-red-400 hover:bg-red-500/25'}`}>{hiddenFilesView?t('복구','Restore'):t('제거','Remove')}</button>
+                      <button onClick={()=>setSelFiles(new Set())} className={`px-2.5 py-1 rounded-full text-[11px] font-black ${dimText} hover:opacity-80`}>{t('선택 해제','Clear')}</button>
+                    </div>}
                   </div>
                   {fv.length===0?(
                     <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitchFiles.length===0?t('아직 받은 파일이 없어요','No files yet'):t('조건에 맞는 파일이 없어요','No matching files')}</p></div>
@@ -1006,6 +1023,7 @@ export default function GuestView(){
                         return(
                         <div key={f.id} className={`rounded-xl border transition-all ${on?(D?'bg-white/[0.05] border-[#3E78DB]/40':'bg-[#3E78DB]/[0.05] border-[#3E78DB]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
                           <div className="flex items-center gap-2.5 px-3 py-2.5">
+                            <button onClick={()=>setSelFiles(p=>{const n=new Set(p);n.has(f.id)?n.delete(f.id):n.add(f.id);return n;})} title={t('선택','Select')} className={`w-5 h-5 rounded-md border flex items-center justify-center text-[10px] shrink-0 transition-all ${selFiles.has(f.id)?'bg-[#3E78DB] border-[#3E78DB] text-white':D?'border-white/15 text-transparent hover:border-white/40':'border-black/15 text-transparent hover:border-black/40'}`}>✓</button>
                             <button onClick={()=>setPlayingFileId(on?null:f.id)} title={on?t('정지','Stop'):t('재생','Play')} className={`w-9 h-9 rounded-xl flex items-center justify-center text-[13px] shrink-0 transition-all ${on?'bg-[#3E78DB] text-white':D?'bg-white/5 text-zinc-300 hover:bg-white/10':'bg-black/[0.04] text-zinc-600 hover:bg-black/[0.08]'}`}>{on?'⏸':'▶'}</button>
                             <div className="flex-1 min-w-0">
                               <p className={`font-bold text-[14px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{f.file_name||'audio.mp3'}</p>
@@ -1022,7 +1040,8 @@ export default function GuestView(){
                             <div className="flex items-center gap-1 shrink-0">
                               <button onClick={()=>downloadFile(f)} title={t('다운로드','Download')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>⬇</button>
                               <button onClick={()=>{setFileAction(f);setNewFolder('');}} title={t('폴더','Folder')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>📁</button>
-                              <button onClick={()=>deleteFile(f)} title={t('삭제','Delete')} className="w-8 h-8 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[13px] hover:bg-red-500/20 transition-all">🗑</button>
+                              <button onClick={()=>setFilesHidden([f.id],!hiddenFilesView)} title={hiddenFilesView?t('복구','Restore'):t('제거(목록에서 숨김)','Remove (hide from list)')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{hiddenFilesView?'↩':'🗂'}</button>
+                              <button onClick={()=>deleteFile(f)} title={t('영구 삭제','Delete permanently')} className="w-8 h-8 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[13px] hover:bg-red-500/20 transition-all">🗑</button>
                             </div>
                           </div>
                           {on&&f.file_url&&<div className="px-3 pb-3"><audio autoPlay controls preload="none" src={f.file_url} className="w-full" style={{height:'40px',colorScheme:D?'dark':'light'}}/></div>}
