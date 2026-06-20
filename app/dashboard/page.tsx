@@ -175,6 +175,12 @@ export default function GuestView(){
     setHostPitches(prev=>prev.map(x=>x.id===p.id?{...x,status}:x));
     await supabase.from('pitches').update({status}).eq('id',p.id);
   };
+  // 소프트 히드 — 목록에서만 숨기고 DB(히스토리)엔 남김
+  const [showHiddenPitches,setShowHiddenPitches]=useState(false);
+  const setPitchHidden=async(p:any,hidden:boolean)=>{
+    setHostPitches(prev=>prev.map(x=>x.id===p.id?{...x,hidden}:x));
+    await supabase.from('pitches').update({hidden}).eq('id',p.id);
+  };
   const [expandedPitchLeads,setExpandedPitchLeads]=useState<Record<string,boolean>>({});
   const [pitchToast,setPitchToast]=useState<{artist:string;lead:string;pitchId:string}|null>(null);
   const pitchToastTimer=useRef<any>(null);
@@ -871,6 +877,7 @@ export default function GuestView(){
                 <FilterPill label={t('전체','All')} active={pitchStatusFilter==='all'} onClick={()=>setPitchStatusFilter('all')} isDark={D}/>
                 {PITCH_STATUS_KEYS.map(s=><FilterPill key={s} label={t(PITCH_STATUS[s].ko,PITCH_STATUS[s].en)} active={pitchStatusFilter===s} onClick={()=>setPitchStatusFilter(s)} isDark={D}/>)}
                 <FilterPill label={t('미정','Untriaged')} active={pitchStatusFilter==='untriaged'} onClick={()=>setPitchStatusFilter('untriaged')} isDark={D}/>
+                <FilterPill label={showHiddenPitches?t('🗂 숨김 보는 중','🗂 Viewing hidden'):t('🗂 숨김','🗂 Hidden')} active={showHiddenPitches} onClick={()=>setShowHiddenPitches(v=>!v)} isDark={D}/>
               </div>
             </div>
             {hostPitchLoading?(
@@ -879,7 +886,7 @@ export default function GuestView(){
               const minBpm=(p:any)=>{const fs=hostPitchFiles.filter(f=>f.pitch_id===p.id&&f.bpm>0);return fs.length?Math.min(...fs.map(f=>f.bpm)):99999;};
               const firstVocal=(p:any)=>{const f=hostPitchFiles.find(x=>x.pitch_id===p.id&&x.vocal_gender);return f?.vocal_gender||'zzz';};
               const firstKey=(p:any)=>{const f=hostPitchFiles.find(x=>x.pitch_id===p.id&&x.key);return f?.key||'zzz';};
-              let pv=hostPitches;
+              let pv=hostPitches.filter(p=>showHiddenPitches?p.hidden:!p.hidden);
               if(pitchStatusFilter==='untriaged')pv=pv.filter(p=>!PITCH_STATUS[p.status]);
               else if(pitchStatusFilter!=='all')pv=pv.filter(p=>p.status===pitchStatusFilter);
               if(pitchVocalFilter!=='all')pv=pv.filter(p=>hostPitchFiles.some(f=>f.pitch_id===p.id&&f.vocal_gender===pitchVocalFilter));
@@ -929,6 +936,7 @@ export default function GuestView(){
                                           {cur&&<span className={`w-1.5 h-1.5 rounded-full ${PITCH_STATUS[s].dot}`}/>}{t(PITCH_STATUS[s].ko,PITCH_STATUS[s].en)}
                                         </button>
                                       );})}
+                                      <button onClick={()=>setPitchHidden(p,!p.hidden)} title={p.hidden?t('목록으로 복구','Restore to list'):t('목록에서 제거(히스토리는 남음)','Remove from list (kept in history)')} className={`ml-auto px-2 py-1 rounded-lg text-[11px] font-black transition-all ${p.hidden?'text-[#3E78DB] hover:opacity-80':D?'text-zinc-600 hover:text-red-400':'text-zinc-400 hover:text-red-500'}`}>{p.hidden?t('복구','Restore'):t('제거','Remove')}</button>
                                     </div>
                                   </div>
                                 );
