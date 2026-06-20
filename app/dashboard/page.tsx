@@ -188,6 +188,7 @@ export default function GuestView(){
   const [fileSort,setFileSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [fileVocalFilter,setFileVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
   const [fileSearch,setFileSearch]=useState('');
+  const [playingFileId,setPlayingFileId]=useState<string|null>(null);
   const [fileFolderFilter,setFileFolderFilter]=useState<string>('all'); // 'all' | 'none' | folderName
   const [fileAction,setFileAction]=useState<any>(null); // 파일 관리 모달 대상
   const [newFolder,setNewFolder]=useState('');
@@ -956,7 +957,11 @@ export default function GuestView(){
         {view==='files'&&(
           <div className="relative z-10">
             <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
-              <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder={t('파일명 · 아티스트 · 장르 검색','Search file · artist · genre')} className={`w-full border rounded-xl px-4 py-3 text-[15px] outline-none transition-all ${inputCls}`}/>
+              <div className="relative">
+                <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] ${dimText}`}>🔍</span>
+                <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder={t('파일명 · 보낸이 · 리드 · 장르 · 키 검색','Search file · sender · lead · genre · key')} className={`w-full border rounded-xl pl-10 pr-10 py-3 text-[15px] outline-none transition-all ${inputCls}`}/>
+                {fileSearch&&<button onClick={()=>setFileSearch('')} className={`absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center text-[12px] ${D?'bg-white/10 text-zinc-300 hover:bg-white/20':'bg-black/[0.06] text-zinc-600 hover:bg-black/10'}`}>✕</button>}
+              </div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('정렬','Sort')}</span>{([['recent',t('최신순','Recent')],['bpm','BPM'],['vocal',t('보컬','Vocal')],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileSort===v} onClick={()=>setFileSort(v as any)} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('보컬','Vocal')}</span>{([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileVocalFilter===v} onClick={()=>setFileVocalFilter(v as any)} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>📁 {t('폴더','Folder')}</span>
@@ -983,43 +988,50 @@ export default function GuestView(){
               if(fileFolderFilter==='none')fv=fv.filter(f=>!f.folder);
               else if(fileFolderFilter!=='all')fv=fv.filter(f=>f.folder===fileFolderFilter);
               const q=fileSearch.trim().toLowerCase();
-              if(q)fv=fv.filter(f=>[f.file_name,f._artist,f._lead,f.genre,f.key].some((x:any)=>(x||'').toLowerCase().includes(q)));
+              if(q)fv=fv.filter(f=>[f.file_name,f._artist,f._lead,f.genre,f.key,String(f.bpm||'')].some((x:any)=>(x||'').toLowerCase().includes(q)));
               fv=[...fv].sort((a,b)=>{if(fileSort==='bpm')return(a.bpm||99999)-(b.bpm||99999);if(fileSort==='vocal')return(a.vocal_gender||'zzz').localeCompare(b.vocal_gender||'zzz');if(fileSort==='key')return(a.key||'zzz').localeCompare(b.key||'zzz');return new Date(b._created).getTime()-new Date(a._created).getTime();});
-              return fv.length===0?(
-                <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitchFiles.length===0?t('아직 받은 파일이 없어요','No files yet'):t('조건에 맞는 파일이 없어요','No matching files')}</p></div>
-              ):(
-                <div className="anim-rise flex flex-col gap-2.5">
-                  {fv.map((f:any)=>{
-                    const vLabel=f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
-                    return(
-                    <div key={f.id} className={`flex flex-col gap-3 p-4 rounded-2xl border transition-all ${D?'bg-white/[0.02] border-white/[0.07] shadow-md shadow-black/20 hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] shadow-sm hover:bg-black/[0.03]'}`}>
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline gap-2 mb-1.5">
-                            <span className="text-[15px] shrink-0">🎵</span>
-                            <span className={`font-black text-[16px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{f.file_name||'audio.mp3'}</span>
+              return (
+                <>
+                  <div className="flex items-center gap-2 mb-3 px-1">
+                    <span className={`text-[12px] font-black ${dimText}`}>{fv.length}{t('개 파일',' files')}</span>
+                  </div>
+                  {fv.length===0?(
+                    <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{hostPitchFiles.length===0?t('아직 받은 파일이 없어요','No files yet'):t('조건에 맞는 파일이 없어요','No matching files')}</p></div>
+                  ):(
+                    <div className="anim-rise flex flex-col gap-1.5">
+                      {fv.map((f:any)=>{
+                        const vLabel=f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
+                        const on=playingFileId===f.id;
+                        const chip=D?'bg-white/[0.08] text-zinc-300':'bg-black/[0.05] text-zinc-600';
+                        return(
+                        <div key={f.id} className={`rounded-xl border transition-all ${on?(D?'bg-white/[0.05] border-[#3E78DB]/40':'bg-[#3E78DB]/[0.05] border-[#3E78DB]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
+                          <div className="flex items-center gap-2.5 px-3 py-2.5">
+                            <button onClick={()=>setPlayingFileId(on?null:f.id)} title={on?t('정지','Stop'):t('재생','Play')} className={`w-9 h-9 rounded-xl flex items-center justify-center text-[13px] shrink-0 transition-all ${on?'bg-[#3E78DB] text-white':D?'bg-white/5 text-zinc-300 hover:bg-white/10':'bg-black/[0.04] text-zinc-600 hover:bg-black/[0.08]'}`}>{on?'⏸':'▶'}</button>
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-bold text-[14px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{f.file_name||'audio.mp3'}</p>
+                              <div className="flex items-center gap-1 flex-wrap mt-1">
+                                {f._artist&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${D?'bg-white/10 text-zinc-200':'bg-black/[0.06] text-zinc-700'}`}>👤 {f._artist}</span>}
+                                {vLabel&&<span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-[#3E78DB]/15 text-[#3E78DB]">{vLabel}</span>}
+                                {f.bpm>0&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip}`}>{f.bpm} BPM</span>}
+                                {f.key&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip}`}>{f.key}</span>}
+                                {f.genre&&<span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
+                                {f.folder&&<span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">📁 {f.folder}</span>}
+                                {f._lead&&<span className={`text-[11px] ${dimText}`}>→ {f._lead}</span>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button onClick={()=>downloadFile(f)} title={t('다운로드','Download')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>⬇</button>
+                              <button onClick={()=>{setFileAction(f);setNewFolder('');}} title={t('폴더','Folder')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>📁</button>
+                              <button onClick={()=>deleteFile(f)} title={t('삭제','Delete')} className="w-8 h-8 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[13px] hover:bg-red-500/20 transition-all">🗑</button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {vLabel&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-[#3E78DB]/15 text-[#3E78DB]">{vLabel}</span>}
-                            {f.bpm>0&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>{f.bpm} BPM</span>}
-                            {f.key&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>KEY {f.key}</span>}
-                            {f.genre&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
-                            {f.folder&&<span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">📁 {f.folder}</span>}
-                            {f._artist&&<span className={`text-[12px] font-black px-2 py-0.5 rounded-md ${D?'bg-white/10 text-zinc-200':'bg-black/[0.06] text-zinc-700'}`}>👤 {f._artist}</span>}
-                            {f._lead&&<span className={`text-[12px] ${dimText}`}>→ {f._lead}</span>}
-                          </div>
+                          {on&&f.file_url&&<div className="px-3 pb-3"><audio autoPlay controls preload="none" src={f.file_url} className="w-full" style={{height:'40px',colorScheme:D?'dark':'light'}}/></div>}
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button onClick={()=>downloadFile(f)} title={t('다운로드','Download')} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[14px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>⬇</button>
-                          <button onClick={()=>{setFileAction(f);setNewFolder('');}} title={t('폴더','Folder')} className={`w-9 h-9 rounded-xl border flex items-center justify-center text-[14px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>📁</button>
-                          <button onClick={()=>deleteFile(f)} title={t('삭제','Delete')} className="w-9 h-9 rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[14px] hover:bg-red-500/20 transition-all">🗑</button>
-                        </div>
-                      </div>
-                      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'44px',colorScheme:D?'dark':'light'}}/>}
+                        );
+                      })}
                     </div>
-                    );
-                  })}
-                </div>
+                  )}
+                </>
               );
             })()}
           </div>
