@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
+import { analyzeAudio } from '@/lib/audioAnalysis';
 import ChatPanel from '@/app/components/ChatPanel';
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
@@ -21,43 +22,6 @@ const parseSections = (content:string): Section[]|null => {
 const getFileHash = async (file: File): Promise<string> => {
   const hash = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-};
-const analyzeVocal = async (file: File): Promise<{vocal:'male'|'female'|'unknown';duration:number}> => {
-  try {
-    const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
-    const ctx = new AudioCtx();
-    const audioBuffer = await ctx.decodeAudioData(await file.arrayBuffer());
-    await ctx.close();
-    const sr = audioBuffer.sampleRate;
-    const duration = Math.round(audioBuffer.duration);
-    const startSec = Math.min(audioBuffer.duration * 0.2, Math.max(0, audioBuffer.duration - 8));
-    const durSec = Math.min(5, audioBuffer.duration - startSec);
-    let vocal: 'male'|'female'|'unknown' = 'unknown';
-    if (durSec >= 1) {
-      const offline = new OfflineAudioContext(1, Math.floor(durSec * sr), sr);
-      const src = offline.createBufferSource();
-      src.buffer = audioBuffer; src.connect(offline.destination); src.start(0, startSec, durSec);
-      const rendered = await offline.startRendering();
-      const d = rendered.getChannelData(0);
-      const fSize = Math.floor(sr * 0.04), pitches: number[] = [];
-      for (let start = 0; start < d.length - fSize; start += fSize) {
-        const minL = Math.floor(sr / 380), maxL = Math.floor(sr / 65);
-        let maxC = -Infinity, bestL = 0;
-        for (let lag = minL; lag <= maxL; lag++) {
-          let c = 0, n = 0;
-          for (let i = 0; i < fSize - lag; i++) { c += d[start+i]*d[start+i+lag]; n += d[start+i]*d[start+i]; }
-          const nc = n > 0 ? c / n : 0; if (nc > maxC) { maxC = nc; bestL = lag; }
-        }
-        if (maxC > 0.15 && bestL > 0) pitches.push(sr / bestL);
-      }
-      if (pitches.length >= 3) {
-        pitches.sort((a,b) => a - b);
-        const med = pitches[Math.floor(pitches.length / 2)];
-        if (med < 158) vocal = 'male'; else if (med > 195) vocal = 'female';
-      }
-    }
-    return { vocal, duration };
-  } catch { return { vocal: 'unknown', duration: 0 }; }
 };
 
 type PitchFileItem = {id:string;file:File;hash:string;vocal:'male'|'female'|'unknown';duration:number;analyzing:boolean;isDuplicate:boolean;bpm:string;genre:string;key:string;vocalOverride:'male'|'female'|'both'|'';};
@@ -272,12 +236,23 @@ export default function GuestView(){
     if(file.size>50*1024*1024){alert('50MB 이하 파일만 가능해요!');return;}
     const id=`f${++fileCounter}`;
     setPitchFiles(prev=>[...prev,{id,file,hash:'',vocal:'unknown',duration:0,analyzing:true,isDuplicate:false,bpm:'',genre:'',key:'',vocalOverride:''}]);
-    const [hash,analysis]=await Promise.all([getFileHash(file),analyzeVocal(file)]);
+    const [hash,analysis]=await Promise.all([getFileHash(file),analyzeAudio(file)]);
     const {data:dup}=await supabase.from('pitch_files').select('id').eq('file_hash',hash).eq('host_id',hostId);
-    setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,hash,vocal:analysis.vocal,duration:analysis.duration,isDuplicate:!!(dup&&dup.length>0),analyzing:false}:f));
+    setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,hash,vocal:analysis.vocal,duration:analysis.duration,bpm:analysis.bpm?String(analysis.bpm):f.bpm,key:analysis.key||f.key,isDuplicate:!!(dup&&dup.length>0),analyzing:false}:f));
   };
   const removeFile=(id:string)=>setPitchFiles(prev=>prev.filter(f=>f.id!==id));
   const updateFile=(id:string,patch:Partial<PitchFileItem>)=>setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,...patch}:f));
+  const tapsRef=useRef<Record<string,number[]>>({});
+  const tapTempo=(id:string)=>{
+    const now=performance.now();
+    const arr=(tapsRef.current[id]||[]).filter(t=>now-t<2500); // 2.5s 이상 쉬면 리셋
+    arr.push(now); tapsRef.current[id]=arr;
+    if(arr.length>=2){
+      const iv:number[]=[]; for(let i=1;i<arr.length;i++)iv.push(arr[i]-arr[i-1]);
+      const avg=iv.reduce((a,b)=>a+b,0)/iv.length; const bpm=Math.round(60000/avg);
+      if(bpm>=40&&bpm<=300)updateFile(id,{bpm:String(bpm)});
+    }
+  };
   const handleFileDrop=(e:React.DragEvent)=>{e.preventDefault();Array.from(e.dataTransfer.files).forEach(addFile);};
   const handleFileInput=(e:React.ChangeEvent<HTMLInputElement>)=>{Array.from(e.target.files||[]).forEach(addFile);e.target.value='';};
 
@@ -491,12 +466,13 @@ export default function GuestView(){
           <div className="grid grid-cols-2 gap-2">
             <div className="flex items-center gap-2">
               <label className={`text-[10px] font-black uppercase tracking-widest shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>BPM</label>
-              <input type="number" min="40" max="300" value={item.bpm} onChange={e=>updateFile(item.id,{bpm:e.target.value})} placeholder="예: 120"
-                className={`flex-1 border rounded-xl px-2.5 py-1.5 text-[12px] outline-none transition-all ${inputCls}`}/>
+              <input type="number" min="40" max="300" value={item.bpm} onChange={e=>updateFile(item.id,{bpm:e.target.value})} placeholder="자동"
+                className={`flex-1 min-w-0 border rounded-xl px-2.5 py-1.5 text-[12px] outline-none transition-all ${inputCls}`}/>
+              <button onClick={()=>tapTempo(item.id)} title="박자에 맞춰 탭" className={`shrink-0 px-2.5 py-1.5 rounded-xl text-[11px] font-black border transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>탭</button>
             </div>
             <div className="flex items-center gap-2">
               <label className={`text-[10px] font-black uppercase tracking-widest shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>KEY</label>
-              <input type="text" value={item.key} onChange={e=>updateFile(item.id,{key:e.target.value})} placeholder="예: C, Am, F#"
+              <input type="text" value={item.key} onChange={e=>updateFile(item.id,{key:e.target.value})} placeholder="자동 (예: C, Am)"
                 className={`flex-1 border rounded-xl px-2.5 py-1.5 text-[12px] outline-none transition-all ${inputCls}`}/>
             </div>
           </div>
