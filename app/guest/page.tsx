@@ -142,7 +142,7 @@ export default function MyPage() {
     if (!demo.id) return;
     await supabase.from('demo_tracks').delete().eq('id', demo.id);
     setDemos(p => p.filter(d => d.id !== demo.id));
-    showToast('🗑 삭제됐어요');
+    showToast('삭제됐어요');
   };
 
   const handleSave = async () => {
@@ -196,7 +196,7 @@ export default function MyPage() {
     setSaving(false);
     setPhotoFile(null);
     setNewDemoFiles([]);
-    showToast('✅ 저장됐어요!');
+    showToast('저장됐어요!');
   };
 
   const D = theme === 'dark';
@@ -304,7 +304,7 @@ export default function MyPage() {
                 <div className="flex flex-col gap-2">
                   {demos.map(d => (
                     <div key={d.id} className={`flex items-center gap-3 p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
-                      <span className="text-[14px]">🎵</span>
+                      <span className="text-[14px]"><i className="ti ti-music" aria-hidden="true"></i></span>
                       <span className={`flex-1 text-[12px] font-bold truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{d.file_name}</span>
                       <button onClick={async () => {
                         const path = d.file_url.split('/member-demos/')[1];
@@ -320,13 +320,13 @@ export default function MyPage() {
                           document.body.appendChild(a); a.click();
                           document.body.removeChild(a); URL.revokeObjectURL(url);
                         } catch { showToast('다운로드 실패'); }
-                      }} className="text-[#3E78DB] text-[11px] font-bold hover:underline">⬇ 다운</button>
+                      }} className="text-[#3E78DB] text-[11px] font-bold hover:underline inline-flex items-center gap-1"><i className="ti ti-download" aria-hidden="true"></i>다운</button>
                     </div>
                   ))}
                 </div>
               ) : <p className={`text-[12px] ${dimText}`}>등록된 데모곡이 없어요</p>}
               {member?.demo_link && (
-                <a href={member.demo_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-[11px] text-[#3E78DB] hover:underline">🔗 추가 데모 링크</a>
+                <a href={member.demo_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-[11px] text-[#3E78DB] hover:underline"><i className="ti ti-link" aria-hidden="true"></i> 추가 데모 링크</a>
               )}
             </div>
 
@@ -339,7 +339,7 @@ export default function MyPage() {
                     <a key={i} href={w.link} target="_blank" rel="noopener noreferrer"
                       className={`flex items-center gap-3 p-3 rounded-xl border transition-all hover:border-[#3E78DB]/30 ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                       <div className="w-8 h-8 rounded-lg bg-[#3E78DB]/10 border border-[#3E78DB]/20 flex items-center justify-center shrink-0">
-                        <span className="text-[12px]">🎶</span>
+                        <span className="text-[12px]"><i className="ti ti-music" aria-hidden="true"></i></span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-[12px] font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
@@ -353,11 +353,11 @@ export default function MyPage() {
             </div>
           </div>
 
-          {/* 📨 내가 피칭한 곡 */}
+          {/* 내가 피칭한 곡 */}
           {myPitches.length > 0 && (
             <div className={`border rounded-2xl overflow-hidden mt-5 ${card}`}>
               <div className={`p-5 border-b ${divider}`}>
-                <p className={`font-black text-[14px] ${D ? 'text-white' : 'text-[#111]'}`}>📨 내가 피칭한 곡</p>
+                <p className={`font-black text-[14px] ${D ? 'text-white' : 'text-[#111]'}`}><i className="ti ti-inbox" aria-hidden="true"></i> 내가 피칭한 곡</p>
                 <p className={`text-[11px] mt-0.5 ${dimText}`}>총 {myPitches.length}건</p>
               </div>
               <div className="p-5 flex flex-col gap-3">
@@ -372,7 +372,7 @@ export default function MyPage() {
                           <p className={`text-[11px] mt-0.5 ${dimText}`}>{new Date(p.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
                         {files.length > 0 && (
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>
                         )}
                       </div>
                       {p.message && <p className={`text-[12px] leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>}
@@ -380,7 +380,7 @@ export default function MyPage() {
                         <div className="flex flex-col gap-1.5 mt-2">
                           {files.map(f => (
                             <div key={f.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.03]'}`}>
-                              <span className="text-[12px]">🎵</span>
+                              <span className="text-[12px]"><i className="ti ti-music" aria-hidden="true"></i></span>
                               <span className={`flex-1 text-[11px] truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
                               {f.bpm > 0 && <span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
                               {f.genre && <span className="text-[10px] font-black text-[#3E78DB]">{f.genre}</span>}
@@ -473,7 +473,7 @@ export default function MyPage() {
                       <div className="flex flex-col gap-1.5 mb-2">
                         {demos.map(d => (
                           <div key={d.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
-                            <span className="text-[13px]">🎵</span>
+                            <span className="text-[13px]"><i className="ti ti-music" aria-hidden="true"></i></span>
                             <span className={`flex-1 text-[11px] truncate ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.file_name}</span>
                             <button onClick={() => deleteDemo(d)} className="text-red-400/60 hover:text-red-400 text-[11px] font-bold">삭제</button>
                           </div>
@@ -491,7 +491,7 @@ export default function MyPage() {
                       <div className="flex flex-col gap-1 mt-2">
                         {newDemoFiles.map((f, i) => (
                           <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#3E78DB]/5 border border-[#3E78DB]/20">
-                            <span className="text-[12px]">🎵</span>
+                            <span className="text-[12px]"><i className="ti ti-music" aria-hidden="true"></i></span>
                             <span className="flex-1 text-[11px] text-[#3E78DB] truncate">{f.name}</span>
                             <button onClick={() => setNewDemoFiles(p => p.filter((_, idx) => idx !== i))} className="text-red-400/60 text-[10px]">✕</button>
                           </div>

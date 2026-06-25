@@ -29,7 +29,7 @@ type PitchFileItem = {id:string;file:File;hash:string;vocal:'male'|'female'|'unk
 const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='group';if(gender==='mixed')return{bg:g?'bg-[#7C7F65]/10':'bg-[#7C7F65]/20',border:g?'border-[#7C7F65]/20':'border-[#7C7F65]/40',text:g?'text-[#7C7F65]/60':'text-[#A6A985]',dot:g?'bg-[#7C7F65]/40':'bg-[#7C7F65]',label:g?'혼성 그룹':'혼성'};if(gender==='female')return{bg:g?'bg-[#DE3C4B]/10':'bg-[#DE3C4B]/20',border:g?'border-[#DE3C4B]/20':'border-[#DE3C4B]/40',text:g?'text-[#DE3C4B]/55':'text-[#E97582]',dot:g?'bg-[#DE3C4B]/40':'bg-[#DE3C4B]',label:g?'여자 그룹':'여자'};return{bg:g?'bg-[#3E78DB]/10':'bg-[#3E78DB]/20',border:g?'border-[#3E78DB]/20':'border-[#3E78DB]/40',text:g?'text-[#3E78DB]/55':'text-[#94B6EE]',dot:g?'bg-[#3E78DB]/40':'bg-[#3E78DB]',label:g?'남자 그룹':'남자'};};
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
 const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${t.cls}`}>{t.label}</span>;};
-const getLinkIcon=(url:string)=>{if(!url)return'🔗';if(url.includes('youtube')||url.includes('youtu.be'))return'▶️';if(url.includes('soundcloud'))return'🎵';if(url.includes('spotify'))return'🎧';if(url.includes('instagram'))return'📸';return'🔗';};
+const getLinkIcon=(url:string)=>{if(!url)return'ti ti-link';if(url.includes('youtube')||url.includes('youtu.be'))return'ti ti-brand-youtube';if(url.includes('soundcloud'))return'ti ti-brand-soundcloud';if(url.includes('spotify'))return'ti ti-brand-spotify';if(url.includes('instagram'))return'ti ti-brand-instagram';return'ti ti-link';};
 const isExpired=(d:string|null)=>{if(!d)return false;return d.includes('T')?new Date(d)<new Date():new Date(d)<new Date(new Date().toDateString());};
 const getDDay=(d:string|null)=>{if(!d)return null;const dp=d.includes('T')?d.split('T')[0]:d;const diff=Math.ceil((new Date(dp).getTime()-new Date(new Date().toDateString()).getTime())/86400000);if(diff===0)return'D-DAY';return diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;};
 const toDateStr=(y:number,m:number,d:number)=>`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -345,7 +345,7 @@ export default function GuestView(){
           {s.title&&<p className={`text-[11px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-500':'text-zinc-400'}`}>{i+1}. {s.title}</p>}
           <div className={`text-[13px] leading-relaxed ${D?'text-zinc-300':'text-zinc-700'}`}>
             {s.body.split(/(https?:\/\/[^\s]+)/g).map((part,j)=>{
-              if(part.match(/^https?:\/\//))return<a key={j} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><span>{getLinkIcon(part)}</span><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
+              if(part.match(/^https?:\/\//))return<a key={j} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><i className={getLinkIcon(part)} aria-hidden="true"></i><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
               return<span key={j} className="whitespace-pre-wrap">{part}</span>;
             })}
           </div>
@@ -364,7 +364,7 @@ export default function GuestView(){
               {s.title&&<p className={`text-[11px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-500':'text-zinc-400'}`}>{i+1}. {s.title}</p>}
               <div className={`text-[13px] leading-relaxed ${D?'text-zinc-300':'text-zinc-700'}`}>
                 {s.body.split(/(https?:\/\/[^\s]+)/g).map((part,j)=>{
-                  if(part.match(/^https?:\/\//))return<a key={j} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><span>{getLinkIcon(part)}</span><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
+                  if(part.match(/^https?:\/\//))return<a key={j} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><i className={getLinkIcon(part)} aria-hidden="true"></i><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
                   return<span key={j} className="whitespace-pre-wrap">{part}</span>;
                 })}
               </div>
@@ -374,15 +374,15 @@ export default function GuestView(){
       );
     }
     return content.split(/(https?:\/\/[^\s]+)/g).map((part,i)=>{
-      if(part.match(/^https?:\/\//))return<a key={i} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><span>{getLinkIcon(part)}</span><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
+      if(part.match(/^https?:\/\//))return<a key={i} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><i className={getLinkIcon(part)} aria-hidden="true"></i><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
       return<span key={i} className="whitespace-pre-wrap">{part}</span>;
     });
   };
 
   const getLeadPreview=(lead:any)=>{
     const sections=parseSections(lead.content||'');
-    if(sections)return sections.map((s:any)=>s.body).join(' ').replace(/https?:\/\/[^\s]+/g,'🔗').slice(0,80);
-    return(lead.content||'').replace(/https?:\/\/[^\s]+/g,'🔗').slice(0,80);
+    if(sections)return sections.map((s:any)=>s.body).join(' ').replace(/https?:\/\/[^\s]+/g,'↗').slice(0,80);
+    return(lead.content||'').replace(/https?:\/\/[^\s]+/g,'↗').slice(0,80);
   };
 
   const getDaysInMonth=(date:Date)=>{const y=date.getFullYear(),m=date.getMonth();return{firstDay:new Date(y,m,1).getDay(),daysInMonth:new Date(y,m+1,0).getDate(),year:y,month:m};};
@@ -428,7 +428,7 @@ export default function GuestView(){
               <div className="ml-1 shrink-0"><DeadlineDisplay lead={lead} size="normal"/></div>
             </div>
             {lead.content&&<p className={`text-[12px] sm:text-[11px] line-clamp-2 mt-1 ${D?"text-zinc-500":"text-zinc-600"}`}>{getLeadPreview(lead)}</p>}
-            {urls.length>0&&<div className="flex gap-1.5 mt-2 pt-2 border-t border-white/5">{urls.slice(0,3).map((url,i)=><a key={i} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} className="text-[13px] hover:scale-110 transition-transform">{getLinkIcon(url)}</a>)}{urls.length>3&&<span className="text-zinc-700 text-[10px] self-center">+{urls.length-3}</span>}</div>}
+            {urls.length>0&&<div className="flex gap-1.5 mt-2 pt-2 border-t border-white/5">{urls.slice(0,3).map((url,i)=><a key={i} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} className="text-[13px] hover:scale-110 transition-transform"><i className={getLinkIcon(url)} aria-hidden="true"></i></a>)}{urls.length>3&&<span className="text-zinc-700 text-[10px] self-center">+{urls.length-3}</span>}</div>}
           </>
         )}
       </div>
@@ -438,7 +438,7 @@ export default function GuestView(){
   const FileItem=({item}:{item:PitchFileItem})=>(
     <div className={`border rounded-2xl overflow-hidden ${D?'border-[rgba(255,255,255,0.08)] bg-[#1e1e1e]':'border-black/[0.08] bg-black/[0.02]'}`}>
       <div className="flex items-center gap-3 px-4 py-3">
-        <span className="text-[16px]">🎵</span>
+        <span className="text-[16px]"><i className="ti ti-music" aria-hidden="true"></i></span>
         <div className="flex-1 min-w-0">
           <p className={`text-[12px] font-bold truncate ${D?'text-white':'text-[#111]'}`}>{item.file.name}</p>
           <p className={`text-[11px] ${D?'text-zinc-600':'text-zinc-400'}`}>{(item.file.size/1024/1024).toFixed(1)}MB{item.duration>0&&` · ${fmtDur(item.duration)}`}</p>
@@ -449,10 +449,10 @@ export default function GuestView(){
       </div>
       {!item.analyzing&&(
         <div className={`px-4 pb-4 border-t pt-3 flex flex-col gap-3 ${D?'border-white/5':'border-black/[0.05]'}`}>
-          {item.isDuplicate&&<div className="px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20"><p className="text-yellow-400 text-[11px] font-bold">⚠️ 이미 제출된 적 있는 파일이에요</p></div>}
+          {item.isDuplicate&&<div className="px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20"><p className="text-yellow-400 text-[11px] font-bold">이미 제출된 적 있는 파일이에요</p></div>}
           {/* 보컬 선택 */}
           <div>
-            <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-600':'text-zinc-400'}`}>보컬 🎤{item.vocal!=='unknown'&&<span className={`ml-2 font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>자동감지: {vocalLabel(item.vocal)}</span>}</p>
+            <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-600':'text-zinc-400'}`}>보컬 {item.vocal!=='unknown'&&<span className={`ml-2 font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>자동감지: {vocalLabel(item.vocal)}</span>}</p>
             <div className="flex gap-1.5">
               {([['male','남성'],['female','여성'],['both','혼성']] as const).map(([v,l])=>(
                 <button key={v} onClick={()=>updateFile(item.id,{vocalOverride:item.vocalOverride===v?'':v})}
@@ -500,7 +500,7 @@ export default function GuestView(){
         <div className="w-full max-w-sm text-center">
           <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#3E78DB] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#3E78DB]/25 bg-[#3E78DB]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           <div className={`border rounded-2xl p-8 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
-            <div className="text-4xl mb-4">{icon}</div>
+            <div className="text-4xl mb-4"><i className={icon} aria-hidden="true"></i></div>
             <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>{title}</h2>
             <p className={`text-[13px] leading-relaxed ${dimText}`}>{sub}</p>
             {children}
@@ -540,7 +540,7 @@ export default function GuestView(){
           <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#3E78DB] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#3E78DB]/25 bg-[#3E78DB]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           {noProfile?(
             <div className={`border rounded-2xl p-8 text-center ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
-              <div className="text-4xl mb-4">📝</div>
+              <div className="text-4xl mb-4"><i className="ti ti-pencil" aria-hidden="true"></i></div>
               <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>프로필을 완성해주세요</h2>
               <p className={`text-[13px] ${dimText} mb-6`}>리드에 참여하려면 멤버 프로필 등록이 필요해요.</p>
               <a href="/onboarding" className="block w-full py-3.5 rounded-xl bg-[#3E78DB] text-white font-semibold text-[13px] hover:opacity-90 transition-all">프로필 등록하기</a>
@@ -572,8 +572,8 @@ export default function GuestView(){
       </main>
     </>
   );
-  if(authStatus==='pending')return(<GateScreen icon="⏳" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
-  if(authStatus==='rejected')return(<GateScreen icon="🚫" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  if(authStatus==='pending')return(<GateScreen icon="ti ti-clock" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  if(authStatus==='rejected')return(<GateScreen icon="ti ti-ban" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
 
   return(
     <>
@@ -585,7 +585,7 @@ export default function GuestView(){
           {hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#3E78DB]/25 bg-[#3E78DB]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}
         </div>
 
-        {announcements.length>0&&<div className="relative z-10 mb-5 flex flex-col gap-2">{announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#3E78DB]/10 border border-[#3E78DB]/20"><span className="text-[#3E78DB] text-[11px] font-black mt-0.5 shrink-0">📢</span><div>{ann.title&&<p className={`font-bold text-[13px] mb-0.5 ${D?'text-white':'text-[#111]'}`}>{ann.title}</p>}<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?'text-zinc-300':'text-zinc-600'}`}>{ann.content}</p></div></div>)}</div>}
+        {announcements.length>0&&<div className="relative z-10 mb-5 flex flex-col gap-2">{announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#3E78DB]/10 border border-[#3E78DB]/20"><span className="text-[#3E78DB] text-[11px] font-black mt-0.5 shrink-0"><i className="ti ti-speakerphone" aria-hidden="true"></i></span><div>{ann.title&&<p className={`font-bold text-[13px] mb-0.5 ${D?'text-white':'text-[#111]'}`}>{ann.title}</p>}<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?'text-zinc-300':'text-zinc-600'}`}>{ann.content}</p></div></div>)}</div>}
 
         <div className={`relative z-30 flex flex-wrap items-center justify-between gap-3 mb-6 border-b ${dividerCls} pb-4`}>
           <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} 활성</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} 마감</span></div>
@@ -598,7 +598,7 @@ export default function GuestView(){
               <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-normal transition-all ${view==='list'?'bg-[#3E78DB] text-white':dimText}`}>{t('목록','List')}</button>
             </div>
             <button onClick={()=>{navigator.clipboard.writeText(window.location.href);setShareToast(true);setTimeout(()=>setShareToast(false),2000);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>공유</button>
-            {/* ✅ MY 버튼 */}
+            {/* MY 버튼 */}
             {isHost&&!previewMode?(
               <div className="flex items-center gap-2">
                 <button onClick={()=>setPreviewMode(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 transition-all">
@@ -677,7 +677,7 @@ export default function GuestView(){
                 const exp=isExpired(d.deadline);
                 return(
                   <button key={d.id} onClick={()=>openDemo(d)} disabled={exp} className={`w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition-all active:scale-[0.99] sm:hover:scale-[1.01] ${exp?'opacity-40 grayscale':''} ${D?'border-[#3E78DB]/30 bg-[#3E78DB]/10 hover:bg-[#3E78DB]/15':'border-[#3E78DB]/25 bg-[#3E78DB]/5 hover:bg-[#3E78DB]/10'}`}>
-                    <div className="w-11 h-11 rounded-xl bg-[#3E78DB]/20 flex items-center justify-center text-[20px] shrink-0">🎤</div>
+                    <div className="w-11 h-11 rounded-xl bg-[#3E78DB]/20 flex items-center justify-center text-[20px] shrink-0"><i className="ti ti-microphone" aria-hidden="true"></i></div>
                     <div className="min-w-0 flex-1">
                       <p className={`font-black text-[15px] truncate ${D?'text-white':'text-[#111]'}`}>{d.artist}</p>
                       <p className={`text-[12px] ${dimText}`}>{d.content?d.content.slice(0,40):t('데모 수급','Demo collection')}{d.deadline&&` · ~${d.deadline}`}</p>
@@ -688,7 +688,7 @@ export default function GuestView(){
                 );
               })}
               <button onClick={()=>openDemo()} className={`w-full flex items-center gap-3 p-4 rounded-2xl border border-dashed text-left transition-all active:scale-[0.99] ${D?'border-white/15 bg-white/[0.02] hover:bg-white/[0.04]':'border-black/15 bg-black/[0.02] hover:bg-black/[0.04]'}`}>
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-[20px] shrink-0 ${D?'bg-white/5':'bg-black/[0.05]'}`}>🎤</div>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-[20px] shrink-0 ${D?'bg-white/5':'bg-black/[0.05]'}`}><i className="ti ti-microphone" aria-hidden="true"></i></div>
                 <div className="min-w-0">
                   <p className={`font-black text-[15px] ${D?'text-white':'text-[#111]'}`}>{t('자유 데모 보내기','Send a Demo')}</p>
                   <p className={`text-[12px] ${dimText}`}>{t('특정 항목과 상관없이 데모를 직접 전달해요','Submit a demo directly — no slot required')}</p>
@@ -791,9 +791,9 @@ export default function GuestView(){
                   setPitchingLead(viewingLead);
                   setPitchForm(guestProfile?{artist_name:guestProfile.artist_name||'',contact:guestProfile.phone||guestProfile.email||'',message:''}:emptyPitch());
                   setPitchFiles([]);setPitchSent(false);setUploadProgress(0);setUploadError('');setViewingLead(null);
-                }} className="flex-1 py-3 rounded-xl bg-[#3E78DB] text-white font-semibold text-[13px] hover:opacity-90 transition-all">🎵 {t('피칭하기','Pitch')}</button>)}
+                }} className="flex-1 py-3 rounded-xl bg-[#3E78DB] text-white font-semibold text-[13px] hover:opacity-90 transition-all inline-flex items-center justify-center gap-1.5"><i className="ti ti-music" aria-hidden="true"></i>{t('피칭하기','Pitch')}</button>)}
                 {isHost&&!previewMode&&<button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>}
-                {isHost&&!previewMode&&<button onClick={()=>{if(confirm('삭제?')){deleteLead(viewingLead.id);setViewingLead(null);}}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 text-[13px] hover:bg-red-500/10 transition-all">🗑</button>}
+                {isHost&&!previewMode&&<button onClick={()=>{if(confirm('삭제?')){deleteLead(viewingLead.id);setViewingLead(null);}}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 text-[13px] hover:bg-red-500/10 transition-all"><i className="ti ti-trash" aria-hidden="true"></i></button>}
                 <button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">{t('닫기','Close')}</button>
               </div>
             </div>
@@ -801,7 +801,7 @@ export default function GuestView(){
         </div>
       )}
 
-      {shareToast&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl">🔗 링크가 복사됐어요!</div>}
+      {shareToast&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl"><i className="ti ti-link" aria-hidden="true"></i> 링크가 복사됐어요!</div>}
 
       {showLeadForm&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4 overflow-y-auto">
@@ -856,7 +856,7 @@ export default function GuestView(){
                 </div>
               ):(
                 <>
-                  <div className="mb-5"><h2 className={`font-black text-[20px] ${D?'text-white':'text-[#111]'}`}>{(pitchingLead.general||pitchingLead.demo)?`🎤 ${t('데모 보내기','Send a Demo')}`:`🎵 ${t('피칭하기','Pitch')}`}</h2><p className={`text-[12px] mt-0.5 ${dimText}`}>{pitchingLead.general?t('특정 항목과 상관없이 데모를 전달해요','Submit a demo — no slot required'):pitchingLead.demo?pitchingLead.artist:`${pitchingLead.artist} — ${pitchingLead.title}`}</p></div>
+                  <div className="mb-5"><h2 className={`font-black text-[20px] ${D?'text-white':'text-[#111]'}`}>{(pitchingLead.general||pitchingLead.demo)?`${t('데모 보내기','Send a Demo')}`:`${t('피칭하기','Pitch')}`}</h2><p className={`text-[12px] mt-0.5 ${dimText}`}>{pitchingLead.general?t('특정 항목과 상관없이 데모를 전달해요','Submit a demo — no slot required'):pitchingLead.demo?pitchingLead.artist:`${pitchingLead.artist} — ${pitchingLead.title}`}</p></div>
                   <div className="flex flex-col gap-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={pitchForm.artist_name} onChange={e=>setPitchForm(p=>({...p,artist_name:e.target.value}))} placeholder="아티스트명" className={`w-full border rounded-xl px-4 py-3 text-[16px] sm:text-[13px] outline-none transition-all ${inputCls}`}/></div>
