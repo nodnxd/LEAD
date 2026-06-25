@@ -50,6 +50,11 @@ select {
 }
 select::-ms-expand { display: none; }
 
+/* number input 기본 스피너(▲▼) 제거 — 다크 UI와 안 맞아서 */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
 /* 포커스 링 정돈 — 마우스 클릭엔 안 뜨고 키보드 탐색에만 */
 :focus { outline: none; }
 :focus-visible {

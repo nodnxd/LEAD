@@ -932,7 +932,7 @@ export default function GuestView(){
         )}
 
         {view==='files'&&(
-          <div className="relative z-10">
+          <div className="relative z-10 min-h-[60vh]" onContextMenu={(e)=>{e.preventDefault();const name=prompt(t('새 폴더 이름','New folder name'));if(name&&name.trim())addFolder(name.trim());}}>
             <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
               <div className="relative">
                 <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] ${dimText}`}>🔍</span>
@@ -1001,7 +1001,7 @@ export default function GuestView(){
                         const on=playingFileId===f.id;
                         const chip=D?'bg-white/[0.08] text-zinc-300':'bg-black/[0.05] text-zinc-600';
                         return(
-                        <div key={f.id} onContextMenu={(e)=>{e.preventDefault();setFileAction(f);setNewFolder('');}} className={`rounded-xl border transition-all ${on?(D?'bg-white/[0.05] border-[#3E78DB]/40':'bg-[#3E78DB]/[0.05] border-[#3E78DB]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
+                        <div key={f.id} onContextMenu={(e)=>{e.preventDefault();e.stopPropagation();setFileAction(f);setNewFolder('');}} className={`rounded-xl border transition-all ${on?(D?'bg-white/[0.05] border-[#3E78DB]/40':'bg-[#3E78DB]/[0.05] border-[#3E78DB]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
                           <div className="flex items-center gap-2.5 px-3 py-2.5">
                             <button onClick={()=>setSelFiles(p=>{const n=new Set(p);n.has(f.id)?n.delete(f.id):n.add(f.id);return n;})} title={t('선택','Select')} className={`w-5 h-5 rounded-md border flex items-center justify-center text-[10px] shrink-0 transition-all ${selFiles.has(f.id)?'bg-[#3E78DB] border-[#3E78DB] text-white':D?'border-white/15 text-transparent hover:border-white/40':'border-black/15 text-transparent hover:border-black/40'}`}>✓</button>
                             <button onClick={()=>setPlayingFileId(on?null:f.id)} title={on?t('정지','Stop'):t('재생','Play')} className={`w-9 h-9 rounded-xl flex items-center justify-center text-[13px] shrink-0 transition-all ${on?'bg-[#3E78DB] text-white':D?'bg-white/5 text-zinc-300 hover:bg-white/10':'bg-black/[0.04] text-zinc-600 hover:bg-black/[0.08]'}`}>{on?'⏸':'▶'}</button>
