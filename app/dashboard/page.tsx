@@ -159,6 +159,7 @@ export default function GuestView(){
   const [bpmMax,setBpmMax]=useState('');
   const [fileGenreFilter,setFileGenreFilter]=useState('');
   const [fileKeyFilter,setFileKeyFilter]=useState('');
+  const [memberFilter,setMemberFilter]=useState('');
   const [newFolderOpen,setNewFolderOpen]=useState(false);
   const [fileFolderFilter,setFileFolderFilter]=useState<string>('all'); // 'all' | 'none' | folderName
   const [fileAction,setFileAction]=useState<any>(null); // 파일 관리 모달 대상
@@ -760,11 +761,11 @@ export default function GuestView(){
           </div>
           )}
           <div className={`grid grid-cols-5 gap-1 border rounded-xl p-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
-            <button onClick={()=>setView('calendar')} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='calendar'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('달력','Calendar')}</button>
-            <button onClick={()=>setView('list')} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='list'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('목록','List')}</button>
-            <button onClick={()=>{setView('pitches');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='pitches'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('수신 피칭','Pitches')}{hostPitches.length>0&&<span className="ml-1 opacity-70">{hostPitches.length}</span>}</button>
-            <button onClick={()=>{setView('files');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='files'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('파일 관리','Files')}{hostPitchFiles.length>0&&<span className="ml-1 opacity-70">{hostPitchFiles.length}</span>}</button>
-            <button onClick={()=>{setView('stats');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='stats'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('통계','Stats')}</button>
+            <button onClick={()=>setView('calendar')} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='calendar'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-calendar text-[15px]" aria-hidden="true"></i>{t('달력','Calendar')}</button>
+            <button onClick={()=>setView('list')} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='list'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-list text-[15px]" aria-hidden="true"></i>{t('목록','List')}</button>
+            <button onClick={()=>{setView('pitches');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='pitches'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-inbox text-[15px]" aria-hidden="true"></i>{t('수신 피칭','Pitches')}{hostPitches.length>0&&<span className="opacity-70">{hostPitches.length}</span>}</button>
+            <button onClick={()=>{setView('files');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='files'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-folder text-[15px]" aria-hidden="true"></i>{t('파일','Files')}{hostPitchFiles.length>0&&<span className="opacity-70">{hostPitchFiles.length}</span>}</button>
+            <button onClick={()=>{setView('stats');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='stats'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-chart-bar text-[15px]" aria-hidden="true"></i>{t('통계','Stats')}</button>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
@@ -852,11 +853,8 @@ export default function GuestView(){
             <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('정렬','Sort')}</span>{([['recent',t('최신순','Recent')],['bpm','BPM'],['vocal',t('보컬','Vocal')],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={pitchSort===v} onClick={()=>setPitchSort(v as any)} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('보컬','Vocal')}</span>{([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=><FilterPill key={v} label={l} active={pitchVocalFilter===v} onClick={()=>setPitchVocalFilter(v as any)} isDark={D}/>)}</div>
-              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('상태','Status')}</span>
-                <FilterPill label={t('전체','All')} active={pitchStatusFilter==='all'} onClick={()=>setPitchStatusFilter('all')} isDark={D}/>
-                {PITCH_STATUS_KEYS.map(s=><FilterPill key={s} label={t(PITCH_STATUS[s].ko,PITCH_STATUS[s].en)} active={pitchStatusFilter===s} onClick={()=>setPitchStatusFilter(s)} isDark={D}/>)}
-                <FilterPill label={t('미정','Untriaged')} active={pitchStatusFilter==='untriaged'} onClick={()=>setPitchStatusFilter('untriaged')} isDark={D}/>
-                <FilterPill label={showHiddenPitches?t('🗂 숨김 보는 중','🗂 Viewing hidden'):t('🗂 숨김','🗂 Hidden')} active={showHiddenPitches} onClick={()=>setShowHiddenPitches(v=>!v)} isDark={D}/>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('확인','Done')}</span>
+                <FilterPill label={showHiddenPitches?t('확인함 보는 중','Reviewed'):t('확인한 피칭 보기','Show reviewed')} active={showHiddenPitches} onClick={()=>setShowHiddenPitches(v=>!v)} isDark={D}/>
               </div>
             </div>
             {hostPitchLoading?(
@@ -909,13 +907,8 @@ export default function GuestView(){
                                     <p className={`text-[12px] mb-2 ${dimText}`}>{p.contact}{p.contact&&' · '}{new Date(p.created_at).toLocaleDateString('ko-KR',{month:'short',day:'numeric'})}</p>
                                     {p.message&&<p className={`text-[13px] leading-relaxed whitespace-pre-line mb-2 ${D?'text-zinc-300':'text-zinc-600'}`}>{p.message}</p>}
                                     {files.length>0&&<div className="flex flex-col gap-2 mb-2.5">{files.map((f:any)=><PitchFileRow key={f.id} f={f} D={D} dimText={dimText}/>)}</div>}
-                                    <div className={`flex items-center gap-1 flex-wrap pt-2 border-t border-dashed ${D?'border-white/[0.07]':'border-black/[0.07]'}`}>
-                                      {PITCH_STATUS_KEYS.map(s=>{const cur=p.status===s;return(
-                                        <button key={s} onClick={()=>updatePitchStatus(p,cur?'pending':s)} className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-black transition-all ${cur?PITCH_STATUS[s].cls:D?'text-zinc-600 hover:text-zinc-300':'text-zinc-400 hover:text-zinc-700'}`}>
-                                          {cur&&<span className={`w-1.5 h-1.5 rounded-full ${PITCH_STATUS[s].dot}`}/>}{t(PITCH_STATUS[s].ko,PITCH_STATUS[s].en)}
-                                        </button>
-                                      );})}
-                                      <button onClick={()=>setPitchHidden(p,!p.hidden)} title={p.hidden?t('목록으로 복구','Restore to list'):t('목록에서 제거(히스토리는 남음)','Remove from list (kept in history)')} className={`ml-auto px-2 py-1 rounded-lg text-[11px] font-black transition-all ${p.hidden?'text-[#3E78DB] hover:opacity-80':D?'text-zinc-600 hover:text-red-400':'text-zinc-400 hover:text-red-500'}`}>{p.hidden?t('복구','Restore'):t('제거','Remove')}</button>
+                                    <div className={`flex items-center justify-end pt-2 border-t border-dashed ${D?'border-white/[0.07]':'border-black/[0.07]'}`}>
+                                      <button onClick={()=>setPitchHidden(p,!p.hidden)} title={p.hidden?t('목록으로 복구','Restore to list'):t('확인하면 목록에서 사라져요 (히스토리는 남음)','Marks reviewed and hides from list (kept in history)')} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${p.hidden?'text-[#3E78DB] hover:opacity-80':'bg-[#3E78DB] text-white hover:bg-[#2F62C2]'}`}>{p.hidden?<><i className="ti ti-arrow-back-up" aria-hidden="true"></i>{t('복구','Restore')}</>:<><i className="ti ti-check" aria-hidden="true"></i>{t('확인','Done')}</>}</button>
                                     </div>
                                   </div>
                                 );
@@ -936,7 +929,7 @@ export default function GuestView(){
           <div className="relative z-10 min-h-[60vh]" onContextMenu={(e)=>{e.preventDefault();setAddFolderInput('');setNewFolderOpen(true);}}>
             <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
               <div className="relative">
-                <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] ${dimText}`}>🔍</span>
+                <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-[16px] ${dimText}`}><i className="ti ti-search" aria-hidden="true"></i></span>
                 <input value={fileSearch} onChange={e=>setFileSearch(e.target.value)} placeholder={t('파일명 · 보낸이 · 리드 · 장르 · 키 검색','Search file · sender · lead · genre · key')} className={`w-full border rounded-xl pl-10 pr-10 py-3 text-[15px] outline-none transition-all ${inputCls}`}/>
                 {fileSearch&&<button onClick={()=>setFileSearch('')} className={`absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center text-[12px] ${D?'bg-white/10 text-zinc-300 hover:bg-white/20':'bg-black/[0.06] text-zinc-600 hover:bg-black/10'}`}>✕</button>}
               </div>
@@ -948,7 +941,7 @@ export default function GuestView(){
                 <input type="number" value={bpmMax} onChange={e=>setBpmMax(e.target.value)} placeholder={t('최대','max')} className={`w-20 border rounded-full px-3 py-1 text-[12px] font-bold outline-none transition-all ${inputCls}`}/>
                 {(bpmMin||bpmMax)&&<button onClick={()=>{setBpmMin('');setBpmMax('');}} className={`px-2 text-[12px] font-black ${dimText} hover:opacity-80`}>✕</button>}
               </div>
-              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>📁 {t('폴더','Folder')}</span>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('폴더','Folder')}</span>
                 <FilterPill label={t('전체','All')} active={fileFolderFilter==='all'} onClick={()=>setFileFolderFilter('all')} isDark={D}/>
                 {[...new Set([...hostFolders,...hostPitchFiles.map((f:any)=>f.folder).filter(Boolean)])].map((fd:any)=>(
                   <span key={fd} className="inline-flex items-center group">
@@ -970,6 +963,7 @@ export default function GuestView(){
               let fv=hostPitchFiles.map(f=>{const p=pById[f.pitch_id];const lead=p?[...leads,...demoDrives].find(l=>l.id===p.lead_id):null;return{...f,_artist:p?.artist_name||'',_lead:lead?.artist||'',_created:p?.created_at||f.created_at};});
               fv=fv.filter(f=>hiddenFilesView?f.hidden:!f.hidden);
               if(fileVocalFilter!=='all')fv=fv.filter(f=>f.vocal_gender===fileVocalFilter);
+              if(memberFilter)fv=fv.filter(f=>f._artist===memberFilter);
               if(fileGenreFilter)fv=fv.filter(f=>f.genre===fileGenreFilter);
               if(fileKeyFilter)fv=fv.filter(f=>(f.key||'')===fileKeyFilter);
               {const lo=parseInt(bpmMin),hi=parseInt(bpmMax);if(!isNaN(lo))fv=fv.filter(f=>f.bpm>=lo);if(!isNaN(hi))fv=fv.filter(f=>f.bpm>0&&f.bpm<=hi);}
@@ -982,8 +976,9 @@ export default function GuestView(){
                 <>
                   <div className="flex items-center gap-2 mb-3 px-1 flex-wrap">
                     <span className={`text-[12px] font-black ${dimText}`}>{fv.length}{t('개 파일',' files')}</span>
-                    <button onClick={()=>{setHiddenFilesView(v=>!v);setSelFiles(new Set());}} className={`px-2.5 py-1 rounded-full text-[11px] font-black border transition-all ${hiddenFilesView?'bg-amber-500/15 border-amber-500/40 text-amber-400':D?'border-white/10 text-zinc-500 hover:text-zinc-300':'border-black/[0.08] text-zinc-400 hover:text-zinc-700'}`}>{hiddenFilesView?t('🗂 숨김 보는 중','🗂 Viewing hidden'):t('🗂 숨김','🗂 Hidden')}</button>
+                    <button onClick={()=>{setHiddenFilesView(v=>!v);setSelFiles(new Set());}} className={`px-2.5 py-1 rounded-full text-[11px] font-black border transition-all ${hiddenFilesView?'bg-amber-500/15 border-amber-500/40 text-amber-400':D?'border-white/10 text-zinc-500 hover:text-zinc-300':'border-black/[0.08] text-zinc-400 hover:text-zinc-700'}`}>{hiddenFilesView?t('숨김 보는 중','Viewing hidden'):t('숨김','Hidden')}</button>
                     {fv.length>0&&<button onClick={()=>setSelFiles(selFiles.size===fv.length?new Set():new Set(fv.map((f:any)=>f.id)))} className={`px-2.5 py-1 rounded-full text-[11px] font-black border transition-all ${D?'border-white/10 text-zinc-400 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{selFiles.size===fv.length&&fv.length>0?t('전체 해제','Deselect'):t('전체 선택','Select all')}</button>}
+                    {memberFilter&&<button onClick={()=>setMemberFilter('')} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-[#3E78DB]/15 text-[#3E78DB] hover:bg-[#3E78DB]/25"><i className="ti ti-user" aria-hidden="true"></i>{memberFilter} <i className="ti ti-x" aria-hidden="true"></i></button>}
                     {fileGenreFilter&&<button onClick={()=>setFileGenreFilter('')} className="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25">{t('장르','Genre')}: {fileGenreFilter} ✕</button>}
                     {fileKeyFilter&&<button onClick={()=>setFileKeyFilter('')} className="px-2.5 py-1 rounded-full text-[11px] font-black bg-[#3E78DB]/15 text-[#3E78DB] hover:bg-[#3E78DB]/25">KEY: {fileKeyFilter} ✕</button>}
                     {(bpmMin||bpmMax)&&<button onClick={()=>{setBpmMin('');setBpmMax('');}} className={`px-2.5 py-1 rounded-full text-[11px] font-black ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>BPM {bpmMin||'0'}~{bpmMax||'∞'} ✕</button>}
@@ -1005,11 +1000,11 @@ export default function GuestView(){
                         <div key={f.id} onContextMenu={(e)=>{e.preventDefault();e.stopPropagation();setFileAction(f);setNewFolder('');}} className={`rounded-xl border transition-all ${on?(D?'bg-white/[0.05] border-[#3E78DB]/40':'bg-[#3E78DB]/[0.05] border-[#3E78DB]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
                           <div className="flex items-center gap-2.5 px-3 py-2.5">
                             <button onClick={()=>setSelFiles(p=>{const n=new Set(p);n.has(f.id)?n.delete(f.id):n.add(f.id);return n;})} title={t('선택','Select')} className={`w-5 h-5 rounded-md border flex items-center justify-center text-[10px] shrink-0 transition-all ${selFiles.has(f.id)?'bg-[#3E78DB] border-[#3E78DB] text-white':D?'border-white/15 text-transparent hover:border-white/40':'border-black/15 text-transparent hover:border-black/40'}`}>✓</button>
-                            <button onClick={()=>setPlayingFileId(on?null:f.id)} title={on?t('정지','Stop'):t('재생','Play')} className={`w-9 h-9 rounded-xl flex items-center justify-center text-[13px] shrink-0 transition-all ${on?'bg-[#3E78DB] text-white':D?'bg-white/5 text-zinc-300 hover:bg-white/10':'bg-black/[0.04] text-zinc-600 hover:bg-black/[0.08]'}`}>{on?'⏸':'▶'}</button>
+                            <button onClick={()=>setPlayingFileId(on?null:f.id)} title={on?t('정지','Stop'):t('재생','Play')} className={`w-9 h-9 rounded-xl flex items-center justify-center text-[16px] shrink-0 transition-all ${on?'bg-[#3E78DB] text-white':D?'bg-white/5 text-zinc-300 hover:bg-white/10':'bg-black/[0.04] text-zinc-600 hover:bg-black/[0.08]'}`}><i className={on?'ti ti-player-pause':'ti ti-player-play'} aria-hidden="true"></i></button>
                             <div className="flex-1 min-w-0">
                               <p className={`font-bold text-[14px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{f.file_name||'audio.mp3'}</p>
                               <div className="flex items-center gap-1 flex-wrap mt-1">
-                                {f._artist&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${D?'bg-white/10 text-zinc-200':'bg-black/[0.06] text-zinc-700'}`}>👤 {f._artist}</span>}
+                                {f._artist&&<button onClick={()=>setMemberFilter(memberFilter===f._artist?'':f._artist)} title={t('이 보낸이만 보기','Filter by this sender')} className={`inline-flex items-center gap-1 text-[11px] font-black px-1.5 py-0.5 rounded transition-colors ${memberFilter===f._artist?'bg-[#3E78DB]/20 text-[#3E78DB]':D?'bg-white/10 text-zinc-200 hover:bg-white/15':'bg-black/[0.06] text-zinc-700 hover:bg-black/10'}`}><i className="ti ti-user" aria-hidden="true"></i>{f._artist}</button>}
                                 {vLabel&&<button onClick={()=>setFileVocalFilter(fileVocalFilter===f.vocal_gender?'all':f.vocal_gender)} title={t('이 성별만 보기','Filter by this')} className={`text-[11px] font-black px-1.5 py-0.5 rounded bg-[#3E78DB]/15 text-[#3E78DB] hover:bg-[#3E78DB]/25 transition-colors ${fileVocalFilter===f.vocal_gender?'ring-1 ring-[#3E78DB]':''}`}>{vLabel}</button>}
                                 {f.bpm>0&&<button onClick={()=>{setBpmMin(String(f.bpm));setBpmMax(String(f.bpm));}} title={t('이 BPM만 보기','Filter by this BPM')} className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip} hover:opacity-80 transition-opacity`}>{f.bpm} BPM</button>}
                                 {f.key&&<button onClick={()=>setFileKeyFilter(fileKeyFilter===f.key?'':f.key)} title={t('이 키만 보기','Filter by this key')} className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip} hover:opacity-80 transition-opacity ${fileKeyFilter===f.key?'ring-1 ring-[#3E78DB]':''}`}>{f.key}</button>}
@@ -1019,10 +1014,10 @@ export default function GuestView(){
                               </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
-                              <button onClick={()=>downloadFile(f)} title={t('다운로드','Download')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>⬇</button>
-                              <button onClick={()=>{setFileAction(f);setNewFolder('');}} title={t('폴더','Folder')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>📁</button>
-                              <button onClick={()=>setFilesHidden([f.id],!hiddenFilesView)} title={hiddenFilesView?t('복구','Restore'):t('제거(목록에서 숨김)','Remove (hide from list)')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{hiddenFilesView?'↩':'🗂'}</button>
-                              <button onClick={()=>deleteFile(f)} title={t('영구 삭제','Delete permanently')} className="w-8 h-8 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[13px] hover:bg-red-500/20 transition-all">🗑</button>
+                              <button onClick={()=>downloadFile(f)} title={t('다운로드','Download')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[15px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}><i className="ti ti-download" aria-hidden="true"></i></button>
+                              <button onClick={()=>{setFileAction(f);setNewFolder('');}} title={t('폴더','Folder')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[15px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}><i className="ti ti-folder" aria-hidden="true"></i></button>
+                              <button onClick={()=>setFilesHidden([f.id],!hiddenFilesView)} title={hiddenFilesView?t('복구','Restore'):t('제거(목록에서 숨김)','Remove (hide from list)')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[15px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}><i className={hiddenFilesView?'ti ti-arrow-back-up':'ti ti-eye-off'} aria-hidden="true"></i></button>
+                              <button onClick={()=>deleteFile(f)} title={t('영구 삭제','Delete permanently')} className="w-8 h-8 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-[15px] hover:bg-red-500/20 transition-all"><i className="ti ti-trash" aria-hidden="true"></i></button>
                             </div>
                           </div>
                           {on&&f.file_url&&<div className="px-3 pb-3"><audio autoPlay controls preload="none" src={f.file_url} className="w-full" style={{height:'40px',colorScheme:D?'dark':'light'}}/></div>}
