@@ -29,13 +29,13 @@ type PitchFileItem = {id:string;file:File;hash:string;vocal:'male'|'female'|'unk
 const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='group';if(gender==='mixed')return{bg:g?'bg-[#7C7F65]/10':'bg-[#7C7F65]/20',border:g?'border-[#7C7F65]/20':'border-[#7C7F65]/40',text:g?'text-[#7C7F65]/60':'text-[#A6A985]',dot:g?'bg-[#7C7F65]/40':'bg-[#7C7F65]',label:g?'혼성 그룹':'혼성'};if(gender==='female')return{bg:g?'bg-[#DE3C4B]/10':'bg-[#DE3C4B]/20',border:g?'border-[#DE3C4B]/20':'border-[#DE3C4B]/40',text:g?'text-[#DE3C4B]/55':'text-[#E97582]',dot:g?'bg-[#DE3C4B]/40':'bg-[#DE3C4B]',label:g?'여자 그룹':'여자'};return{bg:g?'bg-[#3E78DB]/10':'bg-[#3E78DB]/20',border:g?'border-[#3E78DB]/20':'border-[#3E78DB]/40',text:g?'text-[#3E78DB]/55':'text-[#94B6EE]',dot:g?'bg-[#3E78DB]/40':'bg-[#3E78DB]',label:g?'남자 그룹':'남자'};};
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
 const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${t.cls}`}>{t.label}</span>;};
-const getLinkIcon=(url:string)=>{if(!url)return'🔗';if(url.includes('youtube')||url.includes('youtu.be'))return'▶️';if(url.includes('soundcloud'))return'🎵';if(url.includes('spotify'))return'🎧';if(url.includes('instagram'))return'📸';return'🔗';};
+const getLinkIcon=(url:string)=>{if(!url)return'ti ti-link';if(url.includes('youtube')||url.includes('youtu.be'))return'ti ti-brand-youtube';if(url.includes('soundcloud'))return'ti ti-brand-soundcloud';if(url.includes('spotify'))return'ti ti-brand-spotify';if(url.includes('instagram'))return'ti ti-brand-instagram';return'ti ti-link';};
 const PitchFileRow=({f,D,dimText}:{f:any;D:boolean;dimText:string})=>{
   const vLabel=f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
   return(
     <div className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D?'bg-black/20':'bg-black/[0.04]'}`}>
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[12px]">🎵</span>
+        <span className="text-[12px]"><i className="ti ti-music" aria-hidden="true"></i></span>
         <span className={`flex-1 min-w-0 text-[11px] truncate ${D?'text-zinc-300':'text-zinc-700'}`}>{f.file_name||'audio.mp3'}</span>
         {vLabel&&<span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#3E78DB]/15 text-[#3E78DB]">{vLabel}</span>}
         {f.bpm>0&&<span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
@@ -561,7 +561,7 @@ export default function GuestView(){
           {s.title&&<p className={`text-[11px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-500':'text-zinc-400'}`}>{i+1}. {s.title}</p>}
           <div className={`text-[13px] leading-relaxed ${D?'text-zinc-300':'text-zinc-700'}`}>
             {s.body.split(/(https?:\/\/[^\s]+)/g).map((part,j)=>{
-              if(part.match(/^https?:\/\//))return<a key={j} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><span>{getLinkIcon(part)}</span><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
+              if(part.match(/^https?:\/\//))return<a key={j} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><i className={getLinkIcon(part)} aria-hidden="true"></i><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
               return<span key={j} className="whitespace-pre-wrap">{part}</span>;
             })}
           </div>
@@ -580,7 +580,7 @@ export default function GuestView(){
               {s.title&&<p className={`text-[11px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-500':'text-zinc-400'}`}>{i+1}. {s.title}</p>}
               <div className={`text-[13px] leading-relaxed ${D?'text-zinc-300':'text-zinc-700'}`}>
                 {s.body.split(/(https?:\/\/[^\s]+)/g).map((part,j)=>{
-                  if(part.match(/^https?:\/\//))return<a key={j} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><span>{getLinkIcon(part)}</span><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
+                  if(part.match(/^https?:\/\//))return<a key={j} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><i className={getLinkIcon(part)} aria-hidden="true"></i><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
                   return<span key={j} className="whitespace-pre-wrap">{part}</span>;
                 })}
               </div>
@@ -590,15 +590,15 @@ export default function GuestView(){
       );
     }
     return content.split(/(https?:\/\/[^\s]+)/g).map((part,i)=>{
-      if(part.match(/^https?:\/\//))return<a key={i} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><span>{getLinkIcon(part)}</span><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
+      if(part.match(/^https?:\/\//))return<a key={i} href={part} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#3E78DB] hover:underline break-all"><i className={getLinkIcon(part)} aria-hidden="true"></i><span>{part.replace(/^https?:\/\//,'').split('/').slice(0,2).join('/')}</span></a>;
       return<span key={i} className="whitespace-pre-wrap">{part}</span>;
     });
   };
 
   const getLeadPreview=(lead:any)=>{
     const sections=parseSections(lead.content||'');
-    if(sections)return sections.map((s:any)=>s.body).join(' ').replace(/https?:\/\/[^\s]+/g,'🔗').slice(0,80);
-    return(lead.content||'').replace(/https?:\/\/[^\s]+/g,'🔗').slice(0,80);
+    if(sections)return sections.map((s:any)=>s.body).join(' ').replace(/https?:\/\/[^\s]+/g,'↗').slice(0,80);
+    return(lead.content||'').replace(/https?:\/\/[^\s]+/g,'↗').slice(0,80);
   };
 
   const getDaysInMonth=(date:Date)=>{const y=date.getFullYear(),m=date.getMonth();return{firstDay:new Date(y,m,1).getDay(),daysInMonth:new Date(y,m+1,0).getDate(),year:y,month:m};};
@@ -632,7 +632,7 @@ export default function GuestView(){
               <div className="ml-2 shrink-0"><DeadlineDisplay lead={lead} size="normal"/></div>
             </div>
             {lead.content&&<p className={`text-[11px] line-clamp-2 mt-1 ${D?"text-zinc-500":"text-zinc-600"}`}>{getLeadPreview(lead)}</p>}
-            {urls.length>0&&<div className="flex gap-1.5 mt-2 pt-2 border-t border-white/5">{urls.slice(0,3).map((url,i)=><a key={i} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} className="text-[13px] hover:scale-110 transition-transform">{getLinkIcon(url)}</a>)}{urls.length>3&&<span className="text-zinc-700 text-[10px] self-center">+{urls.length-3}</span>}</div>}
+            {urls.length>0&&<div className="flex gap-1.5 mt-2 pt-2 border-t border-white/5">{urls.slice(0,3).map((url,i)=><a key={i} href={url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} className="text-[15px] hover:scale-110 transition-transform"><i className={getLinkIcon(url)} aria-hidden="true"></i></a>)}{urls.length>3&&<span className="text-zinc-700 text-[10px] self-center">+{urls.length-3}</span>}</div>}
           </>
         )}
       </div>
@@ -642,7 +642,7 @@ export default function GuestView(){
   const FileItem=({item}:{item:PitchFileItem})=>(
     <div className={`border rounded-2xl overflow-hidden ${D?'border-white/10 bg-white/[0.03]':'border-black/[0.08] bg-black/[0.02]'}`}>
       <div className="flex items-center gap-3 px-4 py-3">
-        <span className="text-[16px]">🎵</span>
+        <span className="text-[16px]"><i className="ti ti-music" aria-hidden="true"></i></span>
         <div className="flex-1 min-w-0">
           <p className={`text-[12px] font-bold truncate ${D?'text-white':'text-[#111]'}`}>{item.file.name}</p>
           <p className={`text-[11px] ${D?'text-zinc-600':'text-zinc-400'}`}>{(item.file.size/1024/1024).toFixed(1)}MB{item.duration>0&&` · ${fmtDur(item.duration)}`}</p>
@@ -653,11 +653,11 @@ export default function GuestView(){
       </div>
       {!item.analyzing&&(
         <div className={`px-4 pb-4 border-t pt-3 flex flex-col gap-3 ${D?'border-white/5':'border-black/[0.05]'}`}>
-          {item.isDuplicate&&<div className="px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20"><p className="text-yellow-400 text-[11px] font-bold">⚠️ 이미 제출된 적 있는 파일이에요</p></div>}
+          {item.isDuplicate&&<div className="px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20"><p className="text-yellow-400 text-[11px] font-bold">이미 제출된 적 있는 파일이에요</p></div>}
           {item.vocal!=='unknown'&&(
             <div className="flex items-center gap-2">
               <span className={`text-[10px] font-black uppercase tracking-widest ${D?'text-zinc-600':'text-zinc-400'}`}>보컬</span>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${vocalCls(item.vocal)}`}>🎤 {vocalLabel(item.vocal)}</span>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${vocalCls(item.vocal)}`}>{vocalLabel(item.vocal)}</span>
               <span className={`text-[10px] ${D?'text-zinc-700':'text-zinc-400'}`}>자동 감지</span>
             </div>
           )}
@@ -696,7 +696,7 @@ export default function GuestView(){
             </div>
           </div>
           <div className={`border rounded-2xl p-8 ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
-            <div className="text-4xl mb-4">{icon}</div>
+            <div className="text-4xl mb-4"><i className={icon} aria-hidden="true"></i></div>
             <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>{title}</h2>
             <p className={`text-[13px] leading-relaxed ${dimText}`}>{sub}</p>
             {children}
@@ -708,11 +708,11 @@ export default function GuestView(){
   );
 
   if(authStatus==='loading')return(<div className={`min-h-screen ${mainBg} flex items-center justify-center`}><div className="w-6 h-6 border-2 border-[#3E78DB] border-t-transparent rounded-full animate-spin"/></div>);
-  if(authStatus==='none')return(<GateScreen icon="🔐" title="로그인이 필요해요" sub="리드를 보고 피칭하려면 로그인하세요."><a href={`/guest?hostId=${hostId}&redirect=/view/${hostId}`} className="block w-full mt-6 py-3.5 rounded-xl bg-[#3E78DB] text-white font-semibold text-[13px] hover:opacity-90 transition-all">로그인 / 회원가입</a></GateScreen>);
-  if(authStatus==='pending')return(<GateScreen icon="⏳" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
-  if(authStatus==='rejected')return(<GateScreen icon="🚫" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  if(authStatus==='none')return(<GateScreen icon="ti ti-lock" title="로그인이 필요해요" sub="리드를 보고 피칭하려면 로그인하세요."><a href={`/guest?hostId=${hostId}&redirect=/view/${hostId}`} className="block w-full mt-6 py-3.5 rounded-xl bg-[#3E78DB] text-white font-semibold text-[13px] hover:opacity-90 transition-all">로그인 / 회원가입</a></GateScreen>);
+  if(authStatus==='pending')return(<GateScreen icon="ti ti-clock" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  if(authStatus==='rejected')return(<GateScreen icon="ti ti-ban" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
   if(authStatus==='approved'&&hostStatus==='loading')return(<div className={`min-h-screen ${mainBg} flex items-center justify-center`}><div className="w-6 h-6 border-2 border-[#3E78DB] border-t-transparent rounded-full animate-spin"/></div>);
-  if(authStatus==='approved'&&hostStatus==='pending')return(<GateScreen icon="🔒" title="이용이 제한된 계정이에요" sub={"구독 만료 또는 정지 상태예요.\n문의: everplayground@gmail.com"}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  if(authStatus==='approved'&&hostStatus==='pending')return(<GateScreen icon="ti ti-lock" title="이용이 제한된 계정이에요" sub={"구독 만료 또는 정지 상태예요.\n문의: everplayground@gmail.com"}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-xl border font-bold text-[13px] transition-all ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
 
   return(
     <>
@@ -744,7 +744,7 @@ export default function GuestView(){
 
         {(announcements.length>0||isOwner)&&<div className="relative z-10 mb-5 flex flex-col gap-2">
           {isOwner&&<div className="flex items-center justify-between"><span className={`text-[11px] font-black uppercase tracking-widest ${dimText}`}>{t('공지','Notice')}</span><button onClick={()=>openAnnForm()} className="px-3 py-1 rounded-lg text-[11px] font-bold border border-[#3E78DB]/30 text-[#3E78DB] hover:bg-[#3E78DB]/10 transition-all">+ {t('공지','Notice')}</button></div>}
-          {announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#3E78DB]/10 border border-[#3E78DB]/20"><span className="text-[#3E78DB] text-[11px] font-black mt-0.5 shrink-0">📢</span><div className="flex-1 min-w-0">{ann.title&&<p className={`font-bold text-[13px] mb-0.5 ${D?'text-white':'text-[#111]'}`}>{ann.title}</p>}<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?"text-zinc-300":"text-zinc-700"}`}>{ann.content}</p></div>{isOwner&&<div className="flex gap-2 shrink-0 ml-2"><button onClick={()=>openAnnForm(ann)} className={`text-[11px] font-bold ${dimText} hover:text-[#3E78DB] transition-colors`}>{t('수정','Edit')}</button><button onClick={()=>{if(confirm(t('이 공지를 삭제할까요?','Delete this notice?')))deleteAnnouncement(ann.id);}} className="text-[11px] font-bold text-zinc-500 hover:text-red-500 transition-colors">{t('삭제','Delete')}</button></div>}</div>)}
+          {announcements.map(ann=><div key={ann.id} className="flex items-start gap-3 px-4 py-3 rounded-xl bg-[#3E78DB]/10 border border-[#3E78DB]/20"><span className="text-[#3E78DB] text-[11px] font-black mt-0.5 shrink-0"><i className="ti ti-speakerphone" aria-hidden="true"></i></span><div className="flex-1 min-w-0">{ann.title&&<p className={`font-bold text-[13px] mb-0.5 ${D?'text-white':'text-[#111]'}`}>{ann.title}</p>}<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?"text-zinc-300":"text-zinc-700"}`}>{ann.content}</p></div>{isOwner&&<div className="flex gap-2 shrink-0 ml-2"><button onClick={()=>openAnnForm(ann)} className={`text-[11px] font-bold ${dimText} hover:text-[#3E78DB] transition-colors`}>{t('수정','Edit')}</button><button onClick={()=>{if(confirm(t('이 공지를 삭제할까요?','Delete this notice?')))deleteAnnouncement(ann.id);}} className="text-[11px] font-bold text-zinc-500 hover:text-red-500 transition-colors">{t('삭제','Delete')}</button></div>}</div>)}
         </div>}
 
         <div className={`relative z-30 flex flex-col gap-3 mb-6 border-b ${dividerCls} pb-4`}>
@@ -885,12 +885,12 @@ export default function GuestView(){
                         <button onClick={()=>setExpandedPitchLeads(prev=>({...prev,[lid]:!open}))} className={`w-full flex items-center gap-3 px-5 py-4 text-left transition-all ${D?'hover:bg-white/[0.03]':'hover:bg-black/[0.03]'}`}>
                           <span className={`text-[16px] transition-transform shrink-0 ${open?'rotate-90':''} ${dimText}`}>›</span>
                           <div className="flex-1 min-w-0">
-                            <p className={`font-black text-[17px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{lead?lead.artist:(lid==='none'?`🎤 ${t('자유 데모 (직접 수급)','Free Demos')}`:t('삭제된 리드','Deleted lead'))}</p>
+                            <p className={`font-black text-[17px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{lead?lead.artist:(lid==='none'?`${t('자유 데모 (직접 수급)','Free Demos')}`:t('삭제된 리드','Deleted lead'))}</p>
                             {lead?.title&&<p className={`text-[13px] mt-0.5 truncate ${dimText}`}>{lead.title}</p>}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <span className="text-[13px] font-black px-3 py-1 rounded-full bg-[#3E78DB]/15 text-[#3E78DB]">{t('피칭','Pitches')} {groupPitches.length}</span>
-                            {fileCount>0&&<span className={`text-[13px] font-black px-3 py-1 rounded-full ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>🎵 {fileCount}</span>}
+                            {fileCount>0&&<span className={`text-[13px] font-black px-3 py-1 rounded-full ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}><i className="ti ti-music" aria-hidden="true"></i> {fileCount}</span>}
                           </div>
                         </button>
                         {open&&(
@@ -902,7 +902,7 @@ export default function GuestView(){
                                   <div key={p.id} className={`p-4 rounded-xl border ${D?'bg-black/20 border-white/[0.06]':'bg-white border-black/[0.06]'}`}>
                                     <div className="flex items-start justify-between gap-2 mb-2">
                                       <p className={`font-black text-[15px] leading-tight ${D?'text-white':'text-[#111]'}`}>{p.artist_name}</p>
-                                      {files.length>0&&<span className={`text-[11px] font-black px-2 py-0.5 rounded-full shrink-0 ${D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>}
+                                      {files.length>0&&<span className={`text-[11px] font-black px-2 py-0.5 rounded-full shrink-0 ${D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>}
                                     </div>
                                     <p className={`text-[12px] mb-2 ${dimText}`}>{p.contact}{p.contact&&' · '}{new Date(p.created_at).toLocaleDateString('ko-KR',{month:'short',day:'numeric'})}</p>
                                     {p.message&&<p className={`text-[13px] leading-relaxed whitespace-pre-line mb-2 ${D?'text-zinc-300':'text-zinc-600'}`}>{p.message}</p>}
@@ -1009,7 +1009,7 @@ export default function GuestView(){
                                 {f.bpm>0&&<button onClick={()=>{setBpmMin(String(f.bpm));setBpmMax(String(f.bpm));}} title={t('이 BPM만 보기','Filter by this BPM')} className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip} hover:opacity-80 transition-opacity`}>{f.bpm} BPM</button>}
                                 {f.key&&<button onClick={()=>setFileKeyFilter(fileKeyFilter===f.key?'':f.key)} title={t('이 키만 보기','Filter by this key')} className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip} hover:opacity-80 transition-opacity ${fileKeyFilter===f.key?'ring-1 ring-[#3E78DB]':''}`}>{f.key}</button>}
                                 {f.genre&&<button onClick={()=>setFileGenreFilter(fileGenreFilter===f.genre?'':f.genre)} title={t('이 장르만 보기','Filter by this genre')} className={`text-[11px] font-black px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors ${fileGenreFilter===f.genre?'ring-1 ring-emerald-400':''}`}>{f.genre}</button>}
-                                {f.folder&&<span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">📁 {f.folder}</span>}
+                                {f.folder&&<span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 inline-flex items-center gap-1"><i className="ti ti-folder" aria-hidden="true"></i>{f.folder}</span>}
                                 {f._lead&&<span className={`text-[11px] ${dimText}`}>→ {f._lead}</span>}
                               </div>
                             </div>
@@ -1073,13 +1073,13 @@ export default function GuestView(){
                   </div>
 
                   <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>📨 {t('리드별 피칭 수','Pitches per Lead')}</p>
+                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}><i className="ti ti-inbox" aria-hidden="true"></i> {t('리드별 피칭 수','Pitches per Lead')}</p>
                     {leadRank.length===0?<p className={`text-[13px] ${dimText}`}>{t('아직 데이터가 없어요','No data yet')}</p>:<div className="flex flex-col gap-2.5">{leadRank.map(x=>bar(x.lead.artist,x.n,maxLead,`${x.n}`,'bg-[#3E78DB]'))}</div>}
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                      <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>👤 {t('멤버별 피칭 수','Pitches per Member')}</p>
+                      <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}><i className="ti ti-user" aria-hidden="true"></i> {t('멤버별 피칭 수','Pitches per Member')}</p>
                       {memberRank.length===0?<p className={`text-[13px] ${dimText}`}>{t('아직 데이터가 없어요','No data yet')}</p>:<div className="flex flex-col gap-2.5">{memberRank.map(x=>bar(x.name,x.n,maxMember,`${x.n}`,'bg-emerald-500'))}</div>}
                     </div>
                     <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
@@ -1089,7 +1089,7 @@ export default function GuestView(){
                   </div>
 
                   <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}>🎤 {t('보컬 분포','Vocal Distribution')}</p>
+                    <p className={`text-[15px] font-black mb-4 ${D?'text-white':'text-[#111]'}`}><i className="ti ti-microphone" aria-hidden="true"></i> {t('보컬 분포','Vocal Distribution')}</p>
                     <div className="flex gap-3 flex-wrap">
                       {([[t('남성','Male'),vocalCount.male,'text-blue-400'],[t('여성','Female'),vocalCount.female,'text-pink-400'],[t('혼성','Mixed'),vocalCount.both,'text-purple-400'],[t('미지정','N/A'),vocalCount.none,dimText]] as const).map(([l,n,c])=>(
                         <div key={l} className={`flex-1 min-w-[100px] text-center p-4 rounded-xl ${D?'bg-white/[0.03]':'bg-black/[0.03]'}`}>
@@ -1140,7 +1140,7 @@ export default function GuestView(){
               </div>
               <div className="flex gap-2">
                 <button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-[13px] hover:bg-amber-500/20 transition-all">✏️ 수정</button>
-                <button onClick={()=>{if(confirm('이 리드를 삭제할까요?')){deleteLead(viewingLead.id);setViewingLead(null);}}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 text-[13px] hover:bg-red-500/10 transition-all">🗑</button>
+                <button onClick={()=>{if(confirm('이 리드를 삭제할까요?')){deleteLead(viewingLead.id);setViewingLead(null);}}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 text-[13px] hover:bg-red-500/10 transition-all"><i className="ti ti-trash" aria-hidden="true"></i></button>
                 <button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-[13px] hover:text-white transition-all">닫기</button>
               </div>
             </div>
@@ -1163,7 +1163,7 @@ export default function GuestView(){
                 </div>
               ):(
                 <>
-                  <div className="mb-5"><h2 className={`font-black text-[20px] ${D?'text-white':'text-[#111]'}`}>🎵 피칭하기</h2><p className={`text-[12px] mt-0.5 ${dimText}`}>{pitchingLead.artist} — {pitchingLead.title}</p></div>
+                  <div className="mb-5"><h2 className={`font-black text-[20px] ${D?'text-white':'text-[#111]'}`}><i className="ti ti-music" aria-hidden="true"></i> 피칭하기</h2><p className={`text-[12px] mt-0.5 ${dimText}`}>{pitchingLead.artist} — {pitchingLead.title}</p></div>
                   <div className="flex flex-col gap-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div><label className={`text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>아티스트명 *</label><input value={pitchForm.artist_name} onChange={e=>setPitchForm(p=>({...p,artist_name:e.target.value}))} placeholder="아티스트명" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/></div>
@@ -1202,7 +1202,7 @@ export default function GuestView(){
             <div className="max-h-[85vh] flex flex-col">
               <div className={`flex items-center justify-between p-5 border-b ${D?'border-white/10':'border-black/[0.08]'}`}>
                 <div>
-                  <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>📨 내 피칭 목록</h2>
+                  <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}><i className="ti ti-inbox" aria-hidden="true"></i> 내 피칭 목록</h2>
                   <p className={`text-[12px] mt-0.5 ${dimText}`}>총 {myPitches.length}건</p>
                 </div>
                 <button onClick={()=>setShowMyPitches(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-[13px] ${D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>✕</button>
@@ -1224,7 +1224,7 @@ export default function GuestView(){
                               <p className={`font-bold text-[13px] ${D?'text-white':'text-[#111]'}`}>{lead?.artist||'—'}<span className={`font-normal ml-1 ${dimText}`}>{lead?.title}</span></p>
                               <p className={`text-[11px] mt-0.5 ${dimText}`}>{new Date(p.created_at).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})}</p>
                             </div>
-                            {files.length>0&&<span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ml-2 ${D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>}
+                            {files.length>0&&<span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ml-2 ${D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>}
                           </div>
                           {p.message&&<p className={`text-[12px] leading-relaxed whitespace-pre-line mt-1 ${D?'text-zinc-400':'text-zinc-600'}`}>{p.message}</p>}
                           {files.length>0&&(
@@ -1234,7 +1234,7 @@ export default function GuestView(){
                                 return(
                                 <div key={f.id} className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D?'bg-black/20':'bg-black/[0.04]'}`}>
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-[12px]">🎵</span>
+                                    <span className="text-[12px]"><i className="ti ti-music" aria-hidden="true"></i></span>
                                     <span className={`flex-1 min-w-0 text-[11px] truncate ${D?'text-zinc-300':'text-zinc-700'}`}>{f.file_name||'audio.mp3'}</span>
                                     {vLabel&&<span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#3E78DB]/15 text-[#3E78DB]">{vLabel}</span>}
                                     {f.bpm>0&&<span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
@@ -1299,7 +1299,7 @@ export default function GuestView(){
           <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
               <div>
-                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>👤 {t('워크스페이스 관리자','Workspace Admins')}</h2>
+                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}><i className="ti ti-user" aria-hidden="true"></i> {t('워크스페이스 관리자','Workspace Admins')}</h2>
                 <p className={`text-[12px] mt-0.5 ${dimText}`}>{t('이 회사를 함께 관리할 사람을 초대해요','Invite people to co-manage this workspace')}</p>
               </div>
               <button onClick={()=>setShowWsAdmins(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-[13px] ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
@@ -1318,7 +1318,7 @@ export default function GuestView(){
                 <div className="flex flex-col gap-2">
                   {wsAdmins.map(a=>(
                     <div key={a.id} className={`flex items-center gap-3 p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
-                      <div className="w-9 h-9 rounded-xl bg-[#3E78DB]/15 flex items-center justify-center text-[15px] shrink-0">👤</div>
+                      <div className="w-9 h-9 rounded-xl bg-[#3E78DB]/15 flex items-center justify-center text-[15px] shrink-0"><i className="ti ti-user" aria-hidden="true"></i></div>
                       <div className="flex-1 min-w-0">
                         <p className={`font-bold text-[13px] truncate ${D?'text-white':'text-[#111]'}`}>{a.admin_email}</p>
                         <p className={`text-[11px] ${dimText}`}>{a.admin_id?t('연결됨','connected'):t('초대 대기','pending')}</p>
@@ -1363,7 +1363,7 @@ export default function GuestView(){
       {newFolderOpen&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setNewFolderOpen(false)}>
           <div className={`anim-rise w-full max-w-sm border rounded-t-[2rem] sm:rounded-2xl shadow-2xl p-6 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
-            <div className="flex items-center gap-2 mb-1"><span className="text-[16px]">📁</span><p className={`font-black text-[15px] ${D?'text-white':'text-[#111]'}`}>{t('새 폴더','New folder')}</p></div>
+            <div className="flex items-center gap-2 mb-1"><span className="text-[16px]"><i className="ti ti-folder-plus" aria-hidden="true"></i></span><p className={`font-black text-[15px] ${D?'text-white':'text-[#111]'}`}>{t('새 폴더','New folder')}</p></div>
             <p className={`text-[12px] mb-4 ${dimText}`}>{t('파일을 정리할 폴더를 만들어요','Create a folder to organize files')}</p>
             <input autoFocus value={addFolderInput} onChange={e=>setAddFolderInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&addFolderInput.trim()){addFolder(addFolderInput.trim());setNewFolderOpen(false);}}} placeholder={t('폴더 이름','Folder name')} className={`w-full border rounded-xl px-3 py-2.5 text-[14px] outline-none transition-all mb-4 ${inputCls}`}/>
             <div className="flex gap-2 justify-end">
@@ -1377,15 +1377,15 @@ export default function GuestView(){
       {fileAction&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setFileAction(null)}>
           <div className={`anim-rise w-full max-w-md border rounded-t-[2rem] sm:rounded-2xl shadow-2xl p-6 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
-            <div className="flex items-center gap-2 mb-1"><span className="text-[16px]">🎵</span><p className={`font-black text-[15px] truncate ${D?'text-white':'text-[#111]'}`}>{fileAction.file_name||'audio.mp3'}</p></div>
-            {(fileAction._artist||fileAction.vocal_gender)&&<p className={`text-[12px] mb-2 ${dimText}`}>{fileAction._artist?`👤 ${fileAction._artist}`:''}{fileAction._artist&&fileAction.vocal_gender?'  ·  ':''}{fileAction.vocal_gender==='male'?t('남성','Male'):fileAction.vocal_gender==='female'?t('여성','Female'):fileAction.vocal_gender==='both'?t('혼성','Mixed'):''}</p>}
-            <button onClick={()=>downloadFile(fileAction)} className="w-full mb-4 py-2.5 rounded-xl bg-[#3E78DB] text-white font-bold text-[13px] hover:opacity-90 transition-all">⬇ {t('원본 파일명으로 다운로드','Download with original name')}</button>
+            <div className="flex items-center gap-2 mb-1"><span className="text-[16px]"><i className="ti ti-music" aria-hidden="true"></i></span><p className={`font-black text-[15px] truncate ${D?'text-white':'text-[#111]'}`}>{fileAction.file_name||'audio.mp3'}</p></div>
+            {(fileAction._artist||fileAction.vocal_gender)&&<p className={`text-[12px] mb-2 ${dimText}`}>{fileAction._artist||''}{fileAction._artist&&fileAction.vocal_gender?'  ·  ':''}{fileAction.vocal_gender==='male'?t('남성','Male'):fileAction.vocal_gender==='female'?t('여성','Female'):fileAction.vocal_gender==='both'?t('혼성','Mixed'):''}</p>}
+            <button onClick={()=>downloadFile(fileAction)} className="w-full mb-4 py-2.5 rounded-xl bg-[#3E78DB] text-white font-bold text-[13px] hover:opacity-90 transition-all inline-flex items-center justify-center gap-1.5"><i className="ti ti-download" aria-hidden="true"></i>{t('원본 파일명으로 다운로드','Download with original name')}</button>
             <p className={`text-[12px] mb-4 ${dimText}`}>{t('폴더로 정리하거나 삭제할 수 있어요','Organize into a folder or delete')}</p>
-            <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${dimText}`}>📁 {t('폴더 이동','Move to folder')}</p>
+            <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${dimText}`}>{t('폴더 이동','Move to folder')}</p>
             <div className="flex flex-wrap gap-2 mb-3">
               <button onClick={()=>moveFileFolder(fileAction,null)} className={`px-3 py-1.5 rounded-full text-[12px] font-black border transition-all ${!fileAction.folder?'bg-[#3E78DB] border-[#3E78DB] text-white':D?'border-white/10 bg-white/5 text-zinc-400':'border-black/[0.08] bg-black/[0.04] text-zinc-500'}`}>{t('미분류','Unsorted')}</button>
               {[...new Set([...hostFolders,...hostPitchFiles.map((f:any)=>f.folder).filter(Boolean)])].map((fd:any)=>(
-                <button key={fd} onClick={()=>moveFileFolder(fileAction,fd)} className={`px-3 py-1.5 rounded-full text-[12px] font-black border transition-all ${fileAction.folder===fd?'bg-amber-500 border-amber-500 text-white':D?'border-white/10 bg-white/5 text-zinc-300':'border-black/[0.08] bg-black/[0.04] text-zinc-600'}`}>📁 {fd}</button>
+                <button key={fd} onClick={()=>moveFileFolder(fileAction,fd)} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] font-black border transition-all ${fileAction.folder===fd?'bg-amber-500 border-amber-500 text-white':D?'border-white/10 bg-white/5 text-zinc-300':'border-black/[0.08] bg-black/[0.04] text-zinc-600'}`}><i className="ti ti-folder" aria-hidden="true"></i>{fd}</button>
               ))}
             </div>
             <div className="flex gap-2 mb-5">
@@ -1394,7 +1394,7 @@ export default function GuestView(){
             </div>
             <div className="flex gap-2">
               <button onClick={()=>setFileAction(null)} className={`flex-1 py-3 rounded-xl border font-bold text-[13px] ${D?'border-white/10 text-zinc-400':'border-black/[0.08] text-zinc-500'}`}>{t('닫기','Close')}</button>
-              <button onClick={()=>deleteFile(fileAction)} className="px-5 py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 font-black text-[13px] hover:bg-red-500/20 transition-all">🗑 {t('삭제','Delete')}</button>
+              <button onClick={()=>deleteFile(fileAction)} className="px-5 py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 font-black text-[13px] hover:bg-red-500/20 transition-all inline-flex items-center gap-1.5"><i className="ti ti-trash" aria-hidden="true"></i>{t('삭제','Delete')}</button>
             </div>
           </div>
         </div>
@@ -1405,7 +1405,7 @@ export default function GuestView(){
           <div className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
               <div>
-                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}>🎤 {t('데모 수급','Demo Drives')}</h2>
+                <h2 className={`font-black text-[18px] ${D?'text-white':'text-[#111]'}`}><i className="ti ti-microphone" aria-hidden="true"></i> {t('데모 수급','Demo Drives')}</h2>
                 <p className={`text-[12px] mt-0.5 ${dimText}`}>{t('리드와 무관하게 데모를 받는 슬롯을 만들어요','Named slots to collect demos, no lead needed')}</p>
               </div>
               <button onClick={()=>setShowDemoMgr(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-[13px] ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
@@ -1432,7 +1432,7 @@ export default function GuestView(){
                 <div className="flex flex-col gap-2">
                   {demoDrives.map(d=>(
                     <div key={d.id} className={`flex items-center gap-3 p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
-                      <div className="w-9 h-9 rounded-xl bg-[#3E78DB]/15 flex items-center justify-center text-[16px] shrink-0">🎤</div>
+                      <div className="w-9 h-9 rounded-xl bg-[#3E78DB]/15 flex items-center justify-center text-[16px] shrink-0"><i className="ti ti-microphone" aria-hidden="true"></i></div>
                       <div className="flex-1 min-w-0">
                         <p className={`font-bold text-[14px] truncate ${D?'text-white':'text-[#111]'}`}>{d.artist}</p>
                         <p className={`text-[11px] ${dimText}`}>{d.deadline?`~${d.deadline}`:t('마감일 없음','No deadline')}</p>
@@ -1469,7 +1469,7 @@ export default function GuestView(){
                     {['pending','approved','admin','rejected'].map(statusGroup=>{
                       const group=memberList.filter(m=>m.status===statusGroup);
                       if(group.length===0)return null;
-                      const groupLabel={pending:'⏳ 승인 대기',approved:'✅ 승인됨',admin:'⭐ 관리자',rejected:'🚫 거절됨'}[statusGroup];
+                      const groupLabel={pending:'승인 대기',approved:'승인됨',admin:'관리자',rejected:'거절됨'}[statusGroup];
                       return(
                         <div key={statusGroup} className="mb-2">
                           <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-600':'text-zinc-400'}`}>{groupLabel}</p>
@@ -1585,7 +1585,7 @@ export default function GuestView(){
 
       {pitchToast&&(
         <button onClick={()=>{setView('pitches');fetchHostPitches();setPitchToast(null);}} className="fixed top-5 right-5 z-[60] flex items-center gap-3 px-5 py-4 rounded-2xl border border-[#3E78DB]/40 bg-[#0E1530] shadow-2xl shadow-[#3E78DB]/20 animate-[slideIn_0.3s_ease] text-left max-w-[340px] hover:scale-[1.02] transition-transform">
-          <div className="w-10 h-10 rounded-full bg-[#3E78DB]/20 flex items-center justify-center text-[18px] shrink-0">📨</div>
+          <div className="w-10 h-10 rounded-full bg-[#3E78DB]/20 flex items-center justify-center text-[18px] shrink-0"><i className="ti ti-inbox" aria-hidden="true"></i></div>
           <div className="min-w-0">
             <p className="text-white font-black text-[14px]">{t('새 피칭 도착!','New pitch!')}</p>
             <p className="text-zinc-300 text-[12px] truncate"><span className="font-bold">{pitchToast.artist}</span>{pitchToast.lead&&<span className="text-zinc-500"> → {pitchToast.lead}</span>}</p>
@@ -1595,7 +1595,7 @@ export default function GuestView(){
       )}
       {shareToast&&(
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-5 py-3 rounded-full bg-[#3E78DB] text-white text-[13px] font-black shadow-2xl shadow-[#3E78DB]/30 animate-[slideIn_0.25s_ease]">
-          ✅ {t('공유 링크가 복사됐어요','Share link copied')}
+          <i className="ti ti-check" aria-hidden="true"></i> {t('공유 링크가 복사됐어요','Share link copied')}
         </div>
       )}
       <style dangerouslySetInnerHTML={{__html:`@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}`}}/>
