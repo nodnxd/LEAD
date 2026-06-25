@@ -159,6 +159,7 @@ export default function GuestView(){
   const [bpmMax,setBpmMax]=useState('');
   const [fileGenreFilter,setFileGenreFilter]=useState('');
   const [fileKeyFilter,setFileKeyFilter]=useState('');
+  const [newFolderOpen,setNewFolderOpen]=useState(false);
   const [fileFolderFilter,setFileFolderFilter]=useState<string>('all'); // 'all' | 'none' | folderName
   const [fileAction,setFileAction]=useState<any>(null); // 파일 관리 모달 대상
   const [newFolder,setNewFolder]=useState('');
@@ -746,24 +747,24 @@ export default function GuestView(){
         </div>}
 
         <div className={`relative z-30 flex flex-col gap-3 mb-6 border-b ${dividerCls} pb-4`}>
+          {(view==='calendar'||view==='list')&&(
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} {t('활성','Active')}</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} {t('마감','Closed')}</span></div>
-            <button onClick={()=>{const v=!hidePast;setHidePast(v);localStorage.setItem('lead_hide_past',v?'1':'0');}}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${hidePast?'bg-[#3E78DB]/20 border-[#3E78DB]/50 text-[#3E78DB]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
-              {hidePast?t('지난 리드 숨김','Hiding past'):t('지난 리드 숨기기','Hide past')}
-            </button>
+              <div className="flex items-center gap-2"><span className={`${dimText} text-[13px] font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} {t('활성','Active')}</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-[13px]`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} {t('마감','Closed')}</span></div>
+              <button onClick={()=>{const v=!hidePast;setHidePast(v);localStorage.setItem('lead_hide_past',v?'1':'0');}}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${hidePast?'bg-[#3E78DB]/20 border-[#3E78DB]/50 text-[#3E78DB]':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+                {hidePast?t('지난 리드 숨김','Hiding past'):t('지난 리드 숨기기','Hide past')}
+              </button>
+            </div>
+            <button onClick={()=>openLeadForm()} className="px-3.5 py-1.5 rounded-lg text-[12px] font-bold bg-[#3E78DB] text-white hover:bg-[#2F62C2] transition-all whitespace-nowrap">+ {t('리드 추가','Add Lead')}</button>
           </div>
-            <div className="max-w-full overflow-x-auto [&::-webkit-scrollbar]:hidden">
-            <div className={`flex w-max border rounded-xl p-1 gap-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
-              <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-[#3E78DB] text-white hover:bg-[#2F62C2] transition-all whitespace-nowrap">+ {t('리드 추가','Add Lead')}</button>
-              <button onClick={()=>setView('calendar')} className={`px-3 py-1.5 rounded-lg text-[11px] font-normal transition-all whitespace-nowrap ${view==='calendar'?'bg-[#3E78DB] text-white':dimText}`}>{t('달력','Calendar')}</button>
-              <button onClick={()=>setView('list')} className={`px-3 py-1.5 rounded-lg text-[11px] font-normal transition-all whitespace-nowrap ${view==='list'?'bg-[#3E78DB] text-white':dimText}`}>{t('목록','List')}</button>
-              <button onClick={()=>{setView('pitches');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-normal transition-all whitespace-nowrap ${view==='pitches'?'bg-[#3E78DB] text-white':dimText}`}>{t('수신 피칭','Pitches')}{hostPitches.length>0&&<span className="ml-1 opacity-70">{hostPitches.length}</span>}</button>
-              <button onClick={()=>{setView('files');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-normal transition-all whitespace-nowrap ${view==='files'?'bg-[#3E78DB] text-white':dimText}`}>{t('파일 관리','Files')}{hostPitchFiles.length>0&&<span className="ml-1 opacity-70">{hostPitchFiles.length}</span>}</button>
-              <button onClick={()=>{setView('stats');fetchHostPitches();}} className={`px-3 py-1.5 rounded-lg text-[11px] font-normal transition-all whitespace-nowrap ${view==='stats'?'bg-[#3E78DB] text-white':dimText}`}>{t('통계','Stats')}</button>
-            </div>
-            </div>
+          )}
+          <div className={`grid grid-cols-5 gap-1 border rounded-xl p-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
+            <button onClick={()=>setView('calendar')} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='calendar'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('달력','Calendar')}</button>
+            <button onClick={()=>setView('list')} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='list'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('목록','List')}</button>
+            <button onClick={()=>{setView('pitches');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='pitches'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('수신 피칭','Pitches')}{hostPitches.length>0&&<span className="ml-1 opacity-70">{hostPitches.length}</span>}</button>
+            <button onClick={()=>{setView('files');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='files'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('파일 관리','Files')}{hostPitchFiles.length>0&&<span className="ml-1 opacity-70">{hostPitchFiles.length}</span>}</button>
+            <button onClick={()=>{setView('stats');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center transition-all ${view==='stats'?'bg-[#3E78DB] text-white':dimText+' hover:opacity-80'}`}>{t('통계','Stats')}</button>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10">
@@ -932,7 +933,7 @@ export default function GuestView(){
         )}
 
         {view==='files'&&(
-          <div className="relative z-10 min-h-[60vh]" onContextMenu={(e)=>{e.preventDefault();const name=prompt(t('새 폴더 이름','New folder name'));if(name&&name.trim())addFolder(name.trim());}}>
+          <div className="relative z-10 min-h-[60vh]" onContextMenu={(e)=>{e.preventDefault();setAddFolderInput('');setNewFolderOpen(true);}}>
             <div className={`flex flex-col gap-3 mb-5 p-4 rounded-xl border ${D?'bg-white/[0.02] border-white/5':'bg-black/[0.02] border-black/[0.06]'}`}>
               <div className="relative">
                 <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] ${dimText}`}>🔍</span>
@@ -1359,6 +1360,20 @@ export default function GuestView(){
                   <button onClick={()=>decideHost(h,'rejected')} className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-[12px] font-black hover:bg-red-500/20 transition-all">{t('거절','Reject')}</button>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {newFolderOpen&&(
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setNewFolderOpen(false)}>
+          <div className={`anim-rise w-full max-w-sm border rounded-t-[2rem] sm:rounded-2xl shadow-2xl p-6 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-1"><span className="text-[16px]">📁</span><p className={`font-black text-[15px] ${D?'text-white':'text-[#111]'}`}>{t('새 폴더','New folder')}</p></div>
+            <p className={`text-[12px] mb-4 ${dimText}`}>{t('파일을 정리할 폴더를 만들어요','Create a folder to organize files')}</p>
+            <input autoFocus value={addFolderInput} onChange={e=>setAddFolderInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&addFolderInput.trim()){addFolder(addFolderInput.trim());setNewFolderOpen(false);}}} placeholder={t('폴더 이름','Folder name')} className={`w-full border rounded-xl px-3 py-2.5 text-[14px] outline-none transition-all mb-4 ${inputCls}`}/>
+            <div className="flex gap-2 justify-end">
+              <button onClick={()=>setNewFolderOpen(false)} className={`px-4 py-2 rounded-xl text-[13px] font-bold ${dimText} hover:opacity-80`}>{t('취소','Cancel')}</button>
+              <button onClick={()=>{if(addFolderInput.trim()){addFolder(addFolderInput.trim());setNewFolderOpen(false);}}} disabled={!addFolderInput.trim()} className="px-4 py-2 rounded-xl bg-[#3E78DB] text-white font-semibold text-[13px] disabled:opacity-40">{t('만들기','Create')}</button>
             </div>
           </div>
         </div>
