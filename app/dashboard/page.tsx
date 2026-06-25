@@ -155,6 +155,10 @@ export default function GuestView(){
   const [playingFileId,setPlayingFileId]=useState<string|null>(null);
   const [hiddenFilesView,setHiddenFilesView]=useState(false);
   const [selFiles,setSelFiles]=useState<Set<string>>(new Set());
+  const [bpmMin,setBpmMin]=useState('');
+  const [bpmMax,setBpmMax]=useState('');
+  const [fileGenreFilter,setFileGenreFilter]=useState('');
+  const [fileKeyFilter,setFileKeyFilter]=useState('');
   const [fileFolderFilter,setFileFolderFilter]=useState<string>('all'); // 'all' | 'none' | folderName
   const [fileAction,setFileAction]=useState<any>(null); // 파일 관리 모달 대상
   const [newFolder,setNewFolder]=useState('');
@@ -937,6 +941,12 @@ export default function GuestView(){
               </div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('정렬','Sort')}</span>{([['recent',t('최신순','Recent')],['bpm','BPM'],['vocal',t('보컬','Vocal')],['key','Key']] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileSort===v} onClick={()=>setFileSort(v as any)} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('보컬','Vocal')}</span>{([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=><FilterPill key={v} label={l} active={fileVocalFilter===v} onClick={()=>setFileVocalFilter(v as any)} isDark={D}/>)}</div>
+              <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>BPM</span>
+                <input type="number" value={bpmMin} onChange={e=>setBpmMin(e.target.value)} placeholder={t('최소','min')} className={`w-20 border rounded-full px-3 py-1 text-[12px] font-bold outline-none transition-all ${inputCls}`}/>
+                <span className={dimText}>~</span>
+                <input type="number" value={bpmMax} onChange={e=>setBpmMax(e.target.value)} placeholder={t('최대','max')} className={`w-20 border rounded-full px-3 py-1 text-[12px] font-bold outline-none transition-all ${inputCls}`}/>
+                {(bpmMin||bpmMax)&&<button onClick={()=>{setBpmMin('');setBpmMax('');}} className={`px-2 text-[12px] font-black ${dimText} hover:opacity-80`}>✕</button>}
+              </div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-[10px] font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>📁 {t('폴더','Folder')}</span>
                 <FilterPill label={t('전체','All')} active={fileFolderFilter==='all'} onClick={()=>setFileFolderFilter('all')} isDark={D}/>
                 {[...new Set([...hostFolders,...hostPitchFiles.map((f:any)=>f.folder).filter(Boolean)])].map((fd:any)=>(
@@ -959,6 +969,9 @@ export default function GuestView(){
               let fv=hostPitchFiles.map(f=>{const p=pById[f.pitch_id];const lead=p?[...leads,...demoDrives].find(l=>l.id===p.lead_id):null;return{...f,_artist:p?.artist_name||'',_lead:lead?.artist||'',_created:p?.created_at||f.created_at};});
               fv=fv.filter(f=>hiddenFilesView?f.hidden:!f.hidden);
               if(fileVocalFilter!=='all')fv=fv.filter(f=>f.vocal_gender===fileVocalFilter);
+              if(fileGenreFilter)fv=fv.filter(f=>f.genre===fileGenreFilter);
+              if(fileKeyFilter)fv=fv.filter(f=>(f.key||'')===fileKeyFilter);
+              {const lo=parseInt(bpmMin),hi=parseInt(bpmMax);if(!isNaN(lo))fv=fv.filter(f=>f.bpm>=lo);if(!isNaN(hi))fv=fv.filter(f=>f.bpm>0&&f.bpm<=hi);}
               if(fileFolderFilter==='none')fv=fv.filter(f=>!f.folder);
               else if(fileFolderFilter!=='all')fv=fv.filter(f=>f.folder===fileFolderFilter);
               const q=fileSearch.trim().toLowerCase();
@@ -970,6 +983,9 @@ export default function GuestView(){
                     <span className={`text-[12px] font-black ${dimText}`}>{fv.length}{t('개 파일',' files')}</span>
                     <button onClick={()=>{setHiddenFilesView(v=>!v);setSelFiles(new Set());}} className={`px-2.5 py-1 rounded-full text-[11px] font-black border transition-all ${hiddenFilesView?'bg-amber-500/15 border-amber-500/40 text-amber-400':D?'border-white/10 text-zinc-500 hover:text-zinc-300':'border-black/[0.08] text-zinc-400 hover:text-zinc-700'}`}>{hiddenFilesView?t('🗂 숨김 보는 중','🗂 Viewing hidden'):t('🗂 숨김','🗂 Hidden')}</button>
                     {fv.length>0&&<button onClick={()=>setSelFiles(selFiles.size===fv.length?new Set():new Set(fv.map((f:any)=>f.id)))} className={`px-2.5 py-1 rounded-full text-[11px] font-black border transition-all ${D?'border-white/10 text-zinc-400 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{selFiles.size===fv.length&&fv.length>0?t('전체 해제','Deselect'):t('전체 선택','Select all')}</button>}
+                    {fileGenreFilter&&<button onClick={()=>setFileGenreFilter('')} className="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25">{t('장르','Genre')}: {fileGenreFilter} ✕</button>}
+                    {fileKeyFilter&&<button onClick={()=>setFileKeyFilter('')} className="px-2.5 py-1 rounded-full text-[11px] font-black bg-[#3E78DB]/15 text-[#3E78DB] hover:bg-[#3E78DB]/25">KEY: {fileKeyFilter} ✕</button>}
+                    {(bpmMin||bpmMax)&&<button onClick={()=>{setBpmMin('');setBpmMax('');}} className={`px-2.5 py-1 rounded-full text-[11px] font-black ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>BPM {bpmMin||'0'}~{bpmMax||'∞'} ✕</button>}
                     {selFiles.size>0&&<div className="ml-auto flex items-center gap-2">
                       <span className="text-[12px] font-black text-[#3E78DB]">{selFiles.size}{t('개 선택',' selected')}</span>
                       <button onClick={()=>setFilesHidden([...selFiles],!hiddenFilesView)} className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${hiddenFilesView?'bg-[#3E78DB] text-white hover:opacity-90':'bg-red-500/15 text-red-400 hover:bg-red-500/25'}`}>{hiddenFilesView?t('복구','Restore'):t('제거','Remove')}</button>
@@ -985,7 +1001,7 @@ export default function GuestView(){
                         const on=playingFileId===f.id;
                         const chip=D?'bg-white/[0.08] text-zinc-300':'bg-black/[0.05] text-zinc-600';
                         return(
-                        <div key={f.id} className={`rounded-xl border transition-all ${on?(D?'bg-white/[0.05] border-[#3E78DB]/40':'bg-[#3E78DB]/[0.05] border-[#3E78DB]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
+                        <div key={f.id} onContextMenu={(e)=>{e.preventDefault();setFileAction(f);setNewFolder('');}} className={`rounded-xl border transition-all ${on?(D?'bg-white/[0.05] border-[#3E78DB]/40':'bg-[#3E78DB]/[0.05] border-[#3E78DB]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
                           <div className="flex items-center gap-2.5 px-3 py-2.5">
                             <button onClick={()=>setSelFiles(p=>{const n=new Set(p);n.has(f.id)?n.delete(f.id):n.add(f.id);return n;})} title={t('선택','Select')} className={`w-5 h-5 rounded-md border flex items-center justify-center text-[10px] shrink-0 transition-all ${selFiles.has(f.id)?'bg-[#3E78DB] border-[#3E78DB] text-white':D?'border-white/15 text-transparent hover:border-white/40':'border-black/15 text-transparent hover:border-black/40'}`}>✓</button>
                             <button onClick={()=>setPlayingFileId(on?null:f.id)} title={on?t('정지','Stop'):t('재생','Play')} className={`w-9 h-9 rounded-xl flex items-center justify-center text-[13px] shrink-0 transition-all ${on?'bg-[#3E78DB] text-white':D?'bg-white/5 text-zinc-300 hover:bg-white/10':'bg-black/[0.04] text-zinc-600 hover:bg-black/[0.08]'}`}>{on?'⏸':'▶'}</button>
@@ -993,10 +1009,10 @@ export default function GuestView(){
                               <p className={`font-bold text-[14px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{f.file_name||'audio.mp3'}</p>
                               <div className="flex items-center gap-1 flex-wrap mt-1">
                                 {f._artist&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${D?'bg-white/10 text-zinc-200':'bg-black/[0.06] text-zinc-700'}`}>👤 {f._artist}</span>}
-                                {vLabel&&<span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-[#3E78DB]/15 text-[#3E78DB]">{vLabel}</span>}
-                                {f.bpm>0&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip}`}>{f.bpm} BPM</span>}
-                                {f.key&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip}`}>{f.key}</span>}
-                                {f.genre&&<span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
+                                {vLabel&&<button onClick={()=>setFileVocalFilter(fileVocalFilter===f.vocal_gender?'all':f.vocal_gender)} title={t('이 성별만 보기','Filter by this')} className={`text-[11px] font-black px-1.5 py-0.5 rounded bg-[#3E78DB]/15 text-[#3E78DB] hover:bg-[#3E78DB]/25 transition-colors ${fileVocalFilter===f.vocal_gender?'ring-1 ring-[#3E78DB]':''}`}>{vLabel}</button>}
+                                {f.bpm>0&&<button onClick={()=>{setBpmMin(String(f.bpm));setBpmMax(String(f.bpm));}} title={t('이 BPM만 보기','Filter by this BPM')} className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip} hover:opacity-80 transition-opacity`}>{f.bpm} BPM</button>}
+                                {f.key&&<button onClick={()=>setFileKeyFilter(fileKeyFilter===f.key?'':f.key)} title={t('이 키만 보기','Filter by this key')} className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip} hover:opacity-80 transition-opacity ${fileKeyFilter===f.key?'ring-1 ring-[#3E78DB]':''}`}>{f.key}</button>}
+                                {f.genre&&<button onClick={()=>setFileGenreFilter(fileGenreFilter===f.genre?'':f.genre)} title={t('이 장르만 보기','Filter by this genre')} className={`text-[11px] font-black px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors ${fileGenreFilter===f.genre?'ring-1 ring-emerald-400':''}`}>{f.genre}</button>}
                                 {f.folder&&<span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">📁 {f.folder}</span>}
                                 {f._lead&&<span className={`text-[11px] ${dimText}`}>→ {f._lead}</span>}
                               </div>
