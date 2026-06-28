@@ -1,7 +1,7 @@
 # 작업 핸드오프 (LEAD / CAST / room)
 
 > 새 세션에서 이 파일을 먼저 읽으면 이어서 작업할 수 있어요.
-> 마지막 업데이트: 2026-06-12
+> 마지막 업데이트: 2026-06-29
 
 ## 프로젝트 구조
 - **LEAD + CAST 통합앱**: `/Users/newnormal/Desktop/lead by nen` (이 repo, GitHub: nodnxd/LEAD) ← **앞으로 여기만 수정**
@@ -32,33 +32,40 @@
 - 줌 컨트롤(뷰 + 대시보드 둘 다): **좌측 하단 고정, +/- 버튼 + 드래그(더블클릭 시 100% 리셋), "1:1" 없음**. LEAD/CAST 동일.
   - ⚠️ 대시보드와 뷰에 줌 컨트롤이 **각각** 있으니 둘 다 챙길 것.
 
-## 완료된 작업
-- 로그인 room 스타일 + 제품 토글, 색상 최종(LEAD 블루/CAST red)
-- CAST 출석색 조화, Producer=blue, Engineer+A&R 한 그룹(올리브) + 뷰 섹션 병합 + 대시보드 pool 3칸(Producer/Topliner/Engineer·A&R)
-- LEAD 대시보드 로그아웃 버튼, theme·EN/KO 우측 끝, ko/en 🌐 제거, hub 호스트카드 블루
-- LEAD 대시보드 헤더 2줄(Row1: 활성/마감+뷰탭 / Row2: 유틸버튼들) — CAST와 통일
-- CAST 대시보드 스케일·줌·로고·pool wrap을 LEAD와 동일하게 통일 (커밋 832dccb)
-- pool 멤버 `flex-wrap`으로 줄바꿈(드래그 스크롤 제거)
+## ⚠️ 지금 당장 할 것 — 안 돌리면 기능 절반이 조용히 안 됨
+**room Supabase**(프로젝트 다름)에서:
+- `room/supabase-roof-rooms.sql` (roof_rooms + roof_room_items + RLS) — roof 방
+- `room/supabase-album.sql` (folders: album_notes/album_credits/is_public_album, songs.track_no, public RLS) — 앨범 모드
+**lead/cast Supabase**에서:
+- `alter table pitches add column if not exists hidden boolean default false;`
+- `alter table pitch_files add column if not exists hidden boolean default false;`
 
-## ⏳ 남은 작업
-### CAST/LEAD 폴리시 (배포 후 재확인 필요)
-- CAST 대시보드 1.1× 스케일·줌위치·pool wrap·로고크기 — **배포 후 로그인해서 LEAD와 나란히 확인**. 어긋나면 헤더 레이아웃(로고+토글 위치) 추가 정렬.
-- LEAD/CAST 헤더 "위치"가 여전히 다르면: LEAD는 `flex-col items-center`(로고 위, 회사 pill 아래), CAST는 `items-center justify-center`(로고+토글 한 줄). 완전 동일하게 맞추려면 구조 통일 필요.
+## GitHub / 배포
+- 토큰(classic "rosters") 한 번 만료됐다가 **재발급 → 키체인 갱신 완료**. 이제 push 정상. (osxkeychain, https remote)
+- room 프로덕션 웹: **`room-nu-seven.vercel.app`** (Vercel 프로젝트 "room"). lead: nodnxd/LEAD → Vercel 자동배포.
+- 로컬 검증 한계: room·lead 둘 다 로그인 필요해 브라우저 확인 못 함 → **tsc만 게이트**. 배포+로그인 후 실동작 확인.
 
-### room 미니홈피 (진행 중)
-- 위치: `/Users/newnormal/Desktop/room`
-- 2026-06-13 작업분:
-  - room/roof/square switcher 위치 통일 — `dashboard`만 어긋나서 로고 `mb-10`/pill `mb-8`로 Shell에 맞춤(roof·square는 Shell 공유).
-  - `Shell`에 `hideZen` prop 추가 → roof에서 zen 버튼·글로우 숨김(square엔 유지).
-  - roof EditModal에 BGM 파일 업로드 추가(`media` 버킷, `uid/bgm-*`. 기존 버킷이라 SQL 불필요). URL 붙여넣기도 그대로.
-- 2026-06-13 2차(현재):
-  - roof EditModal에서 accent color 슬라이더 + background 프리셋 **제거**(per-roof 색 적용 로직도 제거 → 글로벌 accent + 기본 배경). featured 라벨 'featured song'으로.
-  - roof zen **되돌림**: `Shell.hideZen` 제거 → room/roof/square 좌하단 zen·color·size 동일 노출.
-  - square에서 people·open calls 메뉴 **숨김**(feed만). 코드는 남겨둠.
-  - roof를 **자유 꾸미기 캔버스 방** 구조로 전면 개편: 프로필 헤더(풀) 복원 → 그 밑 방 박스 그리드(오너가 +new room, 이름/칸모양 사각·둥근·원 지정) → 방 클릭 시 캔버스 진입. 캔버스에서 오너가 'decorate' 모드로 텍스트/이미지 추가·드래그 배치·삭제. guestbook은 그리드 아래 섹션 유지. 기존 about/posts 좌측 네비·posts 보드는 제거.
-  - **DB 필요**: `supabase-roof-rooms.sql` (roof_rooms + roof_room_items + RLS). 유저가 SQL 에디터에서 1회 실행해야 작동. 이미지/오디오는 기존 `media` 버킷.
-- requests·messages: 좌하단 유지, 클릭 시 별도창(인스타 DM처럼) — messages는 이미 RoomChat 패널로 그렇게 열림(추가작업 보류).
-- **남은/후속**: 캔버스 resize·rotate·z순서 컨트롤은 v1에서 생략(드래그+삭제만). 텍스트 편집은 더블클릭→textarea. 배포+로그인 후 실동작 확인 필요(로컬은 세션 없어 미검증, tsc만 통과).
+## 2026-06 세션 작업 (현재 상태)
+### LEAD/CAST (`/Users/newnormal/Desktop/lead by nen`)
+- **이모지 전부 제거 → Tabler 라인 아이콘**. `app/layout.tsx`에 Tabler webfont(`<i className="ti ti-*">`). dashboard·view·guest 전부. getLinkIcon은 브랜드 아이콘 반환.
+- **파일 관리(dashboard Files 뷰)**: 다운로드(원본 파일명, signed URL→blob), 보낸이(멤버)+vocal 성별 표시, **컴팩트 리스트**(▶ 누를 때만 오디오), 검색 강화(BPM 포함·결과수·초기화), **BPM 범위 필터**, **태그 클릭 필터**(성별/장르/키/BPM), **멤버 배지 클릭→그 멤버만**, **우클릭/빈곳우클릭→폴더 모달(생성·이동)**, **소프트 히드**(체크박스 일괄/행 단위 + 숨김 보기·복구, `pitch_files.hidden`).
+- **수신 피칭**: 상태 버튼들 제거 → **`확인` 버튼 하나**(누르면 목록서 사라짐=`pitches.hidden`), 상단 "확인한 피칭 보기"로 복구.
+- **BPM·Key 자동분석**: `lib/audioAnalysis.ts` — BPM(`web-audio-beat-detector`, half/double 클램프) + Key(chroma+Krumhansl, FFT 자체구현) + vocal(F0). view 업로드에 **탭템포**. (dep: web-audio-beat-detector)
+- **레이아웃(A안)**: 뷰탭(달력·목록·피칭·파일·통계) 풀폭 세그먼트로 분리, 활성/마감·리드추가·지난리드숨기기는 **달력/목록 뷰에서만**. number input 스피너 화살표 전역 제거(globals.css).
+
+### room (`/Users/newnormal/Desktop/room`, 프로덕션 room-nu-seven.vercel.app)
+- **에디터(가장 최신)**: 가사·메모 **둘 다 칸 없는 노트패드**. 가사(`LyricEditor`) 블록 박스(테두리/배경) 제거 → 색깔 섹션 라벨만 흐름, 컨트롤은 hover. **우클릭→섹션(Intro/Verse…) 삽입**(하단 +버튼 제거, 데이터는 여전히 blocks). 메모는 가사 옆 **노트패드(textarea, 기본 표시)**, localStorage `room-memo-{songId}`. SongEditorPanel·EditorClient 둘 다.
+- **roof 방**: **템플릿**(board/gallery/music/links)으로 개편(자유 캔버스 아님). 프로필 헤더 + 방 박스 그리드(이름·칸모양) → 클릭 시 템플릿별 콘텐츠. guestbook 유지. → `supabase-roof-rooms.sql` 필요.
+- **앨범 모드** `/album/[folderId]`: 트랙리스트+플레이어 | 가사(편집) | 앨범 메모(6:4), 전체 가사 copy/download, **공개공유**(is_public_album + 링크), **드래그 정렬**(track_no). → `supabase-album.sql` 필요.
+- roof EditModal: accent/background 제거(글로벌 accent), BGM **파일 업로드**(media 버킷). square: people·open calls 메뉴 숨김(feed만). 곡 섹션별 copy + 패널 copy lyrics.
+- **Tauri 통일(데스크탑·모바일 = 웹 셸)**: `src-tauri/tauri.conf.json` frontendDist=`https://room-nu-seven.vercel.app` → 앱이 라이브 웹 로드(정적 export 불가: force-dynamic). 모바일 = `tauri ios`(gen/apple 있음), **Xcode에서 Run으로 서명·설치**(무료 Apple 계정 SK9V2ZJAA9, CLI 자동서명 안 됨). 기존 **room-native(Expo) 은퇴**(웹셸로 대체).
+
+## 남은/후속 (미검증·아이디어)
+- 위 SQL 4건 실행 + 배포 후 실동작 클릭 검증.
+- room 에디터: 우클릭 메뉴 위치 클램프(뷰포트 끝), 섹션을 "현재 위치"에 삽입(현재는 끝에 append).
+- LEAD 성별 = 트랙 vocal 기준. 보낸이 본인 성별 원하면 pitches에 필드 추가 필요.
+- room 모바일앱: Apple 무료 서명 7일 만료 → 그때 Xcode Run 재실행. 독립앱 원하면 TestFlight.
+- (옛 항목) CAST 대시보드 스케일·헤더 위치 LEAD와 나란히 재확인.
 
 ## 작업 방식 메모
 - 색 hex가 brand/카테고리(역할·성별·출석)로 얽혀 있어 **global sed 주의**. 같은 hex가 brand+status 양쪽이면 분리 먼저(예: 참석 green을 brand sed 전에 분리).
