@@ -36,6 +36,7 @@
 **room Supabase**(프로젝트 다름)에서:
 - `room/supabase-roof-rooms.sql` (roof_rooms + roof_room_items + RLS) — roof 방
 - `room/supabase-album.sql` (folders: album_notes/album_credits/is_public_album, songs.track_no, public RLS) — 앨범 모드
+- `room/supabase-trash.sql` (songs/folders `deleted_at` + index) — **휴지통(soft delete) 필수**, 안 돌리면 삭제가 에러
 **lead/cast Supabase**에서:
 - `alter table pitches add column if not exists hidden boolean default false;`
 - `alter table pitch_files add column if not exists hidden boolean default false;`
@@ -54,7 +55,8 @@
 - **레이아웃(A안)**: 뷰탭(달력·목록·피칭·파일·통계) 풀폭 세그먼트로 분리, 활성/마감·리드추가·지난리드숨기기는 **달력/목록 뷰에서만**. number input 스피너 화살표 전역 제거(globals.css).
 
 ### room (`/Users/newnormal/Desktop/room`, 프로덕션 room-nu-seven.vercel.app)
-- **에디터(가장 최신)**: 가사·메모 **둘 다 칸 없는 노트패드**. 가사(`LyricEditor`) 블록 박스(테두리/배경) 제거 → 색깔 섹션 라벨만 흐름, 컨트롤은 hover. **우클릭→섹션(Intro/Verse…) 삽입**(하단 +버튼 제거, 데이터는 여전히 blocks). 메모는 가사 옆 **노트패드(textarea, 기본 표시)**, localStorage `room-memo-{songId}`. SongEditorPanel·EditorClient 둘 다.
+- **에디터(2026-07-02 추가)**: MemoPanel 툴바 **sticky**(스크롤 따라옴, 반투명+backdrop-blur), 풀스크린 에디터 폭 **68rem→80vw**(음악 유무 무관), 글씨 크기 **−/+ 화살표**(mousedown preventDefault로 선택 유지)+입력 포커스 시 **CSS Custom Highlight**로 드래그 유지, 섹션 삽입 시 라벨 **18px 볼드**·이어쓰기 서식(크기/볼드/기울임) 직전 상태 유지, 새 메모 본문 기본색 **rgb(206,197,197)**. dashboard: 카테고리 안 곡 드래그 순서변경 정렬 무관(free 전환), **휴지통**(songs/folders `deleted_at` soft delete → Trash 뷰 복구/완전삭제/비우기, `supabase-trash.sql` 필요).
+- **에디터(이전)**: 가사·메모 **둘 다 칸 없는 노트패드**. 가사(`LyricEditor`) 블록 박스(테두리/배경) 제거 → 색깔 섹션 라벨만 흐름, 컨트롤은 hover. **우클릭→섹션(Intro/Verse…) 삽입**(하단 +버튼 제거, 데이터는 여전히 blocks). 메모는 가사 옆 **노트패드(textarea, 기본 표시)**, localStorage `room-memo-{songId}`. SongEditorPanel·EditorClient 둘 다.
 - **roof 방**: **템플릿**(board/gallery/music/links)으로 개편(자유 캔버스 아님). 프로필 헤더 + 방 박스 그리드(이름·칸모양) → 클릭 시 템플릿별 콘텐츠. guestbook 유지. → `supabase-roof-rooms.sql` 필요.
 - **앨범 모드** `/album/[folderId]`: 트랙리스트+플레이어 | 가사(편집) | 앨범 메모(6:4), 전체 가사 copy/download, **공개공유**(is_public_album + 링크), **드래그 정렬**(track_no). → `supabase-album.sql` 필요.
 - roof EditModal: accent/background 제거(글로벌 accent), BGM **파일 업로드**(media 버킷). square: people·open calls 메뉴 숨김(feed만). 곡 섹션별 copy + 패널 copy lyrics.
