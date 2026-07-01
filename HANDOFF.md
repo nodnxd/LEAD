@@ -55,7 +55,9 @@
 - **레이아웃(A안)**: 뷰탭(달력·목록·피칭·파일·통계) 풀폭 세그먼트로 분리, 활성/마감·리드추가·지난리드숨기기는 **달력/목록 뷰에서만**. number input 스피너 화살표 전역 제거(globals.css).
 
 ### room (`/Users/newnormal/Desktop/room`, 프로덕션 room-nu-seven.vercel.app)
-- **에디터(2026-07-02 추가)**: MemoPanel 툴바 **sticky**(스크롤 따라옴, 반투명+backdrop-blur), 풀스크린 에디터 폭 **68rem→80vw**(음악 유무 무관), 글씨 크기 **−/+ 화살표**(mousedown preventDefault로 선택 유지)+입력 포커스 시 **CSS Custom Highlight**로 드래그 유지, 섹션 삽입 시 라벨 **18px 볼드**·이어쓰기 서식(크기/볼드/기울임) 직전 상태 유지, 새 메모 본문 기본색 **rgb(206,197,197)**. dashboard: 카테고리 안 곡 드래그 순서변경 정렬 무관(free 전환), **휴지통**(songs/folders `deleted_at` soft delete → Trash 뷰 복구/완전삭제/비우기, `supabase-trash.sql` 필요).
+- **에디터(2026-07-02)**: MemoPanel 툴바 **sticky**(반투명+blur), 풀스크린 에디터 폭 **80vw**(EditorClient maxWidth), 글씨 크기 **−/+ 화살표**(선택 유지)+입력 포커스 시 CSS Custom Highlight, 섹션 삽입 라벨 **18px 볼드**·이어쓰기 직전 서식 유지, 새 메모 본문색 **rgb(206,197,197)**.
+  - **후속 수정**: 글씨크기 +/- 중첩 font-size span 버그(안쪽값이 이겨 자간처럼 보임)→선택 내부 strip 후 재래핑+선택유지. **undo/redo 자체 히스토리**(innerHTML 스냅샷, ⌘Z/⌘⇧Z). 텍스트색상 **네이티브 다이얼로그→커스텀 팔레트 팝오버**(sat/lit+hue+프리셋, 트리거가 현재색 표시).
+  - dashboard: **zen 기본 ON**(명시 off만 유지), **폴더도 sort 적용**(free=수동드래그), 곡·폴더 드래그 순서변경 시 free 전환, 삭제 **redo ⌘⇧Z**, **Trash 좌측메뉴 하단+우측정렬**, **휴지통**(songs/folders `deleted_at` soft delete→복구/완전삭제/비우기, `supabase-trash.sql` 필요).
 - **에디터(이전)**: 가사·메모 **둘 다 칸 없는 노트패드**. 가사(`LyricEditor`) 블록 박스(테두리/배경) 제거 → 색깔 섹션 라벨만 흐름, 컨트롤은 hover. **우클릭→섹션(Intro/Verse…) 삽입**(하단 +버튼 제거, 데이터는 여전히 blocks). 메모는 가사 옆 **노트패드(textarea, 기본 표시)**, localStorage `room-memo-{songId}`. SongEditorPanel·EditorClient 둘 다.
 - **roof 방**: **템플릿**(board/gallery/music/links)으로 개편(자유 캔버스 아님). 프로필 헤더 + 방 박스 그리드(이름·칸모양) → 클릭 시 템플릿별 콘텐츠. guestbook 유지. → `supabase-roof-rooms.sql` 필요.
 - **앨범 모드** `/album/[folderId]`: 트랙리스트+플레이어 | 가사(편집) | 앨범 메모(6:4), 전체 가사 copy/download, **공개공유**(is_public_album + 링크), **드래그 정렬**(track_no). → `supabase-album.sql` 필요.
