@@ -37,6 +37,7 @@
 - `room/supabase-roof-rooms.sql` (roof_rooms + roof_room_items + RLS) — roof 방
 - `room/supabase-album.sql` (folders: album_notes/album_credits/is_public_album, songs.track_no, public RLS) — 앨범 모드
 - `room/supabase-trash.sql` (songs/folders `deleted_at` + index) — **휴지통(soft delete) 필수**, 안 돌리면 삭제가 에러
+- `room/supabase-lyrics.sql` (`songs.lyrics_html`) — **가사 클라우드 저장**, 안 돌리면 가사는 로컬(localStorage)에만 저장(폴백, 크래시는 없음)
 **lead/cast Supabase**에서:
 - `alter table pitches add column if not exists hidden boolean default false;`
 - `alter table pitch_files add column if not exists hidden boolean default false;`
