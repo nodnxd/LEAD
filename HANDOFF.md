@@ -18,7 +18,8 @@
 ## 현재 색상 팔레트 (확정)
 - **LEAD = 블루**: brand `#3E78DB`, hover `#2F62C2`, light `#A9C4F0`
   - 성별 카드색(getCardColor): 남자 `#80A1D4`, 여자 `#DE3C4B`(raspberry), 혼성 `#7C7F65`(olive)
-- **CAST = red**: brand `#DE3C4B`(raspberry), hover `#C32C3B`, light `#E97582`
+- **CAST = amber**(2026-07-03 red→amber): brand `#F6A823`(hue38, room의 그 노란색), roster/* 전부. (구 red `#DE3C4B`는 LEAD 여자카드색으로만 잔존)
+  - 역할·성별(female `#E97582`)·출석색은 그대로 유지(브랜드색만 교체). 로그인 토글 CAST는 아직 red일 수 있음(원하면 amber로).
   - 참석(attending) = green `#46B883` (브랜드 red와 분리). 불참 `#CB827C`(더스티로즈), 미정 `#C7B27A`(머스터드), 미응답 그레이
   - 역할색: **Producer `#3E78DB`(blue)**, Topliner `#E97582`, **Engineer+A&R `#7C7F65`(올리브, 한 그룹)**
   - 삭제·에러용 red(`hover:text-red-*`)는 유지
