@@ -218,11 +218,11 @@ export default function ArtistsPage() {
     <>
       <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
       <main className="min-h-screen bg-[#141414] text-white p-5 lg:p-8 font-pretendard relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#F6A823',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#E0A63C',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-8">
-          <h1 className="text-4xl font-semibold text-[#F6A823] uppercase tracking-tighter">CAST</h1>
+          <h1 className="text-4xl font-semibold text-[#E0A63C] uppercase tracking-tighter">CAST</h1>
           <span className="text-zinc-500 text-[11px] font-normal tracking-[0.2em]">by NEN</span>
         </div>
 
@@ -245,12 +245,12 @@ export default function ArtistsPage() {
               <div className="flex gap-1">
                 {([['role', 'Role'], ['name', 'Name'], ['recent', 'Recent'], ['gender', 'Gender']] as const).map(([val, label]) => (
                   <button key={val} onClick={() => setSortBy(val)}
-                    className={`px-3 py-2 rounded-xl text-[11px] font-bold border transition-all ${sortBy === val ? 'border-[#F6A823]/50 bg-[#F6A823]/20 text-[#F6A823]' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}>
+                    className={`px-3 py-2 rounded-xl text-[11px] font-bold border transition-all ${sortBy === val ? 'border-[#E0A63C]/50 bg-[#E0A63C]/20 text-[#E0A63C]' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}>
                     {label}
                   </button>
                 ))}
               </div>
-              <button onClick={openCreate} className="bg-[#F6A823] text-white px-5 py-2 rounded-xl font-semibold text-[11px] hover:opacity-90 transition-all">+ 추가</button>
+              <button onClick={openCreate} className="bg-[#E0A63C] text-white px-5 py-2 rounded-xl font-semibold text-[11px] hover:opacity-90 transition-all">+ 추가</button>
             </div>
           </div>
 
@@ -258,7 +258,7 @@ export default function ArtistsPage() {
           {filtered.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-zinc-700 text-[13px]">아티스트가 없어요</p>
-              <button onClick={openCreate} className="mt-4 text-[#F6A823] text-[12px] font-bold hover:underline">+ 첫 아티스트 추가</button>
+              <button onClick={openCreate} className="mt-4 text-[#E0A63C] text-[12px] font-bold hover:underline">+ 첫 아티스트 추가</button>
             </div>
           ) : (
             <div className="flex flex-col gap-10">
@@ -300,7 +300,7 @@ export default function ArtistsPage() {
                           {/* 로스터 추가 버튼 */}
                           <button
                             onClick={(e) => { e.stopPropagation(); setAddToRosterArtist(artist); setRosterRole(ROSTER_ROLES.includes(artist.role) ? artist.role : 'Producer'); }}
-                            className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white text-[9px] font-black flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all hover:bg-[#F6A823]/60 hover:border-[#F6A823]/50"
+                            className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white text-[9px] font-black flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all hover:bg-[#E0A63C]/60 hover:border-[#E0A63C]/50"
                           >
                             + 로스터
                           </button>
@@ -395,7 +395,7 @@ export default function ArtistsPage() {
                 <button onClick={() => { setViewingArtist(null); openEdit(viewingArtist); }} className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-[12px] hover:bg-white/10 transition-all">수정</button>
                 <button
                   onClick={() => { setViewingArtist(null); setAddToRosterArtist(viewingArtist); setRosterRole(ROSTER_ROLES.includes(viewingArtist.role) ? viewingArtist.role : 'Producer'); }}
-                  className="flex-1 py-2.5 rounded-xl bg-[#F6A823]/20 border border-[#F6A823]/30 text-[#F6A823] font-bold text-[12px] hover:bg-[#F6A823]/30 transition-all">+ 로스터</button>
+                  className="flex-1 py-2.5 rounded-xl bg-[#E0A63C]/20 border border-[#E0A63C]/30 text-[#E0A63C] font-bold text-[12px] hover:bg-[#E0A63C]/30 transition-all">+ 로스터</button>
                 <button onClick={() => { if (confirm(`"${viewingArtist.name}"을 삭제할까요?`)) deleteArtist(viewingArtist.id); }} className="py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-[12px] hover:bg-red-500/20 transition-all">삭제</button>
                 <button onClick={() => setViewingArtist(null)} className="py-2.5 px-4 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">닫기</button>
               </div>
@@ -421,7 +421,7 @@ export default function ArtistsPage() {
                   <div className="flex flex-wrap gap-2">
                     {projects.map(p => (
                       <button key={p} onClick={() => setSelectedProject(p)}
-                        className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${selectedProject === p ? 'border-[#F6A823]/50 bg-[#F6A823]/20 text-[#F6A823]' : 'border-white/10 bg-white/5 text-zinc-400 hover:text-white'}`}>
+                        className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${selectedProject === p ? 'border-[#E0A63C]/50 bg-[#E0A63C]/20 text-[#E0A63C]' : 'border-white/10 bg-white/5 text-zinc-400 hover:text-white'}`}>
                         {p}
                       </button>
                     ))}
@@ -442,7 +442,7 @@ export default function ArtistsPage() {
 
             <div className="flex gap-3">
               <button onClick={() => setAddToRosterArtist(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">취소</button>
-              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-xl bg-[#F6A823] text-white font-semibold text-[12px] hover:opacity-90 transition-all disabled:opacity-40">추가</button>
+              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-xl bg-[#E0A63C] text-white font-semibold text-[12px] hover:opacity-90 transition-all disabled:opacity-40">추가</button>
             </div>
           </div>
         </div>
@@ -503,7 +503,7 @@ export default function ArtistsPage() {
 
               <div className="flex gap-3 mt-5">
                 <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">취소</button>
-                <button onClick={saveArtist} className="flex-1 py-3 rounded-xl bg-[#F6A823] text-white font-semibold text-[12px] hover:opacity-90 transition-all">저장</button>
+                <button onClick={saveArtist} className="flex-1 py-3 rounded-xl bg-[#E0A63C] text-white font-semibold text-[12px] hover:opacity-90 transition-all">저장</button>
               </div>
             </div>
           </div>
