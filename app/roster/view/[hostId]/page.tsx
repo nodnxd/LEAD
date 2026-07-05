@@ -301,7 +301,7 @@ export default function GuestView() {
 
       <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: `${100 / zoom}%`, minHeight: `${100 / zoom}vh` }}>
         <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-150`}>
-          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#DE3C4B',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
+          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#F6A823',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
           {/* room 홍보 — 공유된 로스터 페이지 상단 배너 */}
           <a href="https://room-nu-seven.vercel.app" target="_blank" rel="noopener noreferrer"
@@ -324,7 +324,7 @@ export default function GuestView() {
 
           {/* 헤더 */}
           <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-6">
-            <h1 className="text-4xl font-semibold text-[#DE3C4B] uppercase tracking-tighter">CAST</h1>
+            <h1 className="text-4xl font-semibold text-[#F6A823] uppercase tracking-tighter">CAST</h1>
             <span className={`text-[11px] font-normal tracking-[0.2em] ${textSub}`}>by NEN</span>
           </div>
 
@@ -336,7 +336,7 @@ export default function GuestView() {
               <button onClick={toggleLang} className={`px-3 py-1.5 rounded-full border font-normal text-[10px] uppercase tracking-widest transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
               {sessions.length > 0 && (
                 <button onClick={() => setShowHistory(!showHistory)}
-                  className={`px-3 py-1.5 rounded-full border font-normal text-[10px] uppercase tracking-widest transition-all ${showHistory ? 'border-[#DE3C4B]/50 text-[#DE3C4B] bg-[#DE3C4B]/10' : btnBg}`}>{tv.history}</button>
+                  className={`px-3 py-1.5 rounded-full border font-normal text-[10px] uppercase tracking-widest transition-all ${showHistory ? 'border-[#F6A823]/50 text-[#F6A823] bg-[#F6A823]/10' : btnBg}`}>{tv.history}</button>
               )}
               <span className={`px-3 py-1.5 rounded-full border text-[10px] font-normal uppercase tracking-widest ${btnBg}`}>{tv.guest}</span>
             </div>
@@ -346,7 +346,7 @@ export default function GuestView() {
           <div className="relative z-10 flex items-center gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
             {projects.map(p => (
               <button key={p} onClick={() => setCurrentProject(p)}
-                className={`px-4 py-1.5 rounded-full font-normal text-[11px] tracking-widest uppercase border transition-all ${currentProject === p ? 'border-[#DE3C4B]/50 bg-[#DE3C4B]/20 text-[#DE3C4B]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-400'}`}>{p}</button>
+                className={`px-4 py-1.5 rounded-full font-normal text-[11px] tracking-widest uppercase border transition-all ${currentProject === p ? 'border-[#F6A823]/50 bg-[#F6A823]/20 text-[#F6A823]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-400'}`}>{p}</button>
             ))}
           </div>
 
@@ -355,7 +355,7 @@ export default function GuestView() {
             <div className="relative z-10 flex items-center gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
               {days.map(d => (
                 <button key={d} onClick={() => setCurrentDay(d)}
-                  className={`px-4 py-1.5 rounded-full font-normal text-[11px] transition-all border ${currentDay === d ? 'border-[#DE3C4B]/40 bg-[#DE3C4B]/10 text-[#DE3C4B]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
+                  className={`px-4 py-1.5 rounded-full font-normal text-[11px] transition-all border ${currentDay === d ? 'border-[#F6A823]/40 bg-[#F6A823]/10 text-[#F6A823]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
               ))}
             </div>
           )}
@@ -364,8 +364,8 @@ export default function GuestView() {
           {notices.length > 0 && (
             <div className="relative z-10 mb-6 flex flex-col gap-3">
               {notices.map(n => (
-                <div key={n.id} className="rounded-2xl border border-[#DE3C4B]/20 bg-[#DE3C4B]/5 p-4">
-                  <p className="text-[10px] font-normal uppercase tracking-widest text-[#DE3C4B]/60 mb-1">{tv.notice}</p>
+                <div key={n.id} className="rounded-2xl border border-[#F6A823]/20 bg-[#F6A823]/5 p-4">
+                  <p className="text-[10px] font-normal uppercase tracking-widest text-[#F6A823]/60 mb-1">{tv.notice}</p>
                   <p className={`font-bold text-[14px] mb-1 ${textMain}`}>{n.title}</p>
                   {n.content && <p className={`text-[12px] leading-relaxed whitespace-pre-line ${textSub}`}>{n.content}</p>}
                 </div>
@@ -451,7 +451,7 @@ export default function GuestView() {
                         {campSessions.sort((a: any, b: any) => a.day_number - b.day_number).map((s: any) => (
                           <div key={s.id} className={`rounded-2xl border overflow-hidden ${theme === 'light' ? 'border-black/10 bg-black/[0.02]' : 'border-white/10 bg-white/[0.02]'}`}>
                             <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setExpandedSession(expandedSession === s.id ? null : s.id)}>
-                              <div className="flex items-center gap-3"><span className="text-[#DE3C4B] font-black text-[13px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
+                              <div className="flex items-center gap-3"><span className="text-[#F6A823] font-black text-[13px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                               <div className="flex items-center gap-3">
                                 <span className="text-zinc-600 text-[10px]">{new Date(s.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</span>
                                 {s.links?.length > 0 && <div className="flex gap-1">{s.links.map((link: string, i: number) => (<a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[12px]">{getLinkIcon(link)}</a>))}</div>}
@@ -460,7 +460,7 @@ export default function GuestView() {
                             </div>
                             {expandedSession === s.id && s.roster && (
                               <div className={`px-4 pb-4 flex flex-wrap gap-4 border-t pt-4 ${theme === 'light' ? 'border-black/5' : 'border-white/5'}`}>
-                                {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-[10px] font-black uppercase tracking-widest mb-2 border-l-2 border-[#DE3C4B] pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-[12px] font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-600 text-[9px] uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
+                                {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-[10px] font-black uppercase tracking-widest mb-2 border-l-2 border-[#F6A823] pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-[12px] font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-600 text-[9px] uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
                               </div>
                             )}
                           </div>
@@ -478,7 +478,7 @@ export default function GuestView() {
               {teams.map(tName => (
                 <div key={tName} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
                   <div className={`backdrop-blur-2xl border rounded-[2rem] p-6 min-h-[200px] shadow-2xl flex flex-col ${cardBg}`}>
-                    <div className={`flex items-center mb-6 px-1 border-l-4 border-[#DE3C4B] pl-4`}>
+                    <div className={`flex items-center mb-6 px-1 border-l-4 border-[#F6A823] pl-4`}>
                       <h2 className={`text-[14px] font-black uppercase ${textMain}`}>{tName}</h2>
                       <span className="ml-auto text-[10px] font-bold text-zinc-600">{tv.members(getSortedMembers(tName).length)}</span>
                     </div>
@@ -499,14 +499,14 @@ export default function GuestView() {
 
       {/* 줌 컨트롤 */}
       <div className="flex fixed bottom-6 left-6 z-50 flex-col items-center gap-1.5 select-none font-pretendard">
-        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#DE3C4B]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-600' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#F6A823]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-600' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div onMouseDown={onZoomMouseDown} onDoubleClick={() => setZoom(1)} title="드래그로 확대/축소 · 더블클릭 리셋"
-          className={`w-9 h-10 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[3px] transition-all hover:border-[#DE3C4B]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.05] border-white/10'}`}>
+          className={`w-9 h-10 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[3px] transition-all hover:border-[#F6A823]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.05] border-white/10'}`}>
           {[0, 1, 2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500" />)}
         </div>
-        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#DE3C4B]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-600' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#F6A823]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-600' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <span className="text-[9px] font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
