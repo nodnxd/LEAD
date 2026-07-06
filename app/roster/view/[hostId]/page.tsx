@@ -259,7 +259,7 @@ export default function GuestView() {
       <div className="flex flex-col overflow-hidden pl-1">
         <span className={`text-[15px] font-bold flex items-center gap-1.5 ${textMain}`}>
           {m.name}
-          <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#3E78DB]/10 text-[#3E78DB] border-[#3E78DB]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+          <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E76B74]/10 text-[#E76B74] border-[#E76B74]/30' : 'bg-[#E0A73C]/10 text-[#E0A73C] border-[#E0A73C]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
           {m.links?.length > 0 && <span className="text-[11px]">🔗</span>}
         </span>
         <span className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${textSub}`}>{m.role}</span>

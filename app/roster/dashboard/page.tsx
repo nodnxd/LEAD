@@ -851,7 +851,7 @@ export default function Dashboard() {
             ctx.font = 'bold 15px system-ui, sans-serif'; ctx.fillStyle = '#fff';
             ctx.fillText(m.name, mx + 14, my + mh * 0.46);
             const nameW = ctx.measureText(m.name).width;
-            const gColor = m.gender === 'female' ? '#E97582' : '#3E78DB';
+            const gColor = m.gender === 'female' ? '#E76B74' : '#E0A73C';
             const gLabel = m.gender === 'female' ? 'F' : 'M';
             const bx2 = mx + 14 + nameW + 6; const by2 = my + mh * 0.2;
             const bw = 20; const bh = 15;
@@ -983,7 +983,7 @@ export default function Dashboard() {
         ctx.fillText(m.name, mx + 16, my + mh * 0.44);
         const nameW = ctx.measureText(m.name).width;
         // M/F 뱃지 (UI처럼 배경 있는 둥근 뱃지)
-        const gColor = m.gender === 'female' ? '#E97582' : '#3E78DB';
+        const gColor = m.gender === 'female' ? '#E76B74' : '#E0A73C';
         const gLabel = m.gender === 'female' ? 'F' : 'M';
         const bx2 = mx + 22 + nameW; const by2 = my + mh * 0.2;
         const bw = 20; const bh = 15;
@@ -1366,7 +1366,7 @@ export default function Dashboard() {
                                     ) : (
                                       <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                         {m.name}
-                                        <span className={`px-1 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#3E78DB]/10 text-[#3E78DB] border-[#3E78DB]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                        <span className={`px-1 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E76B74]/10 text-[#E76B74] border-[#E76B74]/30' : 'bg-[#E0A73C]/10 text-[#E0A73C] border-[#E0A73C]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
                                         {getAttendanceBadge(m.attendance)}
                                         {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                       </span>
@@ -1454,7 +1454,7 @@ export default function Dashboard() {
                                               <div className="flex flex-col overflow-hidden">
                                                 <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[15px] font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                                   {m.name}
-                                                  <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#3E78DB]/10 text-[#3E78DB] border-[#3E78DB]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                                  <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E76B74]/10 text-[#E76B74] border-[#E76B74]/30' : 'bg-[#E0A73C]/10 text-[#E0A73C] border-[#E0A73C]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
                                                   {getAttendanceBadge(m.attendance)}
                                                   {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                                 </span>
