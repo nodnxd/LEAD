@@ -18,9 +18,10 @@
 ## 현재 색상 팔레트 (확정)
 - **LEAD = 블루**: brand `#3E78DB`, hover `#2F62C2`, light `#A9C4F0`
   - 성별 카드색(getCardColor): 남자 `#80A1D4`, 여자 `#DE3C4B`(raspberry), 혼성 `#7C7F65`(olive)
-- **CAST = amber 모노톤**(2026-07-03, room 결로 재디자인 — 강조색 amber 하나, 나머지 뉴트럴 그레이): brand `#E0A63C`, hover `#C68F2E`, light `#EEC57A`. roster/* + 로그인 CAST 분기. (구 red `#DE3C4B`는 LEAD 여자카드색으로만 잔존)
-  - 역할: **Producer `#E0A73C`(amber, hero)**, Topliner `#C79885`(뮤트 클레이/웜), Engineer+A&R `#8FA391`(뮤트 세이지/쿨)
-  - 성별: 남 `#7E8CAB`(뮤트 슬레이트블루), 여 `#C990A2`(뮤트 로즈). 출석: **참석 `#E0A63C`(amber=present)**, 불참 `#8E8A88`(그레이), 미정 `#A39B8A`(웜그레이), 미응답 dim. — amber hero + 뮤트 톤(역할=웜/쿨, 성별=블루/로즈로 색계열 분리해 구분).
+- **CAST = Dune 팔레트**(2026-07-03, 차분한 뮤트 · 골드 제외): brand `#C48B94`(더스티 로즈), hover `#B0757F`, light `#DCB2B8`. roster/* + hub + 로그인(app/page.tsx) CAST 분기.
+  - 역할: **Producer `#C48B94`(더스티로즈=hero=brand)**, Topliner `#A79A88`(샌드), Engineer+A&R `#9A93AC`(라벤더그레이)
+  - 성별 점(이름 앞): 남 `#8095B2`(더스티블루), 여 `#CE96A6`(뮤트로즈). 로스터 풀은 남/여 **칸**으로 분리(점 없음, 칸 틴트 rgba 128,149,178 / 206,150,166).
+  - 출석: **참석 `#8FA88F`(세이지=present)**, 불참 `#97908B`(웜그레이), 미정 `#ADA089`/`#B0A48F`(뮤트탄), 미응답 dim. (구 red `#DE3C4B`는 LEAD 여자카드색으로만 잔존)
   - 삭제·에러용 red(`hover:text-red-*`)는 유지
 - **room = 바이올렛** `#a78bfa` (변경 금지)
 - 로그인은 room 포맷(큰 로고 text-6xl + 태그라인 + 제품 토글).
