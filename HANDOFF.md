@@ -18,10 +18,9 @@
 ## 현재 색상 팔레트 (확정)
 - **LEAD = 블루**: brand `#3E78DB`, hover `#2F62C2`, light `#A9C4F0`
   - 성별 카드색(getCardColor): 남자 `#80A1D4`, 여자 `#DE3C4B`(raspberry), 혼성 `#7C7F65`(olive)
-- **CAST = amber**(2026-07-03 red→amber, 차분한 골드): brand `#E0A63C`, hover `#C68F2E`, light `#EEC57A`. roster/* 전부 + 로그인(app/page.tsx) CAST 분기. (구 red `#DE3C4B`는 LEAD 여자카드색으로만 잔존)
-  - 역할·성별(female `#E97582`)·출석색은 그대로 유지(브랜드색만 교체).
-  - 참석(attending) = green `#46B883` (브랜드 red와 분리). 불참 `#CB827C`(더스티로즈), 미정 `#C7B27A`(머스터드), 미응답 그레이
-  - 역할색: **Producer `#3E78DB`(blue)**, Topliner `#E97582`, **Engineer+A&R `#7C7F65`(올리브, 한 그룹)**
+- **CAST = amber**(2026-07-03 red→amber→팔레트 조화, 골드 앵커): brand `#E0A63C`, hover `#C68F2E`, light `#EEC57A`. roster/* 전부 + 로그인(app/page.tsx) CAST 분기. (구 red `#DE3C4B`는 LEAD 여자카드색으로만 잔존)
+  - 역할색: **Producer `#E0A73C`(골드)**, **Topliner `#E76B74`(로즈핑크)**, **Engineer+A&R `#3E9B8E`(teal, gold 보색)**
+  - 성별: 남자 `#6E88A8`(슬레이트블루), 여자 `#E97582`(살몬). 출석: attending green `#46B883`, 불참 `#CB827C`, 미정 `#C7B27A`(머스터드), 미응답 그레이. — 골드+teal+로즈 웜 중심 팔레트.
   - 삭제·에러용 red(`hover:text-red-*`)는 유지
 - **room = 바이올렛** `#a78bfa` (변경 금지)
 - 로그인은 room 포맷(큰 로고 text-6xl + 태그라인 + 제품 토글).
