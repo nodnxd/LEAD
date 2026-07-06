@@ -1366,7 +1366,7 @@ export default function Dashboard() {
                                     ) : (
                                       <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                         {m.name}
-                                        <span className={`px-1 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#C990A2]/10 text-[#C990A2] border-[#C990A2]/30' : 'bg-[#7E8CAB]/10 text-[#7E8CAB] border-[#7E8CAB]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                        <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DF6689' : '#4E7BD6' }} title={m.gender === 'female' ? 'F' : 'M'} />
                                         {getAttendanceBadge(m.attendance)}
                                         {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                       </span>
@@ -1454,7 +1454,7 @@ export default function Dashboard() {
                                               <div className="flex flex-col overflow-hidden">
                                                 <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[15px] font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                                   {m.name}
-                                                  <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#C990A2]/10 text-[#C990A2] border-[#C990A2]/30' : 'bg-[#7E8CAB]/10 text-[#7E8CAB] border-[#7E8CAB]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                                  <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DF6689' : '#4E7BD6' }} title={m.gender === 'female' ? 'F' : 'M'} />
                                                   {getAttendanceBadge(m.attendance)}
                                                   {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                                 </span>
