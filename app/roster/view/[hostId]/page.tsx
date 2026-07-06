@@ -258,8 +258,8 @@ export default function GuestView() {
     >
       <div className="flex flex-col overflow-hidden pl-1">
         <span className={`text-[15px] font-bold flex items-center gap-1.5 ${textMain}`}>
-          {m.name}
           <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DF6689' : '#4E7BD6' }} title={m.gender === 'female' ? 'F' : 'M'} />
+          {m.name}
           {m.links?.length > 0 && <span className="text-[11px]">🔗</span>}
         </span>
         <span className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${textSub}`}>{m.role}</span>

@@ -1377,8 +1377,8 @@ export default function Dashboard() {
                                       <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-[13px] font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                     ) : (
                                       <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
-                                        {m.name}
                                         <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DF6689' : '#4E7BD6' }} title={m.gender === 'female' ? 'F' : 'M'} />
+                                        {m.name}
                                         {getAttendanceBadge(m.attendance)}
                                         {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                       </span>
@@ -1470,8 +1470,8 @@ export default function Dashboard() {
                                             ) : (
                                               <div className="flex flex-col overflow-hidden">
                                                 <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[15px] font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
-                                                  {m.name}
                                                   <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DF6689' : '#4E7BD6' }} title={m.gender === 'female' ? 'F' : 'M'} />
+                                                  {m.name}
                                                   {getAttendanceBadge(m.attendance)}
                                                   {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                                 </span>

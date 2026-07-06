@@ -132,10 +132,10 @@ export default function HubPage() {
 
           {/* 다른 서비스 — CAST */}
           <div className="mt-10 pt-6 border-t border-white/[0.07]">
-            <a href="/roster/dashboard" className="flex items-center gap-3 p-4 rounded-2xl border border-[#DE3C4B]/25 bg-[#DE3C4B]/[0.06] hover:bg-[#DE3C4B]/10 text-left transition-all">
-              <div className="w-11 h-11 rounded-xl bg-[#DE3C4B]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
+            <a href="/roster/dashboard" className="flex items-center gap-3 p-4 rounded-2xl border border-[#E0A63C]/25 bg-[#E0A63C]/[0.06] hover:bg-[#E0A63C]/10 text-left transition-all">
+              <div className="w-11 h-11 rounded-xl bg-[#E0A63C]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
               <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate text-white">CAST <span className="text-[11px] text-zinc-500 font-bold">로스터 관리</span></p><p className="text-[12px] text-zinc-500">아티스트 로스터 짜기</p></div>
-              <span className="text-[#DE3C4B] text-[18px] font-black shrink-0">→</span>
+              <span className="text-[#E0A63C] text-[18px] font-black shrink-0">→</span>
             </a>
           </div>
         </div>
