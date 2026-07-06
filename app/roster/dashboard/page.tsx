@@ -14,7 +14,7 @@ const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
 const ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R'];
 const DEVELOPER_EMAILS = ['nodnxd@gmail.com', 'hseu2000@gmail.com'];
 const ROLE_COLORS: Record<string, string> = {
-  'Producer': '#E0A73C', 'Topliner': '#3E9B8E', 'Engineer': '#E76B74', 'A&R': '#E76B74'
+  'Producer': '#E0A73C', 'Topliner': '#B4ADA1', 'Engineer': '#9DA1A2', 'A&R': '#9DA1A2'
 };
 
 const T = {
@@ -740,7 +740,7 @@ export default function Dashboard() {
   const exportAllDays = async (format: 'jpeg' | 'pdf' = 'jpeg') => {
     showToastMsg('📸 ' + (lang === 'ko' ? '생성 중...' : 'Generating...'));
     try {
-      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#3E9B8E', 'Engineer': '#E76B74', 'A&R': '#E76B74' };
+      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#B4ADA1', 'Engineer': '#9DA1A2', 'A&R': '#9DA1A2' };
       const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
       const SCALE = 2;
       const PAD = 40;
@@ -851,7 +851,7 @@ export default function Dashboard() {
             ctx.font = 'bold 15px system-ui, sans-serif'; ctx.fillStyle = '#fff';
             ctx.fillText(m.name, mx + 14, my + mh * 0.46);
             const nameW = ctx.measureText(m.name).width;
-            const gColor = m.gender === 'female' ? '#E97582' : '#6E88A8';
+            const gColor = m.gender === 'female' ? '#B29A96' : '#8B9199';
             const gLabel = m.gender === 'female' ? 'F' : 'M';
             const bx2 = mx + 14 + nameW + 6; const by2 = my + mh * 0.2;
             const bw = 20; const bh = 15;
@@ -913,7 +913,7 @@ export default function Dashboard() {
   };;
 
   const buildRosterCanvas = (teamData: any[], dayLabel: string) => {
-    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#3E9B8E', 'Engineer': '#E76B74', 'A&R': '#E76B74' };
+    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#B4ADA1', 'Engineer': '#9DA1A2', 'A&R': '#9DA1A2' };
     const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
     const SCALE = 2; const PAD = 40; const HEADER_H = 60;
     const TEAM_GAP = 16; const MEMBER_H = 60; const BADGE_H = 24;
@@ -983,7 +983,7 @@ export default function Dashboard() {
         ctx.fillText(m.name, mx + 16, my + mh * 0.44);
         const nameW = ctx.measureText(m.name).width;
         // M/F 뱃지 (UI처럼 배경 있는 둥근 뱃지)
-        const gColor = m.gender === 'female' ? '#E97582' : '#6E88A8';
+        const gColor = m.gender === 'female' ? '#B29A96' : '#8B9199';
         const gLabel = m.gender === 'female' ? 'F' : 'M';
         const bx2 = mx + 22 + nameW; const by2 = my + mh * 0.2;
         const bw = 20; const bh = 15;
@@ -1031,17 +1031,17 @@ export default function Dashboard() {
     const base = "border-l-[4px] backdrop-blur-md transition-all duration-150 ";
     switch(r) {
       case 'Producer': return base + (theme === 'light' ? "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-black/[0.01]" : "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(224,167,60,0.25)]");
-      case 'Topliner': return base + (theme === 'light' ? "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-black/[0.01]" : "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(231,107,116,0.25)]");
-      case 'Engineer': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(124,127,101,0.25)]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(62,120,219,0.25)]");
+      case 'Topliner': return base + (theme === 'light' ? "border-l-[#B4ADA1] bg-gradient-to-r from-[#B4ADA1]/10 to-black/[0.01]" : "border-l-[#B4ADA1] bg-gradient-to-r from-[#B4ADA1]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(231,107,116,0.25)]");
+      case 'Engineer': return base + (theme === 'light' ? "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-black/[0.01]" : "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(124,127,101,0.25)]");
+      case 'A&R': return base + (theme === 'light' ? "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-black/[0.01]" : "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(62,120,219,0.25)]");
       default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02] backdrop-blur-md";
     }
   };
 
   const getAttendanceBadge = (attendance: string | null) => {
-    if (attendance === 'attending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#46B883]/20 text-[#46B883] border border-[#46B883]/30 shrink-0">{t.attending}</span>;
-    if (attendance === 'absent') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#C0716B]/20 text-[#CB827C] border border-[#C0716B]/30 shrink-0">{t.absent}</span>;
-    if (attendance === 'pending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#B5A36A]/20 text-[#C7B27A] border border-[#B5A36A]/30 shrink-0">{t.pending}</span>;
+    if (attendance === 'attending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#E0A63C]/20 text-[#E0A63C] border border-[#E0A63C]/30 shrink-0">{t.attending}</span>;
+    if (attendance === 'absent') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#8E8A88]/20 text-[#8E8A88] border border-[#8E8A88]/30 shrink-0">{t.absent}</span>;
+    if (attendance === 'pending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#B5A36A]/20 text-[#A39B8A] border border-[#B5A36A]/30 shrink-0">{t.pending}</span>;
     return votingOpen ? <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-600 border border-white/10 shrink-0">{t.noResponse}</span> : null;
   };
 
@@ -1132,9 +1132,9 @@ export default function Dashboard() {
                   <p className={`text-[16px] font-bold ${textSub}`}>{currentProject}</p>
                   {votingOpen && (
                     <div className="flex items-center gap-2 ml-2">
-                      <span className="text-[10px] font-bold text-[#46B883]">{t.attending} {attendingCount}</span>
-                      <span className="text-[10px] font-bold text-[#CB827C]">{t.absent} {absentCount}</span>
-                      <span className="text-[10px] font-bold text-[#C7B27A]">{t.pending} {pendingCount}</span>
+                      <span className="text-[10px] font-bold text-[#E0A63C]">{t.attending} {attendingCount}</span>
+                      <span className="text-[10px] font-bold text-[#8E8A88]">{t.absent} {absentCount}</span>
+                      <span className="text-[10px] font-bold text-[#A39B8A]">{t.pending} {pendingCount}</span>
                       <span className={`text-[10px] font-bold ${textSub}`}>{t.noResponse} {noResponseCount}</span>
                     </div>
                   )}
@@ -1366,7 +1366,7 @@ export default function Dashboard() {
                                     ) : (
                                       <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                         {m.name}
-                                        <span className={`px-1 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#6E88A8]/10 text-[#6E88A8] border-[#6E88A8]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                        <span className={`px-1 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#B29A96]/10 text-[#B29A96] border-[#B29A96]/30' : 'bg-[#8B9199]/10 text-[#8B9199] border-[#8B9199]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
                                         {getAttendanceBadge(m.attendance)}
                                         {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                       </span>
@@ -1454,7 +1454,7 @@ export default function Dashboard() {
                                               <div className="flex flex-col overflow-hidden">
                                                 <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[15px] font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                                   {m.name}
-                                                  <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#6E88A8]/10 text-[#6E88A8] border-[#6E88A8]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                                  <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#B29A96]/10 text-[#B29A96] border-[#B29A96]/30' : 'bg-[#8B9199]/10 text-[#8B9199] border-[#8B9199]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
                                                   {getAttendanceBadge(m.attendance)}
                                                   {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                                 </span>

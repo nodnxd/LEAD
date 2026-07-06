@@ -195,9 +195,9 @@ export default function GuestView() {
   const getRoleColor = (r: string) => {
     switch(r) {
       case 'Producer': return { bg: 'bg-[#E0A73C]/15', border: 'border-[#E0A73C]/30', text: 'text-[#E0A73C]', activeBg: 'bg-[#E0A73C]/25', activeBorder: 'border-[#E0A73C]/50', dim: 'text-[#E0A73C]/50' };
-      case 'Topliner': return { bg: 'bg-[#3E9B8E]/15', border: 'border-[#3E9B8E]/30', text: 'text-[#3E9B8E]', activeBg: 'bg-[#3E9B8E]/25', activeBorder: 'border-[#3E9B8E]/50', dim: 'text-[#3E9B8E]/50' };
-      case 'Engineer': return { bg: 'bg-[#E76B74]/15', border: 'border-[#E76B74]/30', text: 'text-[#E76B74]', activeBg: 'bg-[#E76B74]/25', activeBorder: 'border-[#E76B74]/50', dim: 'text-[#E76B74]/50' };
-      case 'A&R': return { bg: 'bg-[#E76B74]/15', border: 'border-[#E76B74]/30', text: 'text-[#E76B74]', activeBg: 'bg-[#E76B74]/25', activeBorder: 'border-[#E76B74]/50', dim: 'text-[#E76B74]/50' };
+      case 'Topliner': return { bg: 'bg-[#B4ADA1]/15', border: 'border-[#B4ADA1]/30', text: 'text-[#B4ADA1]', activeBg: 'bg-[#B4ADA1]/25', activeBorder: 'border-[#B4ADA1]/50', dim: 'text-[#B4ADA1]/50' };
+      case 'Engineer': return { bg: 'bg-[#9DA1A2]/15', border: 'border-[#9DA1A2]/30', text: 'text-[#9DA1A2]', activeBg: 'bg-[#9DA1A2]/25', activeBorder: 'border-[#9DA1A2]/50', dim: 'text-[#9DA1A2]/50' };
+      case 'A&R': return { bg: 'bg-[#9DA1A2]/15', border: 'border-[#9DA1A2]/30', text: 'text-[#9DA1A2]', activeBg: 'bg-[#9DA1A2]/25', activeBorder: 'border-[#9DA1A2]/50', dim: 'text-[#9DA1A2]/50' };
       default: return { bg: 'bg-white/5', border: 'border-white/10', text: 'text-zinc-400', activeBg: 'bg-white/10', activeBorder: 'border-white/20', dim: 'text-zinc-600' };
     }
   };
@@ -206,9 +206,9 @@ export default function GuestView() {
     const base = "border-l-[4px] backdrop-blur-md ";
     switch(r) {
       case 'Producer': return base + (theme === 'light' ? "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-black/[0.01]" : "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-white/[0.02]");
-      case 'Topliner': return base + (theme === 'light' ? "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-black/[0.01]" : "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-white/[0.02]");
-      case 'Engineer': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02]");
+      case 'Topliner': return base + (theme === 'light' ? "border-l-[#B4ADA1] bg-gradient-to-r from-[#B4ADA1]/10 to-black/[0.01]" : "border-l-[#B4ADA1] bg-gradient-to-r from-[#B4ADA1]/10 to-white/[0.02]");
+      case 'Engineer': return base + (theme === 'light' ? "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-black/[0.01]" : "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-white/[0.02]");
+      case 'A&R': return base + (theme === 'light' ? "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-black/[0.01]" : "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-white/[0.02]");
       default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02]";
     }
   };
@@ -222,9 +222,9 @@ export default function GuestView() {
   };
 
   const getVoteIcon = (attendance: string | null) => {
-    if (attendance === 'attending') return <span className="text-[#46B883] shrink-0"><CheckIcon /></span>;
-    if (attendance === 'absent') return <span className="text-[#CB827C] shrink-0"><XIcon /></span>;
-    if (attendance === 'pending') return <span className="text-[#C7B27A] shrink-0"><DotIcon /></span>;
+    if (attendance === 'attending') return <span className="text-[#E0A63C] shrink-0"><CheckIcon /></span>;
+    if (attendance === 'absent') return <span className="text-[#8E8A88] shrink-0"><XIcon /></span>;
+    if (attendance === 'pending') return <span className="text-[#A39B8A] shrink-0"><DotIcon /></span>;
     return <span className="text-zinc-600 shrink-0"><DotIcon /></span>;
   };
 
@@ -259,7 +259,7 @@ export default function GuestView() {
       <div className="flex flex-col overflow-hidden pl-1">
         <span className={`text-[15px] font-bold flex items-center gap-1.5 ${textMain}`}>
           {m.name}
-          <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#6E88A8]/10 text-[#6E88A8] border-[#6E88A8]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+          <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#B29A96]/10 text-[#B29A96] border-[#B29A96]/30' : 'bg-[#8B9199]/10 text-[#8B9199] border-[#8B9199]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
           {m.links?.length > 0 && <span className="text-[11px]">🔗</span>}
         </span>
         <span className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${textSub}`}>{m.role}</span>
@@ -398,9 +398,9 @@ export default function GuestView() {
                               </button>
                               {isSelected && (
                                 <div className="flex gap-1.5 pl-1">
-                                  <button onClick={() => vote(m.id, 'attending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#46B883]/40 bg-[#46B883]/10 text-[#46B883] hover:bg-[#46B883]/25 transition-all whitespace-nowrap"><CheckIcon /> {tv.attending}</button>
-                                  <button onClick={() => vote(m.id, 'absent')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#C0716B]/40 bg-[#C0716B]/10 text-[#CB827C] hover:bg-[#C0716B]/25 transition-all whitespace-nowrap"><XIcon /> {tv.absent}</button>
-                                  <button onClick={() => vote(m.id, 'pending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#B5A36A]/40 bg-[#B5A36A]/10 text-[#C7B27A] hover:bg-[#B5A36A]/25 transition-all whitespace-nowrap"><DotIcon /> {tv.pending}</button>
+                                  <button onClick={() => vote(m.id, 'attending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#E0A63C]/40 bg-[#E0A63C]/10 text-[#E0A63C] hover:bg-[#E0A63C]/25 transition-all whitespace-nowrap"><CheckIcon /> {tv.attending}</button>
+                                  <button onClick={() => vote(m.id, 'absent')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#8E8A88]/40 bg-[#8E8A88]/10 text-[#8E8A88] hover:bg-[#8E8A88]/25 transition-all whitespace-nowrap"><XIcon /> {tv.absent}</button>
+                                  <button onClick={() => vote(m.id, 'pending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#B5A36A]/40 bg-[#B5A36A]/10 text-[#A39B8A] hover:bg-[#B5A36A]/25 transition-all whitespace-nowrap"><DotIcon /> {tv.pending}</button>
                                 </div>
                               )}
                             </div>
@@ -415,9 +415,9 @@ export default function GuestView() {
                 <p className={`text-[10px] font-black uppercase tracking-widest mb-4 text-zinc-600`}>Status</p>
                 <div className="flex flex-wrap gap-6">
                   {[
-                    { label: tv.attending, items: attending, headerColor: 'text-[#46B883]', borderColor: 'border-[#46B883]' },
-                    { label: tv.absent, items: absent, headerColor: 'text-[#CB827C]', borderColor: 'border-[#C0716B]' },
-                    { label: tv.pending, items: pending, headerColor: 'text-[#C7B27A]', borderColor: 'border-[#B5A36A]' },
+                    { label: tv.attending, items: attending, headerColor: 'text-[#E0A63C]', borderColor: 'border-[#E0A63C]' },
+                    { label: tv.absent, items: absent, headerColor: 'text-[#8E8A88]', borderColor: 'border-[#8E8A88]' },
+                    { label: tv.pending, items: pending, headerColor: 'text-[#A39B8A]', borderColor: 'border-[#B5A36A]' },
                     { label: tv.noResponse, items: noResponse, headerColor: 'text-zinc-500', borderColor: 'border-zinc-600' },
                   ].map(({ label, items, headerColor, borderColor }) => (
                     <div key={label} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(25%-18px)]">
