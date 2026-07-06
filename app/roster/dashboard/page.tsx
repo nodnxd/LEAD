@@ -1384,7 +1384,14 @@ export default function Dashboard() {
 
             {/* 로스터 풀 */}
             <div className="relative z-10 mb-10">
-              <h2 className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-4 ${textSub}`}>{t.rosterPool}</h2>
+              <h2 className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-3 ${textSub}`}>{t.rosterPool}</h2>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="w-16 shrink-0" />
+                <div className="flex-1 grid grid-cols-2 gap-3">
+                  <span className="text-[9px] font-black uppercase tracking-widest px-2" style={{ color: '#4E7BD6AA' }}>{lang === 'ko' ? '남자' : 'Male'}</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest px-2" style={{ color: '#DF6689AA' }}>{lang === 'ko' ? '여자' : 'Female'}</span>
+                </div>
+              </div>
               <Droppable droppableId="pool-roles" type="ROLEROW">
                 {(dp) => (
                   <div ref={dp.innerRef} {...dp.droppableProps} className="flex flex-col gap-3">
@@ -1394,38 +1401,44 @@ export default function Dashboard() {
                   return (
                     <Draggable key={r} draggableId={`poolrole-${r}`} index={ridx}>
                     {(rp) => (
-                    <div ref={rp.innerRef} {...rp.draggableProps} className="flex items-center gap-3">
-                      <span {...rp.dragHandleProps} className="text-[9px] font-black uppercase tracking-widest shrink-0 w-16 cursor-grab active:cursor-grabbing" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
-                      <Droppable droppableId={`pool_${r}`} direction="horizontal" type="MEMBER">
-                        {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-wrap gap-2 pb-1 min-h-[52px] flex-1 items-center">
-                            {poolMembers.map((m, i) => (
-                              <PortalDraggable key={m.id} draggableId={String(m.id)} index={i}>
-                                <div
-                                  onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
-                                  onDoubleClick={() => setLinkModal(m)}
-                                  className={`flex items-center justify-between p-2.5 rounded-xl w-[160px] h-[44px] shadow-xl cursor-pointer shrink-0 ${getRoleCardStyle(m.role, m.excluded)}`}
-                                >
-                                  <div className="flex items-center gap-1.5 overflow-hidden flex-1 pl-1">
-                                    {editingId === String(m.id) ? (
-                                      <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-[13px] font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
-                                    ) : (
-                                      <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
-                                        <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DF6689' : '#4E7BD6' }} title={m.gender === 'female' ? 'F' : 'M'} />
-                                        {m.name}
-                                        {getAttendanceBadge(m.attendance)}
-                                        {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} className="text-zinc-600 hover:text-red-500 text-lg px-1 shrink-0">×</button>
+                    <div ref={rp.innerRef} {...rp.draggableProps} className="flex items-start gap-3">
+                      <span {...rp.dragHandleProps} className="text-[9px] font-black uppercase tracking-widest shrink-0 w-16 mt-3 cursor-grab active:cursor-grabbing" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
+                      <div className="flex-1 grid grid-cols-2 gap-3">
+                        {(['male', 'female'] as const).map(g => {
+                          const colMembers = poolMembers.filter(m => (m.gender === 'female' ? 'female' : 'male') === g);
+                          return (
+                            <Droppable key={g} droppableId={`pool_${r}__${g}`} direction="horizontal" type="MEMBER">
+                              {(provided) => (
+                                <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-wrap gap-2 pb-1 min-h-[52px] items-center content-start rounded-xl px-2 py-1.5" style={{ backgroundColor: g === 'male' ? 'rgba(78,123,214,0.05)' : 'rgba(223,102,137,0.05)' }}>
+                                  {colMembers.map((m, i) => (
+                                    <PortalDraggable key={m.id} draggableId={String(m.id)} index={i}>
+                                      <div
+                                        onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
+                                        onDoubleClick={() => setLinkModal(m)}
+                                        className={`flex items-center justify-between p-2.5 rounded-xl w-[160px] h-[44px] shadow-xl cursor-pointer shrink-0 ${getRoleCardStyle(m.role, m.excluded)}`}
+                                      >
+                                        <div className="flex items-center gap-1.5 overflow-hidden flex-1 pl-1">
+                                          {editingId === String(m.id) ? (
+                                            <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-[13px] font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
+                                          ) : (
+                                            <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
+                                              {m.name}
+                                              {getAttendanceBadge(m.attendance)}
+                                              {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} className="text-zinc-600 hover:text-red-500 text-lg px-1 shrink-0">×</button>
+                                      </div>
+                                    </PortalDraggable>
+                                  ))}
+                                  {provided.placeholder}
                                 </div>
-                              </PortalDraggable>
-                            ))}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
+                              )}
+                            </Droppable>
+                          );
+                        })}
+                      </div>
                     </div>
                     )}
                     </Draggable>
