@@ -152,6 +152,7 @@ export default function Dashboard() {
 
   const [teams, setTeams] = useState<string[]>(['Unassigned']);
   const [projects, setProjects] = useState<string[]>([]);
+  const [poolOrder, setPoolOrder] = useState<string[][]>([['Producer'], ['Topliner'], ['Engineer', 'A&R']]);
   const [currentProject, setCurrentProject] = useState('');
   const [currentDay, setCurrentDay] = useState(1);
   const [days, setDays] = useState<number[]>([1]);
@@ -232,6 +233,8 @@ export default function Dashboard() {
     const savedTheme = localStorage.getItem('cast_theme') as Theme | null;
     if (savedLang) setLang(savedLang);
     if (savedTheme) setTheme(savedTheme);
+    const savedPool = localStorage.getItem('cast_pool_order');
+    if (savedPool) { try { const p = JSON.parse(savedPool); if (Array.isArray(p) && p.length === 3) setPoolOrder(p); } catch { /* ignore */ } }
   }, []);
 
   const toggleLang = () => { const next: Lang = lang === 'ko' ? 'en' : 'ko'; setLang(next); localStorage.setItem('cast_lang', next); };
@@ -563,6 +566,11 @@ export default function Dashboard() {
     const { destination, source, draggableId, type } = result;
     if (!destination) return;
 
+    if (type === 'ROLEROW') {
+      const next = Array.from(poolOrder);
+      const [moved] = next.splice(source.index, 1); next.splice(destination.index, 0, moved);
+      setPoolOrder(next); localStorage.setItem('cast_pool_order', JSON.stringify(next)); return;
+    }
     if (type === 'PROJECT') {
       const next = Array.from(projects); const [moved] = next.splice(source.index, 1); next.splice(destination.index, 0, moved);
       setProjects(next); await saveProjectOrder(user.id, next); return;
@@ -1343,13 +1351,17 @@ export default function Dashboard() {
             {/* 로스터 풀 */}
             <div className="relative z-10 mb-10">
               <h2 className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-4 ${textSub}`}>{t.rosterPool}</h2>
-              <div className="flex flex-col gap-3">
-                {[['Producer'], ['Topliner'], ['Engineer', 'A&R']].map(roles => {
+              <Droppable droppableId="pool-roles" type="ROLEROW">
+                {(dp) => (
+                  <div ref={dp.innerRef} {...dp.droppableProps} className="flex flex-col gap-3">
+                {poolOrder.map((roles, ridx) => {
                   const r = roles[0];
                   const poolMembers = members.filter(m => m.project === currentProject && roles.includes(m.role) && !getAssignment(m.id)).sort((a, b) => a.name.localeCompare(b.name));
                   return (
-                    <div key={r} className="flex items-center gap-3">
-                      <span className="text-[9px] font-black uppercase tracking-widest shrink-0 w-16" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
+                    <Draggable key={r} draggableId={`poolrole-${r}`} index={ridx}>
+                    {(rp) => (
+                    <div ref={rp.innerRef} {...rp.draggableProps} className="flex items-center gap-3">
+                      <span {...rp.dragHandleProps} className="text-[9px] font-black uppercase tracking-widest shrink-0 w-16 cursor-grab active:cursor-grabbing" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
                       <Droppable droppableId={`pool_${r}`} direction="horizontal" type="MEMBER">
                         {(provided) => (
                           <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-wrap gap-2 pb-1 min-h-[52px] flex-1 items-center">
@@ -1381,9 +1393,14 @@ export default function Dashboard() {
                         )}
                       </Droppable>
                     </div>
+                    )}
+                    </Draggable>
                   );
                 })}
-              </div>
+                {dp.placeholder}
+                  </div>
+                )}
+              </Droppable>
             </div>
 
             {/* 스튜디오 보드 */}
