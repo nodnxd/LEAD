@@ -14,7 +14,7 @@ const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
 const ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R'];
 const DEVELOPER_EMAILS = ['nodnxd@gmail.com', 'hseu2000@gmail.com'];
 const ROLE_COLORS: Record<string, string> = {
-  'Producer': '#E0A73C', 'Topliner': '#E76B74', 'Engineer': '#3E9B8E', 'A&R': '#3E9B8E'
+  'Producer': '#E0A73C', 'Topliner': '#3E9B8E', 'Engineer': '#E76B74', 'A&R': '#E76B74'
 };
 
 const T = {
@@ -740,7 +740,7 @@ export default function Dashboard() {
   const exportAllDays = async (format: 'jpeg' | 'pdf' = 'jpeg') => {
     showToastMsg('📸 ' + (lang === 'ko' ? '생성 중...' : 'Generating...'));
     try {
-      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#E76B74', 'Engineer': '#3E9B8E', 'A&R': '#3E9B8E' };
+      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#3E9B8E', 'Engineer': '#E76B74', 'A&R': '#E76B74' };
       const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
       const SCALE = 2;
       const PAD = 40;
@@ -913,7 +913,7 @@ export default function Dashboard() {
   };;
 
   const buildRosterCanvas = (teamData: any[], dayLabel: string) => {
-    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#E76B74', 'Engineer': '#3E9B8E', 'A&R': '#3E9B8E' };
+    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#3E9B8E', 'Engineer': '#E76B74', 'A&R': '#E76B74' };
     const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
     const SCALE = 2; const PAD = 40; const HEADER_H = 60;
     const TEAM_GAP = 16; const MEMBER_H = 60; const BADGE_H = 24;
@@ -1031,9 +1031,9 @@ export default function Dashboard() {
     const base = "border-l-[4px] backdrop-blur-md transition-all duration-150 ";
     switch(r) {
       case 'Producer': return base + (theme === 'light' ? "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-black/[0.01]" : "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(224,167,60,0.25)]");
-      case 'Topliner': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(231,107,116,0.25)]");
-      case 'Engineer': return base + (theme === 'light' ? "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-black/[0.01]" : "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(124,127,101,0.25)]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-black/[0.01]" : "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(62,120,219,0.25)]");
+      case 'Topliner': return base + (theme === 'light' ? "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-black/[0.01]" : "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(231,107,116,0.25)]");
+      case 'Engineer': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(124,127,101,0.25)]");
+      case 'A&R': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(62,120,219,0.25)]");
       default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02] backdrop-blur-md";
     }
   };

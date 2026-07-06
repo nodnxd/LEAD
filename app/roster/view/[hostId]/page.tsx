@@ -195,9 +195,9 @@ export default function GuestView() {
   const getRoleColor = (r: string) => {
     switch(r) {
       case 'Producer': return { bg: 'bg-[#E0A73C]/15', border: 'border-[#E0A73C]/30', text: 'text-[#E0A73C]', activeBg: 'bg-[#E0A73C]/25', activeBorder: 'border-[#E0A73C]/50', dim: 'text-[#E0A73C]/50' };
-      case 'Topliner': return { bg: 'bg-[#E76B74]/15', border: 'border-[#E76B74]/30', text: 'text-[#E76B74]', activeBg: 'bg-[#E76B74]/25', activeBorder: 'border-[#E76B74]/50', dim: 'text-[#E76B74]/50' };
-      case 'Engineer': return { bg: 'bg-[#3E9B8E]/15', border: 'border-[#3E9B8E]/30', text: 'text-[#3E9B8E]', activeBg: 'bg-[#3E9B8E]/25', activeBorder: 'border-[#3E9B8E]/50', dim: 'text-[#3E9B8E]/50' };
-      case 'A&R': return { bg: 'bg-[#3E9B8E]/15', border: 'border-[#3E9B8E]/30', text: 'text-[#3E9B8E]', activeBg: 'bg-[#3E9B8E]/25', activeBorder: 'border-[#3E9B8E]/50', dim: 'text-[#3E9B8E]/50' };
+      case 'Topliner': return { bg: 'bg-[#3E9B8E]/15', border: 'border-[#3E9B8E]/30', text: 'text-[#3E9B8E]', activeBg: 'bg-[#3E9B8E]/25', activeBorder: 'border-[#3E9B8E]/50', dim: 'text-[#3E9B8E]/50' };
+      case 'Engineer': return { bg: 'bg-[#E76B74]/15', border: 'border-[#E76B74]/30', text: 'text-[#E76B74]', activeBg: 'bg-[#E76B74]/25', activeBorder: 'border-[#E76B74]/50', dim: 'text-[#E76B74]/50' };
+      case 'A&R': return { bg: 'bg-[#E76B74]/15', border: 'border-[#E76B74]/30', text: 'text-[#E76B74]', activeBg: 'bg-[#E76B74]/25', activeBorder: 'border-[#E76B74]/50', dim: 'text-[#E76B74]/50' };
       default: return { bg: 'bg-white/5', border: 'border-white/10', text: 'text-zinc-400', activeBg: 'bg-white/10', activeBorder: 'border-white/20', dim: 'text-zinc-600' };
     }
   };
@@ -206,9 +206,9 @@ export default function GuestView() {
     const base = "border-l-[4px] backdrop-blur-md ";
     switch(r) {
       case 'Producer': return base + (theme === 'light' ? "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-black/[0.01]" : "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-white/[0.02]");
-      case 'Topliner': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02]");
-      case 'Engineer': return base + (theme === 'light' ? "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-black/[0.01]" : "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-white/[0.02]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-black/[0.01]" : "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-white/[0.02]");
+      case 'Topliner': return base + (theme === 'light' ? "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-black/[0.01]" : "border-l-[#3E9B8E] bg-gradient-to-r from-[#3E9B8E]/10 to-white/[0.02]");
+      case 'Engineer': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02]");
+      case 'A&R': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02]");
       default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02]";
     }
   };
