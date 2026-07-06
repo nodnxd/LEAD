@@ -14,7 +14,7 @@ const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
 const ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R'];
 const DEVELOPER_EMAILS = ['nodnxd@gmail.com', 'hseu2000@gmail.com'];
 const ROLE_COLORS: Record<string, string> = {
-  'Producer': '#3E78DB', 'Topliner': '#E97582', 'Engineer': '#7C7F65', 'A&R': '#7C7F65'
+  'Producer': '#E0A73C', 'Topliner': '#E76B74', 'Engineer': '#7C7F65', 'A&R': '#7C7F65'
 };
 
 const T = {
@@ -740,7 +740,7 @@ export default function Dashboard() {
   const exportAllDays = async (format: 'jpeg' | 'pdf' = 'jpeg') => {
     showToastMsg('📸 ' + (lang === 'ko' ? '생성 중...' : 'Generating...'));
     try {
-      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#3E78DB', 'Topliner': '#E97582', 'Engineer': '#7C7F65', 'A&R': '#7C7F65' };
+      const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#E76B74', 'Engineer': '#7C7F65', 'A&R': '#7C7F65' };
       const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
       const SCALE = 2;
       const PAD = 40;
@@ -851,7 +851,7 @@ export default function Dashboard() {
             ctx.font = 'bold 15px system-ui, sans-serif'; ctx.fillStyle = '#fff';
             ctx.fillText(m.name, mx + 14, my + mh * 0.46);
             const nameW = ctx.measureText(m.name).width;
-            const gColor = m.gender === 'female' ? '#E76B74' : '#E0A73C';
+            const gColor = m.gender === 'female' ? '#E97582' : '#3E78DB';
             const gLabel = m.gender === 'female' ? 'F' : 'M';
             const bx2 = mx + 14 + nameW + 6; const by2 = my + mh * 0.2;
             const bw = 20; const bh = 15;
@@ -913,7 +913,7 @@ export default function Dashboard() {
   };;
 
   const buildRosterCanvas = (teamData: any[], dayLabel: string) => {
-    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#3E78DB', 'Topliner': '#E97582', 'Engineer': '#7C7F65', 'A&R': '#7C7F65' };
+    const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E0A73C', 'Topliner': '#E76B74', 'Engineer': '#7C7F65', 'A&R': '#7C7F65' };
     const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
     const SCALE = 2; const PAD = 40; const HEADER_H = 60;
     const TEAM_GAP = 16; const MEMBER_H = 60; const BADGE_H = 24;
@@ -983,7 +983,7 @@ export default function Dashboard() {
         ctx.fillText(m.name, mx + 16, my + mh * 0.44);
         const nameW = ctx.measureText(m.name).width;
         // M/F 뱃지 (UI처럼 배경 있는 둥근 뱃지)
-        const gColor = m.gender === 'female' ? '#E76B74' : '#E0A73C';
+        const gColor = m.gender === 'female' ? '#E97582' : '#3E78DB';
         const gLabel = m.gender === 'female' ? 'F' : 'M';
         const bx2 = mx + 22 + nameW; const by2 = my + mh * 0.2;
         const bw = 20; const bh = 15;
@@ -1030,8 +1030,8 @@ export default function Dashboard() {
     if (excluded) return theme === 'light' ? "border border-black/5 bg-black/[0.02] grayscale opacity-50" : "border border-white/5 bg-white/[0.01] grayscale opacity-60 backdrop-blur-sm";
     const base = "border-l-[4px] backdrop-blur-md transition-all duration-150 ";
     switch(r) {
-      case 'Producer': return base + (theme === 'light' ? "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-black/[0.01]" : "border-l-[#3E78DB] bg-gradient-to-r from-[#3E78DB]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(222,60,75,0.25)]");
-      case 'Topliner': return base + (theme === 'light' ? "border-l-[#E97582] bg-gradient-to-r from-[#E97582]/10 to-black/[0.01]" : "border-l-[#E97582] bg-gradient-to-r from-[#E97582]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(233,117,130,0.25)]");
+      case 'Producer': return base + (theme === 'light' ? "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-black/[0.01]" : "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(224,167,60,0.25)]");
+      case 'Topliner': return base + (theme === 'light' ? "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-black/[0.01]" : "border-l-[#E76B74] bg-gradient-to-r from-[#E76B74]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(231,107,116,0.25)]");
       case 'Engineer': return base + (theme === 'light' ? "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-black/[0.01]" : "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(124,127,101,0.25)]");
       case 'A&R': return base + (theme === 'light' ? "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-black/[0.01]" : "border-l-[#7C7F65] bg-gradient-to-r from-[#7C7F65]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(62,120,219,0.25)]");
       default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02] backdrop-blur-md";
@@ -1104,7 +1104,7 @@ export default function Dashboard() {
                     <Draggable key={p} draggableId={`proj-${p}`} index={index}>
                       {(provided) => (
                         <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
-                          className={`flex items-center rounded-full border transition-all overflow-hidden ${currentProject === p ? 'border-[#E0A63C]/50 bg-gradient-to-r from-[#E0A63C]/30 to-[#E97582]/10 shadow-[0_0_20px_rgba(222,60,75,0.3)]' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
+                          className={`flex items-center rounded-full border transition-all overflow-hidden ${currentProject === p ? 'border-[#E0A63C]/50 bg-gradient-to-r from-[#E0A63C]/30 to-[#EEC57A]/10 shadow-[0_0_20px_rgba(224,167,60,0.3)]' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
                           <button onClick={() => setCurrentProject(p)} className={`px-4 py-1.5 font-bold text-[11px] tracking-widest uppercase transition-all ${currentProject === p ? textMain : textSub}`}>{p}</button>
                           <button onClick={() => showConfirm(t.rosterDelete, t.rosterDeleteMsg(p), () => {
                             supabase.from('profiles').delete().eq('project', p).eq('user_id', user.id).then(async () => {
@@ -1175,7 +1175,7 @@ export default function Dashboard() {
                 <button onClick={() => votingOpen
                   ? showConfirm(t.voteClose, t.closeVoteConfirm, async () => { await closeVoting(); setConfirmModal(null); })
                   : setShowVotingModal(true)}
-                  className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${votingOpen ? 'bg-[#E0A63C]/20 border-[#E0A63C]/40 text-[#E97582] hover:bg-[#E0A63C]/30' : btnBg}`}>
+                  className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${votingOpen ? 'bg-[#E0A63C]/20 border-[#E0A63C]/40 text-[#EEC57A] hover:bg-[#E0A63C]/30' : btnBg}`}>
                   {votingOpen ? t.voteClose : t.voteOpen}
                 </button>
                 <button onClick={() => setShowNoticeBoard(!showNoticeBoard)} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.notice}</button>
@@ -1366,7 +1366,7 @@ export default function Dashboard() {
                                     ) : (
                                       <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                         {m.name}
-                                        <span className={`px-1 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E76B74]/10 text-[#E76B74] border-[#E76B74]/30' : 'bg-[#E0A73C]/10 text-[#E0A73C] border-[#E0A73C]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                        <span className={`px-1 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#3E78DB]/10 text-[#3E78DB] border-[#3E78DB]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
                                         {getAttendanceBadge(m.attendance)}
                                         {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                       </span>
@@ -1454,7 +1454,7 @@ export default function Dashboard() {
                                               <div className="flex flex-col overflow-hidden">
                                                 <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[15px] font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                                   {m.name}
-                                                  <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E76B74]/10 text-[#E76B74] border-[#E76B74]/30' : 'bg-[#E0A73C]/10 text-[#E0A73C] border-[#E0A73C]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+                                                  <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#3E78DB]/10 text-[#3E78DB] border-[#3E78DB]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
                                                   {getAttendanceBadge(m.attendance)}
                                                   {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                                 </span>
@@ -1576,7 +1576,7 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-3">
             <button onClick={() => setShowVotingModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
-            <button onClick={openVoting} className="flex-1 py-3 rounded-xl bg-[#E0A63C]/20 border border-[#E0A63C]/40 text-[#E97582] font-black text-[12px] hover:bg-[#E0A63C]/30 transition-all">{t.voteStart}</button>
+            <button onClick={openVoting} className="flex-1 py-3 rounded-xl bg-[#E0A63C]/20 border border-[#E0A63C]/40 text-[#EEC57A] font-black text-[12px] hover:bg-[#E0A63C]/30 transition-all">{t.voteStart}</button>
           </div>
         </Modal>
       )}
@@ -1611,7 +1611,7 @@ export default function Dashboard() {
               <button key={r} onClick={() => updateMemberRole(roleDropdown.id, r)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`} style={{ color: ROLE_COLORS[r] }}>{r}</button>
             ))}
             <div className={`border-t ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`} />
-            <button onClick={() => toggleExcludeMember(roleDropdown.id, roleDropdown.excluded)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${roleDropdown.excluded ? 'text-[#E97582]' : 'text-zinc-500'}`}>
+            <button onClick={() => toggleExcludeMember(roleDropdown.id, roleDropdown.excluded)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${roleDropdown.excluded ? 'text-[#EEC57A]' : 'text-zinc-500'}`}>
               {roleDropdown.excluded ? t.include : t.exclude}
             </button>
           </div>

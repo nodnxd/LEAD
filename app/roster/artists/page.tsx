@@ -13,7 +13,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R', 'Artist', 'Other'];
 const ROSTER_ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R']; // 로스터에서 쓰는 role
 const ROLE_COLORS: Record<string, string> = {
-  'Producer': '#3E78DB', 'Topliner': '#E97582', 'Engineer': '#7C7F65',
+  'Producer': '#E0A73C', 'Topliner': '#E76B74', 'Engineer': '#7C7F65',
   'A&R': '#7C7F65', 'Artist': '#3B82F6', 'Other': '#6B7280'
 };
 
@@ -313,7 +313,7 @@ export default function ArtistsPage() {
                               <h3 className="text-white font-black text-[13px] truncate">{artist.name}</h3>
                               <div className="flex items-center gap-1 mt-0.5">
                                 {artist.nationality && <span className="text-zinc-500 text-[9px]">{artist.nationality}</span>}
-                                <span className={`text-[9px] font-black px-1 py-0 rounded border ${artist.gender === 'female' ? 'bg-[#E76B74]/10 text-[#E76B74] border-[#E76B74]/30' : 'bg-[#E0A73C]/10 text-[#E0A73C] border-[#E0A73C]/30'}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
+                                <span className={`text-[9px] font-black px-1 py-0 rounded border ${artist.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#3E78DB]/10 text-[#3E78DB] border-[#3E78DB]/30'}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
                               </div>
                             </div>
                           </div>
@@ -358,7 +358,7 @@ export default function ArtistsPage() {
                   <h2 className="text-white font-black text-[22px]">{viewingArtist.name}</h2>
                   <div className="flex items-center gap-2 mt-1">
                     {viewingArtist.nationality && <span className="text-zinc-500 text-[12px]">🌏 {viewingArtist.nationality}</span>}
-                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border ${viewingArtist.gender === 'female' ? 'bg-[#E76B74]/10 text-[#E76B74] border-[#E76B74]/30' : 'bg-[#E0A73C]/10 text-[#E0A73C] border-[#E0A73C]/30'}`}>{viewingArtist.gender === 'female' ? 'F' : 'M'}</span>
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border ${viewingArtist.gender === 'female' ? 'bg-[#E97582]/10 text-[#E97582] border-[#E97582]/30' : 'bg-[#3E78DB]/10 text-[#3E78DB] border-[#3E78DB]/30'}`}>{viewingArtist.gender === 'female' ? 'F' : 'M'}</span>
                   </div>
                 </div>
               </div>
