@@ -625,6 +625,11 @@ export default function Dashboard() {
     setNoticeTitle(''); setNoticeContent(''); setNoticeIsGlobal(false); setEditingNoticeId(null); setShowNoticeModal(false); fetchNotices(user);
   };
 
+  const resetAttendance = async () => {
+    await supabase.from('profiles').update({ attendance: null }).eq('user_id', user.id);
+    fetchMembers(user);
+  };
+
   const openVoting = async () => {
     await supabase.from('profiles').update({ attendance: null }).eq('user_id', user.id);
     const payload = { host_id: user.id, is_open: true, title: votingTitle || (lang === 'ko' ? '참여 여부 투표' : 'Attendance Vote'), memo: votingMemo || null };
@@ -1071,8 +1076,10 @@ export default function Dashboard() {
     return counts;
   };
 
-  const attendingCount = members.filter(m => m.project === currentProject && m.attendance === 'attending').length;
-  const absentCount = members.filter(m => m.project === currentProject && m.attendance === 'absent').length;
+  const attendingMembers = members.filter(m => m.project === currentProject && m.attendance === 'attending');
+  const absentMembers = members.filter(m => m.project === currentProject && m.attendance === 'absent');
+  const attendingCount = attendingMembers.length;
+  const absentCount = absentMembers.length;
   const pendingCount = members.filter(m => m.project === currentProject && m.attendance === 'pending').length;
   const noResponseCount = members.filter(m => m.project === currentProject && !m.excluded && !m.attendance).length;
 
@@ -1345,6 +1352,33 @@ export default function Dashboard() {
                     })}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* 출석 현황 — 참석/불참 분리 + 초기화 */}
+            {(attendingCount + absentCount) > 0 && (
+              <div className={`relative z-10 mb-6 rounded-2xl border p-4 ${cardBg}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${textSub}`}>{lang === 'ko' ? '출석 현황' : 'Attendance'}</p>
+                  <button onClick={() => showConfirm(lang === 'ko' ? '출석 초기화' : 'Reset attendance', lang === 'ko' ? '모든 참석/불참 응답을 초기화할까요?' : 'Reset all attendance responses?', async () => { await resetAttendance(); setConfirmModal(null); })}
+                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all ${btnBg}`}>{lang === 'ko' ? '초기화' : 'Reset'}</button>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {([['attending', attendingMembers, '#E0A63C', t.attending], ['absent', absentMembers, '#8E8A88', t.absent]] as const).map(([key, list, color, label]) => (
+                    <div key={key}>
+                      <p className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: color + '99' }}>{label} {list.length}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {list.map((m: any) => (
+                          <span key={m.id} className="flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-lg" style={{ backgroundColor: color + '14', color: color }}>
+                            <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DF6689' : '#4E7BD6' }} />
+                            {m.name}
+                          </span>
+                        ))}
+                        {list.length === 0 && <span className="text-[10px] text-zinc-600">—</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
