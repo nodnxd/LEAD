@@ -13,8 +13,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R', 'Artist', 'Other'];
 const ROSTER_ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R']; // 로스터에서 쓰는 role
 const ROLE_COLORS: Record<string, string> = {
-  'Producer': '#E0A73C', 'Topliner': '#B4ADA1', 'Engineer': '#9DA1A2',
-  'A&R': '#9DA1A2', 'Artist': '#3B82F6', 'Other': '#6B7280'
+  'Producer': '#E0A73C', 'Topliner': '#C79885', 'Engineer': '#8FA391',
+  'A&R': '#8FA391', 'Artist': '#3B82F6', 'Other': '#6B7280'
 };
 
 const QUICK_LINKS = [
@@ -313,7 +313,7 @@ export default function ArtistsPage() {
                               <h3 className="text-white font-black text-[13px] truncate">{artist.name}</h3>
                               <div className="flex items-center gap-1 mt-0.5">
                                 {artist.nationality && <span className="text-zinc-500 text-[9px]">{artist.nationality}</span>}
-                                <span className={`text-[9px] font-black px-1 py-0 rounded border ${artist.gender === 'female' ? 'bg-[#B29A96]/10 text-[#B29A96] border-[#B29A96]/30' : 'bg-[#8B9199]/10 text-[#8B9199] border-[#8B9199]/30'}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
+                                <span className={`text-[9px] font-black px-1 py-0 rounded border ${artist.gender === 'female' ? 'bg-[#C990A2]/10 text-[#C990A2] border-[#C990A2]/30' : 'bg-[#7E8CAB]/10 text-[#7E8CAB] border-[#7E8CAB]/30'}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
                               </div>
                             </div>
                           </div>
@@ -358,7 +358,7 @@ export default function ArtistsPage() {
                   <h2 className="text-white font-black text-[22px]">{viewingArtist.name}</h2>
                   <div className="flex items-center gap-2 mt-1">
                     {viewingArtist.nationality && <span className="text-zinc-500 text-[12px]">🌏 {viewingArtist.nationality}</span>}
-                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border ${viewingArtist.gender === 'female' ? 'bg-[#B29A96]/10 text-[#B29A96] border-[#B29A96]/30' : 'bg-[#8B9199]/10 text-[#8B9199] border-[#8B9199]/30'}`}>{viewingArtist.gender === 'female' ? 'F' : 'M'}</span>
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border ${viewingArtist.gender === 'female' ? 'bg-[#C990A2]/10 text-[#C990A2] border-[#C990A2]/30' : 'bg-[#7E8CAB]/10 text-[#7E8CAB] border-[#7E8CAB]/30'}`}>{viewingArtist.gender === 'female' ? 'F' : 'M'}</span>
                   </div>
                 </div>
               </div>

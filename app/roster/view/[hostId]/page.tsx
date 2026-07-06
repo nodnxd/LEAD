@@ -195,9 +195,9 @@ export default function GuestView() {
   const getRoleColor = (r: string) => {
     switch(r) {
       case 'Producer': return { bg: 'bg-[#E0A73C]/15', border: 'border-[#E0A73C]/30', text: 'text-[#E0A73C]', activeBg: 'bg-[#E0A73C]/25', activeBorder: 'border-[#E0A73C]/50', dim: 'text-[#E0A73C]/50' };
-      case 'Topliner': return { bg: 'bg-[#B4ADA1]/15', border: 'border-[#B4ADA1]/30', text: 'text-[#B4ADA1]', activeBg: 'bg-[#B4ADA1]/25', activeBorder: 'border-[#B4ADA1]/50', dim: 'text-[#B4ADA1]/50' };
-      case 'Engineer': return { bg: 'bg-[#9DA1A2]/15', border: 'border-[#9DA1A2]/30', text: 'text-[#9DA1A2]', activeBg: 'bg-[#9DA1A2]/25', activeBorder: 'border-[#9DA1A2]/50', dim: 'text-[#9DA1A2]/50' };
-      case 'A&R': return { bg: 'bg-[#9DA1A2]/15', border: 'border-[#9DA1A2]/30', text: 'text-[#9DA1A2]', activeBg: 'bg-[#9DA1A2]/25', activeBorder: 'border-[#9DA1A2]/50', dim: 'text-[#9DA1A2]/50' };
+      case 'Topliner': return { bg: 'bg-[#C79885]/15', border: 'border-[#C79885]/30', text: 'text-[#C79885]', activeBg: 'bg-[#C79885]/25', activeBorder: 'border-[#C79885]/50', dim: 'text-[#C79885]/50' };
+      case 'Engineer': return { bg: 'bg-[#8FA391]/15', border: 'border-[#8FA391]/30', text: 'text-[#8FA391]', activeBg: 'bg-[#8FA391]/25', activeBorder: 'border-[#8FA391]/50', dim: 'text-[#8FA391]/50' };
+      case 'A&R': return { bg: 'bg-[#8FA391]/15', border: 'border-[#8FA391]/30', text: 'text-[#8FA391]', activeBg: 'bg-[#8FA391]/25', activeBorder: 'border-[#8FA391]/50', dim: 'text-[#8FA391]/50' };
       default: return { bg: 'bg-white/5', border: 'border-white/10', text: 'text-zinc-400', activeBg: 'bg-white/10', activeBorder: 'border-white/20', dim: 'text-zinc-600' };
     }
   };
@@ -206,9 +206,9 @@ export default function GuestView() {
     const base = "border-l-[4px] backdrop-blur-md ";
     switch(r) {
       case 'Producer': return base + (theme === 'light' ? "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-black/[0.01]" : "border-l-[#E0A73C] bg-gradient-to-r from-[#E0A73C]/10 to-white/[0.02]");
-      case 'Topliner': return base + (theme === 'light' ? "border-l-[#B4ADA1] bg-gradient-to-r from-[#B4ADA1]/10 to-black/[0.01]" : "border-l-[#B4ADA1] bg-gradient-to-r from-[#B4ADA1]/10 to-white/[0.02]");
-      case 'Engineer': return base + (theme === 'light' ? "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-black/[0.01]" : "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-white/[0.02]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-black/[0.01]" : "border-l-[#9DA1A2] bg-gradient-to-r from-[#9DA1A2]/10 to-white/[0.02]");
+      case 'Topliner': return base + (theme === 'light' ? "border-l-[#C79885] bg-gradient-to-r from-[#C79885]/10 to-black/[0.01]" : "border-l-[#C79885] bg-gradient-to-r from-[#C79885]/10 to-white/[0.02]");
+      case 'Engineer': return base + (theme === 'light' ? "border-l-[#8FA391] bg-gradient-to-r from-[#8FA391]/10 to-black/[0.01]" : "border-l-[#8FA391] bg-gradient-to-r from-[#8FA391]/10 to-white/[0.02]");
+      case 'A&R': return base + (theme === 'light' ? "border-l-[#8FA391] bg-gradient-to-r from-[#8FA391]/10 to-black/[0.01]" : "border-l-[#8FA391] bg-gradient-to-r from-[#8FA391]/10 to-white/[0.02]");
       default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02]";
     }
   };
@@ -259,7 +259,7 @@ export default function GuestView() {
       <div className="flex flex-col overflow-hidden pl-1">
         <span className={`text-[15px] font-bold flex items-center gap-1.5 ${textMain}`}>
           {m.name}
-          <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#B29A96]/10 text-[#B29A96] border-[#B29A96]/30' : 'bg-[#8B9199]/10 text-[#8B9199] border-[#8B9199]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
+          <span className={`px-1.5 py-[1px] rounded text-[8px] font-black border shrink-0 ${m.gender === 'female' ? 'bg-[#C990A2]/10 text-[#C990A2] border-[#C990A2]/30' : 'bg-[#7E8CAB]/10 text-[#7E8CAB] border-[#7E8CAB]/30'}`}>{m.gender === 'female' ? 'F' : 'M'}</span>
           {m.links?.length > 0 && <span className="text-[11px]">🔗</span>}
         </span>
         <span className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${textSub}`}>{m.role}</span>
