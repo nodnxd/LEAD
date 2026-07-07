@@ -203,13 +203,13 @@ export default function GuestView() {
   };
 
   const getRoleCardStyle = (r: string) => {
-    const base = "border-l-[4px] backdrop-blur-md ";
+    const base = "border-l-[3px] backdrop-blur-md ";
     switch(r) {
-      case 'Producer': return base + (theme === 'light' ? "border-l-[#E3B24A] bg-gradient-to-r from-[#E3B24A]/10 to-black/[0.01]" : "border-l-[#E3B24A] bg-gradient-to-r from-[#E3B24A]/10 to-white/[0.02]");
-      case 'Topliner': return base + (theme === 'light' ? "border-l-[#5FA39A] bg-gradient-to-r from-[#5FA39A]/10 to-black/[0.01]" : "border-l-[#5FA39A] bg-gradient-to-r from-[#5FA39A]/10 to-white/[0.02]");
-      case 'Engineer': return base + (theme === 'light' ? "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/10 to-black/[0.01]" : "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/10 to-white/[0.02]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/10 to-black/[0.01]" : "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/10 to-white/[0.02]");
-      default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02]";
+      case 'Producer': return base + "border-l-[#E3B24A] bg-gradient-to-r from-[#E3B24A]/[0.10] to-transparent";
+      case 'Topliner': return base + "border-l-[#5FA39A] bg-gradient-to-r from-[#5FA39A]/[0.10] to-transparent";
+      case 'Engineer': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent";
+      case 'A&R': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent";
+      default: return theme === 'light' ? "border-l-[3px] border-l-black/15 bg-black/[0.02]" : "border-l-[3px] border-l-white/15 bg-white/[0.02]";
     }
   };
 

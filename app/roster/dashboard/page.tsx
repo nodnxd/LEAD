@@ -1041,13 +1041,13 @@ export default function Dashboard() {
 
   const getRoleCardStyle = (r: string, excluded: boolean) => {
     if (excluded) return theme === 'light' ? "border border-black/5 bg-black/[0.02] grayscale opacity-50" : "border border-white/5 bg-white/[0.01] grayscale opacity-60 backdrop-blur-sm";
-    const base = "border-l-[4px] backdrop-blur-md transition-all duration-150 ";
+    const base = "border-l-[3px] backdrop-blur-md transition-all duration-150 ";
     switch(r) {
-      case 'Producer': return base + (theme === 'light' ? "border-l-[#E3B24A] bg-gradient-to-r from-[#E3B24A]/10 to-black/[0.01]" : "border-l-[#E3B24A] bg-gradient-to-r from-[#E3B24A]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(224,167,60,0.25)]");
-      case 'Topliner': return base + (theme === 'light' ? "border-l-[#5FA39A] bg-gradient-to-r from-[#5FA39A]/10 to-black/[0.01]" : "border-l-[#5FA39A] bg-gradient-to-r from-[#5FA39A]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(231,107,116,0.25)]");
-      case 'Engineer': return base + (theme === 'light' ? "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/10 to-black/[0.01]" : "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(124,127,101,0.25)]");
-      case 'A&R': return base + (theme === 'light' ? "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/10 to-black/[0.01]" : "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/10 to-white/[0.02] hover:shadow-[0_0_20px_rgba(62,120,219,0.25)]");
-      default: return theme === 'light' ? "border border-black/10 bg-black/[0.02]" : "border border-white/10 bg-white/[0.02] backdrop-blur-md";
+      case 'Producer': return base + "border-l-[#E3B24A] bg-gradient-to-r from-[#E3B24A]/[0.10] to-transparent hover:from-[#E3B24A]/[0.18]";
+      case 'Topliner': return base + "border-l-[#5FA39A] bg-gradient-to-r from-[#5FA39A]/[0.10] to-transparent hover:from-[#5FA39A]/[0.18]";
+      case 'Engineer': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent hover:from-[#C98BA0]/[0.18]";
+      case 'A&R': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent hover:from-[#C98BA0]/[0.18]";
+      default: return theme === 'light' ? "border-l-[3px] border-l-black/15 bg-black/[0.02]" : "border-l-[3px] border-l-white/15 bg-white/[0.02] backdrop-blur-md";
     }
   };
 
