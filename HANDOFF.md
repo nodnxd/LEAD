@@ -66,8 +66,20 @@
 - roof EditModal: accent/background 제거(글로벌 accent), BGM **파일 업로드**(media 버킷). square: people·open calls 메뉴 숨김(feed만). 곡 섹션별 copy + 패널 copy lyrics.
 - **Tauri 통일(데스크탑·모바일 = 웹 셸)**: `src-tauri/tauri.conf.json` frontendDist=`https://room-nu-seven.vercel.app` → 앱이 라이브 웹 로드(정적 export 불가: force-dynamic). 모바일 = `tauri ios`(gen/apple 있음), **Xcode에서 Run으로 서명·설치**(무료 Apple 계정 SK9V2ZJAA9, CLI 자동서명 안 됨). 기존 **room-native(Expo) 은퇴**(웹셸로 대체).
 
+## 🔜 다음 세션 바로 이어서 (2026-07-03 세션 말미, 유저가 "대화 정리하고 이동" 요청)
+- **[room 앨범] 데스크탑 레이아웃 정리 — 진행하던 중 끊김.** 현재 `app/album/[folderId]/page.tsx` 데스크탑이 `tracklist(w-72) | lyrics(flex-1) | ALBUM MEMO(flex '4 1 0%')` 라서 **앨범 메모가 가사보다 4배 넓게** 먹어 가사가 좁고 메모는 거대한 빈칸(유저 불만). → **앨범 메모를 하단 접이식(credits처럼)으로 내리고 lyrics를 전폭**으로. (해당 memo 블록 line ~308 `desktop-only: album memo` 제거 → 하단 credits 옆에 collapsible 추가. 모바일은 이미 메모 숨김.)
+- **[room 앨범] 공유 링크 뷰어/에디터 분리** — 요청됨, 미착수. 앨범 단위 편집권한(invites/collab RLS) 필요. 지금은 public 링크=보기전용.
+- **[room 앨범] 기능 아이디어**(유저에 제안함): 앨범 커버 이미지 업로드(⭐), 가사 북클릿 PDF/이미지 내보내기, 곡 복제/다른 앨범 이동.
+- **[room 모바일]** 에디터 화면은 여전히 "한눈에" 부족할 수 있음 — 유저 스샷 받아서 딱 집어 최적화 예정.
+
+### 이번 세션(2026-07-03) 한 것 요약
+- **room 에디터/메모**: sticky 툴바, 폭 로직(zoom 대응), 글씨크기 +/- 버그수정+선택유지, undo/redo, 커스텀 색상팔레트, 섹션 서식유지, 기본색 rgb(206,197,197), 줄별 글자수 카운터(123), 포커스모드(⊚), 복사(⧉), 텍스트정렬, **Cmd+S 저장+`saved` 플래시**, **가사 클라우드 저장(`songs.lyrics_html` — `supabase-lyrics.sql` 필요)**.
+- **room 대시보드**: Unfiled/Shared/Trash 하단 우측, 폴더 sort·드래그 순서, **휴지통(`supabase-trash.sql`)**, zen 기본 ON + **zen 모양 4종**(pulse/aurora/orbit/waves), 폴더 카드 accent 글로우 + **폴더 실루엣(사다리꼴 탭)**.
+- **room 앨범**: 모바일 가로 트랙리스트+하단 플레이어, **테마 커스텀 플레이어**, `▶ all` 이어듣기, **음원 교체(replace, audio 버킷)**.
+- **CAST(roster)**: 색상 **Dusk 팔레트**(brand `#E3B24A` 소프트골드 / Topliner `#5FA39A` / Eng·A&R `#C98BA0` / 참석 `#77B18E` / 성별 남 `#7E97C9`·여 `#DB8FA9`) — 팔레트 상세는 위 색상 섹션. 성별=**이름 앞 점**, 로스터 풀=**남/여 칸 분리**, 역할 행 **드래그 순서변경**, **출석 현황 패널(참석/불참 + 초기화)**, 멤버 카드 색감 정리(흰끼 제거). hub CAST 카드·통합로그인 CAST도 Dusk.
+
 ## 남은/후속 (미검증·아이디어)
-- 위 SQL 4건 실행 + 배포 후 실동작 클릭 검증.
+- 위 SQL 실행(**`supabase-trash.sql`, `supabase-lyrics.sql`** 포함) + 배포 후 실동작 클릭 검증.
 - room 에디터: 우클릭 메뉴 위치 클램프(뷰포트 끝), 섹션을 "현재 위치"에 삽입(현재는 끝에 append).
 - LEAD 성별 = 트랙 vocal 기준. 보낸이 본인 성별 원하면 pitches에 필드 추가 필요.
 - room 모바일앱: Apple 무료 서명 7일 만료 → 그때 Xcode Run 재실행. 독립앱 원하면 TestFlight.
