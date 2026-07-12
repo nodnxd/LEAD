@@ -36,6 +36,7 @@ export default function SplitIndex() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [sheets, setSheets] = useState<SplitSheet[]>([]);
+  const [needSign, setNeedSign] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -54,9 +55,10 @@ export default function SplitIndex() {
       } else setProfileOpen(true); // first time — nudge to fill it
       // sheets I own
       const { data: owned } = await supabase.from('split_sheets').select('*').eq('owner_id', user.id).order('created_at', { ascending: false });
-      // sheets I'm a contributor on
-      const { data: contribRows } = await supabase.from('split_contributors').select('sheet_id').eq('user_id', user.id);
+      // sheets I'm a contributor on (+ which still need my signature)
+      const { data: contribRows } = await supabase.from('split_contributors').select('sheet_id, signed').eq('user_id', user.id);
       const contribIds = [...new Set((contribRows ?? []).map((r) => r.sheet_id))];
+      setNeedSign(new Set((contribRows ?? []).filter((r) => !r.signed).map((r) => r.sheet_id)));
       let shared: SplitSheet[] = [];
       if (contribIds.length) {
         const { data } = await supabase.from('split_sheets').select('*').in('id', contribIds);
@@ -166,7 +168,9 @@ export default function SplitIndex() {
                   <div className="font-medium truncate">{s.song_title || '(제목 없음)'}</div>
                   <div className="text-xs text-white/40 truncate">{s.artist_name || '아티스트 미정'}{s.iswc ? ` · ISWC ${s.iswc}` : ''}</div>
                 </div>
-                {s.owner_id !== me && <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/50">참여</span>}
+                {needSign.has(s.id) && <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full border border-[#3E78DB]/40 text-[#6fa0f0]">✍ 서명 필요</span>}
+                {s.owner_id !== me && <span className={`${needSign.has(s.id) ? '' : 'ml-auto'} text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/50`}>참여</span>}
+                {s.locked && <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400">🔒</span>}
                 <span className="text-white/20 text-xs">{s.work_date ?? ''}</span>
               </button>
             ))}

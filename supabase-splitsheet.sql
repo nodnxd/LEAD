@@ -51,6 +51,10 @@ create table if not exists split_sheets (
   notes           text,
   audio_path      text,   -- 첨부 음원 storage 경로 (member-demos 버킷) — 합의된 지분을 실제 곡에 결속
   audio_name      text,   -- 원본 파일명 (시트/PDF 표기)
+  locked          boolean default false,     -- 전원 서명 후 확정(잠금)
+  locked_at       timestamptz,
+  version         int default 1,             -- 잠금 해제(수정) 시 증가
+  signature_requested_at timestamptz,        -- 오너가 기여자에게 서명 요청한 시각
   created_at      timestamptz default now(),
   updated_at      timestamptz default now()
 );
@@ -58,6 +62,10 @@ alter table split_sheets enable row level security;
 -- 기존 테이블이 있으면 컬럼만 추가 (재실행 안전)
 alter table split_sheets add column if not exists audio_path text;
 alter table split_sheets add column if not exists audio_name text;
+alter table split_sheets add column if not exists locked boolean default false;
+alter table split_sheets add column if not exists locked_at timestamptz;
+alter table split_sheets add column if not exists version int default 1;
+alter table split_sheets add column if not exists signature_requested_at timestamptz;
 
 -- 3) 기여자 행
 create table if not exists split_contributors (

@@ -59,15 +59,21 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
   function flash(m: string) { setToast(m); setTimeout(() => setToast(''), 1800); }
 
+  // Finalized sheets are read-only until the owner unlocks (which invalidates signatures).
+  function lockedGuard(): boolean {
+    if (sheet?.locked) { flash('확정(잠금)된 시트예요 — 잠금 해제 후 수정하세요'); return true; }
+    return false;
+  }
+
   // ── sheet header ──
   function setSheetLocal<K extends keyof SplitSheet>(k: K, v: SplitSheet[K]) { setSheet((s) => s ? { ...s, [k]: v } : s); }
   async function commitSheet<K extends keyof SplitSheet>(k: K) {
-    if (!sheet || !isOwner) return;
+    if (!sheet || !isOwner || lockedGuard()) return;
     await supabase.from('split_sheets').update({ [k]: sheet[k], updated_at: new Date().toISOString() }).eq('id', sheet.id);
   }
 
   async function uploadAudio(file: File | undefined) {
-    if (!file || !sheet || !isOwner) return;
+    if (!file || !sheet || !isOwner || lockedGuard()) return;
     setAudioUploading(true);
     const ext = (file.name.split('.').pop() || 'mp3').toLowerCase();
     const path = `split/${sheet.id}/${Date.now()}.${ext}`;
@@ -81,7 +87,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   }
 
   async function removeAudio() {
-    if (!sheet || !isOwner) return;
+    if (!sheet || !isOwner || lockedGuard()) return;
     if (sheet.audio_path) await supabase.storage.from('member-demos').remove([sheet.audio_path]);
     await supabase.from('split_sheets').update({ audio_path: null, audio_name: null }).eq('id', sheet.id);
     setSheet((s) => s ? { ...s, audio_path: null, audio_name: null } : s);
@@ -90,6 +96,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
   // ── contributors ──
   async function addRow(base: Partial<Contributor>, userId: string | null, email: string) {
+    if (lockedGuard()) return;
     setAdding(true);
     const { data, error } = await supabase.from('split_contributors')
       .insert({ sheet_id: id, user_id: userId, email, order_index: rows.length, ...base })
@@ -124,22 +131,97 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     setRows((rs) => rs.map((r) => r.id === rid ? { ...r, ...patch } : r));
   }
   async function commitRow(rid: string, patch: Partial<Contributor>) {
+    if (lockedGuard()) return;
     setRowLocal(rid, patch);
     await supabase.from('split_contributors').update(patch).eq('id', rid);
   }
   async function deleteRow(rid: string) {
+    if (lockedGuard()) return;
     setRows((rs) => rs.filter((r) => r.id !== rid));
     await supabase.from('split_contributors').delete().eq('id', rid);
   }
   async function toggleSign(row: Contributor) {
+    if (lockedGuard()) return;
     const next = !row.signed;
     setRowLocal(row.id, { signed: next, signed_at: next ? new Date().toISOString() : null });
     await supabase.from('split_contributors').update({ signed: next, signed_at: next ? new Date().toISOString() : null }).eq('id', row.id);
   }
 
-  // ── print / PDF ──
-  function exportPdf() {
+  // ── finalize / lock / request signatures ──
+  const allSigned = rows.length > 0 && rows.every((r) => r.signed);
+  const sharesOk = CATEGORIES.every((c) => shareTotal(rows, c.key) === 100);
+
+  async function requestSignatures() {
+    if (!sheet || !isOwner) return;
+    const ts = new Date().toISOString();
+    setSheet((s) => s ? { ...s, signature_requested_at: ts } : s);
+    await supabase.from('split_sheets').update({ signature_requested_at: ts }).eq('id', sheet.id);
+    flash('기여자들에게 서명 요청됨 — 각자 목록에 “서명 필요”로 표시돼요');
+  }
+
+  async function lockSheet() {
+    if (!sheet || !isOwner) return;
+    if (!allSigned) { flash('전원 서명 후 확정할 수 있어요'); return; }
+    if (!sharesOk) { flash('작사/작곡/편곡 지분이 각각 100%가 아니에요'); return; }
+    const ts = new Date().toISOString();
+    setSheet((s) => s ? { ...s, locked: true, locked_at: ts } : s);
+    await supabase.from('split_sheets').update({ locked: true, locked_at: ts }).eq('id', sheet.id);
+    flash('확정(잠금)됨 — 이제 읽기 전용');
+  }
+
+  async function unlockSheet() {
+    if (!sheet || !isOwner) return;
+    if (!confirm('잠금을 해제하면 모든 서명이 초기화되고 버전이 올라가요. 계속할까요?')) return;
+    const nextVer = (sheet.version ?? 1) + 1;
+    setSheet((s) => s ? { ...s, locked: false, locked_at: null, version: nextVer } : s);
+    setRows((rs) => rs.map((r) => ({ ...r, signed: false, signed_at: null })));
+    await supabase.from('split_sheets').update({ locked: false, locked_at: null, version: nextVer }).eq('id', sheet.id);
+    await supabase.from('split_contributors').update({ signed: false, signed_at: null }).eq('sheet_id', sheet.id);
+    flash(`잠금 해제 · 버전 ${nextVer} — 수정 후 재서명 필요`);
+  }
+
+  // ── evidence bundle (zip): agreement + audio + tamper-evident manifest(SHA-256) ──
+  async function exportBundle() {
     if (!sheet) return;
+    flash('증빙 번들 생성 중…');
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+    // audio + hash
+    let audioSha = null as string | null;
+    if (sheet.audio_path && audioUrl) {
+      try {
+        const buf = await (await fetch(audioUrl)).arrayBuffer();
+        const digest = await crypto.subtle.digest('SHA-256', buf);
+        audioSha = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+        zip.file(sheet.audio_name || 'audio', buf);
+      } catch { /* audio fetch failed — bundle still useful */ }
+    }
+    const manifest = {
+      document: 'Songwriter Split Sheet — evidence bundle',
+      generated_at: new Date().toISOString(),
+      version: sheet.version ?? 1,
+      locked: !!sheet.locked,
+      song: { title: sheet.song_title, aka: sheet.aka, artist: sheet.artist_name, album: sheet.album, duration: sheet.duration, iswc: sheet.iswc, isrc: sheet.isrc, date: sheet.work_date },
+      audio: sheet.audio_name ? { file: sheet.audio_name, sha256: audioSha } : null,
+      contributors: rows.map((r) => ({
+        legal_name: r.legal_name, stage_name: r.stage_name,
+        splits: { lyrics: Number(r.lyrics_share) || 0, composition: Number(r.composition_share) || 0, arrangement: Number(r.arrangement_share) || 0 },
+        pro: r.pro, ipi: r.ipi, publisher: r.publisher_name,
+        signed: !!r.signed, signed_at: r.signed_at, contact: { email: r.email, phone: r.phone },
+      })),
+    };
+    zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+    zip.file('agreement.html', agreementHtml(false));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${(sheet.song_title || 'splitsheet').replace(/[^\w가-힣-]+/g, '_')}_v${sheet.version ?? 1}_evidence.zip`;
+    a.click(); URL.revokeObjectURL(url);
+  }
+
+  // ── printable agreement HTML (shared by PDF print + evidence bundle) ──
+  function agreementHtml(autoPrint: boolean): string {
+    if (!sheet) return '';
     const esc = (t: string | null | undefined) => (t ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!));
     const proTxt = (c: string | null) => c ? (PRO_LABEL[c] ?? c) : '—';
     const info = (label: string, val: string | null | undefined) => `<div class="kv"><span>${label}</span><b>${esc(val) || '—'}</b></div>`;
@@ -177,7 +259,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       @media print { body { -webkit-print-color-adjust: exact; } }
     </style></head><body>
       <h1>SPLIT SHEET</h1>
-      <div class="muted">저작권 지분 확인서 · Songwriter Split Sheet</div>
+      <div class="muted">저작권 지분 확인서 · Songwriter Split Sheet · v${sheet.version ?? 1}${sheet.locked ? ` · 확정 ${esc((sheet.locked_at ?? '').slice(0, 10))}` : ' · 초안(DRAFT)'}</div>
       <div class="grid">
         ${info('Title', sheet.song_title)} ${info('AKA', sheet.aka)} ${info('Artist', sheet.artist_name)}
         ${info('Album', sheet.album)} ${info('Duration', sheet.duration)} ${info('Date', sheet.work_date)}
@@ -197,11 +279,16 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       </table>
       ${sheet.notes ? `<div class="foot"><b>Notes:</b> ${esc(sheet.notes)}</div>` : ''}
       <div class="foot">By signing, each writer confirms the ownership splits above are accurate and agreed. Generated by CAST · ${new Date().toISOString().slice(0, 10)}</div>
-      <script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>
+      ${autoPrint ? `<script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>` : ''}
     </body></html>`;
+    return html;
+  }
+
+  function exportPdf() {
+    if (!sheet) return;
     const w = window.open('', '_blank');
     if (!w) { flash('팝업 차단 해제 필요'); return; }
-    w.document.open(); w.document.write(html); w.document.close();
+    w.document.open(); w.document.write(agreementHtml(true)); w.document.close();
   }
 
   const field = 'w-full rounded-md bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/25 focus:outline-none focus:border-[#3E78DB]';
@@ -209,17 +296,56 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
   if (loading || !sheet) return <div className="min-h-[100dvh] bg-[#0a0a0a] flex items-center justify-center text-white/40">…</div>;
 
+  const locked = !!sheet.locked;
+  const editable = isOwner && !locked;         // owner may edit only while unlocked
+  const myRow = rows.find((r) => r.user_id === me) || null;
+  const needMySign = !!myRow && !myRow.signed && !locked;
+
   return (
     <div className="min-h-[100dvh] bg-[#0a0a0a] text-white">
       {toast && <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#3E78DB] text-sm shadow-lg">{toast}</div>}
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8">
         {/* header bar */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-4 flex-wrap">
           <button onClick={() => router.push('/split')} className="text-sm text-white/40 hover:text-white transition-colors">← 목록</button>
           <h1 className="text-lg font-bold truncate">{sheet.song_title || '새 스플릿시트'}</h1>
-          {!isOwner && <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/50">참여 (읽기·본인 행)</span>}
-          <button onClick={exportPdf} className="ml-auto text-sm px-4 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">⎙ PDF / 인쇄</button>
+          <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/45">v{sheet.version ?? 1}</span>
+          {locked
+            ? <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400">🔒 확정됨</span>
+            : <span className="text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30 text-amber-400/90">초안</span>}
+          {!isOwner && <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/50">참여</span>}
+          <div className="ml-auto flex items-center gap-2">
+            <button onClick={exportBundle} title="합의서+음원+무결성해시(zip)" className="text-sm px-3 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">증빙 번들</button>
+            <button onClick={exportPdf} className="text-sm px-3 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">⎙ PDF</button>
+          </div>
         </div>
+
+        {/* owner finalize controls */}
+        {isOwner && (
+          <div className="flex items-center gap-2 mb-5 flex-wrap text-xs">
+            <span className="text-white/40">서명 {rows.filter((r) => r.signed).length}/{rows.length}</span>
+            {!locked ? (
+              <>
+                <button onClick={requestSignatures} className="px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 transition-colors">기여자에게 서명 요청</button>
+                <button onClick={lockSheet} disabled={!allSigned || !sharesOk}
+                  className="px-3 py-1.5 rounded-lg border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-35 disabled:hover:bg-transparent transition-colors"
+                  title={!allSigned ? '전원 서명 필요' : !sharesOk ? '지분 100% 필요' : '확정'}>
+                  확정 (잠금)
+                </button>
+              </>
+            ) : (
+              <button onClick={unlockSheet} className="px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 transition-colors">잠금 해제 (서명 초기화 · 새 버전)</button>
+            )}
+          </div>
+        )}
+
+        {/* contributor sign prompt */}
+        {needMySign && (
+          <div className="flex items-center gap-3 mb-5 px-4 py-3 rounded-xl border border-[#3E78DB]/30 bg-[#3E78DB]/[0.08]">
+            <span className="text-sm">{sheet.signature_requested_at ? '서명 요청이 왔어요.' : '내 지분을 확인하고'} 아래 내 행에서 <b>서명</b>해주세요.</span>
+            {myRow && <button onClick={() => toggleSign(myRow)} className="ml-auto text-sm px-4 py-1.5 rounded-lg bg-[#3E78DB] hover:bg-[#4d86e8] transition-colors">지금 서명</button>}
+          </div>
+        )}
 
         {/* song header fields */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 mb-6">
@@ -232,7 +358,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
             ] as [keyof SplitSheet, string][]).map(([k, label]) => (
               <div key={k}>
                 <label className="block text-[11px] text-white/40 mb-1">{label}</label>
-                <input value={(sheet[k] as string) ?? ''} disabled={!isOwner}
+                <input value={(sheet[k] as string) ?? ''} disabled={!editable}
                   onChange={(e) => setSheetLocal(k, e.target.value as SplitSheet[typeof k])}
                   onBlur={() => commitSheet(k)} className={hfield} />
               </div>
@@ -240,12 +366,12 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           </div>
           <div className="flex flex-wrap items-center gap-3 mt-3">
             <label className="flex items-center gap-2 text-xs text-white/60">
-              <input type="checkbox" checked={!!sheet.contains_sample} disabled={!isOwner}
-                onChange={(e) => { setSheetLocal('contains_sample', e.target.checked); if (isOwner) supabase.from('split_sheets').update({ contains_sample: e.target.checked }).eq('id', sheet.id); }} />
+              <input type="checkbox" checked={!!sheet.contains_sample} disabled={!editable}
+                onChange={(e) => { setSheetLocal('contains_sample', e.target.checked); if (editable) supabase.from('split_sheets').update({ contains_sample: e.target.checked }).eq('id', sheet.id); }} />
               샘플/인터폴레이션 포함
             </label>
             {sheet.contains_sample && (
-              <input value={sheet.sample_note ?? ''} disabled={!isOwner} placeholder="샘플 출처/원곡"
+              <input value={sheet.sample_note ?? ''} disabled={!editable} placeholder="샘플 출처/원곡"
                 onChange={(e) => setSheetLocal('sample_note', e.target.value)} onBlur={() => commitSheet('sample_note')}
                 className={`${hfield} flex-1 min-w-[200px]`} />
             )}
@@ -260,15 +386,15 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                   {audioUrl && <audio src={audioUrl} controls className="h-9 max-w-full" style={{ minWidth: 220 }} />}
                   <span className="text-xs text-white/50 truncate max-w-[220px]">{sheet.audio_name}</span>
                   {audioUrl && <a href={audioUrl} download={sheet.audio_name ?? 'audio'} className="text-xs text-white/50 hover:text-white underline">다운로드</a>}
-                  {isOwner && (
+                  {editable && (
                     <label className="text-xs px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 cursor-pointer transition-colors">
                       {audioUploading ? '…' : '교체'}
                       <input type="file" accept="audio/*" onChange={(e) => uploadAudio(e.target.files?.[0])} className="hidden" />
                     </label>
                   )}
-                  {isOwner && <button onClick={removeAudio} className="text-xs text-white/25 hover:text-red-400 transition-colors">삭제</button>}
+                  {editable && <button onClick={removeAudio} className="text-xs text-white/25 hover:text-red-400 transition-colors">삭제</button>}
                 </>
-              ) : isOwner ? (
+              ) : editable ? (
                 <label className="text-xs px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 cursor-pointer transition-colors">
                   {audioUploading ? '업로드 중…' : '+ 음원 첨부 (데모/마스터)'}
                   <input type="file" accept="audio/*" onChange={(e) => uploadAudio(e.target.files?.[0])} className="hidden" />
@@ -292,7 +418,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         <div className="flex flex-col gap-3">
           {rows.map((r, i) => {
             const mine = r.user_id === me;
-            const rowEditable = isOwner || mine;
+            const rowEditable = (isOwner || mine) && !locked;
             return (
               <div key={r.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -304,12 +430,12 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                     onChange={(e) => setRowLocal(r.id, { stage_name: e.target.value })} onBlur={(e) => commitRow(r.id, { stage_name: e.target.value })}
                     className={`${field} max-w-[160px]`} />
                   {r.user_id && <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400/80">계정 연동</span>}
-                  <button onClick={() => toggleSign(r)} disabled={!mine}
-                    title={mine ? '내 서명' : '본인만 서명 가능'}
+                  <button onClick={() => toggleSign(r)} disabled={!mine || locked}
+                    title={locked ? '확정됨' : mine ? '내 서명' : '본인만 서명 가능'}
                     className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${r.signed ? 'border-emerald-500/40 text-emerald-400' : mine ? 'border-white/15 text-white/60 hover:bg-white/5' : 'border-white/10 text-white/25'}`}>
                     {r.signed ? '✓ 서명됨' : '서명'}
                   </button>
-                  {isOwner && <button onClick={() => deleteRow(r.id)} className="text-xs text-white/25 hover:text-red-400 transition-colors px-1">삭제</button>}
+                  {editable && <button onClick={() => deleteRow(r.id)} className="text-xs text-white/25 hover:text-red-400 transition-colors px-1">삭제</button>}
                 </div>
 
                 {/* shares — owner sets */}
@@ -317,7 +443,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                   {CATEGORIES.map((c) => (
                     <div key={c.key} className="flex items-center gap-1.5">
                       <span className="text-[11px] text-white/40 w-8">{c.label}</span>
-                      <input type="number" min={0} max={100} value={Number(r[c.key as ShareKey]) || 0} disabled={!isOwner}
+                      <input type="number" min={0} max={100} value={Number(r[c.key as ShareKey]) || 0} disabled={!editable}
                         onChange={(e) => setRowLocal(r.id, { [c.key]: e.target.value === '' ? 0 : Number(e.target.value) } as Partial<Contributor>)}
                         onBlur={(e) => commitRow(r.id, { [c.key]: e.target.value === '' ? 0 : Number(e.target.value) } as Partial<Contributor>)}
                         className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-xs text-white text-center focus:outline-none focus:border-[#3E78DB] disabled:opacity-60" />
@@ -342,7 +468,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         </div>
 
         {/* add contributor */}
-        {isOwner && (
+        {editable && (
           <div className="flex flex-wrap items-center gap-2 mt-4">
             <input value={addEmail} onChange={(e) => setAddEmail(e.target.value)} placeholder="이메일로 추가 (저장된 프로필 자동채움)"
               onKeyDown={(e) => { if (e.key === 'Enter') addByEmail(); }}
@@ -357,7 +483,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         {/* notes */}
         <div className="mt-6">
           <label className="block text-[11px] text-white/40 mb-1">비고 (Notes)</label>
-          <textarea value={sheet.notes ?? ''} disabled={!isOwner} rows={2}
+          <textarea value={sheet.notes ?? ''} disabled={!editable} rows={2}
             onChange={(e) => setSheetLocal('notes', e.target.value)} onBlur={() => commitSheet('notes')}
             className={`${hfield} resize-none`} placeholder="추가 합의사항, 마스터 지분(별도) 등" />
         </div>

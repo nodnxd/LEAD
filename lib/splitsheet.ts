@@ -32,6 +32,10 @@ export type SplitSheet = {
   notes: string | null;
   audio_path: string | null;   // storage path in the 'member-demos' bucket
   audio_name: string | null;   // original filename (shown on the sheet/PDF)
+  locked: boolean | null;      // finalized after everyone signs
+  locked_at: string | null;
+  version: number | null;      // bumps when unlocked for edits
+  signature_requested_at: string | null;
   created_at?: string;
 };
 
