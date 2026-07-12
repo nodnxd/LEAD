@@ -31,8 +31,16 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const [addEmail, setAddEmail] = useState('');
   const [adding, setAdding] = useState(false);
   const [toast, setToast] = useState('');
+  const [audioUrl, setAudioUrl] = useState('');       // signed playback URL
+  const [audioUploading, setAudioUploading] = useState(false);
 
   const isOwner = !!me && sheet?.owner_id === me;
+
+  async function signAudio(path: string | null) {
+    if (!path) { setAudioUrl(''); return; }
+    const { data } = await supabase.storage.from('member-demos').createSignedUrl(path, 3600);
+    setAudioUrl(data?.signedUrl ?? '');
+  }
 
   useEffect(() => {
     (async () => {
@@ -42,6 +50,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       const { data: s } = await supabase.from('split_sheets').select('*').eq('id', id).maybeSingle();
       if (!s) { router.push('/split'); return; }
       setSheet(s as SplitSheet);
+      signAudio((s as SplitSheet).audio_path);
       const { data: c } = await supabase.from('split_contributors').select('*').eq('sheet_id', id).order('order_index', { ascending: true });
       setRows((c as Contributor[]) ?? []);
       setLoading(false);
@@ -55,6 +64,28 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   async function commitSheet<K extends keyof SplitSheet>(k: K) {
     if (!sheet || !isOwner) return;
     await supabase.from('split_sheets').update({ [k]: sheet[k], updated_at: new Date().toISOString() }).eq('id', sheet.id);
+  }
+
+  async function uploadAudio(file: File | undefined) {
+    if (!file || !sheet || !isOwner) return;
+    setAudioUploading(true);
+    const ext = (file.name.split('.').pop() || 'mp3').toLowerCase();
+    const path = `split/${sheet.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('member-demos').upload(path, file, { upsert: true, contentType: file.type || undefined });
+    if (!error) {
+      await supabase.from('split_sheets').update({ audio_path: path, audio_name: file.name, updated_at: new Date().toISOString() }).eq('id', sheet.id);
+      setSheet((s) => s ? { ...s, audio_path: path, audio_name: file.name } : s);
+      await signAudio(path);
+    } else flash('음원 업로드 실패');
+    setAudioUploading(false);
+  }
+
+  async function removeAudio() {
+    if (!sheet || !isOwner) return;
+    if (sheet.audio_path) await supabase.storage.from('member-demos').remove([sheet.audio_path]);
+    await supabase.from('split_sheets').update({ audio_path: null, audio_name: null }).eq('id', sheet.id);
+    setSheet((s) => s ? { ...s, audio_path: null, audio_name: null } : s);
+    setAudioUrl('');
   }
 
   // ── contributors ──
@@ -151,6 +182,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         ${info('Title', sheet.song_title)} ${info('AKA', sheet.aka)} ${info('Artist', sheet.artist_name)}
         ${info('Album', sheet.album)} ${info('Duration', sheet.duration)} ${info('Date', sheet.work_date)}
         ${info('ISWC', sheet.iswc)} ${info('ISRC', sheet.isrc)} ${info('Sample?', sheet.contains_sample ? `Yes${sheet.sample_note ? ' — ' + sheet.sample_note : ''}` : 'No')}
+        ${info('Audio', sheet.audio_name)}
       </div>
       <table>
         <thead><tr>
@@ -217,6 +249,32 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                 onChange={(e) => setSheetLocal('sample_note', e.target.value)} onBlur={() => commitSheet('sample_note')}
                 className={`${hfield} flex-1 min-w-[200px]`} />
             )}
+          </div>
+
+          {/* attached audio — ties the agreed splits to the actual work (evidence) */}
+          <div className="mt-4 pt-4 border-t border-white/5">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-[11px] uppercase tracking-widest text-white/30">음원</span>
+              {sheet.audio_path ? (
+                <>
+                  {audioUrl && <audio src={audioUrl} controls className="h-9 max-w-full" style={{ minWidth: 220 }} />}
+                  <span className="text-xs text-white/50 truncate max-w-[220px]">{sheet.audio_name}</span>
+                  {audioUrl && <a href={audioUrl} download={sheet.audio_name ?? 'audio'} className="text-xs text-white/50 hover:text-white underline">다운로드</a>}
+                  {isOwner && (
+                    <label className="text-xs px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 cursor-pointer transition-colors">
+                      {audioUploading ? '…' : '교체'}
+                      <input type="file" accept="audio/*" onChange={(e) => uploadAudio(e.target.files?.[0])} className="hidden" />
+                    </label>
+                  )}
+                  {isOwner && <button onClick={removeAudio} className="text-xs text-white/25 hover:text-red-400 transition-colors">삭제</button>}
+                </>
+              ) : isOwner ? (
+                <label className="text-xs px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 cursor-pointer transition-colors">
+                  {audioUploading ? '업로드 중…' : '+ 음원 첨부 (데모/마스터)'}
+                  <input type="file" accept="audio/*" onChange={(e) => uploadAudio(e.target.files?.[0])} className="hidden" />
+                </label>
+              ) : <span className="text-xs text-white/30">첨부된 음원 없음</span>}
+            </div>
           </div>
         </div>
 

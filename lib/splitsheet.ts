@@ -30,6 +30,8 @@ export type SplitSheet = {
   sample_note: string | null;
   work_date: string | null;
   notes: string | null;
+  audio_path: string | null;   // storage path in the 'member-demos' bucket
+  audio_name: string | null;   // original filename (shown on the sheet/PDF)
   created_at?: string;
 };
 
