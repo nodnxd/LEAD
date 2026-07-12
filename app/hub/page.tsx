@@ -2,12 +2,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useLang, LangToggle } from '@/lib/lang';
 
 const SUPER_ADMIN_EMAIL = 'everplayground@gmail.com';
 const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
 
 export default function HubPage() {
   const router = useRouter();
+  const { t } = useLang();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [canHost, setCanHost] = useState(false);
@@ -84,65 +86,59 @@ export default function HubPage() {
               <span className="text-zinc-600 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <div className="flex items-center gap-2">
+              <LangToggle />
               <a href="/mypage" className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-[11px] font-normal hover:text-white transition-all">MY</a>
-              <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="text-[11px] font-bold text-zinc-600 hover:text-red-400 transition-colors">로그아웃</button>
+              <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="text-[11px] font-bold text-zinc-600 hover:text-red-400 transition-colors">{t('로그아웃', 'Log out')}</button>
             </div>
           </div>
 
-          {/* 참여 중인 회사 */}
-          <section className="mb-8">
-            <p className="text-[11px] font-normal uppercase tracking-widest text-zinc-500 mb-3">참여 중인 회사</p>
-            {member.length === 0 ? (
-              <div className="p-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] text-center">
-                <p className="text-[13px] text-zinc-500">아직 참여 중인 회사가 없어요.</p>
-                <p className="text-[12px] text-zinc-600 mt-1">받은 초대 링크로 입장하세요.</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2.5">
-                {member.map(c => (
-                  <button key={c.id} onClick={() => enterMember(c.id)} className="flex items-center gap-3 p-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.05] text-left transition-all">
-                    <div className="w-11 h-11 rounded-xl bg-[#3E78DB]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
-                    <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate">{c.name}</p><p className="text-[12px] text-zinc-500">게스트로 입장</p></div>
-                    <span className="text-[#3E78DB] text-[18px] font-black shrink-0">→</span>
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* 회사 (참여 + 운영 통합 섹션) */}
+          <section className="mb-9">
+            <p className="text-[11px] font-normal uppercase tracking-widest text-zinc-500 mb-3">{t('회사', 'Companies')}</p>
+            <div className="flex flex-col gap-2.5">
+              {member.map(c => (
+                <button key={c.id} onClick={() => enterMember(c.id)} className="flex items-center gap-3 p-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.05] text-left transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-[#3E78DB]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
+                  <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate">{c.name}</p><p className="text-[12px] text-zinc-500">{t('게스트로 입장', 'Enter as guest')}</p></div>
+                  <span className="text-[#3E78DB] text-[18px] font-black shrink-0">→</span>
+                </button>
+              ))}
+              {canHost && operate.map(c => (
+                <button key={c.id} onClick={() => enterOperate(c.id)} className="flex items-center gap-3 p-4 rounded-2xl border border-[#3E78DB]/30 bg-[#3E78DB]/[0.07] hover:bg-[#3E78DB]/[0.12] text-left transition-all">
+                  <div className="w-11 h-11 rounded-xl bg-[#3E78DB]/15 flex items-center justify-center text-[18px] shrink-0">🏢</div>
+                  <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate">{c.name}</p><p className="text-[12px] text-zinc-500">{c.owner ? t('대시보드 운영', 'Owner') : t('공동 관리', 'Co-manager')}</p></div>
+                  <span className="text-[#3E78DB] text-[18px] font-black shrink-0">→</span>
+                </button>
+              ))}
+              {member.length === 0 && (!canHost || operate.length === 0) && (
+                <div className="p-5 rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.01] text-center">
+                  <p className="text-[13px] text-zinc-500">{t('아직 참여 중인 회사가 없어요.', 'You haven’t joined any company yet.')}</p>
+                  <p className="text-[12px] text-zinc-600 mt-1">{t('받은 초대 링크로 입장하세요.', 'Enter with an invite link.')}</p>
+                </div>
+              )}
+            </div>
           </section>
 
-          {/* 운영 중인 회사 (호스트 권한자만) */}
-          {canHost && (
-            <section>
-              <p className="text-[11px] font-normal uppercase tracking-widest text-zinc-500 mb-3">운영 중인 회사 (호스트)</p>
-              <div className="flex flex-col gap-2.5">
-                {operate.map(c => (
-                  <button key={c.id} onClick={() => enterOperate(c.id)} className="flex items-center gap-3 p-4 rounded-2xl border border-[#3E78DB]/30 bg-[#3E78DB]/[0.07] hover:bg-[#3E78DB]/[0.12] text-left transition-all">
-                    <div className="w-11 h-11 rounded-xl bg-[#3E78DB]/15 flex items-center justify-center text-[18px] shrink-0">🏢</div>
-                    <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate">{c.name}</p><p className="text-[12px] text-zinc-500">{c.owner ? '대시보드 운영' : '공동 관리'}</p></div>
-                    <span className="text-[#3E78DB] text-[18px] font-black shrink-0">→</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
+          {/* 도구 (Tools) — 회사가 아니라 독립 도구. 색으로 구분 */}
+          <section>
+            <p className="text-[11px] font-normal uppercase tracking-widest text-zinc-500 mb-3">{t('도구', 'Tools')}</p>
+            <div className="flex flex-col gap-2.5">
+              <a href="/roster/dashboard" className="flex items-center gap-3 p-4 rounded-2xl border border-[#E3B24A]/25 bg-[#E3B24A]/[0.06] hover:bg-[#E3B24A]/12 text-left transition-all">
+                <div className="w-11 h-11 rounded-xl bg-[#E3B24A]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
+                <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate text-white">CAST <span className="text-[11px] text-zinc-500 font-bold">{t('로스터 관리', 'Roster')}</span></p><p className="text-[12px] text-zinc-500">{t('아티스트 로스터 짜기', 'Build your artist roster')}</p></div>
+                <span className="text-[#E3B24A] text-[18px] font-black shrink-0">→</span>
+              </a>
+              <a href="/split" className="flex items-center gap-3 p-4 rounded-2xl border border-[#2FB6A3]/30 bg-[#2FB6A3]/[0.07] hover:bg-[#2FB6A3]/12 text-left transition-all">
+                <div className="w-11 h-11 rounded-xl bg-[#2FB6A3]/15 flex items-center justify-center text-[18px] shrink-0">📝</div>
+                <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate text-white">Split Sheet <span className="text-[11px] text-zinc-500 font-bold">{t('저작권 지분', 'Songwriter splits')}</span></p><p className="text-[12px] text-zinc-500">{t('전세계 표준 저작권 지분 문서', 'Global-standard split sheet')}</p></div>
+                <span className="text-[#2FB6A3] text-[18px] font-black shrink-0">→</span>
+              </a>
+            </div>
+          </section>
 
           {!canHost && member.length === 0 && (
-            <p className="text-center text-[12px] text-zinc-700 mt-8">호스트 권한이 필요하면 담당자에게 문의하세요.</p>
+            <p className="text-center text-[12px] text-zinc-700 mt-8">{t('호스트 권한이 필요하면 담당자에게 문의하세요.', 'Contact your admin if you need host access.')}</p>
           )}
-
-          {/* 다른 서비스 — CAST */}
-          <div className="mt-10 pt-6 border-t border-white/[0.07] flex flex-col gap-3">
-            <a href="/roster/dashboard" className="flex items-center gap-3 p-4 rounded-2xl border border-[#E3B24A]/25 bg-[#E3B24A]/[0.06] hover:bg-[#E3B24A]/10 text-left transition-all">
-              <div className="w-11 h-11 rounded-xl bg-[#E3B24A]/15 flex items-center justify-center text-[18px] shrink-0">🎤</div>
-              <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate text-white">CAST <span className="text-[11px] text-zinc-500 font-bold">로스터 관리</span></p><p className="text-[12px] text-zinc-500">아티스트 로스터 짜기</p></div>
-              <span className="text-[#E3B24A] text-[18px] font-black shrink-0">→</span>
-            </a>
-            <a href="/split" className="flex items-center gap-3 p-4 rounded-2xl border border-[#3E78DB]/25 bg-[#3E78DB]/[0.06] hover:bg-[#3E78DB]/10 text-left transition-all">
-              <div className="w-11 h-11 rounded-xl bg-[#3E78DB]/15 flex items-center justify-center text-[18px] shrink-0">📝</div>
-              <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate text-white">Split Sheet <span className="text-[11px] text-zinc-500 font-bold">저작권 지분</span></p><p className="text-[12px] text-zinc-500">전세계 표준 저작권 지분 문서</p></div>
-              <span className="text-[#3E78DB] text-[18px] font-black shrink-0">→</span>
-            </a>
-          </div>
         </div>
       </main>
     </>
