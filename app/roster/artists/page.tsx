@@ -5,6 +5,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
+import { useLang, LangToggle } from '@/lib/lang';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -34,6 +35,7 @@ const getLinkIcon = (url: string) => {
 
 export default function ArtistsPage() {
   const router = useRouter();
+  const { t } = useLang();
   const [user, setUser] = useState<any>(null);
   const [artists, setArtists] = useState<any[]>([]);
   const [projects, setProjects] = useState<string[]>([]);
@@ -119,14 +121,14 @@ export default function ArtistsPage() {
     }
     setShowModal(false);
     fetchArtists();
-    toast(editingArtist ? '✅ 수정됐어요!' : '✅ 추가됐어요!');
+    toast(editingArtist ? t('✅ 수정됐어요!', '✅ Updated!') : t('✅ 추가됐어요!', '✅ Added!'));
   };
 
   const deleteArtist = async (id: string) => {
     await supabase.from('artists').delete().eq('id', id);
     fetchArtists();
     setViewingArtist(null);
-    toast('🗑 삭제됐어요');
+    toast(t('🗑 삭제됐어요', '🗑 Deleted'));
   };
 
   const uploadPhoto = async (file: File) => {
@@ -152,7 +154,7 @@ export default function ArtistsPage() {
     const { error } = await supabase.storage.from('artist - photo').upload(path, resized, { upsert: true, contentType: 'image/jpeg' });
     if (error) {
       console.error('업로드 에러:', error.message, error);
-      toast(`❌ 업로드 실패: ${error.message}`);
+      toast(`❌ ${t('업로드 실패', 'Upload failed')}: ${error.message}`);
       setUploading(false);
       return;
     }
@@ -160,7 +162,7 @@ export default function ArtistsPage() {
     console.log('업로드 성공, URL:', data.publicUrl);
     setForm(prev => ({ ...prev, photo_url: data.publicUrl }));
     setUploading(false);
-    toast('📸 사진 업로드됐어요!');
+    toast(t('📸 사진 업로드됐어요!', '📸 Photo uploaded!'));
   };
 
   // 아티스트 → 로스터 추가
@@ -170,7 +172,7 @@ export default function ArtistsPage() {
     const { data: existing } = await supabase.from('profiles')
       .select('id').eq('user_id', user.id).eq('project', selectedProject).eq('name', addToRosterArtist.name);
     if (existing && existing.length > 0) {
-      toast('⚠️ 이미 해당 로스터에 있어요!');
+      toast(t('⚠️ 이미 해당 로스터에 있어요!', '⚠️ Already in that roster!'));
       setAddToRosterArtist(null);
       return;
     }
@@ -187,7 +189,7 @@ export default function ArtistsPage() {
       user_id: user.id,
       links: addToRosterArtist.links || [],
     });
-    toast(`✅ ${addToRosterArtist.name} → ${selectedProject} 로스터에 추가됐어요!`);
+    toast(`✅ ${addToRosterArtist.name} → ${selectedProject} ${t('로스터에 추가됐어요!', 'added to roster!')}`);
     setAddToRosterArtist(null);
   };
 
@@ -230,15 +232,16 @@ export default function ArtistsPage() {
           {/* 탑 바 */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8 border-b border-white/10 pb-6">
             <div className="flex items-center gap-3">
-              <button onClick={() => router.push('/roster/dashboard')} className="text-zinc-500 hover:text-white text-[11px] font-bold transition-colors">← 대시보드</button>
+              <button onClick={() => router.push('/roster/dashboard')} className="text-zinc-500 hover:text-white text-[11px] font-bold transition-colors">← {t('대시보드', 'Dashboard')}</button>
               <span className="text-zinc-700">|</span>
               <h2 className="text-white font-black text-[20px]">Artists</h2>
-              <span className="text-zinc-600 text-[12px]">{artists.length}명</span>
+              <span className="text-zinc-600 text-[12px]">{artists.length}{t('명', '')}</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="이름 검색..." className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[12px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white w-36" />
+              <LangToggle className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-[11px] font-bold hover:text-white transition-all" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('이름 검색...', 'Search name...')} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[12px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white w-36" />
               <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[12px] outline-none text-zinc-300">
-                <option value="" className="bg-zinc-900">전체 역할</option>
+                <option value="" className="bg-zinc-900">{t('전체 역할', 'All roles')}</option>
                 {ROLES.map(r => <option key={r} value={r} className="bg-zinc-900">{r}</option>)}
               </select>
               {/* 정렬 */}
@@ -250,15 +253,15 @@ export default function ArtistsPage() {
                   </button>
                 ))}
               </div>
-              <button onClick={openCreate} className="bg-[#E3B24A] text-white px-5 py-2 rounded-xl font-semibold text-[11px] hover:opacity-90 transition-all">+ 추가</button>
+              <button onClick={openCreate} className="bg-[#E3B24A] text-white px-5 py-2 rounded-xl font-semibold text-[11px] hover:opacity-90 transition-all">+ {t('추가', 'Add')}</button>
             </div>
           </div>
 
           {/* Role별 그룹 */}
           {filtered.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-zinc-700 text-[13px]">아티스트가 없어요</p>
-              <button onClick={openCreate} className="mt-4 text-[#E3B24A] text-[12px] font-bold hover:underline">+ 첫 아티스트 추가</button>
+              <p className="text-zinc-700 text-[13px]">{t('아티스트가 없어요', 'No artists yet')}</p>
+              <button onClick={openCreate} className="mt-4 text-[#E3B24A] text-[12px] font-bold hover:underline">+ {t('첫 아티스트 추가', 'Add your first artist')}</button>
             </div>
           ) : (
             <div className="flex flex-col gap-10">
@@ -302,7 +305,7 @@ export default function ArtistsPage() {
                             onClick={(e) => { e.stopPropagation(); setAddToRosterArtist(artist); setRosterRole(ROSTER_ROLES.includes(artist.role) ? artist.role : 'Producer'); }}
                             className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white text-[9px] font-black flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all hover:bg-[#E3B24A]/60 hover:border-[#E3B24A]/50"
                           >
-                            + 로스터
+                            + {t('로스터', 'Roster')}
                           </button>
                         </div>
 
@@ -392,12 +395,12 @@ export default function ArtistsPage() {
               )}
 
               <div className="flex gap-2">
-                <button onClick={() => { setViewingArtist(null); openEdit(viewingArtist); }} className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-[12px] hover:bg-white/10 transition-all">수정</button>
+                <button onClick={() => { setViewingArtist(null); openEdit(viewingArtist); }} className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-[12px] hover:bg-white/10 transition-all">{t('수정', 'Edit')}</button>
                 <button
                   onClick={() => { setViewingArtist(null); setAddToRosterArtist(viewingArtist); setRosterRole(ROSTER_ROLES.includes(viewingArtist.role) ? viewingArtist.role : 'Producer'); }}
-                  className="flex-1 py-2.5 rounded-xl bg-[#E3B24A]/20 border border-[#E3B24A]/30 text-[#E3B24A] font-bold text-[12px] hover:bg-[#E3B24A]/30 transition-all">+ 로스터</button>
-                <button onClick={() => { if (confirm(`"${viewingArtist.name}"을 삭제할까요?`)) deleteArtist(viewingArtist.id); }} className="py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-[12px] hover:bg-red-500/20 transition-all">삭제</button>
-                <button onClick={() => setViewingArtist(null)} className="py-2.5 px-4 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">닫기</button>
+                  className="flex-1 py-2.5 rounded-xl bg-[#E3B24A]/20 border border-[#E3B24A]/30 text-[#E3B24A] font-bold text-[12px] hover:bg-[#E3B24A]/30 transition-all">+ {t('로스터', 'Roster')}</button>
+                <button onClick={() => { if (confirm(t(`"${viewingArtist.name}"을 삭제할까요?`, `Delete "${viewingArtist.name}"?`))) deleteArtist(viewingArtist.id); }} className="py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-[12px] hover:bg-red-500/20 transition-all">{t('삭제', 'Delete')}</button>
+                <button onClick={() => setViewingArtist(null)} className="py-2.5 px-4 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">{t('닫기', 'Close')}</button>
               </div>
             </div>
           </div>
@@ -409,14 +412,14 @@ export default function ArtistsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4" onClick={() => setAddToRosterArtist(null)}>
           <div className="w-full max-w-sm bg-[#111] border border-white/10 rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h2 className="text-white font-black text-[16px] mb-1">{addToRosterArtist.name}</h2>
-            <p className="text-zinc-500 text-[12px] mb-5">로스터에 추가할 프로젝트를 선택하세요</p>
+            <p className="text-zinc-500 text-[12px] mb-5">{t('로스터에 추가할 프로젝트를 선택하세요', 'Pick a roster to add to')}</p>
 
             <div className="flex flex-col gap-3 mb-5">
               {/* 프로젝트 선택 */}
               <div>
-                <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">프로젝트</label>
+                <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">{t('프로젝트', 'Project')}</label>
                 {projects.length === 0 ? (
-                  <p className="text-zinc-600 text-[12px]">로스터가 없어요. 대시보드에서 먼저 만들어주세요.</p>
+                  <p className="text-zinc-600 text-[12px]">{t('로스터가 없어요. 대시보드에서 먼저 만들어주세요.', 'No rosters yet. Create one in the dashboard first.')}</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {projects.map(p => (
@@ -432,7 +435,7 @@ export default function ArtistsPage() {
               {/* Role 선택 (아티스트 role이 로스터 role이 아닌 경우) */}
               {!ROSTER_ROLES.includes(addToRosterArtist.role) && (
                 <div>
-                  <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">로스터 역할</label>
+                  <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">{t('로스터 역할', 'Roster role')}</label>
                   <select value={rosterRole} onChange={e => setRosterRole(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[13px] outline-none text-zinc-300">
                     {ROSTER_ROLES.map(r => <option key={r} value={r} className="bg-zinc-900">{r}</option>)}
                   </select>
@@ -441,8 +444,8 @@ export default function ArtistsPage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setAddToRosterArtist(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">취소</button>
-              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-xl bg-[#E3B24A] text-white font-semibold text-[12px] hover:opacity-90 transition-all disabled:opacity-40">추가</button>
+              <button onClick={() => setAddToRosterArtist(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">{t('취소', 'Cancel')}</button>
+              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-xl bg-[#E3B24A] text-white font-semibold text-[12px] hover:opacity-90 transition-all disabled:opacity-40">{t('추가', 'Add')}</button>
             </div>
           </div>
         </div>
@@ -453,18 +456,18 @@ export default function ArtistsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4 overflow-y-auto">
           <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl shadow-2xl my-4">
             <div className="p-6">
-              <h2 className="text-white font-black text-[16px] mb-5">{editingArtist ? '아티스트 수정' : '아티스트 추가'}</h2>
+              <h2 className="text-white font-black text-[16px] mb-5">{editingArtist ? t('아티스트 수정', 'Edit artist') : t('아티스트 추가', 'Add artist')}</h2>
 
               <div className="mb-5 flex flex-col items-center">
                 <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/5 border border-white/10 mb-3 flex items-center justify-center cursor-pointer hover:border-white/30 transition-all" onClick={() => fileInputRef.current?.click()}>
                   {form.photo_url ? <img src={form.photo_url} alt="preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <span className="text-3xl opacity-30">📷</span>}
                 </div>
-                <button onClick={() => fileInputRef.current?.click()} className="text-zinc-500 text-[11px] font-bold hover:text-white transition-colors">{uploading ? '업로드 중...' : '사진 선택'}</button>
+                <button onClick={() => fileInputRef.current?.click()} className="text-zinc-500 text-[11px] font-bold hover:text-white transition-colors">{uploading ? t('업로드 중...', 'Uploading…') : t('사진 선택', 'Choose photo')}</button>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); }} />
               </div>
 
               <div className="flex flex-col gap-3">
-                <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="이름 *" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
+                <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder={t('이름 *', 'Name *')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
 
                 <div className="grid grid-cols-2 gap-3">
                   <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none text-zinc-300">
@@ -476,12 +479,12 @@ export default function ArtistsPage() {
                   </select>
                 </div>
 
-                <input value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))} placeholder="국적 (예: Korean, Japanese)" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
-                <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} placeholder="이력/소개" rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white resize-none" />
-                <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="이메일 연락처" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
+                <input value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))} placeholder={t('국적 (예: Korean, Japanese)', 'Nationality (e.g. Korean, Japanese)')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
+                <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} placeholder={t('이력/소개', 'Bio')} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white resize-none" />
+                <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder={t('이메일 연락처', 'Contact email')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
 
                 <div>
-                  <label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-2 block">링크</label>
+                  <label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-2 block">{t('링크', 'Links')}</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {QUICK_LINKS.map(({ label, prefix }) => (
                       <button key={prefix} onClick={() => setNewLink(prefix)} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-[10px] font-bold hover:text-white hover:bg-white/10 transition-all">{label}</button>
@@ -489,7 +492,7 @@ export default function ArtistsPage() {
                   </div>
                   <div className="flex gap-2 mb-2">
                     <input value={newLink} onChange={e => setNewLink(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} placeholder="https://..." className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[12px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
-                    <button onClick={() => { if (newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} className="px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white font-black text-[11px] hover:bg-white/20 transition-all">추가</button>
+                    <button onClick={() => { if (newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} className="px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white font-black text-[11px] hover:bg-white/20 transition-all">{t('추가', 'Add')}</button>
                   </div>
                   {form.links.map((link, i) => (
                     <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 mb-1">
@@ -502,8 +505,8 @@ export default function ArtistsPage() {
               </div>
 
               <div className="flex gap-3 mt-5">
-                <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">취소</button>
-                <button onClick={saveArtist} className="flex-1 py-3 rounded-xl bg-[#E3B24A] text-white font-semibold text-[12px] hover:opacity-90 transition-all">저장</button>
+                <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">{t('취소', 'Cancel')}</button>
+                <button onClick={saveArtist} className="flex-1 py-3 rounded-xl bg-[#E3B24A] text-white font-semibold text-[12px] hover:opacity-90 transition-all">{t('저장', 'Save')}</button>
               </div>
             </div>
           </div>
