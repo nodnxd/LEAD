@@ -32,7 +32,7 @@ create policy "copyright_profiles_own" on copyright_profiles for all
 -- (전문 저작권 크레딧 정보 — 스플릿시트 공유 목적)
 drop policy if exists "copyright_profiles_read" on copyright_profiles;
 create policy "copyright_profiles_read" on copyright_profiles for select
-  using (auth.role() = 'authenticated');
+  using (auth.uid() is not null);
 
 -- 2) 스플릿시트 헤더 (곡 단위)
 create table if not exists split_sheets (

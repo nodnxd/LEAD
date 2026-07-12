@@ -111,22 +111,25 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     const email = (addEmail[category] ?? '').trim();
     if (!isOwner) return;
     if (!email) { await addRow(category, {}, null, ''); return; }
-    const { data: m } = await supabase.from('members').select('id').eq('email', email).maybeSingle();
     let userId: string | null = null;
     const base: Partial<Contributor> = {};
-    if (m?.id) {
-      userId = m.id;
-      const { data: cp } = await supabase.from('copyright_profiles').select('*').eq('id', m.id).maybeSingle();
-      if (cp) {
-        Object.assign(base, {
-          legal_name: cp.legal_name, stage_name: cp.stage_name, pro: cp.pro, ipi: cp.ipi,
-          publisher_name: cp.publisher_name, publisher_pro: cp.publisher_pro, publisher_ipi: cp.publisher_ipi,
-          email: cp.email, phone: cp.phone, address: cp.address,
-        });
-        flash('저장된 저작권 프로필로 자동채움됨');
-      } else flash('계정은 찾았지만 저작권 프로필 미설정 — 직접 입력');
-    } else flash('해당 이메일 계정 없음 — 이름만 채워 추가');
-    await addRow(category, base, userId, (base.email as string) ?? email);
+    // 1) copyright_profiles (authenticated-readable) — links the account AND auto-fills in one shot
+    const { data: cp } = await supabase.from('copyright_profiles').select('*').ilike('email', email).limit(1).maybeSingle();
+    if (cp) {
+      userId = cp.id;
+      Object.assign(base, {
+        legal_name: cp.legal_name, stage_name: cp.stage_name, pro: cp.pro, ipi: cp.ipi,
+        publisher_name: cp.publisher_name, publisher_pro: cp.publisher_pro, publisher_ipi: cp.publisher_ipi,
+        email: cp.email ?? email, phone: cp.phone, address: cp.address,
+      });
+      flash('계정 연동 · 저작권 프로필 자동채움됨');
+    } else {
+      // 2) fall back to the member directory (id only — no PRO profile saved yet)
+      const { data: m } = await supabase.from('members').select('id').ilike('email', email).limit(1).maybeSingle();
+      if (m?.id) { userId = m.id; flash('계정 연동됨 (저작권 프로필 미설정 — 본인이 채우면 반영)'); }
+      else flash('해당 이메일 계정 없음 — 이름만 채워 추가 (상대가 가입 후 자동 연동은 안 됨)');
+    }
+    await addRow(category, { ...base, email: (base.email as string) ?? email }, userId, (base.email as string) ?? email);
   }
 
   function setRowLocal(rid: string, patch: Partial<Contributor>) {
