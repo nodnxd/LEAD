@@ -272,14 +272,18 @@ export default function Dashboard() {
     if (data) {
       setMembers(data);
       const savedProjects = JSON.parse(localStorage.getItem(`epg_projects_${u.id}`) || 'null');
+      // honor a project pre-selected from the hub, if it exists in the list
+      const pref = localStorage.getItem('cast_current_project');
+      const pick = (list: string[]) => (pref && list.includes(pref)) ? pref : list[0];
       if (savedProjects?.length > 0) {
         setProjects(savedProjects);
-        setCurrentProject(prev => prev || savedProjects[0]);
+        setCurrentProject(prev => prev || pick(savedProjects));
       } else {
         const dbProjects = Array.from(new Set(data.map((m: any) => m.project).filter(Boolean))) as string[];
-        if (dbProjects.length > 0) { setProjects(dbProjects); setCurrentProject(prev => prev || dbProjects[0]); }
+        if (dbProjects.length > 0) { setProjects(dbProjects); setCurrentProject(prev => prev || pick(dbProjects)); }
         else setShowFirstRosterModal(true);
       }
+      if (pref) localStorage.removeItem('cast_current_project');
     } else setShowFirstRosterModal(true);
   }, [user]);
 
@@ -1111,6 +1115,7 @@ export default function Dashboard() {
             <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
               <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
               <span className="px-3 py-1 rounded-full bg-[#E3B24A] text-white text-[11px] font-normal">CAST</span>
+              <a href="/split" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-[#2FB6A3]' : 'text-zinc-500 hover:text-[#2FB6A3]'}`}>Split</a>
             </div>
           </div>
 
