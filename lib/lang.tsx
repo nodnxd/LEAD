@@ -7,11 +7,18 @@ import { useEffect, useState } from 'react';
 
 export type Lang = 'ko' | 'en';
 const KEY = 'lead-lang';
-const EVT = 'lead-lang-change';
+export const LANG_EVENT = 'lead-lang-change';
+const EVT = LANG_EVENT;
 
 export function getLang(): Lang {
   if (typeof window === 'undefined') return 'ko';
   return (localStorage.getItem(KEY) as Lang) === 'en' ? 'en' : 'ko';
+}
+
+// Set the app-wide language from anywhere (legacy pages with their own lang state).
+export function setLangValue(l: Lang) {
+  localStorage.setItem(KEY, l);
+  window.dispatchEvent(new Event(EVT));
 }
 
 export function useLang() {

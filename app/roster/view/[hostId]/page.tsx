@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useParams } from 'next/navigation';
+import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -69,18 +70,18 @@ export default function GuestView() {
   const dragStartY = useRef(0);
   const dragStartZoom = useRef(1);
 
-  // 테마/언어 로드 (호스트 설정과 공유)
+  // 테마/언어 로드 (앱 전역 언어와 공유)
   useEffect(() => {
-    const savedLang = localStorage.getItem('cast_lang') as Lang | null;
+    setLang(getLang());
     const savedTheme = localStorage.getItem('cast_theme') as Theme | null;
-    if (savedLang) setLang(savedLang);
     if (savedTheme) setTheme(savedTheme);
+    const sync = () => setLang(getLang());
+    window.addEventListener(LANG_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => { window.removeEventListener(LANG_EVENT, sync); window.removeEventListener('storage', sync); };
   }, []);
 
-  const toggleLang = () => {
-    const next: Lang = lang === 'ko' ? 'en' : 'ko';
-    setLang(next); localStorage.setItem('cast_lang', next);
-  };
+  const toggleLang = () => { setLangValue(lang === 'ko' ? 'en' : 'ko'); };
   const toggleTheme = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(next); localStorage.setItem('cast_theme', next);

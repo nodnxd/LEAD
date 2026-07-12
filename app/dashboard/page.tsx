@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { analyzeAudio } from '@/lib/audioAnalysis';
 import ChatPanel from '@/app/components/ChatPanel';
+import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
 
@@ -208,6 +209,8 @@ export default function GuestView(){
   },[]);
   const [translating,setTranslating]=useState(false);
   const [globalEn,setGlobalEn]=useState(false);
+  // sync EN state with the app-wide language (shared with hub / split / roster)
+  useEffect(()=>{const sync=()=>setGlobalEn(getLang()==='en');sync();window.addEventListener(LANG_EVENT,sync);window.addEventListener('storage',sync);return()=>{window.removeEventListener(LANG_EVENT,sync);window.removeEventListener('storage',sync);};},[]);
   const [showMyPitches,setShowMyPitches]=useState(false);
   const [myPitches,setMyPitches]=useState<any[]>([]);
   const [myPitchFiles,setMyPitchFiles]=useState<any[]>([]);
@@ -548,7 +551,7 @@ export default function GuestView(){
     if(contentLang==='en'){setContentLang('ko');return;}
     await ensureEn(lead);
   };
-  useEffect(()=>{const s=localStorage.getItem('lead_global_en');if(s==='1')setGlobalEn(true);},[]);
+  // (language init handled by the LANG_EVENT sync effect above)
   useEffect(()=>{if(viewingLead&&globalEn)ensureEn(viewingLead);if(!globalEn&&viewingLead)setContentLang('ko');},[viewingLead,globalEn]);
   const getEnContent=(lead:any):Section[]|null=>{
     if(lead.content_en)return parseSections(lead.content_en)||[{id:'en0',title:'',body:lead.content_en}];
@@ -792,7 +795,7 @@ export default function GuestView(){
             <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
             <button onClick={()=>{supabase.auth.signOut().then(()=>{window.location.href='/';});}} className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-red-400':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-red-500'}`}>{t('로그아웃','Sign out')}</button>
             <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
-            <button onClick={()=>{const v=!globalEn;setGlobalEn(v);localStorage.setItem('lead_global_en',v?'1':'0');}} className={`h-8 px-2.5 rounded-lg border flex items-center justify-center text-[11px] font-bold transition-all ${globalEn?'bg-[#3E78DB] border-[#3E78DB] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{globalEn?'EN':'KO'}</button>
+            <button onClick={()=>{setLangValue(globalEn?'ko':'en');}} className={`h-8 px-2.5 rounded-lg border flex items-center justify-center text-[11px] font-bold transition-all ${globalEn?'bg-[#3E78DB] border-[#3E78DB] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{globalEn?'EN':'KO'}</button>
           </div>
         </div>
 
