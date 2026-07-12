@@ -72,11 +72,10 @@ create table if not exists split_contributors (
   id uuid primary key default gen_random_uuid(),
   sheet_id           uuid references split_sheets(id) on delete cascade not null,
   user_id            uuid references auth.users(id) on delete set null, -- 연동 계정(선택)
+  category           text,               -- 'lyrics' | 'composition' | 'arrangement'
+  share              numeric default 0,  -- 해당 카테고리 내 % (카테고리별 합계 100)
   legal_name         text,
   stage_name         text,
-  lyrics_share       numeric default 0,  -- 작사 % (열 합계 100)
-  composition_share  numeric default 0,  -- 작곡 %
-  arrangement_share  numeric default 0,  -- 편곡 %
   pro                text,
   ipi                text,
   publisher_name     text,
@@ -87,10 +86,19 @@ create table if not exists split_contributors (
   address            text,
   signed             boolean default false,
   signed_at          timestamptz,
+  signature_name     text,               -- 서명 시 입력한 법적 이름
+  signature_data     text,               -- 그린 서명 PNG (data URL)
+  signed_hash        text,               -- 서명 시점 문서 스냅샷의 SHA-256
   order_index        int default 0,
   created_at         timestamptz default now()
 );
 alter table split_contributors enable row level security;
+-- 기존 테이블 컬럼 추가 (재실행 안전)
+alter table split_contributors add column if not exists category text;
+alter table split_contributors add column if not exists share numeric default 0;
+alter table split_contributors add column if not exists signature_name text;
+alter table split_contributors add column if not exists signature_data text;
+alter table split_contributors add column if not exists signed_hash text;
 
 -- 4) 상호재귀 방지 헬퍼 (security definer = RLS 우회)
 create or replace function is_split_owner(p_sheet_id uuid)

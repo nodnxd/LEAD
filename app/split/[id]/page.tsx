@@ -2,10 +2,10 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { SplitSheet, Contributor, CATEGORIES, ShareKey, PRO_GROUPS, PRO_LABEL, shareTotal } from '@/lib/splitsheet';
+import { SplitSheet, Contributor, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal } from '@/lib/splitsheet';
 
 function ProSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
@@ -28,11 +28,12 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const [loading, setLoading] = useState(true);
   const [sheet, setSheet] = useState<SplitSheet | null>(null);
   const [rows, setRows] = useState<Contributor[]>([]);
-  const [addEmail, setAddEmail] = useState('');
+  const [addEmail, setAddEmail] = useState<Record<string, string>>({});
   const [adding, setAdding] = useState(false);
   const [toast, setToast] = useState('');
   const [audioUrl, setAudioUrl] = useState('');       // signed playback URL
   const [audioUploading, setAudioUploading] = useState(false);
+  const [signRow, setSignRow] = useState<Contributor | null>(null);  // signature-capture modal target
 
   const isOwner = !!me && sheet?.owner_id === me;
 
@@ -94,21 +95,22 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     setAudioUrl('');
   }
 
-  // ── contributors ──
-  async function addRow(base: Partial<Contributor>, userId: string | null, email: string) {
+  // ── contributors (entry = person × one category) ──
+  async function addRow(category: CategoryKey, base: Partial<Contributor>, userId: string | null, email: string) {
     if (lockedGuard()) return;
     setAdding(true);
     const { data, error } = await supabase.from('split_contributors')
-      .insert({ sheet_id: id, user_id: userId, email, order_index: rows.length, ...base })
+      .insert({ sheet_id: id, user_id: userId, email, category, share: 0, order_index: rows.length, ...base })
       .select('*').single();
     setAdding(false);
-    if (!error && data) { setRows((r) => [...r, data as Contributor]); setAddEmail(''); }
+    if (!error && data) { setRows((r) => [...r, data as Contributor]); setAddEmail((m) => ({ ...m, [category]: '' })); }
     else flash('추가 실패');
   }
 
-  async function addByEmail() {
-    const email = addEmail.trim();
-    if (!email || !isOwner) return;
+  async function addByEmail(category: CategoryKey) {
+    const email = (addEmail[category] ?? '').trim();
+    if (!isOwner) return;
+    if (!email) { await addRow(category, {}, null, ''); return; }
     const { data: m } = await supabase.from('members').select('id').eq('email', email).maybeSingle();
     let userId: string | null = null;
     const base: Partial<Contributor> = {};
@@ -122,9 +124,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           email: cp.email, phone: cp.phone, address: cp.address,
         });
         flash('저장된 저작권 프로필로 자동채움됨');
-      } else flash('계정은 찾았지만 저작권 프로필 미설정 — 직접 입력하세요');
-    } else flash('해당 이메일 계정 없음 — 빈 행으로 추가');
-    await addRow(base, userId, base.email as string ?? email);
+      } else flash('계정은 찾았지만 저작권 프로필 미설정 — 직접 입력');
+    } else flash('해당 이메일 계정 없음 — 이름만 채워 추가');
+    await addRow(category, base, userId, (base.email as string) ?? email);
   }
 
   function setRowLocal(rid: string, patch: Partial<Contributor>) {
@@ -140,16 +142,38 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     setRows((rs) => rs.filter((r) => r.id !== rid));
     await supabase.from('split_contributors').delete().eq('id', rid);
   }
-  async function toggleSign(row: Contributor) {
+  // SHA-256 of a canonical snapshot of the agreement at signing time (tamper-evidence).
+  async function agreementHash(): Promise<string> {
+    const snap = JSON.stringify({
+      song: sheet && { t: sheet.song_title, a: sheet.artist_name, iswc: sheet.iswc, audio: sheet.audio_name },
+      rows: rows.map((r) => ({ c: r.category, s: Number(r.share) || 0, n: r.legal_name })),
+    });
+    const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(snap));
+    return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  async function submitSignature(row: Contributor, name: string, dataUrl: string) {
     if (lockedGuard()) return;
-    const next = !row.signed;
-    setRowLocal(row.id, { signed: next, signed_at: next ? new Date().toISOString() : null });
-    await supabase.from('split_contributors').update({ signed: next, signed_at: next ? new Date().toISOString() : null }).eq('id', row.id);
+    const hash = await agreementHash();
+    const patch = { signed: true, signed_at: new Date().toISOString(), signature_name: name || row.legal_name, signature_data: dataUrl || null, signed_hash: hash };
+    setRowLocal(row.id, patch);
+    await supabase.from('split_contributors').update(patch).eq('id', row.id);
+    setSignRow(null);
+    flash('서명 완료 — 문서 해시로 봉인됨');
+  }
+  async function unsign(row: Contributor) {
+    if (lockedGuard()) return;
+    const patch = { signed: false, signed_at: null, signature_name: null, signature_data: null, signed_hash: null };
+    setRowLocal(row.id, patch);
+    await supabase.from('split_contributors').update(patch).eq('id', row.id);
   }
 
   // ── finalize / lock / request signatures ──
   const allSigned = rows.length > 0 && rows.every((r) => r.signed);
-  const sharesOk = CATEGORIES.every((c) => shareTotal(rows, c.key) === 100);
+  // each category with entries must total 100%; empty categories are fine
+  const sharesOk = rows.length > 0 && CATEGORIES.every((c) => {
+    const n = rows.filter((r) => r.category === c.key).length;
+    return n === 0 || categoryTotal(rows, c.key) === 100;
+  });
 
   async function requestSignatures() {
     if (!sheet || !isOwner) return;
@@ -203,11 +227,12 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       locked: !!sheet.locked,
       song: { title: sheet.song_title, aka: sheet.aka, artist: sheet.artist_name, album: sheet.album, duration: sheet.duration, iswc: sheet.iswc, isrc: sheet.isrc, date: sheet.work_date },
       audio: sheet.audio_name ? { file: sheet.audio_name, sha256: audioSha } : null,
-      contributors: rows.map((r) => ({
+      entries: rows.map((r) => ({
+        category: r.category, share: Number(r.share) || 0,
         legal_name: r.legal_name, stage_name: r.stage_name,
-        splits: { lyrics: Number(r.lyrics_share) || 0, composition: Number(r.composition_share) || 0, arrangement: Number(r.arrangement_share) || 0 },
         pro: r.pro, ipi: r.ipi, publisher: r.publisher_name,
-        signed: !!r.signed, signed_at: r.signed_at, contact: { email: r.email, phone: r.phone },
+        signed: !!r.signed, signed_at: r.signed_at, signature_name: r.signature_name, signed_hash: r.signed_hash,
+        contact: { email: r.email, phone: r.phone },
       })),
     };
     zip.file('manifest.json', JSON.stringify(manifest, null, 2));
@@ -225,19 +250,29 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     const esc = (t: string | null | undefined) => (t ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!));
     const proTxt = (c: string | null) => c ? (PRO_LABEL[c] ?? c) : '—';
     const info = (label: string, val: string | null | undefined) => `<div class="kv"><span>${label}</span><b>${esc(val) || '—'}</b></div>`;
-    const rowHtml = rows.map((r, i) => `
-      <tr>
-        <td>${i + 1}</td>
-        <td><b>${esc(r.legal_name) || '—'}</b>${r.stage_name ? `<br><span class="sub">${esc(r.stage_name)}</span>` : ''}</td>
-        <td class="num">${Number(r.lyrics_share) || 0}%</td>
-        <td class="num">${Number(r.composition_share) || 0}%</td>
-        <td class="num">${Number(r.arrangement_share) || 0}%</td>
-        <td>${esc(proTxt(r.pro))}${r.ipi ? `<br><span class="sub">IPI ${esc(r.ipi)}</span>` : ''}</td>
-        <td>${esc(r.publisher_name) || '—'}${r.publisher_pro ? `<br><span class="sub">${esc(proTxt(r.publisher_pro))}${r.publisher_ipi ? ` · IPI ${esc(r.publisher_ipi)}` : ''}</span>` : ''}</td>
-        <td>${esc(r.email) || '—'}${r.phone ? `<br><span class="sub">${esc(r.phone)}</span>` : ''}</td>
-        <td class="sign">${r.signed ? '✓ signed' : ''}</td>
-      </tr>`).join('');
-    const totals = CATEGORIES.map((c) => shareTotal(rows, c.key)).map((t) => `<td class="num ${t === 100 ? '' : 'bad'}">${t}%</td>`).join('');
+    const sigCell = (r: Contributor) => r.signed
+      ? (r.signature_data ? `<img class="sig" src="${r.signature_data}"/>` : `<span class="sub">✓ ${esc(r.signature_name) || 'signed'}</span>`)
+        + `<br><span class="sub">${esc((r.signed_at ?? '').slice(0, 10))}</span>`
+      : '<span class="sub">미서명</span>';
+    const sections = CATEGORIES.map((cat) => {
+      const cr = rows.filter((r) => r.category === cat.key);
+      if (cr.length === 0) return '';
+      const total = categoryTotal(rows, cat.key);
+      const body = cr.map((r) => `
+        <tr>
+          <td><b>${esc(r.legal_name) || '—'}</b>${r.stage_name ? `<br><span class="sub">${esc(r.stage_name)}</span>` : ''}</td>
+          <td class="num">${Number(r.share) || 0}%</td>
+          <td>${esc(proTxt(r.pro))}${r.ipi ? `<br><span class="sub">IPI ${esc(r.ipi)}</span>` : ''}</td>
+          <td>${esc(r.publisher_name) || '—'}</td>
+          <td>${esc(r.email) || '—'}</td>
+          <td class="sign">${sigCell(r)}</td>
+        </tr>`).join('');
+      return `<h2>${cat.label} · ${cat.en}</h2>
+        <table>
+          <thead><tr><th>Writer (legal / stage)</th><th class="num">Share</th><th>Society / IPI</th><th>Publisher</th><th>Contact</th><th>Signature</th></tr></thead>
+          <tbody>${body}<tr class="tot"><td>TOTAL</td><td class="num ${total === 100 ? '' : 'bad'}">${total}%</td><td colspan="4"></td></tr></tbody>
+        </table>`;
+    }).join('');
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Split Sheet — ${esc(sheet.song_title) || 'untitled'}</title>
     <style>
       @page { margin: 14mm; }
@@ -248,11 +283,13 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px 24px; margin-bottom: 18px; }
       .kv { font-size: 12px; display: flex; gap: 6px; border-bottom: 1px solid #eee; padding: 3px 0; }
       .kv span { color: #999; min-width: 78px; } .kv b { font-weight: 600; }
-      table { width: 100%; border-collapse: collapse; font-size: 11px; }
+      h2 { font-size: 13px; margin: 16px 0 5px; }
+      table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 4px; }
       th, td { border: 1px solid #ddd; padding: 6px 7px; text-align: left; vertical-align: top; }
       th { background: #f4f4f4; font-size: 10px; text-transform: uppercase; letter-spacing: .03em; }
       td.num, th.num { text-align: center; white-space: nowrap; }
       .sub { color: #999; font-size: 9.5px; }
+      img.sig { height: 34px; max-width: 130px; object-fit: contain; }
       tr.tot td { background: #fafafa; font-weight: 700; }
       td.bad { color: #c0392b; }
       .foot { margin-top: 18px; font-size: 10px; color: #999; }
@@ -266,17 +303,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         ${info('ISWC', sheet.iswc)} ${info('ISRC', sheet.isrc)} ${info('Sample?', sheet.contains_sample ? `Yes${sheet.sample_note ? ' — ' + sheet.sample_note : ''}` : 'No')}
         ${info('Audio', sheet.audio_name)}
       </div>
-      <table>
-        <thead><tr>
-          <th>#</th><th>Writer (legal / stage)</th>
-          <th class="num">작사<br>Lyrics</th><th class="num">작곡<br>Comp.</th><th class="num">편곡<br>Arr.</th>
-          <th>Society / IPI</th><th>Publisher</th><th>Contact</th><th>Sign</th>
-        </tr></thead>
-        <tbody>
-          ${rowHtml}
-          <tr class="tot"><td colspan="2">TOTAL</td>${totals}<td colspan="4"></td></tr>
-        </tbody>
-      </table>
+      ${sections || '<p class="sub">기여자 없음</p>'}
       ${sheet.notes ? `<div class="foot"><b>Notes:</b> ${esc(sheet.notes)}</div>` : ''}
       <div class="foot">By signing, each writer confirms the ownership splits above are accurate and agreed. Generated by CAST · ${new Date().toISOString().slice(0, 10)}</div>
       ${autoPrint ? `<script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>` : ''}
@@ -298,8 +325,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
   const locked = !!sheet.locked;
   const editable = isOwner && !locked;         // owner may edit only while unlocked
-  const myRow = rows.find((r) => r.user_id === me) || null;
-  const needMySign = !!myRow && !myRow.signed && !locked;
+  const myUnsigned = rows.filter((r) => r.user_id === me && !r.signed);
+  const needMySign = myUnsigned.length > 0 && !locked;
 
   return (
     <div className="min-h-[100dvh] bg-[#0a0a0a] text-white">
@@ -342,8 +369,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         {/* contributor sign prompt */}
         {needMySign && (
           <div className="flex items-center gap-3 mb-5 px-4 py-3 rounded-xl border border-[#3E78DB]/30 bg-[#3E78DB]/[0.08]">
-            <span className="text-sm">{sheet.signature_requested_at ? '서명 요청이 왔어요.' : '내 지분을 확인하고'} 아래 내 행에서 <b>서명</b>해주세요.</span>
-            {myRow && <button onClick={() => toggleSign(myRow)} className="ml-auto text-sm px-4 py-1.5 rounded-lg bg-[#3E78DB] hover:bg-[#4d86e8] transition-colors">지금 서명</button>}
+            <span className="text-sm">{sheet.signature_requested_at ? '서명 요청이 왔어요.' : '내 지분을 확인하고'} <b>{myUnsigned.length}건</b> 서명이 필요해요.</span>
+            <button onClick={() => setSignRow(myUnsigned[0])} className="ml-auto text-sm px-4 py-1.5 rounded-lg bg-[#3E78DB] hover:bg-[#4d86e8] transition-colors">지금 서명</button>
           </div>
         )}
 
@@ -404,81 +431,87 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        {/* contributors */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="text-[11px] uppercase tracking-widest text-white/30">기여자 · 지분</div>
-          <div className="ml-auto flex items-center gap-3 text-[11px]">
-            {CATEGORIES.map((c) => {
-              const t = shareTotal(rows, c.key);
-              return <span key={c.key} className={t === 100 ? 'text-emerald-400' : 'text-amber-400'}>{c.label} {t}%{t === 100 ? ' ✓' : ''}</span>;
-            })}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          {rows.map((r, i) => {
-            const mine = r.user_id === me;
-            const rowEditable = (isOwner || mine) && !locked;
+        {/* contributors — one section per category (작사/작곡/편곡) */}
+        <div className="flex flex-col gap-5">
+          {CATEGORIES.map((cat) => {
+            const catRows = rows.filter((r) => r.category === cat.key);
+            const total = categoryTotal(rows, cat.key);
             return (
-              <div key={r.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+              <div key={cat.key} className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs text-white/30 w-5">{i + 1}</span>
-                  <input value={r.legal_name ?? ''} disabled={!rowEditable} placeholder="법적 이름"
-                    onChange={(e) => setRowLocal(r.id, { legal_name: e.target.value })} onBlur={(e) => commitRow(r.id, { legal_name: e.target.value })}
-                    className={`${field} max-w-[220px] font-medium`} />
-                  <input value={r.stage_name ?? ''} disabled={!rowEditable} placeholder="활동명"
-                    onChange={(e) => setRowLocal(r.id, { stage_name: e.target.value })} onBlur={(e) => commitRow(r.id, { stage_name: e.target.value })}
-                    className={`${field} max-w-[160px]`} />
-                  {r.user_id && <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400/80">계정 연동</span>}
-                  <button onClick={() => toggleSign(r)} disabled={!mine || locked}
-                    title={locked ? '확정됨' : mine ? '내 서명' : '본인만 서명 가능'}
-                    className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${r.signed ? 'border-emerald-500/40 text-emerald-400' : mine ? 'border-white/15 text-white/60 hover:bg-white/5' : 'border-white/10 text-white/25'}`}>
-                    {r.signed ? '✓ 서명됨' : '서명'}
-                  </button>
-                  {editable && <button onClick={() => deleteRow(r.id)} className="text-xs text-white/25 hover:text-red-400 transition-colors px-1">삭제</button>}
+                  <h3 className="text-sm font-bold">{cat.label} <span className="text-white/30 text-xs font-normal">{cat.en}</span></h3>
+                  {catRows.length > 0 && (
+                    <span className={`text-xs ${total === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>합계 {total}%{total === 100 ? ' ✓' : ' (100%여야 함)'}</span>
+                  )}
                 </div>
 
-                {/* shares — owner sets */}
-                <div className="flex flex-wrap gap-3 mb-3">
-                  {CATEGORIES.map((c) => (
-                    <div key={c.key} className="flex items-center gap-1.5">
-                      <span className="text-[11px] text-white/40 w-8">{c.label}</span>
-                      <input type="number" min={0} max={100} value={Number(r[c.key as ShareKey]) || 0} disabled={!editable}
-                        onChange={(e) => setRowLocal(r.id, { [c.key]: e.target.value === '' ? 0 : Number(e.target.value) } as Partial<Contributor>)}
-                        onBlur={(e) => commitRow(r.id, { [c.key]: e.target.value === '' ? 0 : Number(e.target.value) } as Partial<Contributor>)}
-                        className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-xs text-white text-center focus:outline-none focus:border-[#3E78DB] disabled:opacity-60" />
-                      <span className="text-[11px] text-white/30">%</span>
-                    </div>
-                  ))}
+                <div className="flex flex-col gap-2.5">
+                  {catRows.length === 0 && <p className="text-xs text-white/25">아직 없음 — 아래에서 추가</p>}
+                  {catRows.map((r) => {
+                    const mine = r.user_id === me;
+                    const rowEditable = (isOwner || mine) && !locked;
+                    return (
+                      <div key={r.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <input value={r.legal_name ?? ''} disabled={!rowEditable} placeholder="법적 이름"
+                            onChange={(e) => setRowLocal(r.id, { legal_name: e.target.value })} onBlur={(e) => commitRow(r.id, { legal_name: e.target.value })}
+                            className={`${field} max-w-[170px] font-medium`} />
+                          <input value={r.stage_name ?? ''} disabled={!rowEditable} placeholder="활동명"
+                            onChange={(e) => setRowLocal(r.id, { stage_name: e.target.value })} onBlur={(e) => commitRow(r.id, { stage_name: e.target.value })}
+                            className={`${field} max-w-[130px]`} />
+                          <div className="flex items-center gap-1">
+                            <input type="number" min={0} max={100} value={Number(r.share) || 0} disabled={!editable}
+                              onChange={(e) => setRowLocal(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
+                              onBlur={(e) => commitRow(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
+                              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-xs text-white text-center focus:outline-none focus:border-[#3E78DB] disabled:opacity-60" />
+                            <span className="text-[11px] text-white/30">%</span>
+                          </div>
+                          {r.user_id && <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400/80">연동</span>}
+                          {r.signed ? (
+                            <span className="text-xs px-2.5 py-1 rounded-lg border border-emerald-500/40 text-emerald-400 flex items-center gap-1">
+                              ✓ {r.signature_name || '서명됨'}
+                              {mine && !locked && <button onClick={() => unsign(r)} className="text-white/30 hover:text-red-400 ml-0.5" title="서명 취소">×</button>}
+                            </span>
+                          ) : (
+                            <button onClick={() => setSignRow(r)} disabled={!mine || locked}
+                              className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${mine ? 'border-white/15 text-white/60 hover:bg-white/5' : 'border-white/10 text-white/25'}`}
+                              title={mine ? '서명' : '연동된 본인만 서명 가능'}>서명</button>
+                          )}
+                          {editable && <button onClick={() => deleteRow(r.id)} className="text-xs text-white/25 hover:text-red-400 transition-colors px-1 ml-auto">삭제</button>}
+                        </div>
+                        <details className="mt-2">
+                          <summary className="text-[11px] text-white/35 cursor-pointer select-none">상세 — 협회·IPI·퍼블리셔·연락처</summary>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                            <ProSelect value={r.pro ?? ''} disabled={!rowEditable} onChange={(v) => commitRow(r.id, { pro: v })} />
+                            <input value={r.ipi ?? ''} disabled={!rowEditable} placeholder="IPI/CAE"
+                              onChange={(e) => setRowLocal(r.id, { ipi: e.target.value })} onBlur={(e) => commitRow(r.id, { ipi: e.target.value })} className={field} />
+                            <input value={r.publisher_name ?? ''} disabled={!rowEditable} placeholder="퍼블리셔"
+                              onChange={(e) => setRowLocal(r.id, { publisher_name: e.target.value })} onBlur={(e) => commitRow(r.id, { publisher_name: e.target.value })} className={field} />
+                            <input value={r.email ?? ''} disabled={!rowEditable} placeholder="이메일"
+                              onChange={(e) => setRowLocal(r.id, { email: e.target.value })} onBlur={(e) => commitRow(r.id, { email: e.target.value })} className={field} />
+                          </div>
+                        </details>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* PRO / publisher / contact */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <ProSelect value={r.pro ?? ''} disabled={!rowEditable} onChange={(v) => commitRow(r.id, { pro: v })} />
-                  <input value={r.ipi ?? ''} disabled={!rowEditable} placeholder="IPI/CAE"
-                    onChange={(e) => setRowLocal(r.id, { ipi: e.target.value })} onBlur={(e) => commitRow(r.id, { ipi: e.target.value })} className={field} />
-                  <input value={r.publisher_name ?? ''} disabled={!rowEditable} placeholder="퍼블리셔"
-                    onChange={(e) => setRowLocal(r.id, { publisher_name: e.target.value })} onBlur={(e) => commitRow(r.id, { publisher_name: e.target.value })} className={field} />
-                  <input value={r.email ?? ''} disabled={!rowEditable} placeholder="이메일"
-                    onChange={(e) => setRowLocal(r.id, { email: e.target.value })} onBlur={(e) => commitRow(r.id, { email: e.target.value })} className={field} />
-                </div>
+                {editable && (
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <input value={addEmail[cat.key] ?? ''} onChange={(e) => setAddEmail((m) => ({ ...m, [cat.key]: e.target.value }))}
+                      placeholder="이메일로 추가(자동채움) · 비우면 직접 입력"
+                      onKeyDown={(e) => { if (e.key === 'Enter') addByEmail(cat.key); }}
+                      className={`${hfield} max-w-[300px]`} />
+                    <button onClick={() => addByEmail(cat.key)} disabled={adding}
+                      className="text-sm px-4 py-2 rounded-xl bg-[#3E78DB] hover:bg-[#4d86e8] disabled:opacity-50 font-medium transition-colors">
+                      {adding ? '…' : `+ ${cat.label} 추가`}
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-
-        {/* add contributor */}
-        {editable && (
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            <input value={addEmail} onChange={(e) => setAddEmail(e.target.value)} placeholder="이메일로 추가 (저장된 프로필 자동채움)"
-              onKeyDown={(e) => { if (e.key === 'Enter') addByEmail(); }}
-              className={`${hfield} max-w-[320px]`} />
-            <button onClick={addByEmail} disabled={adding} className="text-sm px-4 py-2 rounded-xl bg-[#3E78DB] hover:bg-[#4d86e8] disabled:opacity-50 font-medium transition-colors">
-              {adding ? '…' : '+ 추가'}
-            </button>
-            <button onClick={() => addRow({}, null, '')} disabled={adding} className="text-sm px-4 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">빈 행</button>
-          </div>
-        )}
 
         {/* notes */}
         <div className="mt-6">
@@ -486,6 +519,71 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           <textarea value={sheet.notes ?? ''} disabled={!editable} rows={2}
             onChange={(e) => setSheetLocal('notes', e.target.value)} onBlur={() => commitSheet('notes')}
             className={`${hfield} resize-none`} placeholder="추가 합의사항, 마스터 지분(별도) 등" />
+        </div>
+      </div>
+
+      {signRow && (
+        <SignatureModal row={signRow} catLabel={CATEGORIES.find((c) => c.key === signRow.category)?.label ?? ''}
+          onClose={() => setSignRow(null)} onSubmit={(name, data) => submitSignature(signRow, name, data)} />
+      )}
+    </div>
+  );
+}
+
+function SignatureModal({ row, catLabel, onClose, onSubmit }: {
+  row: Contributor; catLabel: string;
+  onClose: () => void; onSubmit: (name: string, dataUrl: string) => void;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const drawing = useRef(false);
+  const dirty = useRef(false);
+  const [name, setName] = useState(row.legal_name ?? '');
+  const [agree, setAgree] = useState(false);
+
+  function pos(e: React.PointerEvent<HTMLCanvasElement>) {
+    const c = canvasRef.current!; const r = c.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * (c.width / r.width), y: (e.clientY - r.top) * (c.height / r.height) };
+  }
+  function down(e: React.PointerEvent<HTMLCanvasElement>) {
+    drawing.current = true; const ctx = canvasRef.current!.getContext('2d')!;
+    const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); (e.target as Element).setPointerCapture(e.pointerId);
+  }
+  function move(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (!drawing.current) return; const ctx = canvasRef.current!.getContext('2d')!;
+    const p = pos(e); ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.strokeStyle = '#111';
+    ctx.lineTo(p.x, p.y); ctx.stroke(); dirty.current = true;
+  }
+  function up() { drawing.current = false; }
+  function clear() { const c = canvasRef.current!; c.getContext('2d')!.clearRect(0, 0, c.width, c.height); dirty.current = false; }
+
+  function submit() {
+    if (!name.trim()) return;
+    const dataUrl = dirty.current ? canvasRef.current!.toDataURL('image/png') : '';
+    onSubmit(name.trim(), dataUrl);
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161616] p-5" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-base font-bold mb-1">전자 서명</h3>
+        <p className="text-xs text-white/45 mb-4">{catLabel} · {row.stage_name || row.legal_name || '기여자'} · {Number(row.share) || 0}% — 아래 지분에 동의하고 서명합니다.</p>
+        <label className="block text-[11px] text-white/40 mb-1">서명자 법적 이름</label>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="이름"
+          className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#3E78DB] mb-3" />
+        <label className="block text-[11px] text-white/40 mb-1">서명 (손으로 그리기 · 선택)</label>
+        <div className="rounded-lg bg-white overflow-hidden mb-1">
+          <canvas ref={canvasRef} width={400} height={140} className="w-full touch-none"
+            onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up} />
+        </div>
+        <button onClick={clear} className="text-[11px] text-white/40 hover:text-white mb-3">지우기</button>
+        <label className="flex items-start gap-2 text-xs text-white/70 mb-4">
+          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5" />
+          <span>위 지분이 정확하며 이에 동의함을 확인합니다. 서명 시각·문서 해시(SHA-256)가 함께 기록됩니다.</span>
+        </label>
+        <div className="flex gap-2">
+          <button onClick={submit} disabled={!name.trim() || !agree}
+            className="flex-1 text-sm px-4 py-2.5 rounded-xl bg-[#3E78DB] hover:bg-[#4d86e8] disabled:opacity-40 font-medium transition-colors">서명 완료</button>
+          <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-white/15 text-sm hover:bg-white/5 transition-colors">취소</button>
         </div>
       </div>
     </div>
