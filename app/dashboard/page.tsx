@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { analyzeAudio } from '@/lib/audioAnalysis';
 import ChatPanel from '@/app/components/ChatPanel';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
+import ProductHeader from '@/components/ProductHeader';
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
 
@@ -723,25 +724,22 @@ export default function GuestView(){
       <style dangerouslySetInnerHTML={{__html:`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}}/>
       <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-pretendard relative`} style={{zoom: zoom*1.1}}>
         {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#3E78DB',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}}/>}
-        <div className="relative z-10 flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#3E78DB] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-normal tracking-[0.2em]`}>by NEN</span></div>
-            <div className={`flex gap-1 p-1 rounded-full border ${D?'border-white/10 bg-white/5':'border-black/[0.08] bg-black/[0.04]'}`}>
-              <span className="px-3 py-1 rounded-full bg-[#3E78DB] text-white text-[11px] font-normal">LEAD</span>
-              <a href="/roster/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>CAST</a>
-              <a href="/split" className="px-3 py-1 rounded-full text-[11px] font-normal transition-all text-zinc-500 hover:text-[#2FB6A3]">SPLIT</a>
-            </div>
-          </div>
+        <div className="relative z-10 mb-8">
+          <ProductHeader product="lead" dark={D} className="mb-3" right={<>
+            <button onClick={()=>{setLangValue(globalEn?'ko':'en');}} className={`h-8 px-2.5 rounded-lg border flex items-center justify-center text-[11px] font-bold transition-all ${globalEn?'bg-[#3E78DB] border-[#3E78DB] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{globalEn?'EN':'KO'}</button>
+            <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
+            <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
+            <button onClick={()=>{supabase.auth.signOut().then(()=>{window.location.href='/';});}} className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-red-400':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-red-500'}`}>{t('로그아웃','Sign out')}</button>
+          </>} />
           {editingCompany?(
-            <div className="mt-2 flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5">
               <input autoFocus value={companyDraft} onChange={e=>setCompanyDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')saveCompany();if(e.key==='Escape')setEditingCompany(false);}} placeholder="회사/팀 이름" className={`border rounded-full px-3 py-1 text-[12px] font-black text-center outline-none w-40 ${inputCls}`}/>
               <button onClick={saveCompany} className="px-2.5 py-1 rounded-full bg-[#3E78DB] text-white text-[11px] font-black">저장</button>
               <button onClick={()=>setEditingCompany(false)} className={`px-2 py-1 rounded-full text-[11px] font-black ${dimText}`}>✕</button>
             </div>
           ):(
-            <button onClick={()=>{setCompanyDraft(hostCompany);setEditingCompany(true);}} className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#3E78DB]/25 bg-[#3E78DB]/10 hover:bg-[#3E78DB]/20 transition-all group">
-              
-              <span className={`text-[12px] font-black ${hostCompany?(D?'text-zinc-200':'text-zinc-700'):dimText}`}>{hostCompany||'회사/팀 이름 추가'}</span>
+            <button onClick={()=>{setCompanyDraft(hostCompany);setEditingCompany(true);}} className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#3E78DB]/25 bg-[#3E78DB]/10 hover:bg-[#3E78DB]/20 transition-all group">
+              <span className={`text-[12px] font-black ${hostCompany?(D?'text-zinc-200':'text-zinc-700'):dimText}`}>{hostCompany||t('회사/팀 이름 추가','Add company/team name')}</span>
               <span className="text-[10px] opacity-0 group-hover:opacity-60 transition-opacity">✏️</span>
             </button>
           )}
@@ -794,11 +792,6 @@ export default function GuestView(){
             <button onClick={()=>{openDemoForm();setShowDemoMgr(true);}} className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{t('데모 수급','Demos')}{demoDrives.length>0&&<span className="ml-1 opacity-70">{demoDrives.length}</span>}</button>
             <button onClick={()=>{setShowMembers(true);fetchMembers();}} className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{t('멤버','Members')}</button>
             <button onClick={()=>{if(navigator.clipboard){navigator.clipboard.writeText(window.location.origin+'/view/'+hostId);setShareToast(true);setTimeout(()=>setShareToast(false),2000);}}} className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{t('공유','Share')}</button>
-            <a href="/split" className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all ${D?'border-[#2FB6A3]/25 bg-[#2FB6A3]/[0.06] text-[#2FB6A3] hover:bg-[#2FB6A3]/12':'border-[#2FB6A3]/25 bg-[#2FB6A3]/[0.06] text-[#2FB6A3] hover:bg-[#2FB6A3]/12'}`}>Split</a>
-            <a href="/mypage" className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</a>
-            <button onClick={()=>{supabase.auth.signOut().then(()=>{window.location.href='/';});}} className={`px-3 py-1.5 rounded-full border text-[10px] font-normal transition-all whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-red-400':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-red-500'}`}>{t('로그아웃','Sign out')}</button>
-            <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
-            <button onClick={()=>{setLangValue(globalEn?'ko':'en');}} className={`h-8 px-2.5 rounded-lg border flex items-center justify-center text-[11px] font-bold transition-all ${globalEn?'bg-[#3E78DB] border-[#3E78DB] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{globalEn?'EN':'KO'}</button>
           </div>
         </div>
 

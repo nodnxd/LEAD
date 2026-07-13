@@ -8,7 +8,6 @@ import { useLang, LangToggle } from '@/lib/lang';
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useLang();
-  const [product, setProduct] = useState<'lead' | 'cast'>('lead');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -21,10 +20,7 @@ export default function LoginPage() {
   useEffect(() => {
     const saved = localStorage.getItem('lead_saved_email');
     if (saved) { setEmail(saved); setRememberMe(true); }
-    const savedProduct = localStorage.getItem('lead_login_product');
-    if (savedProduct === 'lead' || savedProduct === 'cast') setProduct(savedProduct);
   }, []);
-  const pickProduct = (p: 'lead' | 'cast') => { setProduct(p); localStorage.setItem('lead_login_product', p); };
 
   const handle = async () => {
     if (!email || !password) return setError(t('이메일과 비밀번호를 입력해주세요.', 'Enter your email and password.'));
@@ -37,9 +33,8 @@ export default function LoginPage() {
     if (error) { setError(error.message); setLoading(false); return; }
     if (isSignUp) {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) await supabase.from('user_products').upsert({ user_id: user.id, product: product === 'cast' ? 'roster' : 'lead' }, { onConflict: 'user_id,product' });
+      if (user) await supabase.from('user_products').upsert({ user_id: user.id, product: 'lead' }, { onConflict: 'user_id,product' });
     }
-    if (product === 'cast') { router.push('/roster/dashboard'); return; }
     router.push(isSignUp ? '/onboarding' : '/hub');
   };
 
@@ -53,10 +48,8 @@ export default function LoginPage() {
     setResetSent(true); setLoading(false);
   };
 
-  const isCast = product === 'cast';
-  // 제품별 액센트
-  const accent = isCast ? '#E3B24A' : '#3E78DB';
-  const accentHover = isCast ? '#C89632' : '#2F62C2';
+  const accent = '#3E78DB';
+  const accentHover = '#2F62C2';
   const inputCls = 'w-full rounded-xl bg-white/5 border border-white/10 px-5 py-4 text-lg text-white placeholder:text-white/30 focus:outline-none transition-colors';
 
   return (
@@ -70,32 +63,19 @@ export default function LoginPage() {
       <main className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center px-6 font-pretendard relative overflow-hidden">
         <div className="absolute top-5 right-5 z-20"><LangToggle className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/40 text-[11px] font-bold hover:text-white transition-all" /></div>
         <div className="relative z-10 w-full max-w-md">
-          {/* 로고 + 제품 토글 */}
+          {/* 브랜드 — 세 제품 통합 (선택은 로그인 후 hub에서) */}
           <div className="mb-12">
-            <div className="flex items-baseline gap-3">
-              <h1 className="text-6xl font-black uppercase tracking-tighter text-white">
-                {isCast ? 'CAST' : 'LEAD'}
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-5xl font-black uppercase tracking-tighter leading-none">
+                <span style={{ color: '#3E78DB' }}>LEAD</span>
+                <span className="text-white/15"> · </span>
+                <span style={{ color: '#E3B24A' }}>CAST</span>
+                <span className="text-white/15"> · </span>
+                <span style={{ color: '#2FB6A3' }}>SPLIT</span>
               </h1>
               <span className="text-white/30 text-xs font-bold tracking-[0.2em]">by NEN</span>
             </div>
-            <p className="mt-3 text-lg text-white/40">{isCast ? 'manage your roster' : 'find your next lead'}</p>
-
-            {!forgotMode && (
-              <div className="mt-6 inline-flex gap-1 p-1 bg-white/5 border border-white/10 rounded-full">
-                {(['lead', 'cast'] as const).map(p => {
-                  const on = product === p;
-                  return (
-                    <button key={p} onClick={() => pickProduct(p)}
-                      className="px-5 py-1.5 rounded-full text-sm font-bold transition-all"
-                      style={on
-                        ? { background: p === 'lead' ? '#3E78DB' : '#E3B24A', color: '#fff' }
-                        : { color: 'rgba(255,255,255,0.35)' }}>
-                      {p === 'lead' ? 'LEAD' : 'CAST'}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            <p className="mt-3 text-lg text-white/40">{t('로그인하고 시작하세요', 'Sign in to get started')}</p>
           </div>
 
           {forgotMode ? (
@@ -162,7 +142,7 @@ export default function LoginPage() {
           )}
 
           <p className="text-center text-white/20 text-xs mt-10">
-            {isCast ? t('아티스트 로스터 관리', 'Manage your artist roster') : t('로그인하면 참여·운영할 회사를 선택해요', 'Sign in to pick a company to join or run')}
+            {t('로그인하면 LEAD · CAST · SPLIT을 골라 들어가요', 'Sign in, then pick LEAD · CAST · SPLIT')}
           </p>
         </div>
       </main>

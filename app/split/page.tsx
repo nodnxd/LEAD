@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { CopyrightProfile, SplitSheet, PRO_GROUPS, PRO_LABEL } from '@/lib/splitsheet';
 import { useLang, LangToggle } from '@/lib/lang';
 import { useTheme, ThemeToggle } from '@/lib/theme';
+import ProductHeader from '@/components/ProductHeader';
 
 const EMPTY_PROFILE: Omit<CopyrightProfile, 'id'> = {
   legal_name: '', stage_name: '', pro: '', ipi: '',
@@ -124,24 +125,17 @@ export default function SplitIndex() {
     <div className={`min-h-[100dvh] ${bg}`}>
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
         {/* header */}
-        <div className="flex items-center gap-3 mb-8 flex-wrap">
-          <button onClick={() => router.push('/hub')} className={`text-sm ${muted} hover:opacity-80 transition-colors`}>← hub</button>
-          <h1 className="text-xl font-bold">Split Sheet</h1>
-          <div className={`flex gap-1 p-1 rounded-full border ${D ? 'border-white/10 bg-white/5' : 'border-black/[0.08] bg-black/[0.04]'}`}>
-            <a href="/dashboard" className="px-3 py-1 rounded-full text-[11px] font-normal transition-all text-zinc-500 hover:text-[#3E78DB]">LEAD</a>
-            <a href="/roster/dashboard" className="px-3 py-1 rounded-full text-[11px] font-normal transition-all text-zinc-500 hover:text-[#E3B24A]">CAST</a>
-            <span className="px-3 py-1 rounded-full bg-[#2FB6A3] text-white text-[11px] font-normal">SPLIT</span>
-          </div>
-          <span className={`text-xs ${faint} hidden sm:inline`}>{t('저작권 지분 · 전세계 표준', 'Songwriter splits · global standard')}</span>
-          <div className="ml-auto flex items-center gap-2">
+        <ProductHeader product="split" dark={D} className="mb-8"
+          subtitle={t('저작권 지분 · 전세계 표준', 'Songwriter splits · global standard')}
+          right={<>
             <LangToggle />
             <ThemeToggle className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${btn}`} />
             <button onClick={newSheet} disabled={creating}
-              className="text-sm px-4 py-2 rounded-xl bg-[#3E78DB] hover:bg-[#4d86e8] text-white disabled:opacity-50 font-medium transition-colors">
+              className="text-sm px-4 py-2 rounded-xl bg-[#2FB6A3] hover:bg-[#3fcbb6] text-white disabled:opacity-50 font-medium transition-colors">
               {t('+ 새 스플릿시트', '+ New split sheet')}
             </button>
-          </div>
-        </div>
+          </>}
+        />
 
         {/* my copyright profile */}
         <div className={`rounded-2xl border mb-8 overflow-hidden ${panel}`}>

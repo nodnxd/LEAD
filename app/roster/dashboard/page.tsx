@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
+import ProductHeader from '@/components/ProductHeader';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -1107,17 +1108,12 @@ export default function Dashboard() {
           {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#E3B24A',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
           {/* 헤더 */}
-          <div className="relative z-10 flex items-center justify-center gap-3 mb-8 flex-wrap">
-            <div className="flex items-baseline gap-2.5">
-              <h1 className="text-4xl font-semibold text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
-              <span className={`text-[11px] font-normal tracking-[0.2em] ${textSub}`}>by NEN</span>
-            </div>
-            <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
-              <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
-              <span className="px-3 py-1 rounded-full bg-[#E3B24A] text-white text-[11px] font-normal">CAST</span>
-              <a href="/split" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-[#2FB6A3]' : 'text-zinc-500 hover:text-[#2FB6A3]'}`}>SPLIT</a>
-            </div>
-          </div>
+          <ProductHeader product="cast" dark={theme === 'dark'} className="mb-8" right={<>
+            <button onClick={toggleLang} className={`h-8 px-2.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
+            <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg font-bold text-[13px] border flex items-center justify-center transition-all ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
+            <a href="/mypage" className={`px-3 py-1.5 rounded-lg border text-[10px] font-normal transition-all ${btnBg}`}>MY</a>
+            <button onClick={() => showConfirm(t.logout, lang === 'ko' ? '로그아웃 할까요?' : 'Sign out?', async () => { await supabase.auth.signOut(); router.push('/roster'); })} className={`px-3 py-1.5 rounded-lg border text-[10px] font-normal transition-all ${btnBg}`}>{t.logout}</button>
+          </>} />
 
           <DragDropContext onDragEnd={onDragEnd}>
             {/* 프로젝트 탭 */}
@@ -1190,8 +1186,6 @@ export default function Dashboard() {
                     </select>
                     <button type="button" onClick={handleJoin} className={`px-3 py-1 rounded-md font-bold text-[11px] ${theme === 'light' ? 'bg-black text-white' : 'bg-white text-black'}`}>{t.join}</button>
                   </div>
-                  <button onClick={() => showConfirm(t.logout, lang === 'ko' ? '로그아웃 할까요?' : 'Sign out?', async () => { await supabase.auth.signOut(); router.push('/roster'); })}
-                    className="text-zinc-600 hover:text-red-400 text-[11px] font-bold transition-colors px-1">{t.logout}</button>
                 </div>
               </div>
               {/* 2줄 */}
@@ -1206,8 +1200,6 @@ export default function Dashboard() {
                 <button onClick={copyShareLink} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.share}</button>
                 <button onClick={() => showPrompt(t.randomMatch, t.teamCount, '2', async (v) => { const n = parseInt(v); setPromptModal(null); if (n > 0) await generateRandomRoster(n)(); })}
                   className="bg-[#E3B24A] text-white px-5 py-1.5 rounded-xl font-normal text-[11px] hover:opacity-90 transition-all uppercase tracking-tighter">{t.random}</button>
-                <button onClick={toggleTheme} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
-                <button onClick={toggleLang} className={`px-2.5 py-1.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
               </div>
             </header>
 

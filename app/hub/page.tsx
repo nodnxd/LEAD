@@ -110,8 +110,14 @@ export default function HubPage() {
         <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#3E78DB', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
         <div className="relative z-10 max-w-xl mx-auto">
           <div className="flex items-center justify-between mb-10">
-            <div className="flex items-baseline gap-2.5">
-              <h1 className="text-4xl font-semibold text-[#3E78DB] uppercase tracking-tighter">LEAD</h1>
+            <div className="flex items-baseline gap-2.5 flex-wrap">
+              <h1 className="text-3xl md:text-4xl font-semibold uppercase tracking-tighter leading-none">
+                <span style={{ color: '#3E78DB' }}>LEAD</span>
+                <span className="text-white/15"> · </span>
+                <span style={{ color: '#E3B24A' }}>CAST</span>
+                <span className="text-white/15"> · </span>
+                <span style={{ color: '#2FB6A3' }}>SPLIT</span>
+              </h1>
               <span className="text-zinc-600 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <div className="flex items-center gap-2">
@@ -143,6 +149,12 @@ export default function HubPage() {
                   <span className="text-[#3E78DB] text-[16px] font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
+              {!canHost && (
+                <a href="mailto:everplayground@gmail.com?subject=LEAD host access" className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-[#3E78DB]/25 bg-[#3E78DB]/[0.03] hover:bg-[#3E78DB]/[0.07] text-left transition-all">
+                  <div {...hubIcon('#3E78DB')}>＋</div>
+                  <div className="flex-1 min-w-0"><p className="font-bold text-[14px] text-zinc-300">{t('LEAD 시작하기', 'Get started with LEAD')}</p><p className="text-[12px] text-zinc-500">{t('호스트 권한 요청', 'Request host access')}</p></div>
+                </a>
+              )}
               {member.length === 0 && (!canHost || operate.length === 0) && (
                 <div className="p-5 rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.01] text-center">
                   <p className="text-[13px] text-zinc-500">{t('아직 참여 중인 회사가 없어요.', 'You haven’t joined any company yet.')}</p>
@@ -178,13 +190,20 @@ export default function HubPage() {
           <section>
             <div className="flex items-center gap-2 mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-[#2FB6A3]" />
-              <span className="text-[11px] font-normal uppercase tracking-widest text-zinc-500">{t('도구', 'Tools')}</span>
+              <span className="text-[13px] font-black tracking-tight text-white">SPLIT</span>
+              <span className="text-[11px] text-zinc-600">{t('저작권 지분', 'Songwriter splits')}</span>
             </div>
-            <a href="/split" {...hubCard('#2FB6A3', true)}>
-              <div {...hubIcon('#2FB6A3')}>📝</div>
-              <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate text-white">Split Sheet <span className="text-[11px] text-zinc-500 font-bold">{t('저작권 지분', 'Songwriter splits')}</span></p><p className="text-[12px] text-zinc-500">{t('전세계 표준 저작권 지분 문서', 'Global-standard split sheet')}</p></div>
-              <span className="text-[#2FB6A3] text-[16px] font-black shrink-0 opacity-60">→</span>
-            </a>
+            <div className="grid gap-2.5">
+              <a href="/split" {...hubCard('#2FB6A3', true)}>
+                <div {...hubIcon('#2FB6A3')}>📝</div>
+                <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate text-white">{t('스플릿시트', 'Split Sheet')}</p><p className="text-[12px] text-zinc-500">{t('전세계 표준 저작권 지분 문서', 'Global-standard split sheet')}</p></div>
+                <span className="text-[#2FB6A3] text-[16px] font-black shrink-0 opacity-60">→</span>
+              </a>
+              <a href="/split" className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-[#2FB6A3]/25 bg-[#2FB6A3]/[0.03] hover:bg-[#2FB6A3]/[0.07] text-left transition-all">
+                <div {...hubIcon('#2FB6A3')}>＋</div>
+                <div className="flex-1 min-w-0"><p className="font-bold text-[14px] text-zinc-300">{t('새 스플릿시트', 'New split sheet')}</p><p className="text-[12px] text-zinc-500">{t('저작권 지분 문서 만들기', 'Create a split sheet')}</p></div>
+              </a>
+            </div>
           </section>
 
           {!canHost && member.length === 0 && (
