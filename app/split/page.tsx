@@ -127,6 +127,11 @@ export default function SplitIndex() {
         <div className="flex items-center gap-3 mb-8 flex-wrap">
           <button onClick={() => router.push('/hub')} className={`text-sm ${muted} hover:opacity-80 transition-colors`}>← hub</button>
           <h1 className="text-xl font-bold">Split Sheet</h1>
+          <div className={`flex gap-1 p-1 rounded-full border ${D ? 'border-white/10 bg-white/5' : 'border-black/[0.08] bg-black/[0.04]'}`}>
+            <a href="/dashboard" className="px-3 py-1 rounded-full text-[11px] font-normal transition-all text-zinc-500 hover:text-[#3E78DB]">LEAD</a>
+            <a href="/roster/dashboard" className="px-3 py-1 rounded-full text-[11px] font-normal transition-all text-zinc-500 hover:text-[#E3B24A]">CAST</a>
+            <span className="px-3 py-1 rounded-full bg-[#2FB6A3] text-white text-[11px] font-normal">SPLIT</span>
+          </div>
           <span className={`text-xs ${faint} hidden sm:inline`}>{t('저작권 지분 · 전세계 표준', 'Songwriter splits · global standard')}</span>
           <div className="ml-auto flex items-center gap-2">
             <LangToggle />

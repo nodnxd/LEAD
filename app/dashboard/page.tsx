@@ -696,6 +696,7 @@ export default function GuestView(){
             <div className={`flex gap-1 p-1 rounded-full border ${D?'border-white/10 bg-white/5':'border-black/[0.08] bg-black/[0.04]'}`}>
               <span className="px-3 py-1 rounded-full bg-[#3E78DB] text-white text-[11px] font-normal">LEAD</span>
               <a href="/roster/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>CAST</a>
+              <a href="/split" className="px-3 py-1 rounded-full text-[11px] font-normal transition-all text-zinc-500 hover:text-[#2FB6A3]">SPLIT</a>
             </div>
           </div>
           <div className={`border rounded-2xl p-8 ${D?'bg-white/[0.03] border-white/10':'bg-white border-black/[0.08]'}`}>
@@ -728,6 +729,7 @@ export default function GuestView(){
             <div className={`flex gap-1 p-1 rounded-full border ${D?'border-white/10 bg-white/5':'border-black/[0.08] bg-black/[0.04]'}`}>
               <span className="px-3 py-1 rounded-full bg-[#3E78DB] text-white text-[11px] font-normal">LEAD</span>
               <a href="/roster/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>CAST</a>
+              <a href="/split" className="px-3 py-1 rounded-full text-[11px] font-normal transition-all text-zinc-500 hover:text-[#2FB6A3]">SPLIT</a>
             </div>
           </div>
           {editingCompany?(

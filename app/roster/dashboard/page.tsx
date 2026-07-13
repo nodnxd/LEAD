@@ -1115,7 +1115,7 @@ export default function Dashboard() {
             <div className={`flex gap-1 p-1 rounded-full border ${theme === 'light' ? 'border-black/[0.08] bg-black/[0.04]' : 'border-white/10 bg-white/5'}`}>
               <a href="/dashboard" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-black' : 'text-zinc-500 hover:text-white'}`}>LEAD</a>
               <span className="px-3 py-1 rounded-full bg-[#E3B24A] text-white text-[11px] font-normal">CAST</span>
-              <a href="/split" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-[#2FB6A3]' : 'text-zinc-500 hover:text-[#2FB6A3]'}`}>Split</a>
+              <a href="/split" className={`px-3 py-1 rounded-full text-[11px] font-normal transition-all ${theme === 'light' ? 'text-zinc-500 hover:text-[#2FB6A3]' : 'text-zinc-500 hover:text-[#2FB6A3]'}`}>SPLIT</a>
             </div>
           </div>
 
