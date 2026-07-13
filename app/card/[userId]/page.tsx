@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useLang } from '@/lib/lang';
 
 const ROLE_LABELS: Record<string, string> = {
   producer: 'Producer', topliner: 'Top-liner', lyricist: 'Lyricist', engineer: 'Engineer', ar: 'A&R',
@@ -10,6 +11,7 @@ const ROLE_LABELS: Record<string, string> = {
 export default function CardPage() {
   const { userId } = useParams<{ userId: string }>();
   const router = useRouter();
+  const { t } = useLang();
   const [imgError, setImgError] = useState(false);
   const goBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) { router.back(); return; }
@@ -57,7 +59,7 @@ export default function CardPage() {
   );
   if (!profile) return (
     <div className={`min-h-screen ${bg} ${tx} flex items-center justify-center font-pretendard`}>
-      <p>프로필을 찾을 수 없어요</p>
+      <p>{t('프로필을 찾을 수 없어요', 'Profile not found')}</p>
     </div>
   );
 
@@ -110,20 +112,20 @@ export default function CardPage() {
             {/* 정보 */}
             <div className={`mt-5 pt-4 border-t ${dv} flex flex-col gap-2.5`}>
               {profile.company && (
-                <Row label="소속" value={profile.company} D={D} />
+                <Row label={t('소속', 'Company')} value={profile.company} D={D} />
               )}
               {(profile.email) && (
-                <Row label="이메일" value={profile.email} D={D} />
+                <Row label={t('이메일', 'Email')} value={profile.email} D={D} />
               )}
               {profile.instagram && (
                 <div className="flex items-center gap-3">
-                  <span className={`text-[10px] font-black uppercase tracking-widest w-14 ${dm}`}>인스타</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest w-14 ${dm}`}>{t('인스타', 'IG')}</span>
                   <a href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#3E78DB] hover:underline">@{profile.instagram}</a>
                 </div>
               )}
               {(profile.genres || []).length > 0 && (
                 <div className="flex items-start gap-3">
-                  <span className={`text-[10px] font-black uppercase tracking-widest w-14 shrink-0 mt-0.5 ${dm}`}>장르</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest w-14 shrink-0 mt-0.5 ${dm}`}>{t('장르', 'Genres')}</span>
                   <div className="flex flex-wrap gap-1">
                     {profile.genres.slice(0, 5).map((g: string) => (
                       <span key={g} className={`text-[11px] font-bold px-2 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-300' : 'bg-black/[0.05] text-zinc-600'}`}>
@@ -174,11 +176,11 @@ export default function CardPage() {
         <div className="no-print flex gap-3 mt-4 w-full max-w-sm">
           <button onClick={() => window.print()}
             className="flex-1 py-3 rounded-xl bg-[#3E78DB] text-white font-semibold text-[13px] hover:opacity-90 transition-all">
-            📄 PDF 저장
+            📄 {t('PDF 저장', 'Save PDF')}
           </button>
           <button onClick={goBack}
             className={`px-5 py-3 rounded-xl border font-bold text-[13px] transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
-            ← 뒤로
+            ← {t('뒤로', 'Back')}
           </button>
         </div>
       </main>

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
+import { useLang, LangToggle } from '@/lib/lang';
 
 const ROLES = [
   { id: 'producer', label: 'Producer' },
@@ -32,6 +33,7 @@ let demoCounter = 0;
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { t } = useLang();
   const [user, setUser] = useState<any>(null);
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -121,9 +123,9 @@ export default function OnboardingPage() {
   };
 
   const addDemo = (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.mp3')) { alert('MP3만 가능해요!'); return; }
-    if (file.size > 20 * 1024 * 1024) { alert('20MB 이하만 가능해요!'); return; }
-    if (demoFiles.length >= 3) { alert('최대 3개까지예요!'); return; }
+    if (!file.name.toLowerCase().endsWith('.mp3')) { alert(t('MP3만 가능해요!', 'MP3 only!')); return; }
+    if (file.size > 20 * 1024 * 1024) { alert(t('20MB 이하만 가능해요!', 'Max 20MB!')); return; }
+    if (demoFiles.length >= 3) { alert(t('최대 3개까지예요!', 'Up to 3 files!')); return; }
     const id = `d${++demoCounter}`;
     setDemoFiles(p => [...p, { id, file, uploading: false }]);
   };
@@ -209,7 +211,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const STEPS = ['기본 정보', '역할 & 장르', '연락처', '음악'];
+  const STEPS = [t('기본 정보', 'Basics'), t('역할 & 장르', 'Roles & Genres'), t('연락처', 'Contact'), t('음악', 'Music')];
 
   return (
     <>
@@ -218,10 +220,11 @@ export default function OnboardingPage() {
 
         {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#3E78DB',filter:'blur(180px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
 
+        <div className="absolute top-5 right-5 z-20"><LangToggle /></div>
         <div className="relative z-10 w-full max-w-lg">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-semibold text-[#3E78DB] uppercase tracking-tighter mb-1">LEAD</h1>
-            <p className={`text-[12px] font-bold ${dimText}`}>프로필을 완성해주세요</p>
+            <p className={`text-[12px] font-bold ${dimText}`}>{t('프로필을 완성해주세요', 'Complete your profile')}</p>
           </div>
 
           {/* 스텝 인디케이터 */}
@@ -250,8 +253,8 @@ export default function OnboardingPage() {
             {step === 1 && (
               <div className="flex flex-col gap-5">
                 <div>
-                  <p className={`text-[18px] font-black mb-1 ${D ? 'text-white' : 'text-[#111]'}`}>기본 정보</p>
-                  <p className={`text-[12px] ${dimText}`}>다른 멤버들에게 보여지는 정보예요</p>
+                  <p className={`text-[18px] font-black mb-1 ${D ? 'text-white' : 'text-[#111]'}`}>{t('기본 정보', 'Basics')}</p>
+                  <p className={`text-[12px] ${dimText}`}>{t('다른 멤버들에게 보여지는 정보예요', 'Shown to other members')}</p>
                 </div>
                 <div className="flex flex-col items-center gap-3">
                   <button onClick={() => photoRef.current?.click()} className="relative group">
@@ -259,33 +262,33 @@ export default function OnboardingPage() {
                       {photoPreview ? <img src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-3xl">📷</span>}
                     </div>
                     <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-white text-[10px] font-bold">변경</span>
+                      <span className="text-white text-[10px] font-bold">{t('변경', 'Change')}</span>
                     </div>
                   </button>
-                  <p className={`text-[11px] ${dimText}`}>프로필 사진 (선택)</p>
+                  <p className={`text-[11px] ${dimText}`}>{t('프로필 사진 (선택)', 'Profile photo (optional)')}</p>
                   <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0])} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>실명 *</label>
-                    <input value={name} onChange={e => setName(e.target.value)} placeholder="홍길동" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
+                    <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>{t('실명', 'Legal name')} *</label>
+                    <input value={name} onChange={e => setName(e.target.value)} placeholder={t('홍길동', 'Full name')} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
                   </div>
                   <div>
-                    <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>활동명 *</label>
+                    <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>{t('활동명', 'Stage name')} *</label>
                     <input value={artistName} onChange={e => setArtistName(e.target.value)} placeholder="Artist Name" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
                   </div>
                 </div>
                 <div>
-                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-2 ${labelCls}`}>성별 *</label>
+                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-2 ${labelCls}`}>{t('성별', 'Gender')} *</label>
                   <div className="flex gap-2">
-                    {[['male', '남성'], ['female', '여성'], ['other', '기타']].map(([v, l]) => (
+                    {[['male', t('남성','Male')], ['female', t('여성','Female')], ['other', t('기타','Other')]].map(([v, l]) => (
                       <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2.5 rounded-xl border text-[12px] font-bold transition-all ${gender === v ? 'bg-[#3E78DB]/20 border-[#3E78DB]/50 text-[#3E78DB]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>소속 회사 <span className="font-normal normal-case">(선택)</span></label>
-                  <input value={company} onChange={e => setCompany(e.target.value)} placeholder="회사명 또는 프리랜서" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
+                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>{t('소속 회사', 'Company')} <span className="font-normal normal-case">({t('선택', 'optional')})</span></label>
+                  <input value={company} onChange={e => setCompany(e.target.value)} placeholder={t('회사명 또는 프리랜서', 'Company or freelance')} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
                 </div>
               </div>
             )}
@@ -294,11 +297,11 @@ export default function OnboardingPage() {
             {step === 2 && (
               <div className="flex flex-col gap-6">
                 <div>
-                  <p className={`text-[18px] font-black mb-1 ${D ? 'text-white' : 'text-[#111]'}`}>역할 & 장르</p>
-                  <p className={`text-[12px] ${dimText}`}>복수 선택 가능해요</p>
+                  <p className={`text-[18px] font-black mb-1 ${D ? 'text-white' : 'text-[#111]'}`}>{t('역할 & 장르', 'Roles & Genres')}</p>
+                  <p className={`text-[12px] ${dimText}`}>{t('복수 선택 가능해요', 'Select multiple')}</p>
                 </div>
                 <div>
-                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-3 ${labelCls}`}>역할 *</label>
+                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-3 ${labelCls}`}>{t('역할', 'Roles')} *</label>
                   <div className="flex flex-wrap gap-2">
                     {ROLES.map(r => (
                       <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-4 py-2 rounded-xl border text-[12px] font-bold transition-all ${roles.includes(r.id) ? 'bg-[#3E78DB]/20 border-[#3E78DB]/50 text-[#3E78DB]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{r.label}</button>
@@ -306,14 +309,14 @@ export default function OnboardingPage() {
                   </div>
                 </div>
                 <div>
-                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-3 ${labelCls}`}>선호 장르 *</label>
+                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-3 ${labelCls}`}>{t('선호 장르', 'Genres')} *</label>
                   <div className="flex flex-wrap gap-2">
                     {GENRES.map(g => (
                       <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-4 py-2 rounded-xl border text-[12px] font-bold transition-all ${genres.includes(g.id) ? 'bg-[#3E78DB]/20 border-[#3E78DB]/50 text-[#3E78DB]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{g.label}</button>
                     ))}
                   </div>
                   {genres.includes('ETC') && (
-                    <input value={genreEtc} onChange={e => setGenreEtc(e.target.value)} placeholder="장르 직접 입력" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all mt-3 ${inputCls}`} />
+                    <input value={genreEtc} onChange={e => setGenreEtc(e.target.value)} placeholder={t('장르 직접 입력', 'Custom genre')} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all mt-3 ${inputCls}`} />
                   )}
                 </div>
               </div>
@@ -323,16 +326,16 @@ export default function OnboardingPage() {
             {step === 3 && (
               <div className="flex flex-col gap-5">
                 <div>
-                  <p className={`text-[18px] font-black mb-1 ${D ? 'text-white' : 'text-[#111]'}`}>연락처 & SNS</p>
-                  <p className={`text-[12px] ${dimText}`}>친구가 된 멤버에게만 보여요</p>
+                  <p className={`text-[18px] font-black mb-1 ${D ? 'text-white' : 'text-[#111]'}`}>{t('연락처 & SNS', 'Contact & Social')}</p>
+                  <p className={`text-[12px] ${dimText}`}>{t('친구가 된 멤버에게만 보여요', 'Only visible to your connections')}</p>
                 </div>
                 <div>
-                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>이메일 *</label>
+                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>{t('이메일', 'Email')} *</label>
                   <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" type="email" className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
-                  <p className={`text-[11px] mt-1.5 ${dimText}`}>친구 추가 요청에도 사용돼요</p>
+                  <p className={`text-[11px] mt-1.5 ${dimText}`}>{t('친구 추가 요청에도 사용돼요', 'Also used for connection requests')}</p>
                 </div>
                 <div>
-                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>인스타그램 <span className="font-normal normal-case">(선택)</span></label>
+                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>{t('인스타그램', 'Instagram')} <span className="font-normal normal-case">({t('선택', 'optional')})</span></label>
                   <div className="relative">
                     <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-bold ${dimText}`}>@</span>
                     <input value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="username" className={`w-full border rounded-xl pl-7 pr-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
@@ -345,12 +348,12 @@ export default function OnboardingPage() {
             {step === 4 && (
               <div className="flex flex-col gap-5">
                 <div>
-                  <p className={`text-[18px] font-black mb-1 ${D ? 'text-white' : 'text-[#111]'}`}>음악</p>
-                  <p className={`text-[12px] ${dimText}`}>나중에 마이페이지에서 수정할 수 있어요</p>
+                  <p className={`text-[18px] font-black mb-1 ${D ? 'text-white' : 'text-[#111]'}`}>{t('음악', 'Music')}</p>
+                  <p className={`text-[12px] ${dimText}`}>{t('나중에 마이페이지에서 수정할 수 있어요', 'You can edit this later on your page')}</p>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className={`text-[10px] font-black uppercase tracking-widest ${labelCls}`}>데모곡 <span className="font-normal normal-case">MP3 · 최대 3개 · 20MB</span></label>
+                    <label className={`text-[10px] font-black uppercase tracking-widest ${labelCls}`}>{t('데모곡', 'Demos')} <span className="font-normal normal-case">{t('MP3 · 최대 3개 · 20MB', 'MP3 · up to 3 · 20MB')}</span></label>
                     <span className={`text-[11px] ${dimText}`}>{demoFiles.length}/3</span>
                   </div>
                   {demoFiles.length > 0 && (
@@ -370,17 +373,17 @@ export default function OnboardingPage() {
                   {demoFiles.length < 3 && (
                     <>
                       <input ref={demoRef} type="file" accept=".mp3,audio/mpeg" multiple className="hidden" onChange={e => { Array.from(e.target.files || []).forEach(addDemo); e.target.value = ''; }} />
-                      <button onClick={() => demoRef.current?.click()} className={`w-full py-3 rounded-xl border-2 border-dashed text-[12px] font-bold transition-all ${D ? 'border-white/10 text-zinc-600 hover:border-white/20 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:border-black/20'}`}>+ 파일 추가</button>
+                      <button onClick={() => demoRef.current?.click()} className={`w-full py-3 rounded-xl border-2 border-dashed text-[12px] font-bold transition-all ${D ? 'border-white/10 text-zinc-600 hover:border-white/20 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:border-black/20'}`}>+ {t('파일 추가', 'Add file')}</button>
                     </>
                   )}
                 </div>
                 <div>
-                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>추가 데모 링크 <span className="font-normal normal-case">(Disco, SoundCloud 등)</span></label>
+                  <label className={`text-[10px] font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>{t('추가 데모 링크', 'More demos link')} <span className="font-normal normal-case">({t('Disco, SoundCloud 등', 'Disco, SoundCloud…')})</span></label>
                   <input value={demoLink} onChange={e => setDemoLink(e.target.value)} placeholder="https://..." className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className={`text-[10px] font-black uppercase tracking-widest ${labelCls}`}>최근 컷난 작업물 <span className="font-normal normal-case">최대 5개</span></label>
+                    <label className={`text-[10px] font-black uppercase tracking-widest ${labelCls}`}>{t('최근 컷난 작업물', 'Recent released works')} <span className="font-normal normal-case">{t('최대 5개', 'up to 5')}</span></label>
                     <span className={`text-[11px] ${dimText}`}>{works.filter(w => w.song_title.trim()).length}/5</span>
                   </div>
                   <div className="flex flex-col gap-3">
@@ -388,19 +391,19 @@ export default function OnboardingPage() {
                       <div key={i} className={`p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.07]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                         <div className="flex items-center justify-between mb-2">
                           <span className={`text-[10px] font-black ${dimText}`}>#{i + 1}</span>
-                          {works.length > 1 && <button onClick={() => setWorks(p => p.filter((_, idx) => idx !== i))} className={`text-[11px] ${D ? 'text-zinc-700 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>삭제</button>}
+                          {works.length > 1 && <button onClick={() => setWorks(p => p.filter((_, idx) => idx !== i))} className={`text-[11px] ${D ? 'text-zinc-700 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>{t('삭제', 'Delete')}</button>}
                         </div>
                         <div className="flex flex-col gap-2">
                           <div className="grid grid-cols-2 gap-2">
-                            <input value={w.song_title} onChange={e => updateWork(i, { song_title: e.target.value })} placeholder="곡명" className={`w-full border rounded-lg px-3 py-2 text-[12px] outline-none transition-all ${inputCls}`} />
-                            <input value={w.artist_name} onChange={e => updateWork(i, { artist_name: e.target.value })} placeholder="아티스트명" className={`w-full border rounded-lg px-3 py-2 text-[12px] outline-none transition-all ${inputCls}`} />
+                            <input value={w.song_title} onChange={e => updateWork(i, { song_title: e.target.value })} placeholder={t('곡명', 'Song title')} className={`w-full border rounded-lg px-3 py-2 text-[12px] outline-none transition-all ${inputCls}`} />
+                            <input value={w.artist_name} onChange={e => updateWork(i, { artist_name: e.target.value })} placeholder={t('아티스트명', 'Artist')} className={`w-full border rounded-lg px-3 py-2 text-[12px] outline-none transition-all ${inputCls}`} />
                           </div>
-                          <input value={w.link} onChange={e => updateWork(i, { link: e.target.value })} placeholder="링크 (유튜브, 멜론, 스포티파이...)" className={`w-full border rounded-lg px-3 py-2 text-[12px] outline-none transition-all ${inputCls}`} />
+                          <input value={w.link} onChange={e => updateWork(i, { link: e.target.value })} placeholder={t('링크 (유튜브, 멜론, 스포티파이...)', 'Link (YouTube, Melon, Spotify…)')} className={`w-full border rounded-lg px-3 py-2 text-[12px] outline-none transition-all ${inputCls}`} />
                         </div>
                       </div>
                     ))}
                     {works.length < 5 && (
-                      <button onClick={() => setWorks(p => [...p, emptyWork()])} className={`py-2.5 rounded-xl border border-dashed text-[11px] font-bold transition-all ${D ? 'border-white/10 text-zinc-600 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:text-zinc-600'}`}>+ 작업물 추가</button>
+                      <button onClick={() => setWorks(p => [...p, emptyWork()])} className={`py-2.5 rounded-xl border border-dashed text-[11px] font-bold transition-all ${D ? 'border-white/10 text-zinc-600 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:text-zinc-600'}`}>+ {t('작업물 추가', 'Add work')}</button>
                     )}
                   </div>
                 </div>
@@ -411,19 +414,19 @@ export default function OnboardingPage() {
           {/* 버튼 */}
           <div className="flex gap-3 mt-4">
             {step > 1 && (
-              <button onClick={() => setStep(s => s - 1)} className={`flex-1 py-3.5 rounded-xl border font-bold text-[13px] transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>이전</button>
+              <button onClick={() => setStep(s => s - 1)} className={`flex-1 py-3.5 rounded-xl border font-bold text-[13px] transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{t('이전', 'Back')}</button>
             )}
             {step < 4 ? (
-              <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className={`flex-1 py-3.5 rounded-xl font-black text-[13px] transition-all ${canNext() ? 'bg-[#3E78DB] text-white hover:opacity-90' : D ? 'bg-white/5 text-zinc-700 cursor-not-allowed' : 'bg-black/5 text-zinc-400 cursor-not-allowed'}`}>다음 →</button>
+              <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className={`flex-1 py-3.5 rounded-xl font-black text-[13px] transition-all ${canNext() ? 'bg-[#3E78DB] text-white hover:opacity-90' : D ? 'bg-white/5 text-zinc-700 cursor-not-allowed' : 'bg-black/5 text-zinc-400 cursor-not-allowed'}`}>{t('다음', 'Next')} →</button>
             ) : (
               <button onClick={handleFinish} disabled={saving} className="flex-1 py-3.5 rounded-xl bg-[#3E78DB] text-white font-semibold text-[13px] transition-all hover:opacity-90 disabled:opacity-50">
-                {saving ? '저장 중...' : '완료 🎉'}
+                {saving ? t('저장 중...', 'Saving…') : t('완료 🎉', 'Done 🎉')}
               </button>
             )}
           </div>
 
           {step === 4 && (
-            <button onClick={handleFinish} className={`w-full mt-3 text-[11px] font-bold transition-colors ${dimText} hover:text-[#3E78DB]`}>나중에 입력할게요</button>
+            <button onClick={handleFinish} className={`w-full mt-3 text-[11px] font-bold transition-colors ${dimText} hover:text-[#3E78DB]`}>{t('나중에 입력할게요', 'I’ll do this later')}</button>
           )}
         </div>
       </main>

@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
+import { useLang, LangToggle } from '@/lib/lang';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLang();
   const [product, setProduct] = useState<'lead' | 'cast'>('lead');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +27,7 @@ export default function LoginPage() {
   const pickProduct = (p: 'lead' | 'cast') => { setProduct(p); localStorage.setItem('lead_login_product', p); };
 
   const handle = async () => {
-    if (!email || !password) return setError('이메일과 비밀번호를 입력해주세요.');
+    if (!email || !password) return setError(t('이메일과 비밀번호를 입력해주세요.', 'Enter your email and password.'));
     setLoading(true); setError('');
     if (rememberMe && email) localStorage.setItem('lead_saved_email', email);
     else localStorage.removeItem('lead_saved_email');
@@ -42,7 +44,7 @@ export default function LoginPage() {
   };
 
   const handleReset = async () => {
-    if (!email.trim()) { setError('이메일을 입력해주세요'); return; }
+    if (!email.trim()) { setError(t('이메일을 입력해주세요', 'Enter your email')); return; }
     setLoading(true); setError('');
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -70,6 +72,7 @@ export default function LoginPage() {
         <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none transition-colors"
           style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 70%)`, animation: 'orb-pulse 6s ease-in-out infinite' }} />
 
+        <div className="absolute top-5 right-5 z-20"><LangToggle className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/40 text-[11px] font-bold hover:text-white transition-all" /></div>
         <div className="relative z-10 w-full max-w-md">
           {/* 로고 + 제품 토글 */}
           <div className="mb-12">
@@ -104,14 +107,14 @@ export default function LoginPage() {
             resetSent ? (
               <div className="text-center">
                 <div className="text-4xl mb-3">📩</div>
-                <p className="text-white font-bold text-lg mb-1">재설정 메일을 보냈어요</p>
-                <p className="text-white/40 text-sm leading-relaxed">{email}로<br />비밀번호 재설정 링크를 보냈어요.</p>
-                <button onClick={() => { setForgotMode(false); setResetSent(false); }} className="mt-6 text-base text-white/40 hover:text-white/70 transition-colors">← 로그인으로 돌아가기</button>
+                <p className="text-white font-bold text-lg mb-1">{t('재설정 메일을 보냈어요', 'Reset email sent')}</p>
+                <p className="text-white/40 text-sm leading-relaxed">{t(`${email}로`, `We sent a reset link to`)}<br />{t('비밀번호 재설정 링크를 보냈어요.', email)}</p>
+                <button onClick={() => { setForgotMode(false); setResetSent(false); }} className="mt-6 text-base text-white/40 hover:text-white/70 transition-colors">← {t('로그인으로 돌아가기', 'Back to login')}</button>
               </div>
             ) : (
               <div className="flex flex-col gap-5">
-                <p className="text-white/50 text-base">가입한 이메일로 재설정 링크를 보내드려요.</p>
-                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" type="email"
+                <p className="text-white/50 text-base">{t('가입한 이메일로 재설정 링크를 보내드려요.', 'We’ll email a reset link to your account.')}</p>
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder={t('이메일', 'Email')} type="email"
                   onKeyDown={e => e.key === 'Enter' && handleReset()} className={`login-input ${inputCls}`} />
                 {error && <p className="text-base text-red-400">{error}</p>}
                 <button onClick={handleReset} disabled={loading}
@@ -119,16 +122,16 @@ export default function LoginPage() {
                   style={{ background: accent }}
                   onMouseEnter={e => (e.currentTarget.style.background = accentHover)}
                   onMouseLeave={e => (e.currentTarget.style.background = accent)}>
-                  {loading ? '...' : '재설정 메일 보내기'}
+                  {loading ? '...' : t('재설정 메일 보내기', 'Send reset email')}
                 </button>
-                <button onClick={() => { setForgotMode(false); setError(''); }} className="text-base text-white/30 hover:text-white/60 transition-colors">← 돌아가기</button>
+                <button onClick={() => { setForgotMode(false); setError(''); }} className="text-base text-white/30 hover:text-white/60 transition-colors">← {t('돌아가기', 'Back')}</button>
               </div>
             )
           ) : (
             <>
               <div className="flex flex-col gap-5">
-                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" type="email" className={`login-input ${inputCls}`} />
-                <input value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호" type="password"
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder={t('이메일', 'Email')} type="email" className={`login-input ${inputCls}`} />
+                <input value={password} onChange={e => setPassword(e.target.value)} placeholder={t('비밀번호', 'Password')} type="password"
                   onKeyDown={e => e.key === 'Enter' && handle()} className={`login-input ${inputCls}`} />
 
                 <div className="flex items-center justify-between">
@@ -138,10 +141,10 @@ export default function LoginPage() {
                         style={rememberMe ? { background: accent, borderColor: accent } : { borderColor: 'rgba(255,255,255,0.2)' }}>
                         {rememberMe && <span className="text-[10px] text-white leading-none">✓</span>}
                       </span>
-                      <span className="text-base text-white/40">아이디 기억하기</span>
+                      <span className="text-base text-white/40">{t('아이디 기억하기', 'Remember me')}</span>
                     </button>
                   ) : <span />}
-                  <button onClick={() => { setForgotMode(true); setError(''); }} className="text-base text-white/30 hover:text-white/60 transition-colors">비밀번호 찾기</button>
+                  <button onClick={() => { setForgotMode(true); setError(''); }} className="text-base text-white/30 hover:text-white/60 transition-colors">{t('비밀번호 찾기', 'Forgot password')}</button>
                 </div>
 
                 {error && <p className="text-base text-red-400">{error}</p>}
@@ -151,20 +154,20 @@ export default function LoginPage() {
                   style={{ background: accent }}
                   onMouseEnter={e => (e.currentTarget.style.background = accentHover)}
                   onMouseLeave={e => (e.currentTarget.style.background = accent)}>
-                  {loading ? '...' : isSignUp ? '회원가입' : '로그인'}
+                  {loading ? '...' : isSignUp ? t('회원가입', 'Sign up') : t('로그인', 'Log in')}
                 </button>
               </div>
 
               <div className="mt-5 flex justify-center">
                 <button onClick={() => { setIsSignUp(!isSignUp); setError(''); }} className="text-base text-white/30 hover:text-white/60 transition-colors">
-                  {isSignUp ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
+                  {isSignUp ? t('이미 계정이 있으신가요? 로그인', 'Already have an account? Log in') : t('계정이 없으신가요? 회원가입', 'No account? Sign up')}
                 </button>
               </div>
             </>
           )}
 
           <p className="text-center text-white/20 text-xs mt-10">
-            {isCast ? '아티스트 로스터 관리' : '로그인하면 참여·운영할 회사를 선택해요'}
+            {isCast ? t('아티스트 로스터 관리', 'Manage your artist roster') : t('로그인하면 참여·운영할 회사를 선택해요', 'Sign in to pick a company to join or run')}
           </p>
         </div>
       </main>
