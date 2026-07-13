@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { SplitSheet, Contributor, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal } from '@/lib/splitsheet';
 import { useLang, LangToggle } from '@/lib/lang';
+import { useTheme, ThemeToggle } from '@/lib/theme';
 
 function ProSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
@@ -26,6 +27,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const { id } = use(params);
   const router = useRouter();
   const { t, lang } = useLang();
+  const { dark: D } = useTheme();
   const [me, setMe] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sheet, setSheet] = useState<SplitSheet | null>(null);
@@ -144,6 +146,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   }
   async function deleteRow(rid: string) {
     if (lockedGuard()) return;
+    const row = rows.find((r) => r.id === rid);
+    const who = row?.legal_name || row?.stage_name || '';
+    if (!confirm(t(`${who ? `"${who}" ` : ''}이 기여자를 삭제할까요?`, `Remove ${who ? `"${who}"` : 'this contributor'}?`))) return;
     setRows((rs) => rs.filter((r) => r.id !== rid));
     await supabase.from('split_contributors').delete().eq('id', rid);
   }
@@ -336,7 +341,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const field = 'w-full rounded-md bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/25 focus:outline-none focus:border-[#3E78DB]';
   const hfield = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#3E78DB]';
 
-  if (loading || !sheet) return <div className="min-h-[100dvh] bg-[#0a0a0a] flex items-center justify-center text-white/40">…</div>;
+  if (loading || !sheet) return <div className={`min-h-[100dvh] flex items-center justify-center ${D ? 'bg-[#0a0a0a] text-white/40' : 'bg-[#f6f6f7] text-black/40'}`}>…</div>;
 
   const locked = !!sheet.locked;
   const editable = isOwner && !locked;         // owner may edit only while unlocked
@@ -344,8 +349,29 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const needMySign = myUnsigned.length > 0 && !locked;
 
   return (
-    <div className="min-h-[100dvh] bg-[#0a0a0a] text-white">
-      {toast && <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#3E78DB] text-sm shadow-lg">{toast}</div>}
+    <div className={`min-h-[100dvh] ${D ? 'bg-[#0a0a0a] text-white' : 'split-light bg-[#f6f6f7] text-[#1a1a1a]'}`}>
+      {!D && <style dangerouslySetInnerHTML={{ __html: `
+        .split-light .text-white{color:#1a1a1a}
+        .split-light .text-white\\/55{color:rgb(0 0 0/.6)}
+        .split-light .text-white\\/50{color:rgb(0 0 0/.55)}
+        .split-light .text-white\\/45{color:rgb(0 0 0/.5)}
+        .split-light .text-white\\/40{color:rgb(0 0 0/.5)}
+        .split-light .text-white\\/35{color:rgb(0 0 0/.45)}
+        .split-light .text-white\\/30{color:rgb(0 0 0/.4)}
+        .split-light .text-white\\/25{color:rgb(0 0 0/.38)}
+        .split-light .text-white\\/20{color:rgb(0 0 0/.3)}
+        .split-light .border-white\\/15{border-color:rgb(0 0 0/.15)}
+        .split-light .border-white\\/10{border-color:rgb(0 0 0/.1)}
+        .split-light .border-white\\/8{border-color:rgb(0 0 0/.08)}
+        .split-light .border-white\\/5{border-color:rgb(0 0 0/.06)}
+        .split-light .bg-white\\/\\[0\\.02\\]{background-color:#fff}
+        .split-light .bg-white\\/\\[0\\.04\\]{background-color:#fff}
+        .split-light .bg-white\\/5{background-color:#fff}
+        .split-light .hover\\:bg-white\\/5:hover{background-color:rgb(0 0 0/.04)}
+        .split-light .hover\\:bg-white\\/\\[0\\.02\\]:hover{background-color:rgb(0 0 0/.03)}
+        .split-light .placeholder\\:text-white\\/25::placeholder{color:rgb(0 0 0/.3)}
+      ` }} />}
+      {toast && <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#3E78DB] text-white text-sm shadow-lg">{toast}</div>}
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8">
         {/* header bar */}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -358,6 +384,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           {!isOwner && <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/50">{t('참여', 'Shared')}</span>}
           <div className="ml-auto flex items-center gap-2">
             <LangToggle />
+            <ThemeToggle className="w-8 h-8 rounded-lg border border-white/15 hover:bg-white/5 flex items-center justify-center text-[13px] transition-all" />
             <button onClick={exportBundle} title={t('합의서+음원+무결성해시(zip)', 'Agreement + audio + integrity hash (zip)')} className="text-sm px-3 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">{t('증빙 번들', 'Evidence')}</button>
             <button onClick={exportPdf} className="text-sm px-3 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">⎙ PDF</button>
           </div>

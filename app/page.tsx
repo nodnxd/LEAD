@@ -67,10 +67,7 @@ export default function LoginPage() {
         @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.05;}50%{transform:scale(1.1);opacity:0.09;}}
         .login-input:focus { border-color: ${accent} !important; }
       `}} />
-      <main className="min-h-screen bg-[#141414] text-white flex items-center justify-center px-6 font-pretendard relative overflow-hidden">
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none transition-colors"
-          style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 70%)`, animation: 'orb-pulse 6s ease-in-out infinite' }} />
-
+      <main className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center px-6 font-pretendard relative overflow-hidden">
         <div className="absolute top-5 right-5 z-20"><LangToggle className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/40 text-[11px] font-bold hover:text-white transition-all" /></div>
         <div className="relative z-10 w-full max-w-md">
           {/* 로고 + 제품 토글 */}

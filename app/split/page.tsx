@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CopyrightProfile, SplitSheet, PRO_GROUPS, PRO_LABEL } from '@/lib/splitsheet';
 import { useLang, LangToggle } from '@/lib/lang';
+import { useTheme, ThemeToggle } from '@/lib/theme';
 
 const EMPTY_PROFILE: Omit<CopyrightProfile, 'id'> = {
   legal_name: '', stage_name: '', pro: '', ipi: '',
@@ -31,6 +32,7 @@ function ProSelect({ value, onChange, className, placeholder }: { value: string;
 export default function SplitIndex() {
   const router = useRouter();
   const { t } = useLang();
+  const { dark: D } = useTheme();
   const [me, setMe] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Omit<CopyrightProfile, 'id'>>(EMPTY_PROFILE);
@@ -105,91 +107,101 @@ export default function SplitIndex() {
     if (!error && data) router.push(`/split/${data.id}`);
   }
 
-  const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#3E78DB]';
+  const field = D
+    ? 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#3E78DB]'
+    : 'w-full rounded-lg bg-white border border-black/15 px-3 py-2 text-sm text-[#1a1a1a] placeholder:text-black/30 focus:outline-none focus:border-[#3E78DB]';
+  const bg = D ? 'bg-[#0a0a0a] text-white' : 'bg-[#f6f6f7] text-[#1a1a1a]';
+  const panel = D ? 'border-white/10 bg-white/[0.02]' : 'border-black/[0.08] bg-white';
+  const muted = D ? 'text-white/40' : 'text-black/50';
+  const faint = D ? 'text-white/30' : 'text-black/40';
+  const btn = D ? 'border-white/15 hover:bg-white/5' : 'border-black/15 hover:bg-black/[0.04]';
+  const hov = D ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]';
+  const lbl = `block text-[11px] mb-1 ${muted}`;
 
-  if (loading) return <div className="min-h-[100dvh] bg-[#0a0a0a] flex items-center justify-center text-white/40">…</div>;
+  if (loading) return <div className={`min-h-[100dvh] flex items-center justify-center ${bg} ${faint}`}>…</div>;
 
   return (
-    <div className="min-h-[100dvh] bg-[#0a0a0a] text-white">
+    <div className={`min-h-[100dvh] ${bg}`}>
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
         {/* header */}
         <div className="flex items-center gap-3 mb-8 flex-wrap">
-          <button onClick={() => router.push('/hub')} className="text-sm text-white/40 hover:text-white transition-colors">← hub</button>
+          <button onClick={() => router.push('/hub')} className={`text-sm ${muted} hover:opacity-80 transition-colors`}>← hub</button>
           <h1 className="text-xl font-bold">Split Sheet</h1>
-          <span className="text-xs text-white/30 hidden sm:inline">{t('저작권 지분 · 전세계 표준', 'Songwriter splits · global standard')}</span>
+          <span className={`text-xs ${faint} hidden sm:inline`}>{t('저작권 지분 · 전세계 표준', 'Songwriter splits · global standard')}</span>
           <div className="ml-auto flex items-center gap-2">
             <LangToggle />
+            <ThemeToggle className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${btn}`} />
             <button onClick={newSheet} disabled={creating}
-              className="text-sm px-4 py-2 rounded-xl bg-[#3E78DB] hover:bg-[#4d86e8] disabled:opacity-50 font-medium transition-colors">
+              className="text-sm px-4 py-2 rounded-xl bg-[#3E78DB] hover:bg-[#4d86e8] text-white disabled:opacity-50 font-medium transition-colors">
               {t('+ 새 스플릿시트', '+ New split sheet')}
             </button>
           </div>
         </div>
 
         {/* my copyright profile */}
-        <div className="rounded-2xl border border-white/10 bg-white/[0.02] mb-8 overflow-hidden">
-          <button onClick={() => setProfileOpen((v) => !v)} className="w-full flex items-center gap-2 px-5 py-3.5 text-left hover:bg-white/[0.02] transition-colors">
+        <div className={`rounded-2xl border mb-8 overflow-hidden ${panel}`}>
+          <button onClick={() => setProfileOpen((v) => !v)} className={`w-full flex items-center gap-2 px-5 py-3.5 text-left transition-colors ${hov}`}>
             <span className="text-sm font-semibold">{t('내 저작권 프로필', 'My copyright profile')}</span>
-            <span className="text-xs text-white/35 truncate">{profile.pro ? `${PRO_LABEL[profile.pro] ?? profile.pro}${profile.ipi ? ` · IPI ${profile.ipi}` : ''}` : t('미설정 — 스플릿시트에 자동채움돼요', 'Not set — auto-fills into split sheets')}</span>
-            <span className="ml-auto text-white/30 text-xs">{profileOpen ? '▾' : '▸'}</span>
+            <span className={`text-xs truncate ${faint}`}>{profile.pro ? `${PRO_LABEL[profile.pro] ?? profile.pro}${profile.ipi ? ` · IPI ${profile.ipi}` : ''}` : t('미설정 — 스플릿시트에 자동채움돼요', 'Not set — auto-fills into split sheets')}</span>
+            <span className={`ml-auto text-xs ${faint}`}>{profileOpen ? '▾' : '▸'}</span>
           </button>
           {profileOpen && (
-            <div className="px-5 pb-5 border-t border-white/5 pt-4">
+            <div className={`px-5 pb-5 border-t pt-4 ${D ? 'border-white/5' : 'border-black/5'}`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><label className="block text-[11px] text-white/40 mb-1">{t('법적 이름', 'Legal name')}</label>
+                <div><label className={lbl}>{t('법적 이름', 'Legal name')}</label>
                   <input value={profile.legal_name ?? ''} onChange={(e) => up('legal_name', e.target.value)} className={field} placeholder={t('여권/신분증상 이름', 'Name as on ID/passport')} /></div>
-                <div><label className="block text-[11px] text-white/40 mb-1">{t('활동명', 'Stage name')}</label>
+                <div><label className={lbl}>{t('활동명', 'Stage name')}</label>
                   <input value={profile.stage_name ?? ''} onChange={(e) => up('stage_name', e.target.value)} className={field} /></div>
-                <div><label className="block text-[11px] text-white/40 mb-1">{t('저작권협회 (PRO/CMO)', 'Society (PRO/CMO)')}</label>
+                <div><label className={lbl}>{t('저작권협회 (PRO/CMO)', 'Society (PRO/CMO)')}</label>
                   <ProSelect value={profile.pro ?? ''} onChange={(v) => up('pro', v)} className={field} placeholder={t('저작권협회 선택…', 'Select society…')} /></div>
-                <div><label className="block text-[11px] text-white/40 mb-1">{t('IPI / CAE 번호', 'IPI / CAE number')}</label>
+                <div><label className={lbl}>{t('IPI / CAE 번호', 'IPI / CAE number')}</label>
                   <input value={profile.ipi ?? ''} onChange={(e) => up('ipi', e.target.value)} className={field} placeholder={t('예: 00123456789', 'e.g. 00123456789')} /></div>
-                <div><label className="block text-[11px] text-white/40 mb-1">{t('퍼블리셔', 'Publisher')}</label>
+                <div><label className={lbl}>{t('퍼블리셔', 'Publisher')}</label>
                   <input value={profile.publisher_name ?? ''} onChange={(e) => up('publisher_name', e.target.value)} className={field} placeholder={t('없으면 비워두기', 'Leave blank if none')} /></div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-[11px] text-white/40 mb-1">{t('퍼블리셔 PRO', 'Publisher PRO')}</label>
+                  <div><label className={lbl}>{t('퍼블리셔 PRO', 'Publisher PRO')}</label>
                     <ProSelect value={profile.publisher_pro ?? ''} onChange={(v) => up('publisher_pro', v)} className={field} placeholder={t('선택…', 'Select…')} /></div>
-                  <div><label className="block text-[11px] text-white/40 mb-1">{t('퍼블리셔 IPI', 'Publisher IPI')}</label>
+                  <div><label className={lbl}>{t('퍼블리셔 IPI', 'Publisher IPI')}</label>
                     <input value={profile.publisher_ipi ?? ''} onChange={(e) => up('publisher_ipi', e.target.value)} className={field} /></div>
                 </div>
-                <div><label className="block text-[11px] text-white/40 mb-1">{t('이메일', 'Email')}</label>
+                <div><label className={lbl}>{t('이메일', 'Email')}</label>
                   <input value={profile.email ?? ''} onChange={(e) => up('email', e.target.value)} className={field} /></div>
-                <div><label className="block text-[11px] text-white/40 mb-1">{t('전화', 'Phone')}</label>
+                <div><label className={lbl}>{t('전화', 'Phone')}</label>
                   <input value={profile.phone ?? ''} onChange={(e) => up('phone', e.target.value)} className={field} /></div>
-                <div className="md:col-span-2"><label className="block text-[11px] text-white/40 mb-1">{t('주소', 'Address')}</label>
+                <div className="md:col-span-2"><label className={lbl}>{t('주소', 'Address')}</label>
                   <input value={profile.address ?? ''} onChange={(e) => up('address', e.target.value)} className={field} /></div>
               </div>
               <div className="flex items-center gap-3 mt-4">
                 <button onClick={saveProfile} disabled={savingProfile}
-                  className="text-sm px-4 py-2 rounded-xl border border-white/15 hover:bg-white/5 disabled:opacity-50 transition-colors">
+                  className={`text-sm px-4 py-2 rounded-xl border disabled:opacity-50 transition-colors ${btn}`}>
                   {savingProfile ? t('저장 중…', 'Saving…') : profileSaved ? t('✓ 저장됨', '✓ Saved') : t('프로필 저장', 'Save profile')}
                 </button>
-                <span className="text-[11px] text-white/30">{t('한 번 저장하면 스플릿시트에서 내 정보로 자동채움돼요.', 'Saved once, it auto-fills into every split sheet.')}</span>
+                <span className={`text-[11px] ${faint}`}>{t('한 번 저장하면 스플릿시트에서 내 정보로 자동채움돼요.', 'Saved once, it auto-fills into every split sheet.')}</span>
               </div>
             </div>
           )}
         </div>
 
         {/* sheets list */}
-        <div className="text-[11px] uppercase tracking-widest text-white/30 mb-3">{t('내 스플릿시트', 'My split sheets')}</div>
+        <div className={`text-[11px] uppercase tracking-widest mb-3 ${faint}`}>{t('내 스플릿시트', 'My split sheets')}</div>
         {sheets.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 py-14 text-center text-white/35 text-sm">
+          <div className={`rounded-2xl border border-dashed py-14 text-center text-sm ${D ? 'border-white/10 text-white/35' : 'border-black/10 text-black/40'}`}>
             {t('아직 없어요. ', 'None yet. ')}<button onClick={newSheet} className="text-[#3E78DB] hover:underline">{t('새 스플릿시트', 'Create one')}</button>{t('를 만들어보세요.', '.')}
           </div>
         ) : (
           <div className="flex flex-col gap-2">
             {sheets.map((s) => (
               <button key={s.id} onClick={() => router.push(`/split/${s.id}`)}
-                className="text-left px-5 py-4 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-colors flex items-center gap-3">
+                className={`text-left px-5 py-4 rounded-xl border transition-colors flex items-center gap-3 ${panel} ${hov}`}>
                 <div className="min-w-0">
                   <div className="font-medium truncate">{s.song_title || t('(제목 없음)', '(Untitled)')}</div>
-                  <div className="text-xs text-white/40 truncate">{s.artist_name || t('아티스트 미정', 'Artist TBD')}{s.iswc ? ` · ISWC ${s.iswc}` : ''}</div>
+                  <div className={`text-xs truncate ${muted}`}>{s.artist_name || t('아티스트 미정', 'Artist TBD')}{s.iswc ? ` · ISWC ${s.iswc}` : ''}</div>
                 </div>
                 {needSign.has(s.id) && <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full border border-[#3E78DB]/40 text-[#6fa0f0]">{t('✍ 서명 필요', '✍ Sign')}</span>}
-                {ready.has(s.id) && <span className={`${needSign.has(s.id) ? '' : 'ml-auto'} text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400`}>{t('✓ 확정 가능', '✓ Ready')}</span>}
-                {s.owner_id !== me && <span className={`${needSign.has(s.id) || ready.has(s.id) ? '' : 'ml-auto'} text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/50`}>{t('참여', 'Shared')}</span>}
-                {s.locked && <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400">🔒</span>}
-                <span className="text-white/20 text-xs">{s.work_date ?? ''}</span>
+                {ready.has(s.id) && <span className={`${needSign.has(s.id) ? '' : 'ml-auto'} text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-500`}>{t('✓ 확정 가능', '✓ Ready')}</span>}
+                {s.owner_id !== me && <span className={`${needSign.has(s.id) || ready.has(s.id) ? '' : 'ml-auto'} text-[10px] px-2 py-0.5 rounded-full border ${D ? 'border-white/15 text-white/50' : 'border-black/15 text-black/50'}`}>{t('참여', 'Shared')}</span>}
+                {s.locked && <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-500">🔒</span>}
+                <span className={`text-xs ${faint}`}>{s.work_date ?? ''}</span>
               </button>
             ))}
           </div>
