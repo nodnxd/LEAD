@@ -57,7 +57,6 @@ export default function LoginPage() {
   // 제품별 액센트
   const accent = isCast ? '#E3B24A' : '#3E78DB';
   const accentHover = isCast ? '#C89632' : '#2F62C2';
-  const accentLight = isCast ? '#EFCF8E' : '#A9C4F0';
   const inputCls = 'w-full rounded-xl bg-white/5 border border-white/10 px-5 py-4 text-lg text-white placeholder:text-white/30 focus:outline-none transition-colors';
 
   return (
@@ -77,8 +76,7 @@ export default function LoginPage() {
           {/* 로고 + 제품 토글 */}
           <div className="mb-12">
             <div className="flex items-baseline gap-3">
-              <h1 className="text-6xl font-black uppercase tracking-tighter text-transparent bg-clip-text transition-colors"
-                style={{ backgroundImage: `linear-gradient(to right, ${accent}, ${accentLight})` }}>
+              <h1 className="text-6xl font-black uppercase tracking-tighter text-white">
                 {isCast ? 'CAST' : 'LEAD'}
               </h1>
               <span className="text-white/30 text-xs font-bold tracking-[0.2em]">by NEN</span>
