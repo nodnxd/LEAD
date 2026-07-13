@@ -62,6 +62,7 @@ export type Contributor = {
   signature_name: string | null;  // typed legal name at signing
   signature_data: string | null;  // drawn signature PNG (data URL)
   signed_hash: string | null;     // SHA-256 of the agreement snapshot at signing
+  sign_token: string | null;      // secret token for external (no-account) signing link
   order_index: number | null;
 };
 

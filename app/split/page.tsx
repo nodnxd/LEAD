@@ -39,6 +39,7 @@ export default function SplitIndex() {
   const [profileSaved, setProfileSaved] = useState(false);
   const [sheets, setSheets] = useState<SplitSheet[]>([]);
   const [needSign, setNeedSign] = useState<Set<string>>(new Set());
+  const [ready, setReady] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -69,6 +70,17 @@ export default function SplitIndex() {
       const ownedList = (owned as SplitSheet[]) ?? [];
       const merged = [...ownedList, ...shared.filter((s) => !ownedList.some((o) => o.id === s.id))];
       setSheets(merged);
+      // owned sheets where everyone signed (and not locked) → ready to finalize
+      const ownedIds = ownedList.filter((s) => !s.locked).map((s) => s.id);
+      if (ownedIds.length) {
+        const { data: allC } = await supabase.from('split_contributors').select('sheet_id, signed').in('sheet_id', ownedIds);
+        const bySheet = new Map<string, { total: number; signed: number }>();
+        (allC ?? []).forEach((r) => {
+          const e = bySheet.get(r.sheet_id) ?? { total: 0, signed: 0 };
+          e.total += 1; if (r.signed) e.signed += 1; bySheet.set(r.sheet_id, e);
+        });
+        setReady(new Set([...bySheet.entries()].filter(([, e]) => e.total > 0 && e.signed === e.total).map(([id]) => id)));
+      }
       setLoading(false);
     })();
   }, [router]);
@@ -174,7 +186,8 @@ export default function SplitIndex() {
                   <div className="text-xs text-white/40 truncate">{s.artist_name || t('아티스트 미정', 'Artist TBD')}{s.iswc ? ` · ISWC ${s.iswc}` : ''}</div>
                 </div>
                 {needSign.has(s.id) && <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full border border-[#3E78DB]/40 text-[#6fa0f0]">{t('✍ 서명 필요', '✍ Sign')}</span>}
-                {s.owner_id !== me && <span className={`${needSign.has(s.id) ? '' : 'ml-auto'} text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/50`}>{t('참여', 'Shared')}</span>}
+                {ready.has(s.id) && <span className={`${needSign.has(s.id) ? '' : 'ml-auto'} text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400`}>{t('✓ 확정 가능', '✓ Ready')}</span>}
+                {s.owner_id !== me && <span className={`${needSign.has(s.id) || ready.has(s.id) ? '' : 'ml-auto'} text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/50`}>{t('참여', 'Shared')}</span>}
                 {s.locked && <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400">🔒</span>}
                 <span className="text-white/20 text-xs">{s.work_date ?? ''}</span>
               </button>

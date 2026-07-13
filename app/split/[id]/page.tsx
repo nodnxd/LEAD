@@ -171,6 +171,16 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     setRowLocal(row.id, patch);
     await supabase.from('split_contributors').update(patch).eq('id', row.id);
   }
+  // external signing link — anyone with the link can review & sign their row (no account)
+  async function copySignLink(row: Contributor) {
+    if (!row.sign_token) { flash(t('링크 없음 — SQL 실행 필요', 'No link — run the SQL first')); return; }
+    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/split/sign/${row.sign_token}`;
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(url);
+      else { const ta = document.createElement('textarea'); ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+      flash(t('서명 링크 복사됨 — 상대에게 전달하세요', 'Signing link copied — send it to them'));
+    } catch { flash(t('복사 실패', 'Copy failed')); }
+  }
 
   // ── finalize / lock / request signatures ──
   const allSigned = rows.length > 0 && rows.every((r) => r.signed);
@@ -353,6 +363,14 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
+        {/* all-signed notification for the owner */}
+        {isOwner && !locked && allSigned && (
+          <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.08]">
+            <span className="text-sm">✓ {t('전원 서명 완료!', 'Everyone has signed!')} {sharesOk ? t('지금 확정(잠금)할 수 있어요.', 'You can finalize (lock) now.') : t('지분 100%를 맞춘 뒤 확정하세요.', 'Fix shares to 100% to finalize.')}</span>
+            {sharesOk && <button onClick={lockSheet} className="ml-auto text-sm px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-medium transition-colors">{t('확정', 'Finalize')}</button>}
+          </div>
+        )}
+
         {/* owner finalize controls */}
         {isOwner && (
           <div className="flex items-center gap-2 mb-5 flex-wrap text-xs">
@@ -483,7 +501,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                               className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${mine ? 'border-white/15 text-white/60 hover:bg-white/5' : 'border-white/10 text-white/25'}`}
                               title={mine ? t('서명', 'Sign') : t('연동된 본인만 서명 가능', 'Only the linked person can sign')}>{t('서명', 'Sign')}</button>
                           )}
-                          {editable && <button onClick={() => deleteRow(r.id)} className="text-xs text-white/25 hover:text-red-400 transition-colors px-1 ml-auto">{t('삭제', 'Delete')}</button>}
+                          {isOwner && !r.signed && !locked && <button onClick={() => copySignLink(r)} title={t('외부 서명 링크 복사 (계정 없이 서명 가능)', 'Copy external signing link (no account needed)')} className="text-xs text-white/35 hover:text-[#3E78DB] transition-colors px-1 ml-auto">🔗 {t('서명 링크', 'Sign link')}</button>}
+                          {editable && <button onClick={() => deleteRow(r.id)} className={`text-xs text-white/25 hover:text-red-400 transition-colors px-1 ${isOwner && !r.signed && !locked ? '' : 'ml-auto'}`}>{t('삭제', 'Delete')}</button>}
                         </div>
                         <details className="mt-2">
                           <summary className="text-[11px] text-white/35 cursor-pointer select-none">{t('상세 — 협회·IPI·퍼블리셔·연락처', 'Details — society · IPI · publisher · contact')}</summary>

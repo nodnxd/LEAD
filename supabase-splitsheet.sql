@@ -132,3 +132,46 @@ create policy "split_contrib_self_read" on split_contributors for select
 drop policy if exists "split_contrib_self_update" on split_contributors;
 create policy "split_contrib_self_update" on split_contributors for update
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ────────────────────────────────────────────────────────────────
+-- 7) 외부(계정 없는) 협업자 서명 링크
+--    각 기여자 행에 비밀 토큰. /split/sign/<token> 공개 페이지에서
+--    로그인 없이 자기 지분 확인·서명. RLS 대신 SECURITY DEFINER RPC로 안전 처리.
+-- ────────────────────────────────────────────────────────────────
+alter table split_contributors add column if not exists sign_token uuid default gen_random_uuid();
+update split_contributors set sign_token = gen_random_uuid() where sign_token is null;
+create unique index if not exists split_contrib_sign_token_idx on split_contributors(sign_token);
+
+-- 토큰으로 시트+기여자 조회 (익명 허용)
+create or replace function split_get_by_token(p_token uuid)
+returns jsonb language plpgsql security definer stable as $$
+declare v_sheet_id uuid; v_result jsonb;
+begin
+  select sheet_id into v_sheet_id from split_contributors where sign_token = p_token;
+  if v_sheet_id is null then return null; end if;
+  select jsonb_build_object(
+    'sheet', to_jsonb(s.*),
+    'me', to_jsonb(c.*),
+    'contributors', (select jsonb_agg(to_jsonb(x.*) order by x.order_index) from split_contributors x where x.sheet_id = v_sheet_id)
+  ) into v_result
+  from split_sheets s
+  join split_contributors c on c.sign_token = p_token
+  where s.id = v_sheet_id;
+  return v_result;
+end; $$;
+
+-- 토큰으로 서명 제출 (잠금 안 된 경우만)
+create or replace function split_sign_by_token(p_token uuid, p_name text, p_data text, p_hash text)
+returns boolean language plpgsql security definer as $$
+declare v_locked boolean;
+begin
+  select s.locked into v_locked from split_contributors c join split_sheets s on s.id = c.sheet_id where c.sign_token = p_token;
+  if v_locked is null or v_locked then return false; end if;
+  update split_contributors
+    set signed = true, signed_at = now(), signature_name = coalesce(nullif(p_name,''), legal_name), signature_data = nullif(p_data,''), signed_hash = p_hash
+    where sign_token = p_token;
+  return true;
+end; $$;
+
+grant execute on function split_get_by_token(uuid) to anon, authenticated;
+grant execute on function split_sign_by_token(uuid, text, text, text) to anon, authenticated;
