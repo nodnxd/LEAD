@@ -48,9 +48,9 @@ export default function LoginPage() {
     setResetSent(true); setLoading(false);
   };
 
-  const accent = '#3E78DB';
-  const accentHover = '#2F62C2';
-  const inputCls = 'w-full rounded-xl bg-white/5 border border-white/10 px-5 py-4 text-lg text-white placeholder:text-white/30 focus:outline-none transition-colors';
+  const accent = '#6366F1';
+  const accentHover = '#4F46E5';
+  const inputCls = 'w-full rounded-xl bg-white/5 border border-white/10 focus:border-white px-5 py-4 text-lg text-white placeholder:text-white/30 focus:outline-none transition-colors';
 
   return (
     <>
@@ -58,7 +58,6 @@ export default function LoginPage() {
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         .font-pretendard { font-family: 'Pretendard', sans-serif; }
         @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.05;}50%{transform:scale(1.1);opacity:0.09;}}
-        .login-input:focus { border-color: ${accent} !important; }
       `}} />
       <main className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center px-6 font-pretendard relative overflow-hidden">
         <div className="absolute top-5 right-5 z-20"><LangToggle className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/40 text-[11px] font-bold hover:text-white transition-all" /></div>
@@ -67,13 +66,12 @@ export default function LoginPage() {
           <div className="mb-12">
             <div className="flex items-baseline gap-3 flex-wrap">
               <h1 className="text-5xl font-black uppercase tracking-tighter leading-none">
-                <span style={{ color: '#3E78DB' }}>LEAD</span>
+                <span style={{ color: '#6366F1' }}>LEAD</span>
                 <span className="text-white/15"> · </span>
                 <span style={{ color: '#E3B24A' }}>CAST</span>
                 <span className="text-white/15"> · </span>
                 <span style={{ color: '#2FB6A3' }}>SPLIT</span>
               </h1>
-              <span className="text-white/30 text-xs font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <p className="mt-3 text-lg text-white/40">{t('로그인하고 시작하세요', 'Sign in to get started')}</p>
           </div>
@@ -90,7 +88,9 @@ export default function LoginPage() {
               <div className="flex flex-col gap-5">
                 <p className="text-white/50 text-base">{t('가입한 이메일로 재설정 링크를 보내드려요.', 'We’ll email a reset link to your account.')}</p>
                 <input value={email} onChange={e => setEmail(e.target.value)} placeholder={t('이메일', 'Email')} type="email"
-                  onKeyDown={e => e.key === 'Enter' && handleReset()} className={`login-input ${inputCls}`} />
+                  onKeyDown={e => e.key === 'Enter' && handleReset()}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#ffffff')} onBlur={e => (e.currentTarget.style.borderColor = '')}
+                  className={`login-input ${inputCls}`} />
                 {error && <p className="text-base text-red-400">{error}</p>}
                 <button onClick={handleReset} disabled={loading}
                   className="w-full rounded-xl px-5 py-4 text-lg font-medium text-white transition-colors disabled:opacity-50"
@@ -105,9 +105,13 @@ export default function LoginPage() {
           ) : (
             <>
               <div className="flex flex-col gap-5">
-                <input value={email} onChange={e => setEmail(e.target.value)} placeholder={t('이메일', 'Email')} type="email" className={`login-input ${inputCls}`} />
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder={t('이메일', 'Email')} type="email"
+                  onFocus={e => (e.currentTarget.style.borderColor = '#ffffff')} onBlur={e => (e.currentTarget.style.borderColor = '')}
+                  className={`login-input ${inputCls}`} />
                 <input value={password} onChange={e => setPassword(e.target.value)} placeholder={t('비밀번호', 'Password')} type="password"
-                  onKeyDown={e => e.key === 'Enter' && handle()} className={`login-input ${inputCls}`} />
+                  onKeyDown={e => e.key === 'Enter' && handle()}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#ffffff')} onBlur={e => (e.currentTarget.style.borderColor = '')}
+                  className={`login-input ${inputCls}`} />
 
                 <div className="flex items-center justify-between">
                   {!isSignUp ? (
@@ -125,10 +129,7 @@ export default function LoginPage() {
                 {error && <p className="text-base text-red-400">{error}</p>}
 
                 <button onClick={handle} disabled={loading}
-                  className="w-full rounded-xl px-5 py-4 text-lg font-medium text-white transition-colors disabled:opacity-50"
-                  style={{ background: accent }}
-                  onMouseEnter={e => (e.currentTarget.style.background = accentHover)}
-                  onMouseLeave={e => (e.currentTarget.style.background = accent)}>
+                  className="w-full rounded-xl px-5 py-4 text-lg font-semibold text-[#111] bg-white hover:bg-white/90 transition-colors disabled:opacity-50">
                   {loading ? '...' : isSignUp ? t('회원가입', 'Sign up') : t('로그인', 'Log in')}
                 </button>
               </div>

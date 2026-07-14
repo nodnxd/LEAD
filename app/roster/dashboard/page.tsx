@@ -1112,7 +1112,7 @@ export default function Dashboard() {
             <button onClick={toggleLang} className={`h-8 px-2.5 rounded-lg font-bold text-[11px] border transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
             <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg font-bold text-[13px] border flex items-center justify-center transition-all ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
             <a href="/mypage" className={`px-3 py-1.5 rounded-lg border text-[10px] font-normal transition-all ${btnBg}`}>MY</a>
-            <button onClick={() => showConfirm(t.logout, lang === 'ko' ? '로그아웃 할까요?' : 'Sign out?', async () => { await supabase.auth.signOut(); router.push('/roster'); })} className={`px-3 py-1.5 rounded-lg border text-[10px] font-normal transition-all ${btnBg}`}>{t.logout}</button>
+            <button onClick={() => showConfirm(t.logout, lang === 'ko' ? '로그아웃 할까요?' : 'Sign out?', async () => { await supabase.auth.signOut(); router.push('/'); })} className={`px-3 py-1.5 rounded-lg border text-[10px] font-normal transition-all ${btnBg}`}>{t.logout}</button>
           </>} />
 
           <DragDropContext onDragEnd={onDragEnd}>

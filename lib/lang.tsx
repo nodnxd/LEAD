@@ -11,8 +11,8 @@ export const LANG_EVENT = 'lead-lang-change';
 const EVT = LANG_EVENT;
 
 export function getLang(): Lang {
-  if (typeof window === 'undefined') return 'ko';
-  return (localStorage.getItem(KEY) as Lang) === 'en' ? 'en' : 'ko';
+  if (typeof window === 'undefined') return 'en';
+  return (localStorage.getItem(KEY) as Lang) === 'ko' ? 'ko' : 'en';
 }
 
 // Set the app-wide language from anywhere (legacy pages with their own lang state).

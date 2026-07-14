@@ -54,7 +54,7 @@ export default function CardPage() {
 
   if (loading) return (
     <div className={`min-h-screen ${bg} flex items-center justify-center`}>
-      <div className="w-6 h-6 border-2 border-[#3E78DB] border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
     </div>
   );
   if (!profile) return (
@@ -79,12 +79,12 @@ export default function CardPage() {
         {/* 컴카드 */}
         <div id="comp-card" className={`w-full max-w-sm border rounded-3xl overflow-hidden shadow-2xl ${card}`}>
           {/* 헤더 배너 */}
-          <div className={`h-24 relative ${isHost ? 'bg-gradient-to-br from-amber-500/40 to-orange-400/20' : 'bg-gradient-to-br from-[#3E78DB]/40 to-purple-500/20'}`}>
+          <div className={`h-24 relative ${isHost ? 'bg-gradient-to-br from-amber-500/40 to-orange-400/20' : 'bg-gradient-to-br from-[#6366F1]/40 to-purple-500/20'}`}>
             <div className="absolute bottom-[-36px] left-6">
               <div className="rounded-2xl overflow-hidden border-2 border-white/20 bg-black/30 flex items-center justify-center shadow-xl" style={{ width: 72, height: 72 }}>
                 {showPhoto
                   ? <img src={photoSrc} alt={displayName} referrerPolicy="no-referrer" onError={() => setImgError(true)} className="w-full h-full object-cover" />
-                  : <span className={`text-3xl font-black ${isHost ? 'text-amber-400' : 'text-[#3E78DB]'}`}>{displayName[0].toUpperCase()}</span>}
+                  : <span className={`text-3xl font-black ${isHost ? 'text-amber-400' : 'text-[#6366F1]'}`}>{displayName[0].toUpperCase()}</span>}
               </div>
             </div>
             {isHost && (
@@ -102,7 +102,7 @@ export default function CardPage() {
             {(profile.roles || []).length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-2.5">
                 {profile.roles.map((r: string) => (
-                  <span key={r} className={`text-[11px] font-black px-2.5 py-1 rounded-full border ${isHost ? 'border-amber-500/30 bg-amber-500/10 text-amber-400' : 'border-[#3E78DB]/30 bg-[#3E78DB]/10 text-[#3E78DB]'}`}>
+                  <span key={r} className={`text-[11px] font-black px-2.5 py-1 rounded-full border ${isHost ? 'border-amber-500/30 bg-amber-500/10 text-amber-400' : 'border-[#6366F1]/30 bg-[#6366F1]/10 text-[#6366F1]'}`}>
                     {ROLE_LABELS[r] || r}
                   </span>
                 ))}
@@ -120,7 +120,7 @@ export default function CardPage() {
               {profile.instagram && (
                 <div className="flex items-center gap-3">
                   <span className={`text-[10px] font-black uppercase tracking-widest w-14 ${dm}`}>{t('인스타', 'IG')}</span>
-                  <a href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#3E78DB] hover:underline">@{profile.instagram}</a>
+                  <a href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#6366F1] hover:underline">@{profile.instagram}</a>
                 </div>
               )}
               {(profile.genres || []).length > 0 && (
@@ -157,7 +157,7 @@ export default function CardPage() {
                         <p className={`text-[12px] font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
                         <p className={`text-[11px] ${dm}`}>{w.artist_name}</p>
                       </div>
-                      <span className="text-[#3E78DB] text-[12px]">→</span>
+                      <span className="text-[#6366F1] text-[12px]">→</span>
                     </a>
                   ))}
                 </div>
@@ -175,7 +175,7 @@ export default function CardPage() {
         {/* 액션 버튼 */}
         <div className="no-print flex gap-3 mt-4 w-full max-w-sm">
           <button onClick={() => window.print()}
-            className="flex-1 py-3 rounded-xl bg-[#3E78DB] text-white font-semibold text-[13px] hover:opacity-90 transition-all">
+            className="flex-1 py-3 rounded-xl bg-[#6366F1] text-white font-semibold text-[13px] hover:opacity-90 transition-all">
             📄 {t('PDF 저장', 'Save PDF')}
           </button>
           <button onClick={goBack}

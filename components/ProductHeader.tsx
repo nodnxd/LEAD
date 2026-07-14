@@ -11,13 +11,13 @@ import type { ReactNode } from 'react';
 export type ProductKey = 'lead' | 'cast' | 'split';
 
 const PRODUCTS: { key: ProductKey; label: string; color: string; href: string }[] = [
-  { key: 'lead',  label: 'LEAD',  color: '#3E78DB', href: '/dashboard' },
+  { key: 'lead',  label: 'LEAD',  color: '#6366F1', href: '/dashboard' },
   { key: 'cast',  label: 'CAST',  color: '#E3B24A', href: '/roster/dashboard' },
   { key: 'split', label: 'SPLIT', color: '#2FB6A3', href: '/split' },
 ];
 
 export const PRODUCT_COLOR: Record<ProductKey, string> = {
-  lead: '#3E78DB', cast: '#E3B24A', split: '#2FB6A3',
+  lead: '#6366F1', cast: '#E3B24A', split: '#2FB6A3',
 };
 
 export default function ProductHeader({
