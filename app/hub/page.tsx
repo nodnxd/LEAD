@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useLang, LangToggle } from '@/lib/lang';
@@ -11,17 +11,22 @@ const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
 // (Tailwind can't JIT runtime-built color classes).
 function hubCard(color: string, filled = false) {
   return {
-    className: 'flex items-center gap-3 p-4 rounded-2xl border text-left transition-all hover:brightness-125',
+    className: 'hub-card group flex items-center gap-3.5 p-4 rounded-3xl border text-left transition-all duration-200 hover:-translate-y-0.5',
     style: {
-      borderColor: filled ? color + '4d' : 'rgba(255,255,255,0.08)',
-      backgroundColor: filled ? color + '14' : 'rgba(255,255,255,0.02)',
-    },
+      borderColor: filled ? color + '3d' : 'rgba(255,255,255,0.07)',
+      backgroundColor: filled ? color + '12' : 'rgba(255,255,255,0.025)',
+      ['--gc']: color + '55',
+    } as CSSProperties,
   };
 }
 function hubIcon(color: string) {
   return {
-    className: 'w-11 h-11 rounded-xl flex items-center justify-center text-[18px] shrink-0',
-    style: { backgroundColor: color + '26', color },
+    className: 'w-12 h-12 rounded-2xl flex items-center justify-center text-[20px] shrink-0',
+    style: {
+      background: `linear-gradient(135deg, ${color}33, ${color}12)`,
+      color,
+      boxShadow: `inset 0 0 0 1px ${color}22`,
+    } as CSSProperties,
   };
 }
 
@@ -99,26 +104,36 @@ export default function HubPage() {
   const enterCast = (project?: string) => { if (project) localStorage.setItem('cast_current_project', project); router.push('/roster/dashboard'); };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#141414] flex items-center justify-center"><div className="w-6 h-6 border-2 border-[#3E78DB] border-t-transparent rounded-full animate-spin" /></div>
+    <div className="min-h-screen bg-[#141416] flex items-center justify-center"><div className="w-6 h-6 border-2 border-[#3E78DB] border-t-transparent rounded-full animate-spin" /></div>
   );
+
+  const who = (user?.email || '').split('@')[0];
+  const hh = new Date().getHours();
+  const greet = hh < 6 ? t('늦은 밤이에요', 'Late night') : hh < 12 ? t('좋은 아침이에요', 'Good morning') : hh < 18 ? t('좋은 오후예요', 'Good afternoon') : t('좋은 저녁이에요', 'Good evening');
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;}` }} />
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
-      <main className="min-h-screen bg-[#141414] text-white font-pretendard p-5 lg:p-8 relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#3E78DB', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
-        <div className="relative z-10 max-w-xl mx-auto">
-          <div className="flex items-center justify-between mb-10">
-            <div className="flex items-baseline gap-2.5 flex-wrap">
-              <h1 className="text-3xl md:text-4xl font-semibold uppercase tracking-tighter leading-none">
-                <span style={{ color: '#3E78DB' }}>LEAD</span>
-                <span className="text-white/15"> · </span>
-                <span style={{ color: '#E3B24A' }}>CAST</span>
-                <span className="text-white/15"> · </span>
-                <span style={{ color: '#2FB6A3' }}>SPLIT</span>
-              </h1>
-              <span className="text-zinc-600 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes orb-float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(0,-18px) scale(1.06);}}
+        .hub-card:hover{ box-shadow: 0 12px 36px -12px var(--gc); }
+      ` }} />
+      <main className="min-h-screen bg-[#141416] text-white font-pretendard relative overflow-hidden">
+        {/* soft product orbs */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full" style={{ background:'#3E78DB', filter:'blur(200px)', opacity:0.10, animation:'orb-float 9s ease-in-out infinite' }} />
+          <div className="absolute top-10 -right-40 w-[480px] h-[480px] rounded-full" style={{ background:'#E3B24A', filter:'blur(210px)', opacity:0.07, animation:'orb-float 11s ease-in-out infinite 1s' }} />
+          <div className="absolute -bottom-48 left-1/3 w-[500px] h-[500px] rounded-full" style={{ background:'#2FB6A3', filter:'blur(210px)', opacity:0.07, animation:'orb-float 13s ease-in-out infinite 2s' }} />
+        </div>
+
+        <div className="relative z-10 max-w-2xl mx-auto px-5 lg:px-8 pt-7 pb-16">
+          {/* top bar */}
+          <div className="flex items-center justify-between mb-12">
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-[15px] font-black uppercase tracking-tighter">
+                <span style={{ color: '#3E78DB' }}>LEAD</span><span className="text-white/15">·</span><span style={{ color: '#E3B24A' }}>CAST</span><span className="text-white/15">·</span><span style={{ color: '#2FB6A3' }}>SPLIT</span>
+              </span>
+              <span className="text-zinc-600 text-[10px] font-bold tracking-[0.2em]">by NEN</span>
             </div>
             <div className="flex items-center gap-2">
               <LangToggle />
@@ -127,12 +142,19 @@ export default function HubPage() {
             </div>
           </div>
 
+          {/* hero */}
+          <div className="mb-11">
+            <p className="text-zinc-500 text-[13px] font-medium">{greet}{who ? `, ${who}` : ''}</p>
+            <h1 className="mt-1.5 text-[28px] md:text-[34px] font-bold tracking-tight leading-tight">{t('오늘은 어디서 작업할까요?', 'Where are we working today?')}</h1>
+          </div>
+
+          <div className="flex flex-col gap-9">
           {/* ── LEAD ── company workspaces (선택형) */}
-          <section className="mb-7">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3E78DB]" />
-              <span className="text-[13px] font-black tracking-tight text-white">LEAD</span>
-              <span className="text-[11px] text-zinc-600">{t('회사 워크스페이스', 'Company workspace')}</span>
+          <section>
+            <div className="flex items-center gap-2.5 mb-3.5 px-1">
+              <span className="w-2 h-2 rounded-full" style={{ background:'#3E78DB', boxShadow:'0 0 12px #3E78DB' }} />
+              <span className="text-[15px] font-black tracking-tight text-white">LEAD</span>
+              <span className="text-[11px] text-zinc-600 font-medium">{t('회사 워크스페이스', 'Company workspaces')}</span>
             </div>
             <div className="grid gap-2.5">
               {member.map(c => (
@@ -165,11 +187,11 @@ export default function HubPage() {
           </section>
 
           {/* ── CAST ── roster projects (LEAD와 동일하게 선택형) */}
-          <section className="mb-7">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />
-              <span className="text-[13px] font-black tracking-tight text-white">CAST</span>
-              <span className="text-[11px] text-zinc-600">{t('로스터', 'Rosters')}</span>
+          <section>
+            <div className="flex items-center gap-2.5 mb-3.5 px-1">
+              <span className="w-2 h-2 rounded-full" style={{ background:'#E3B24A', boxShadow:'0 0 12px #E3B24A' }} />
+              <span className="text-[15px] font-black tracking-tight text-white">CAST</span>
+              <span className="text-[11px] text-zinc-600 font-medium">{t('로스터', 'Rosters')}</span>
             </div>
             <div className="grid gap-2.5">
               {castProjects.map(p => (
@@ -186,12 +208,12 @@ export default function HubPage() {
             </div>
           </section>
 
-          {/* ── Tools ── */}
+          {/* ── SPLIT ── */}
           <section>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#2FB6A3]" />
-              <span className="text-[13px] font-black tracking-tight text-white">SPLIT</span>
-              <span className="text-[11px] text-zinc-600">{t('저작권 지분', 'Songwriter splits')}</span>
+            <div className="flex items-center gap-2.5 mb-3.5 px-1">
+              <span className="w-2 h-2 rounded-full" style={{ background:'#2FB6A3', boxShadow:'0 0 12px #2FB6A3' }} />
+              <span className="text-[15px] font-black tracking-tight text-white">SPLIT</span>
+              <span className="text-[11px] text-zinc-600 font-medium">{t('저작권 지분', 'Songwriter splits')}</span>
             </div>
             <div className="grid gap-2.5">
               <a href="/split" {...hubCard('#2FB6A3', true)}>
@@ -205,6 +227,7 @@ export default function HubPage() {
               </a>
             </div>
           </section>
+          </div>
 
           {!canHost && member.length === 0 && (
             <p className="text-center text-[12px] text-zinc-700 mt-8">{t('호스트 권한이 필요하면 담당자에게 문의하세요.', 'Contact your admin if you need host access.')}</p>

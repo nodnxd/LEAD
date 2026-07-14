@@ -126,7 +126,6 @@ export default function SplitIndex() {
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
         {/* header */}
         <ProductHeader product="split" dark={D} className="mb-8"
-          subtitle={t('저작권 지분 · 전세계 표준', 'Songwriter splits · global standard')}
           right={<>
             <LangToggle />
             <ThemeToggle className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[13px] transition-all ${btn}`} />
