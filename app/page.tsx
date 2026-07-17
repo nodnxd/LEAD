@@ -3,11 +3,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
-import { useLang, LangToggle } from '@/lib/lang';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { t } = useLang();
+  const t = (_ko: string, en: string) => en; // login is English-only (like room)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -60,7 +59,6 @@ export default function LoginPage() {
         @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.05;}50%{transform:scale(1.1);opacity:0.09;}}
       `}} />
       <main className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center px-6 font-pretendard relative overflow-hidden">
-        <div className="absolute top-5 right-5 z-20"><LangToggle className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/40 text-[11px] font-bold hover:text-white transition-all" /></div>
         <div className="relative z-10 w-full max-w-md">
           {/* 브랜드 — 세 제품 통합 (선택은 로그인 후 hub에서) */}
           <div className="mb-12">

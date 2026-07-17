@@ -399,9 +399,9 @@ export default function GuestView() {
                               </button>
                               {isSelected && (
                                 <div className="flex gap-1.5 pl-1">
-                                  <button onClick={() => vote(m.id, 'attending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#77B18E]/40 bg-[#77B18E]/10 text-[#77B18E] hover:bg-[#77B18E]/25 transition-all whitespace-nowrap"><CheckIcon /> {tv.attending}</button>
-                                  <button onClick={() => vote(m.id, 'absent')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#9A8F8A]/40 bg-[#9A8F8A]/10 text-[#9A8F8A] hover:bg-[#9A8F8A]/25 transition-all whitespace-nowrap"><XIcon /> {tv.absent}</button>
-                                  <button onClick={() => vote(m.id, 'pending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#B5AC90]/40 bg-[#B5AC90]/10 text-[#B3A88C] hover:bg-[#B5AC90]/25 transition-all whitespace-nowrap"><DotIcon /> {tv.pending}</button>
+                                  <button onClick={() => vote(m.id, 'attending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#77B18E]/50 bg-[#77B18E]/25 text-white hover:bg-[#77B18E]/40 transition-all whitespace-nowrap"><CheckIcon /> {tv.attending}</button>
+                                  <button onClick={() => vote(m.id, 'absent')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#9A8F8A]/50 bg-[#9A8F8A]/25 text-white hover:bg-[#9A8F8A]/40 transition-all whitespace-nowrap"><XIcon /> {tv.absent}</button>
+                                  <button onClick={() => vote(m.id, 'pending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#B5AC90]/50 bg-[#B5AC90]/20 text-white hover:bg-[#B5AC90]/35 transition-all whitespace-nowrap"><DotIcon /> {tv.pending}</button>
                                 </div>
                               )}
                             </div>
