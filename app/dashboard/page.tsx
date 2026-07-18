@@ -157,6 +157,7 @@ export default function GuestView(){
   const [playingFileId,setPlayingFileId]=useState<string|null>(null);
   const [hiddenFilesView,setHiddenFilesView]=useState(false);
   const [selFiles,setSelFiles]=useState<Set<string>>(new Set());
+  const [zipping,setZipping]=useState(false);
   const [bpmMin,setBpmMin]=useState('');
   const [bpmMax,setBpmMax]=useState('');
   const [fileGenreFilter,setFileGenreFilter]=useState('');
@@ -327,6 +328,18 @@ export default function GuestView(){
   const [editingDemo,setEditingDemo]=useState<any>(null);
   const [demoName,setDemoName]=useState('');
   const [demoNote,setDemoNote]=useState('');
+  // Esc 로 열려있는 창/모달 닫기
+  useEffect(()=>{
+    const onKey=(e:KeyboardEvent)=>{
+      if(e.key!=='Escape')return;
+      setShowWsPicker(false);setShowWsAdmins(false);setShowLeadForm(false);setEditingLead(null);
+      setShowAnnModal(false);setShowHiddenPitches(false);setFileAction(null);setShowHostApprovals(false);
+      setShowHostGrants(false);setShowMyPitches(false);setShowMembers(false);setShowDemoMgr(false);
+      setEditingDemo(null);setEditingCompany(false);
+    };
+    window.addEventListener('keydown',onKey);
+    return()=>window.removeEventListener('keydown',onKey);
+  },[]);
   const [demoDeadline,setDemoDeadline]=useState('');
   const [demoSaving,setDemoSaving]=useState(false);
   const [demoSaveError,setDemoSaveError]=useState('');
@@ -358,19 +371,40 @@ export default function GuestView(){
     setFileAction(null);fetchHostPitches();
   };
   // 다운로드 — 보낸 사람이 올린 원본 파일명 그대로 저장
+  // 리드아티스트 이름을 앞에 붙인 저장 파일명 (원본명 유지). 파일시스템/zip 금지문자 정리.
+  const dlName=(f:any)=>{const base=f.file_name||'audio.mp3';const lead=(f._lead||'').trim();const raw=lead?`${lead} - ${base}`:base;return raw.replace(/[\/\\:*?"<>|]/g,'-');};
+  const fileSrc=async(f:any)=>{let src=f.file_url as string;const m=f.file_url?.split('/pitch-files/')[1];if(m){const{data:signed}=await supabase.storage.from('pitch-files').createSignedUrl(decodeURIComponent(m),60);if(signed?.signedUrl)src=signed.signedUrl;}return src;};
   const downloadFile=async(f:any)=>{
     try{
-      let src=f.file_url as string;
-      const m=f.file_url?.split('/pitch-files/')[1];
-      if(m){const{data:signed}=await supabase.storage.from('pitch-files').createSignedUrl(decodeURIComponent(m),60);if(signed?.signedUrl)src=signed.signedUrl;}
+      const src=await fileSrc(f);
       const res=await fetch(src);
       const blob=await res.blob();
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
-      a.href=url;a.download=f.file_name||'audio.mp3';
+      a.href=url;a.download=dlName(f);
       document.body.appendChild(a);a.click();document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }catch{alert('다운로드 실패');}
+  };
+  // 여러 개를 한 번에 — zip으로 묶어 다운로드
+  const downloadMany=async(files:any[])=>{
+    if(!files.length||zipping)return;
+    if(files.length===1){await downloadFile(files[0]);return;}
+    setZipping(true);
+    try{
+      const JSZip=(await import('jszip')).default;
+      const zip=new JSZip();const used:Record<string,number>={};
+      for(const f of files){
+        const src=await fileSrc(f);const res=await fetch(src);const blob=await res.blob();
+        let name=dlName(f);if(used[name]!==undefined){const dot=name.lastIndexOf('.');name=dot>0?`${name.slice(0,dot)} (${++used[name]})${name.slice(dot)}`:`${name} (${++used[name]})`;}else used[name]=0;
+        zip.file(name,blob);
+      }
+      const out=await zip.generateAsync({type:'blob'});
+      const url=URL.createObjectURL(out);
+      const a=document.createElement('a');a.href=url;a.download=`pitch-files-${new Date().toISOString().slice(0,10)}.zip`;
+      document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    }catch{alert('다운로드 실패');}
+    setZipping(false);
   };
   // 파일 소프트 히드 — 목록에서만 숨김, DB(히스토리)엔 남김. 하나/여러개 모두 처리
   const setFilesHidden=async(ids:string[],hidden:boolean)=>{
@@ -983,6 +1017,7 @@ export default function GuestView(){
                     {(bpmMin||bpmMax)&&<button onClick={()=>{setBpmMin('');setBpmMax('');}} className={`px-2.5 py-1 rounded-full text-[11px] font-black ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>BPM {bpmMin||'0'}~{bpmMax||'∞'} ✕</button>}
                     {selFiles.size>0&&<div className="ml-auto flex items-center gap-2">
                       <span className="text-[12px] font-black text-[#6366F1]">{selFiles.size}{t('개 선택',' selected')}</span>
+                      <button onClick={()=>downloadMany(fv.filter((f:any)=>selFiles.has(f.id)))} disabled={zipping} className="px-3 py-1 rounded-full text-[11px] font-black bg-[#6366F1] text-white hover:opacity-90 transition-all disabled:opacity-50 inline-flex items-center gap-1.5"><i className="ti ti-download" aria-hidden="true"></i>{zipping?t('압축 중…','Zipping…'):t('전부 다운로드','Download all')}</button>
                       <button onClick={()=>setFilesHidden([...selFiles],!hiddenFilesView)} className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${hiddenFilesView?'bg-[#6366F1] text-white hover:opacity-90':'bg-red-500/15 text-red-400 hover:bg-red-500/25'}`}>{hiddenFilesView?t('복구','Restore'):t('제거','Remove')}</button>
                       <button onClick={()=>setSelFiles(new Set())} className={`px-2.5 py-1 rounded-full text-[11px] font-black ${dimText} hover:opacity-80`}>{t('선택 해제','Clear')}</button>
                     </div>}

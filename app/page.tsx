@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
+import { useLang } from '@/lib/lang';
 
 export default function LoginPage() {
   const router = useRouter();
-  const t = (_ko: string, en: string) => en; // login is English-only (like room)
+  const { t } = useLang(); // auto by region (Korea → Korean, else English)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);

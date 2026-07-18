@@ -12,7 +12,15 @@ const EVT = LANG_EVENT;
 
 export function getLang(): Lang {
   if (typeof window === 'undefined') return 'en';
-  return (localStorage.getItem(KEY) as Lang) === 'ko' ? 'ko' : 'en';
+  const stored = localStorage.getItem(KEY);
+  if (stored === 'ko' || stored === 'en') return stored;
+  // No explicit choice yet → auto by region: Korea → Korean, elsewhere → English.
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const nav = (navigator.language || '').toLowerCase();
+    if (tz === 'Asia/Seoul' || nav.startsWith('ko')) return 'ko';
+  } catch { /* ignore */ }
+  return 'en';
 }
 
 // Set the app-wide language from anywhere (legacy pages with their own lang state).
