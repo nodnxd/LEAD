@@ -32,7 +32,7 @@ const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='gro
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
 const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-[9px] font-black px-1.5 py-0.5 rounded border ${t.cls}`}>{t.label}</span>;};
 const getLinkIcon=(url:string)=>{if(!url)return'ti ti-link';if(url.includes('youtube')||url.includes('youtu.be'))return'ti ti-brand-youtube';if(url.includes('soundcloud'))return'ti ti-brand-soundcloud';if(url.includes('spotify'))return'ti ti-brand-spotify';if(url.includes('instagram'))return'ti ti-brand-instagram';return'ti ti-link';};
-const PitchFileRow=({f,D,dimText}:{f:any;D:boolean;dimText:string})=>{
+const PitchFileRow=({f,D,dimText,onDl}:{f:any;D:boolean;dimText:string;onDl?:()=>void})=>{
   const vLabel=f.vocal_gender==='male'?'남성':f.vocal_gender==='female'?'여성':f.vocal_gender==='both'?'혼성':'';
   return(
     <div className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D?'bg-black/20':'bg-black/[0.04]'}`}>
@@ -43,6 +43,7 @@ const PitchFileRow=({f,D,dimText}:{f:any;D:boolean;dimText:string})=>{
         {f.bpm>0&&<span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
         {f.key&&<span className={`text-[10px] font-black ${dimText}`}>{f.key}</span>}
         {f.genre&&<span className="text-[10px] font-black text-emerald-400">{f.genre}</span>}
+        {onDl&&<button onClick={onDl} title="다운로드" className={`shrink-0 w-6 h-6 rounded-md border flex items-center justify-center text-[12px] transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}><i className="ti ti-download" aria-hidden="true"></i></button>}
       </div>
       {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px',colorScheme:D?'dark':'light'}}/>}
     </div>
@@ -931,6 +932,8 @@ export default function GuestView(){
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mt-3">
                               {groupPitches.map(p=>{
                                 const files=hostPitchFiles.filter(f=>f.pitch_id===p.id);
+                                const leadName=([...leads,...demoDrives].find(l=>l.id===p.lead_id)?.artist)||'';
+                                const dlFiles=files.map((f:any)=>({...f,_lead:leadName}));
                                 return(
                                   <div key={p.id} className={`p-4 rounded-xl border ${D?'bg-black/20 border-white/[0.06]':'bg-white border-black/[0.06]'}`}>
                                     <div className="flex items-start justify-between gap-2 mb-2">
@@ -939,8 +942,9 @@ export default function GuestView(){
                                     </div>
                                     <p className={`text-[12px] mb-2 ${dimText}`}>{p.contact}{p.contact&&' · '}{new Date(p.created_at).toLocaleDateString('ko-KR',{month:'short',day:'numeric'})}</p>
                                     {p.message&&<p className={`text-[13px] leading-relaxed whitespace-pre-line mb-2 ${D?'text-zinc-300':'text-zinc-600'}`}>{p.message}</p>}
-                                    {files.length>0&&<div className="flex flex-col gap-2 mb-2.5">{files.map((f:any)=><PitchFileRow key={f.id} f={f} D={D} dimText={dimText}/>)}</div>}
-                                    <div className={`flex items-center justify-end pt-2 border-t border-dashed ${D?'border-white/[0.07]':'border-black/[0.07]'}`}>
+                                    {files.length>0&&<div className="flex flex-col gap-2 mb-2.5">{dlFiles.map((f:any)=><PitchFileRow key={f.id} f={f} D={D} dimText={dimText} onDl={()=>downloadFile(f)}/>)}</div>}
+                                    <div className={`flex items-center justify-between gap-2 pt-2 border-t border-dashed ${D?'border-white/[0.07]':'border-black/[0.07]'}`}>
+                                      {files.length>1?<button onClick={()=>downloadMany(dlFiles)} disabled={zipping} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all disabled:opacity-50 ${D?'border border-white/10 bg-white/5 text-zinc-300 hover:text-white':'border border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}><i className="ti ti-download" aria-hidden="true"></i>{zipping?t('압축 중…','Zipping…'):t('전부 다운로드','Download all')}</button>:<span/>}
                                       <button onClick={()=>setPitchHidden(p,!p.hidden)} title={p.hidden?t('목록으로 복구','Restore to list'):t('확인하면 목록에서 사라져요 (히스토리는 남음)','Marks reviewed and hides from list (kept in history)')} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${p.hidden?'text-[#6366F1] hover:opacity-80':'bg-[#6366F1] text-white hover:bg-[#4F46E5]'}`}>{p.hidden?<><i className="ti ti-arrow-back-up" aria-hidden="true"></i>{t('복구','Restore')}</>:<><i className="ti ti-check" aria-hidden="true"></i>{t('확인','Done')}</>}</button>
                                     </div>
                                   </div>
@@ -1031,7 +1035,10 @@ export default function GuestView(){
                         const on=playingFileId===f.id;
                         const chip=D?'bg-white/[0.08] text-zinc-300':'bg-black/[0.05] text-zinc-600';
                         return(
-                        <div key={f.id} onContextMenu={(e)=>{e.preventDefault();e.stopPropagation();setFileAction(f);setNewFolder('');}} className={`rounded-xl border transition-all ${on?(D?'bg-white/[0.05] border-[#6366F1]/40':'bg-[#6366F1]/[0.05] border-[#6366F1]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
+                        <div key={f.id}
+                          onClick={(e)=>{if((e.target as HTMLElement).closest('button,a,audio,input'))return;setSelFiles(p=>{const n=new Set(p);n.has(f.id)?n.delete(f.id):n.add(f.id);return n;});}}
+                          onContextMenu={(e)=>{e.preventDefault();e.stopPropagation();setFileAction(f);setNewFolder('');}}
+                          className={`rounded-xl border transition-all cursor-pointer ${selFiles.has(f.id)?(D?'bg-[#6366F1]/[0.12] border-[#6366F1]/50':'bg-[#6366F1]/[0.08] border-[#6366F1]/40'):on?(D?'bg-white/[0.05] border-[#6366F1]/40':'bg-[#6366F1]/[0.05] border-[#6366F1]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/15':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
                           <div className="flex items-center gap-2.5 px-3 py-2.5">
                             <button onClick={()=>setSelFiles(p=>{const n=new Set(p);n.has(f.id)?n.delete(f.id):n.add(f.id);return n;})} title={t('선택','Select')} className={`w-5 h-5 rounded-md border flex items-center justify-center text-[10px] shrink-0 transition-all ${selFiles.has(f.id)?'bg-[#6366F1] border-[#6366F1] text-white':D?'border-white/15 text-transparent hover:border-white/40':'border-black/15 text-transparent hover:border-black/40'}`}>✓</button>
                             <button onClick={()=>setPlayingFileId(on?null:f.id)} title={on?t('정지','Stop'):t('재생','Play')} className={`w-9 h-9 rounded-xl flex items-center justify-center text-[16px] shrink-0 transition-all ${on?'bg-[#6366F1] text-white':D?'bg-white/5 text-zinc-300 hover:bg-white/10':'bg-black/[0.04] text-zinc-600 hover:bg-black/[0.08]'}`}><i className={on?'ti ti-player-pause':'ti ti-player-play'} aria-hidden="true"></i></button>
