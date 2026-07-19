@@ -55,6 +55,13 @@ const T = {
     alreadyInRoster: (n: string) => `${n} 이미 있어요!`,
     addedToRoster: (n: string, p: string) => `✅ ${n} → ${p}`,
     linkCopied: '🔗 링크가 복사됐어요!', closeVoteConfirm: '투표를 닫을까요?',
+    availOpen: '가능일', availOpenTitle: '가능일 투표 열기', availMonth: '대상 월',
+    availTitleLabel: '제목 (선택)', availTitlePlaceholder: '예: 8월 세션 가능일', availStart: '투표 열기',
+    availClose: '가능일 닫기', availCloseConfirm: '가능일 투표를 닫을까요?',
+    availStats: '날짜별 가능 인원', availBest: '가장 많이 되는 날', availConfirm: '이 날로 확정',
+    availConfirmed: '확정됨', availUnset: '확정 해제', availCodes: '멤버 접근 코드',
+    availCopyLink: '개인 링크', availCopyAll: '전체 공유 링크', availNoResp: '아직 응답이 없어요',
+    codeCopied: '📋 복사됐어요', availPeople: (n: number) => `${n}명`,
   },
   en: {
     notice: 'Notice', history: 'History', voteClose: 'Close Vote', voteOpen: 'Open Vote',
@@ -91,6 +98,13 @@ const T = {
     alreadyInRoster: (n: string) => `${n} already in roster!`,
     addedToRoster: (n: string, p: string) => `✅ ${n} → ${p}`,
     linkCopied: '🔗 Link copied!', closeVoteConfirm: 'Close the vote?',
+    availOpen: 'Dates', availOpenTitle: 'Open Availability Poll', availMonth: 'Target month',
+    availTitleLabel: 'Title (optional)', availTitlePlaceholder: 'e.g. August session dates', availStart: 'Open Poll',
+    availClose: 'Close Dates', availCloseConfirm: 'Close the availability poll?',
+    availStats: 'Available by day', availBest: 'Best days', availConfirm: 'Confirm this day',
+    availConfirmed: 'Confirmed', availUnset: 'Unset', availCodes: 'Member access codes',
+    availCopyLink: 'Personal link', availCopyAll: 'Share link', availNoResp: 'No responses yet',
+    codeCopied: '📋 Copied', availPeople: (n: number) => `${n}`,
   }
 };
 
@@ -209,6 +223,14 @@ export default function Dashboard() {
   const [showVotingModal, setShowVotingModal] = useState(false);
   const [votingTitle, setVotingTitle] = useState('');
   const [votingMemo, setVotingMemo] = useState('');
+
+  // 월별 가능일 투표
+  const [showAvailModal, setShowAvailModal] = useState(false);
+  const [availPoll, setAvailPoll] = useState<any>(null);
+  const [availPicks, setAvailPicks] = useState<any[]>([]);
+  const [availMonth, setAvailMonth] = useState(() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; });
+  const [availTitle, setAvailTitle] = useState('');
+  const [availSelDay, setAvailSelDay] = useState<number | null>(null);
 
   const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onOk: () => void } | null>(null);
   const [promptModal, setPromptModal] = useState<{ title: string; placeholder: string; onOk: (v: string) => void } | null>(null);
@@ -654,6 +676,72 @@ export default function Dashboard() {
     await supabase.from('voting_sessions').update({ is_open: false, result }).eq('id', votingSessionId);
     setVotingOpen(false);
   };
+
+  // ── 월별 가능일 투표 ─────────────────────────────────
+  const fetchAvailPoll = useCallback(async (u: any, project: string) => {
+    if (!u || !project) return;
+    const { data } = await supabase.from('availability_polls').select('*')
+      .eq('host_id', u.id).eq('project', project).eq('is_open', true)
+      .order('created_at', { ascending: false }).limit(1);
+    const p = data && data.length > 0 ? data[0] : null;
+    setAvailPoll(p);
+    if (p) { const { data: pk } = await supabase.from('availability_picks').select('*').eq('poll_id', p.id); setAvailPicks(pk || []); }
+    else setAvailPicks([]);
+  }, []);
+
+  const genCode = () => Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
+
+  const ensureMemberCodes = async () => {
+    const missing = members.filter(m => m.project === currentProject && !m.access_code);
+    for (const m of missing) {
+      const c = genCode();
+      await supabase.from('profiles').update({ access_code: c }).eq('id', m.id).eq('user_id', user.id);
+    }
+    if (missing.length > 0) await fetchMembers(user);
+  };
+
+  const openAvailPoll = async () => {
+    if (!availMonth) return;
+    await ensureMemberCodes();
+    const { data } = await supabase.from('availability_polls').insert({
+      host_id: user.id, project: currentProject, month: availMonth, title: availTitle || null, is_open: true,
+    }).select();
+    if (data) { setAvailPoll(data[0]); setAvailPicks([]); setAvailTitle(''); }
+  };
+
+  const closeAvailPoll = async () => {
+    if (!availPoll) return;
+    await supabase.from('availability_polls').update({ is_open: false }).eq('id', availPoll.id);
+    setAvailPoll(null); setAvailPicks([]);
+  };
+
+  const confirmAvailDay = async (day: number | null) => {
+    if (!availPoll) return;
+    await supabase.from('availability_polls').update({ final_day: day }).eq('id', availPoll.id);
+    setAvailPoll({ ...availPoll, final_day: day });
+  };
+
+  const copyMemberAvailLink = (m: any) => {
+    if (!availPoll) return;
+    navigator.clipboard.writeText(`${window.location.origin}/roster/availability/${user.id}?poll=${availPoll.id}&m=${m.id}&code=${m.access_code || ''}`);
+    showToastMsg(t.codeCopied);
+  };
+
+  const copyAvailShareLink = () => {
+    if (!availPoll) return;
+    navigator.clipboard.writeText(`${window.location.origin}/roster/availability/${user.id}?poll=${availPoll.id}`);
+    showToastMsg(t.linkCopied);
+  };
+
+  useEffect(() => {
+    if (!currentProject || !user) return;
+    fetchAvailPoll(user, currentProject);
+    const ch = supabase.channel(`avail-dash-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'availability_picks' }, () => fetchAvailPoll(user, currentProject))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'availability_polls', filter: `host_id=eq.${user.id}` }, () => fetchAvailPoll(user, currentProject))
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [currentProject, user, fetchAvailPoll]);
 
   const createFirstRoster = async () => {
     if (!firstRosterName.trim()) return;
@@ -1196,6 +1284,10 @@ export default function Dashboard() {
                   className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${votingOpen ? 'bg-[#E3B24A]/20 border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/30' : btnBg}`}>
                   {votingOpen ? t.voteClose : t.voteOpen}
                 </button>
+                <button onClick={() => { setAvailSelDay(null); setShowAvailModal(true); }}
+                  className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${availPoll ? 'bg-[#E3B24A]/20 border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/30' : btnBg}`}>
+                  {t.availOpen}{availPoll ? ' •' : ''}
+                </button>
                 <button onClick={() => setShowNoticeBoard(!showNoticeBoard)} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.notice}</button>
                 <button onClick={copyShareLink} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.share}</button>
                 <button onClick={() => showPrompt(t.randomMatch, t.teamCount, '2', async (v) => { const n = parseInt(v); setPromptModal(null); if (n > 0) await generateRandomRoster(n)(); })}
@@ -1645,6 +1737,118 @@ export default function Dashboard() {
           </div>
         </Modal>
       )}
+
+      {/* 가능일 투표 모달 */}
+      {showAvailModal && (() => {
+        const proj = members.filter(m => m.project === currentProject && !m.excluded);
+        const month = availPoll?.month || availMonth;
+        const [yy, mm] = (month || '2025-01').split('-').map(Number);
+        const daysInMonth = new Date(yy, mm, 0).getDate();
+        const firstWeekday = new Date(yy, mm - 1, 1).getDay();
+        const countOn = (d: number) => availPicks.filter(p => p.day === d).length;
+        const maxCount = Math.max(1, proj.length);
+        const membersOnDay = (d: number) => proj.filter(m => availPicks.some(p => p.member_id === m.id && p.day === d));
+        const best = Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => ({ d, c: countOn(d) })).filter(x => x.c > 0).sort((a, b) => b.c - a.c).slice(0, 6);
+        const cells: (number | null)[] = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+        const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setShowAvailModal(false)}>
+            <div onClick={e => e.stopPropagation()} className={`w-full max-w-lg max-h-[88vh] overflow-y-auto border rounded-2xl p-6 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+              <div className="flex items-center justify-between mb-5">
+                <h2 className={`font-black text-[16px] ${textMain}`}>{t.availOpenTitle}</h2>
+                <button onClick={() => setShowAvailModal(false)} className={`text-[13px] ${textSub} hover:opacity-70`}>✕</button>
+              </div>
+
+              {!availPoll ? (
+                <div className="flex flex-col gap-3">
+                  <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.availMonth}</label>
+                    <input type="month" value={availMonth} onChange={e => setAvailMonth(e.target.value)} className={`w-full border rounded-xl px-4 py-3 text-[13px] outline-none ${inputBg} ${textMain}`} /></div>
+                  <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.availTitleLabel}</label>
+                    <input value={availTitle} onChange={e => setAvailTitle(e.target.value)} placeholder={t.availTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-[13px] outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+                  <button onClick={openAvailPoll} className="mt-1 py-3 rounded-xl bg-[#E3B24A]/20 border border-[#E3B24A]/40 text-[#EFCF8E] font-black text-[12px] hover:bg-[#E3B24A]/30 transition-all">{t.availStart}</button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-5">
+                  <p className={`text-[13px] font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-[11px] font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availPeople(proj.length)}</span></p>
+
+                  {/* 히트맵 달력 */}
+                  <div>
+                    <div className="grid grid-cols-7 gap-1 mb-1">{wd.map((w, i) => <div key={i} className={`text-center text-[9px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}</div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {cells.map((d, i) => {
+                        if (d === null) return <div key={`e${i}`} />;
+                        const c = countOn(d); const isFinal = availPoll.final_day === d; const sel = availSelDay === d;
+                        return (
+                          <button key={d} onClick={() => setAvailSelDay(sel ? null : d)}
+                            className={`relative aspect-square rounded-lg border flex flex-col items-center justify-center transition-all hover:scale-[1.05]
+                              ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''} ${sel ? (theme === 'light' ? 'outline outline-1 outline-black/40' : 'outline outline-1 outline-white/50') : ''}
+                              ${theme === 'light' ? 'border-black/8' : 'border-white/8'}`}
+                            style={{ backgroundColor: c > 0 ? `rgba(227,178,74,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
+                            <span className={`text-[11px] font-bold ${textMain}`}>{d}</span>
+                            {c > 0 && <span className={`text-[8px] font-black ${textSub}`}>{c}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 선택한 날 멤버 */}
+                  {availSelDay !== null && (
+                    <div className={`rounded-xl border p-4 ${inputBg}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className={`text-[12px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPeople(countOn(availSelDay))}</p>
+                        <button onClick={() => confirmAvailDay(availPoll.final_day === availSelDay ? null : availSelDay)}
+                          className={`text-[10px] font-black px-3 py-1 rounded-full border transition-all ${availPoll.final_day === availSelDay ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
+                          {availPoll.final_day === availSelDay ? `★ ${t.availUnset}` : t.availConfirm}</button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {membersOnDay(availSelDay).map(m => <span key={m.id} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55', backgroundColor: (ROLE_COLORS[m.role] || '#aaa') + '18' }}>{m.name}</span>)}
+                        {countOn(availSelDay) === 0 && <span className={`text-[11px] ${textSub}`}>{t.availNoResp}</span>}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 베스트 데이 */}
+                  <div>
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availBest}</p>
+                    {best.length === 0 ? <p className={`text-[12px] ${textSub}`}>{t.availNoResp}</p> : (
+                      <div className="space-y-1.5">{best.map(({ d, c }) => (
+                        <button key={d} onClick={() => setAvailSelDay(d)} className="w-full flex items-center gap-2.5">
+                          <span className={`text-[12px] font-black w-9 text-left ${availPoll.final_day === d ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
+                          <div className={`flex-1 h-2 rounded-full overflow-hidden ${theme === 'light' ? 'bg-black/10' : 'bg-white/10'}`}><div className="h-full rounded-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} /></div>
+                          <span className={`text-[10px] font-black w-8 text-right ${textSub}`}>{t.availPeople(c)}</span>
+                        </button>
+                      ))}</div>
+                    )}
+                  </div>
+
+                  {/* 멤버 코드 */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <p className={`text-[10px] font-black uppercase tracking-widest ${textSub}`}>{t.availCodes}</p>
+                      <button onClick={copyAvailShareLink} className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all ${btnBg}`}>🔗 {t.availCopyAll}</button>
+                    </div>
+                    <div className="space-y-1">
+                      {proj.map(m => (
+                        <div key={m.id} className={`flex items-center justify-between px-3 py-2 rounded-lg ${inputBg}`}>
+                          <span className={`text-[12px] font-bold ${textMain}`}>{m.name} <span className={`text-[10px] font-normal ${textSub}`}>{m.role}</span></span>
+                          <div className="flex items-center gap-2">
+                            <code className={`text-[11px] font-mono tracking-widest ${textSub}`}>{m.access_code || '—'}</code>
+                            <button onClick={() => copyMemberAvailLink(m)} className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#E3B24A]/15 border border-[#E3B24A]/30 text-[#E3B24A] hover:bg-[#E3B24A]/25 transition-all">{t.availCopyLink}</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button onClick={() => showConfirm(t.availClose, t.availCloseConfirm, async () => { await closeAvailPoll(); setConfirmModal(null); })}
+                    className={`py-3 rounded-xl border font-bold text-[12px] transition-all ${theme === 'light' ? 'border-black/15 text-zinc-600 hover:bg-black/5' : 'border-white/15 text-zinc-400 hover:bg-white/5'}`}>{t.availClose}</button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Confirm 모달 */}
       {confirmModal && (
