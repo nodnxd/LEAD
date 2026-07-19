@@ -64,6 +64,9 @@ const T = {
     codeCopied: '📋 복사됐어요', availPeople: (n: number) => `${n}명`,
     availSubmitStatus: '제출 현황', availSubmitted: '제출', availWaiting: '미제출',
     availPossible: '가능', availMaybe: '미정',
+    availConfirmAdd: '확정에 추가', availConfirmRemove: '확정에서 빼기',
+    availBlockMode: '차단일 설정', availBlockDone: '설정 완료', availBlocked: '차단됨',
+    availBlockHint: '막을 날짜를 눌러 차단 (멤버는 못 고름)',
   },
   en: {
     notice: 'Notice', history: 'History', voteClose: 'Close Vote', voteOpen: 'Open Vote',
@@ -109,6 +112,9 @@ const T = {
     codeCopied: '📋 Copied', availPeople: (n: number) => `${n}`,
     availSubmitStatus: 'Submissions', availSubmitted: 'Submitted', availWaiting: 'Waiting',
     availPossible: 'Available', availMaybe: 'Maybe',
+    availConfirmAdd: 'Add to confirmed', availConfirmRemove: 'Remove from confirmed',
+    availBlockMode: 'Block days', availBlockDone: 'Done', availBlocked: 'Blocked',
+    availBlockHint: 'Tap days to block (members cannot pick)',
   }
 };
 
@@ -236,6 +242,7 @@ export default function Dashboard() {
   const [availMonth, setAvailMonth] = useState(() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; });
   const [availTitle, setAvailTitle] = useState('');
   const [availSelDay, setAvailSelDay] = useState<number | null>(null);
+  const [availBlockMode, setAvailBlockMode] = useState(false);
 
   const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onOk: () => void } | null>(null);
   const [promptModal, setPromptModal] = useState<{ title: string; placeholder: string; onOk: (v: string) => void } | null>(null);
@@ -710,10 +717,20 @@ export default function Dashboard() {
     setAvailPoll(null); setAvailPicks([]); setAvailSubs([]);
   };
 
-  const confirmAvailDay = async (day: number | null) => {
+  const toggleFinalDay = async (day: number) => {
     if (!availPoll) return;
-    await supabase.from('availability_polls').update({ final_day: day }).eq('id', availPoll.id);
-    setAvailPoll({ ...availPoll, final_day: day });
+    const cur: number[] = availPoll.final_days || [];
+    const next = cur.includes(day) ? cur.filter((x) => x !== day) : [...cur, day].sort((a, b) => a - b);
+    setAvailPoll({ ...availPoll, final_days: next });
+    await supabase.from('availability_polls').update({ final_days: next }).eq('id', availPoll.id);
+  };
+
+  const toggleBlockedDay = async (day: number) => {
+    if (!availPoll) return;
+    const cur: number[] = availPoll.blocked_days || [];
+    const next = cur.includes(day) ? cur.filter((x) => x !== day) : [...cur, day].sort((a, b) => a - b);
+    setAvailPoll({ ...availPoll, blocked_days: next });
+    await supabase.from('availability_polls').update({ blocked_days: next }).eq('id', availPoll.id);
   };
 
   const copyAvailShareLink = () => {
@@ -1739,7 +1756,9 @@ export default function Dashboard() {
         const maybeOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'maybe').length;
         const maxCount = Math.max(1, proj.length);
         const membersOnDay = (d: number, st: string) => proj.filter(m => availPicks.some(p => p.member_id === m.id && p.day === d && p.status === st));
-        const best = Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => ({ d, c: countOn(d), mb: maybeOn(d) })).filter(x => x.c + x.mb > 0).sort((a, b) => (b.c - a.c) || (b.mb - a.mb)).slice(0, 6);
+        const finals: number[] = availPoll?.final_days || [];
+        const blocked: number[] = availPoll?.blocked_days || [];
+        const best = Array.from({ length: daysInMonth }, (_, i) => i + 1).filter(d => !blocked.includes(d)).map(d => ({ d, c: countOn(d), mb: maybeOn(d) })).filter(x => x.c + x.mb > 0).sort((a, b) => (b.c - a.c) || (b.mb - a.mb)).slice(0, 6);
         const isSubmitted = (m: any) => availSubs.some(s => s.member_id === m.id);
         const cells: (number | null)[] = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
         const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -1768,19 +1787,26 @@ export default function Dashboard() {
 
                   {/* 히트맵 달력 */}
                   <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className={`text-[10px] ${availBlockMode ? 'text-[#C98BA0]' : textSub}`}>{availBlockMode ? t.availBlockHint : ''}</p>
+                      <button onClick={() => { setAvailBlockMode(v => !v); setAvailSelDay(null); }}
+                        className={`text-[10px] font-black px-3 py-1 rounded-full border transition-all ${availBlockMode ? 'bg-[#C98BA0]/25 border-[#C98BA0]/50 text-[#E3B8C6]' : `${btnBg}`}`}>
+                        {availBlockMode ? `✓ ${t.availBlockDone}` : `🚫 ${t.availBlockMode}`}</button>
+                    </div>
                     <div className="grid grid-cols-7 gap-1 mb-1">{wd.map((w, i) => <div key={i} className={`text-center text-[9px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}</div>
                     <div className="grid grid-cols-7 gap-1">
                       {cells.map((d, i) => {
                         if (d === null) return <div key={`e${i}`} />;
-                        const c = countOn(d); const isFinal = availPoll.final_day === d; const sel = availSelDay === d;
+                        const c = countOn(d); const isFinal = finals.includes(d); const isBlocked = blocked.includes(d); const sel = availSelDay === d;
                         return (
-                          <button key={d} onClick={() => setAvailSelDay(sel ? null : d)}
+                          <button key={d} onClick={() => availBlockMode ? toggleBlockedDay(d) : setAvailSelDay(sel ? null : d)}
                             className={`relative aspect-square rounded-lg border flex flex-col items-center justify-center transition-all hover:scale-[1.05]
                               ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''} ${sel ? (theme === 'light' ? 'outline outline-1 outline-black/40' : 'outline outline-1 outline-white/50') : ''}
-                              ${theme === 'light' ? 'border-black/8' : 'border-white/8'}`}
-                            style={{ backgroundColor: c > 0 ? `rgba(227,178,74,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
-                            <span className={`text-[11px] font-bold ${textMain}`}>{d}</span>
-                            {c > 0 && <span className={`text-[8px] font-black ${textSub}`}>{c}</span>}
+                              ${isBlocked ? 'border-[#C98BA0]/50' : theme === 'light' ? 'border-black/8' : 'border-white/8'}`}
+                            style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.18)' : c > 0 ? `rgba(227,178,74,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
+                            <span className={`text-[11px] font-bold ${isBlocked ? 'text-[#C98BA0] line-through' : textMain}`}>{d}</span>
+                            {isBlocked ? <span className="text-[7px] font-black text-[#C98BA0]">🚫</span> : c > 0 && <span className={`text-[8px] font-black ${textSub}`}>{c}</span>}
+                            {isFinal && <span className="absolute top-0.5 right-0.5 text-[8px] text-[#E3B24A]">★</span>}
                           </button>
                         );
                       })}
@@ -1792,9 +1818,9 @@ export default function Dashboard() {
                     <div className={`rounded-xl border p-4 ${inputBg}`}>
                       <div className="flex items-center justify-between mb-2">
                         <p className={`text-[12px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPossible} {countOn(availSelDay)} · {t.availMaybe} {maybeOn(availSelDay)}</p>
-                        <button onClick={() => confirmAvailDay(availPoll.final_day === availSelDay ? null : availSelDay)}
-                          className={`text-[10px] font-black px-3 py-1 rounded-full border transition-all ${availPoll.final_day === availSelDay ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
-                          {availPoll.final_day === availSelDay ? `★ ${t.availUnset}` : t.availConfirm}</button>
+                        <button onClick={() => toggleFinalDay(availSelDay)}
+                          className={`text-[10px] font-black px-3 py-1 rounded-full border transition-all ${finals.includes(availSelDay) ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
+                          {finals.includes(availSelDay) ? `★ ${t.availConfirmRemove}` : t.availConfirmAdd}</button>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {membersOnDay(availSelDay, 'available').map(m => <span key={m.id} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55', backgroundColor: (ROLE_COLORS[m.role] || '#aaa') + '18' }}>{m.name}</span>)}
@@ -1810,7 +1836,7 @@ export default function Dashboard() {
                     {best.length === 0 ? <p className={`text-[12px] ${textSub}`}>{t.availNoResp}</p> : (
                       <div className="space-y-1.5">{best.map(({ d, c, mb }) => (
                         <button key={d} onClick={() => setAvailSelDay(d)} className="w-full flex items-center gap-2.5">
-                          <span className={`text-[12px] font-black w-9 text-left ${availPoll.final_day === d ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
+                          <span className={`text-[12px] font-black w-9 text-left ${finals.includes(d) ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
                           <div className={`flex-1 h-2 rounded-full overflow-hidden flex ${theme === 'light' ? 'bg-black/10' : 'bg-white/10'}`}>
                             <div className="h-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} />
                             <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />

@@ -113,6 +113,7 @@ export default function AvailabilityView() {
 
   const cycleDay = async (day: number) => {
     if (!meId || !poll || !poll.is_open) return;
+    if ((poll.blocked_days || []).includes(day)) return;
     const cur = myStatus(day);
     const next: Status | null = cur === null ? 'available' : cur === 'available' ? 'maybe' : null;
     // optimistic
@@ -135,11 +136,13 @@ export default function AvailabilityView() {
   if (!poll) return <Screen>{t.noPoll}</Screen>;
 
   const { daysInMonth, firstWeekday, y, m } = monthMeta(poll.month);
+  const finals: number[] = poll.final_days || [];
+  const blocked: number[] = poll.blocked_days || [];
   const availOn = (d: number) => picks.filter((p) => p.day === d && p.status === 'available').length;
   const maybeOn = (d: number) => picks.filter((p) => p.day === d && p.status === 'maybe').length;
   const maxCount = Math.max(1, members.length);
   const membersOnDay = (d: number, st: Status) => members.filter((mm) => picks.some((p) => p.member_id === mm.id && p.day === d && p.status === st));
-  const bestDays = Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => ({ d, c: availOn(d), mb: maybeOn(d) })).filter((x) => x.c + x.mb > 0).sort((a, b) => (b.c - a.c) || (b.mb - a.mb)).slice(0, 6);
+  const bestDays = Array.from({ length: daysInMonth }, (_, i) => i + 1).filter((d) => !blocked.includes(d)).map((d) => ({ d, c: availOn(d), mb: maybeOn(d) })).filter((x) => x.c + x.mb > 0).sort((a, b) => (b.c - a.c) || (b.mb - a.mb)).slice(0, 6);
   const cells: (number | null)[] = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   const me = members.find((mm) => mm.id === meId);
 
@@ -176,7 +179,7 @@ export default function AvailabilityView() {
             })}
             {members.length === 0 && <p className={`text-[13px] ${textSub}`}>{t.noneYet}</p>}
           </div>
-          <BestDays t={t} lang={lang} bestDays={bestDays} maxCount={maxCount} finalDay={poll.final_day} onPick={setSelectedDay} />
+          <BestDays t={t} lang={lang} bestDays={bestDays} maxCount={maxCount} finals={finals} onPick={setSelectedDay} />
         </div>
       </div>
     );
@@ -214,29 +217,30 @@ export default function AvailabilityView() {
           <div className="grid grid-cols-7 gap-1.5">
             {cells.map((d, i) => {
               if (d === null) return <div key={`e${i}`} />;
-              const c = availOn(d); const st = myStatus(d); const isFinal = poll.final_day === d;
+              const c = availOn(d); const st = myStatus(d); const isFinal = finals.includes(d); const isBlocked = blocked.includes(d);
               return (
-                <button key={d} onClick={() => cycleDay(d)} onContextMenu={(e) => { e.preventDefault(); setSelectedDay(selectedDay === d ? null : d); }}
-                  disabled={!poll.is_open}
+                <button key={d} onClick={() => isBlocked ? undefined : cycleDay(d)} onContextMenu={(e) => { e.preventDefault(); setSelectedDay(selectedDay === d ? null : d); }}
+                  disabled={!poll.is_open || isBlocked}
                   className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center transition-all
                     ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''}
-                    ${st === 'available' ? 'border-[#E3B24A]/80' : st === 'maybe' ? 'border-[#B3A88C]/70 border-dashed' : 'border-white/8'}
-                    ${poll.is_open ? 'hover:scale-[1.04] cursor-pointer' : 'cursor-default'}`}
-                  style={{ backgroundColor: st === 'available' ? 'rgba(227,178,74,0.28)' : c > 0 ? `rgba(227,178,74,${(0.08 + (c / maxCount) * 0.4).toFixed(3)})` : 'transparent' }}>
-                  <span className={`text-[12px] font-bold ${st === 'available' ? 'text-[#EFCF8E]' : textMain}`}>{d}</span>
-                  {c > 0 && <span className={`text-[9px] font-black ${textSub}`}>{c}</span>}
-                  {st === 'maybe' && <span className="absolute top-1 right-1 text-[8px] font-black text-[#B3A88C]">?</span>}
+                    ${isBlocked ? 'border-[#C98BA0]/40 cursor-not-allowed' : st === 'available' ? 'border-[#E3B24A]/80' : st === 'maybe' ? 'border-[#B3A88C]/70 border-dashed' : 'border-white/8'}
+                    ${!isBlocked && poll.is_open ? 'hover:scale-[1.04] cursor-pointer' : 'cursor-default'}`}
+                  style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.14)' : st === 'available' ? 'rgba(227,178,74,0.28)' : c > 0 ? `rgba(227,178,74,${(0.08 + (c / maxCount) * 0.4).toFixed(3)})` : 'transparent' }}>
+                  <span className={`text-[12px] font-bold ${isBlocked ? 'text-[#C98BA0]/70 line-through' : st === 'available' ? 'text-[#EFCF8E]' : textMain}`}>{d}</span>
+                  {isBlocked ? <span className="text-[8px]">🚫</span> : c > 0 && <span className={`text-[9px] font-black ${textSub}`}>{c}</span>}
+                  {!isBlocked && st === 'maybe' && <span className="absolute top-1 right-1 text-[8px] font-black text-[#B3A88C]">?</span>}
+                  {isFinal && <span className="absolute top-0.5 right-0.5 text-[8px] text-[#E3B24A]">★</span>}
                 </button>
               );
             })}
           </div>
-          <p className={`text-[10px] mt-3 ${textSub}`}>{t.total} {members.length}{lang === 'ko' ? '명' : ''} · {t.done} {subs.length}{poll.final_day ? ` · ★ ${poll.final_day}${lang === 'ko' ? '일' : ''} ${t.confirmed}` : ''}</p>
+          <p className={`text-[10px] mt-3 ${textSub}`}>{t.total} {members.length}{lang === 'ko' ? '명' : ''} · {t.done} {subs.length}{finals.length ? ` · ★ ${finals.join(', ')}${lang === 'ko' ? '일' : ''} ${t.confirmed}` : ''}</p>
         </div>
 
         {selectedDay !== null && (
           <DayMembers t={t} lang={lang} day={selectedDay} avail={membersOnDay(selectedDay, 'available')} maybe={membersOnDay(selectedDay, 'maybe')} onClose={() => setSelectedDay(null)} />
         )}
-        <BestDays t={t} lang={lang} bestDays={bestDays} maxCount={maxCount} finalDay={poll.final_day} onPick={setSelectedDay} />
+        <BestDays t={t} lang={lang} bestDays={bestDays} maxCount={maxCount} finals={finals} onPick={setSelectedDay} />
       </div>
     </div>
   );
@@ -275,7 +279,8 @@ function DayMembers({ t, lang, day, avail, maybe, onClose }: any) {
   );
 }
 
-function BestDays({ t, lang, bestDays, maxCount, finalDay, onPick }: any) {
+function BestDays({ t, lang, bestDays, maxCount, finals, onPick }: any) {
+  const isFinal = (d: number) => (finals || []).includes(d);
   return (
     <div className="rounded-2xl border p-5 mt-8 bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]">
       <p className="text-[10px] font-black uppercase tracking-widest mb-4 text-zinc-400">{t.bestDays}</p>
@@ -283,13 +288,13 @@ function BestDays({ t, lang, bestDays, maxCount, finalDay, onPick }: any) {
         <div className="space-y-2">
           {bestDays.map(({ d, c, mb }: any) => (
             <button key={d} onClick={() => onPick(d)} className="w-full flex items-center gap-3">
-              <span className={`text-[13px] font-black w-10 text-left ${finalDay === d ? 'text-[#EFCF8E]' : 'text-white'}`}>{d}{lang === 'ko' ? '일' : ''}</span>
+              <span className={`text-[13px] font-black w-10 text-left ${isFinal(d) ? 'text-[#EFCF8E]' : 'text-white'}`}>{d}{lang === 'ko' ? '일' : ''}</span>
               <div className="flex-1 h-2.5 rounded-full overflow-hidden bg-white/10 flex">
                 <div className="h-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} />
                 <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />
               </div>
               <span className="text-[11px] font-black w-14 text-right text-zinc-400">{t.people(c)}{mb ? `+${mb}` : ''}</span>
-              {finalDay === d && <span className="text-[9px] font-black text-[#E3B24A]">★</span>}
+              {isFinal(d) && <span className="text-[9px] font-black text-[#E3B24A]">★</span>}
             </button>
           ))}
         </div>

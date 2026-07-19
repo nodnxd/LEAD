@@ -10,7 +10,8 @@ create table if not exists availability_polls (
   month text not null,                 -- 'YYYY-MM'
   title text,
   is_open boolean not null default true,
-  final_day int,                       -- 확정 세션일(1..31), null=미정
+  final_days int[] not null default '{}',   -- 확정 세션일들(여러 날 가능)
+  blocked_days int[] not null default '{}',  -- 호스트가 막아둔 날(멤버 선택 불가)
   created_at timestamptz default now()
 );
 create index if not exists availability_polls_host_idx on availability_polls (host_id, project);
