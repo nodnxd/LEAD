@@ -60,8 +60,10 @@ const T = {
     availClose: '가능일 닫기', availCloseConfirm: '가능일 투표를 닫을까요?',
     availStats: '날짜별 가능 인원', availBest: '가장 많이 되는 날', availConfirm: '이 날로 확정',
     availConfirmed: '확정됨', availUnset: '확정 해제', availCodes: '멤버 접근 코드',
-    availCopyLink: '개인 링크', availCopyAll: '전체 공유 링크', availNoResp: '아직 응답이 없어요',
+    availCopyLink: '개인 링크', availCopyAll: '공유 링크 복사', availNoResp: '아직 응답이 없어요',
     codeCopied: '📋 복사됐어요', availPeople: (n: number) => `${n}명`,
+    availSubmitStatus: '제출 현황', availSubmitted: '제출', availWaiting: '미제출',
+    availPossible: '가능', availMaybe: '미정',
   },
   en: {
     notice: 'Notice', history: 'History', voteClose: 'Close Vote', voteOpen: 'Open Vote',
@@ -103,8 +105,10 @@ const T = {
     availClose: 'Close Dates', availCloseConfirm: 'Close the availability poll?',
     availStats: 'Available by day', availBest: 'Best days', availConfirm: 'Confirm this day',
     availConfirmed: 'Confirmed', availUnset: 'Unset', availCodes: 'Member access codes',
-    availCopyLink: 'Personal link', availCopyAll: 'Share link', availNoResp: 'No responses yet',
+    availCopyLink: 'Personal link', availCopyAll: 'Copy share link', availNoResp: 'No responses yet',
     codeCopied: '📋 Copied', availPeople: (n: number) => `${n}`,
+    availSubmitStatus: 'Submissions', availSubmitted: 'Submitted', availWaiting: 'Waiting',
+    availPossible: 'Available', availMaybe: 'Maybe',
   }
 };
 
@@ -228,6 +232,7 @@ export default function Dashboard() {
   const [showAvailModal, setShowAvailModal] = useState(false);
   const [availPoll, setAvailPoll] = useState<any>(null);
   const [availPicks, setAvailPicks] = useState<any[]>([]);
+  const [availSubs, setAvailSubs] = useState<any[]>([]);
   const [availMonth, setAvailMonth] = useState(() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; });
   const [availTitle, setAvailTitle] = useState('');
   const [availSelDay, setAvailSelDay] = useState<number | null>(null);
@@ -685,46 +690,30 @@ export default function Dashboard() {
       .order('created_at', { ascending: false }).limit(1);
     const p = data && data.length > 0 ? data[0] : null;
     setAvailPoll(p);
-    if (p) { const { data: pk } = await supabase.from('availability_picks').select('*').eq('poll_id', p.id); setAvailPicks(pk || []); }
-    else setAvailPicks([]);
+    if (p) {
+      const { data: pk } = await supabase.from('availability_picks').select('*').eq('poll_id', p.id); setAvailPicks(pk || []);
+      const { data: sb } = await supabase.from('availability_submissions').select('*').eq('poll_id', p.id); setAvailSubs(sb || []);
+    } else { setAvailPicks([]); setAvailSubs([]); }
   }, []);
-
-  const genCode = () => Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-
-  const ensureMemberCodes = async () => {
-    const missing = members.filter(m => m.project === currentProject && !m.access_code);
-    for (const m of missing) {
-      const c = genCode();
-      await supabase.from('profiles').update({ access_code: c }).eq('id', m.id).eq('user_id', user.id);
-    }
-    if (missing.length > 0) await fetchMembers(user);
-  };
 
   const openAvailPoll = async () => {
     if (!availMonth) return;
-    await ensureMemberCodes();
     const { data } = await supabase.from('availability_polls').insert({
       host_id: user.id, project: currentProject, month: availMonth, title: availTitle || null, is_open: true,
     }).select();
-    if (data) { setAvailPoll(data[0]); setAvailPicks([]); setAvailTitle(''); }
+    if (data) { setAvailPoll(data[0]); setAvailPicks([]); setAvailSubs([]); setAvailTitle(''); }
   };
 
   const closeAvailPoll = async () => {
     if (!availPoll) return;
     await supabase.from('availability_polls').update({ is_open: false }).eq('id', availPoll.id);
-    setAvailPoll(null); setAvailPicks([]);
+    setAvailPoll(null); setAvailPicks([]); setAvailSubs([]);
   };
 
   const confirmAvailDay = async (day: number | null) => {
     if (!availPoll) return;
     await supabase.from('availability_polls').update({ final_day: day }).eq('id', availPoll.id);
     setAvailPoll({ ...availPoll, final_day: day });
-  };
-
-  const copyMemberAvailLink = (m: any) => {
-    if (!availPoll) return;
-    navigator.clipboard.writeText(`${window.location.origin}/roster/availability/${user.id}?poll=${availPoll.id}&m=${m.id}&code=${m.access_code || ''}`);
-    showToastMsg(t.codeCopied);
   };
 
   const copyAvailShareLink = () => {
@@ -738,6 +727,7 @@ export default function Dashboard() {
     fetchAvailPoll(user, currentProject);
     const ch = supabase.channel(`avail-dash-${user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'availability_picks' }, () => fetchAvailPoll(user, currentProject))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'availability_submissions' }, () => fetchAvailPoll(user, currentProject))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'availability_polls', filter: `host_id=eq.${user.id}` }, () => fetchAvailPoll(user, currentProject))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -1745,10 +1735,12 @@ export default function Dashboard() {
         const [yy, mm] = (month || '2025-01').split('-').map(Number);
         const daysInMonth = new Date(yy, mm, 0).getDate();
         const firstWeekday = new Date(yy, mm - 1, 1).getDay();
-        const countOn = (d: number) => availPicks.filter(p => p.day === d).length;
+        const countOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'available').length;
+        const maybeOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'maybe').length;
         const maxCount = Math.max(1, proj.length);
-        const membersOnDay = (d: number) => proj.filter(m => availPicks.some(p => p.member_id === m.id && p.day === d));
-        const best = Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => ({ d, c: countOn(d) })).filter(x => x.c > 0).sort((a, b) => b.c - a.c).slice(0, 6);
+        const membersOnDay = (d: number, st: string) => proj.filter(m => availPicks.some(p => p.member_id === m.id && p.day === d && p.status === st));
+        const best = Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => ({ d, c: countOn(d), mb: maybeOn(d) })).filter(x => x.c + x.mb > 0).sort((a, b) => (b.c - a.c) || (b.mb - a.mb)).slice(0, 6);
+        const isSubmitted = (m: any) => availSubs.some(s => s.member_id === m.id);
         const cells: (number | null)[] = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
         const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         return (
@@ -1769,7 +1761,10 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-5">
-                  <p className={`text-[13px] font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-[11px] font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availPeople(proj.length)}</span></p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-[13px] font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-[11px] font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availSubmitted} {availSubs.length}/{proj.length}</span></p>
+                    <button onClick={copyAvailShareLink} className={`shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-full border transition-all ${btnBg}`}>🔗 {t.availCopyAll}</button>
+                  </div>
 
                   {/* 히트맵 달력 */}
                   <div>
@@ -1796,14 +1791,15 @@ export default function Dashboard() {
                   {availSelDay !== null && (
                     <div className={`rounded-xl border p-4 ${inputBg}`}>
                       <div className="flex items-center justify-between mb-2">
-                        <p className={`text-[12px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPeople(countOn(availSelDay))}</p>
+                        <p className={`text-[12px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPossible} {countOn(availSelDay)} · {t.availMaybe} {maybeOn(availSelDay)}</p>
                         <button onClick={() => confirmAvailDay(availPoll.final_day === availSelDay ? null : availSelDay)}
                           className={`text-[10px] font-black px-3 py-1 rounded-full border transition-all ${availPoll.final_day === availSelDay ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
                           {availPoll.final_day === availSelDay ? `★ ${t.availUnset}` : t.availConfirm}</button>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {membersOnDay(availSelDay).map(m => <span key={m.id} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55', backgroundColor: (ROLE_COLORS[m.role] || '#aaa') + '18' }}>{m.name}</span>)}
-                        {countOn(availSelDay) === 0 && <span className={`text-[11px] ${textSub}`}>{t.availNoResp}</span>}
+                        {membersOnDay(availSelDay, 'available').map(m => <span key={m.id} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55', backgroundColor: (ROLE_COLORS[m.role] || '#aaa') + '18' }}>{m.name}</span>)}
+                        {membersOnDay(availSelDay, 'maybe').map(m => <span key={m.id} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-dashed" style={{ color: '#B3A88C', borderColor: '#B3A88C88', backgroundColor: '#B3A88C15' }}>{m.name} ?</span>)}
+                        {countOn(availSelDay) + maybeOn(availSelDay) === 0 && <span className={`text-[11px] ${textSub}`}>{t.availNoResp}</span>}
                       </div>
                     </div>
                   )}
@@ -1812,32 +1808,37 @@ export default function Dashboard() {
                   <div>
                     <p className={`text-[10px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availBest}</p>
                     {best.length === 0 ? <p className={`text-[12px] ${textSub}`}>{t.availNoResp}</p> : (
-                      <div className="space-y-1.5">{best.map(({ d, c }) => (
+                      <div className="space-y-1.5">{best.map(({ d, c, mb }) => (
                         <button key={d} onClick={() => setAvailSelDay(d)} className="w-full flex items-center gap-2.5">
                           <span className={`text-[12px] font-black w-9 text-left ${availPoll.final_day === d ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
-                          <div className={`flex-1 h-2 rounded-full overflow-hidden ${theme === 'light' ? 'bg-black/10' : 'bg-white/10'}`}><div className="h-full rounded-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} /></div>
-                          <span className={`text-[10px] font-black w-8 text-right ${textSub}`}>{t.availPeople(c)}</span>
+                          <div className={`flex-1 h-2 rounded-full overflow-hidden flex ${theme === 'light' ? 'bg-black/10' : 'bg-white/10'}`}>
+                            <div className="h-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} />
+                            <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />
+                          </div>
+                          <span className={`text-[10px] font-black w-10 text-right ${textSub}`}>{c}{mb ? `+${mb}` : ''}</span>
                         </button>
                       ))}</div>
                     )}
                   </div>
 
-                  {/* 멤버 코드 */}
+                  {/* 제출 현황 (어드민) */}
                   <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <p className={`text-[10px] font-black uppercase tracking-widest ${textSub}`}>{t.availCodes}</p>
-                      <button onClick={copyAvailShareLink} className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all ${btnBg}`}>🔗 {t.availCopyAll}</button>
-                    </div>
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availSubmitStatus} · {availSubs.length}/{proj.length}</p>
                     <div className="space-y-1">
-                      {proj.map(m => (
-                        <div key={m.id} className={`flex items-center justify-between px-3 py-2 rounded-lg ${inputBg}`}>
-                          <span className={`text-[12px] font-bold ${textMain}`}>{m.name} <span className={`text-[10px] font-normal ${textSub}`}>{m.role}</span></span>
-                          <div className="flex items-center gap-2">
-                            <code className={`text-[11px] font-mono tracking-widest ${textSub}`}>{m.access_code || '—'}</code>
-                            <button onClick={() => copyMemberAvailLink(m)} className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#E3B24A]/15 border border-[#E3B24A]/30 text-[#E3B24A] hover:bg-[#E3B24A]/25 transition-all">{t.availCopyLink}</button>
+                      {proj.map(m => {
+                        const done = isSubmitted(m);
+                        const cnt = availPicks.filter(p => p.member_id === m.id && p.status === 'available').length;
+                        const mcnt = availPicks.filter(p => p.member_id === m.id && p.status === 'maybe').length;
+                        return (
+                          <div key={m.id} className={`flex items-center justify-between px-3 py-2 rounded-lg ${inputBg}`}>
+                            <span className={`text-[12px] font-bold ${textMain}`}>{m.name} <span className={`text-[10px] font-normal ${textSub}`}>{m.role}</span></span>
+                            <div className="flex items-center gap-2.5">
+                              <span className={`text-[10px] font-black ${textSub}`}>{t.availPossible} {cnt}{mcnt ? ` · ${t.availMaybe} ${mcnt}` : ''}</span>
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? `✓ ${t.availSubmitted}` : t.availWaiting}</span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
