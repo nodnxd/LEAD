@@ -161,13 +161,13 @@ export default function AvailabilityView() {
               const col = ROLE_COLORS[role] || '#9aa';
               return (
                 <div key={role}>
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-2.5" style={{ color: col + 'cc' }}>{role}</p>
+                  <p className="text-[11px] font-black uppercase tracking-widest mb-2.5" style={{ color: col + 'cc' }}>{role}</p>
                   <div className="flex flex-wrap gap-2.5">
                     {items.map((mm) => {
                       const done = subs.some((s) => s.member_id === mm.id);
                       return (
                         <button key={mm.id} onClick={() => setMeId(mm.id)}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-full border font-black text-[13px] transition-all hover:scale-105"
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-full border font-black text-[14px] transition-all hover:scale-105"
                           style={{ color: col, borderColor: col + '55', backgroundColor: col + '18' }}>
                           {mm.name}{done && <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: col }} />}
                         </button>
@@ -201,10 +201,10 @@ export default function AvailabilityView() {
             </button>
           )}
         </div>
-        <p className={`text-[11px] mb-4 ${textSub}`}>{t.guide}</p>
+        <p className={`text-[12px] mb-4 ${textSub}`}>{t.guide}</p>
 
         {/* legend */}
-        <div className="flex items-center gap-4 mb-3 text-[11px]">
+        <div className="flex items-center gap-4 mb-3 text-[12px]">
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ backgroundColor: 'rgba(227,178,74,0.6)' }} /> {t.available}</span>
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border border-[#B3A88C]/70" /> {t.maybe}</span>
         </div>
@@ -212,7 +212,7 @@ export default function AvailabilityView() {
         {/* calendar */}
         <div className={`rounded-2xl border p-4 sm:p-6 mb-8 ${cardBg}`}>
           <div className="grid grid-cols-7 gap-1.5 mb-2">
-            {t.weekdays.map((w, i) => <div key={i} className={`text-center text-[10px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}
+            {t.weekdays.map((w, i) => <div key={i} className={`text-center text-[11px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-1.5">
             {cells.map((d, i) => {
@@ -226,15 +226,15 @@ export default function AvailabilityView() {
                     ${isBlocked ? 'border-[#C98BA0]/40 cursor-not-allowed' : st === 'available' ? 'border-[#E3B24A]/80' : st === 'maybe' ? 'border-[#B3A88C]/70 border-dashed' : 'border-white/8'}
                     ${!isBlocked && poll.is_open ? 'hover:scale-[1.04] cursor-pointer' : 'cursor-default'}`}
                   style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.14)' : st === 'available' ? 'rgba(227,178,74,0.28)' : c > 0 ? `rgba(227,178,74,${(0.08 + (c / maxCount) * 0.4).toFixed(3)})` : 'transparent' }}>
-                  <span className={`text-[12px] font-bold ${isBlocked ? 'text-[#C98BA0]/70 line-through' : st === 'available' ? 'text-[#EFCF8E]' : textMain}`}>{d}</span>
-                  {!isBlocked && c > 0 && <span className={`text-[9px] font-black ${textSub}`}>{c}</span>}
+                  <span className={`text-[13px] font-bold ${isBlocked ? 'text-[#C98BA0]/70 line-through' : st === 'available' ? 'text-[#EFCF8E]' : textMain}`}>{d}</span>
+                  {!isBlocked && c > 0 && <span className={`text-[10px] font-black ${textSub}`}>{c}</span>}
                   {!isBlocked && st === 'maybe' && <span className="absolute top-1 right-1 text-[8px] font-black text-[#B3A88C]">?</span>}
                   {isFinal && <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
                 </button>
               );
             })}
           </div>
-          <p className={`text-[10px] mt-3 ${textSub}`}>{t.total} {members.length}{lang === 'ko' ? '명' : ''} · {t.done} {subs.length}{finals.length ? ` · ${t.confirmed} ${finals.join(', ')}${lang === 'ko' ? '일' : ''}` : ''}</p>
+          <p className={`text-[11px] mt-3 ${textSub}`}>{t.total} {members.length}{lang === 'ko' ? '명' : ''} · {t.done} {subs.length}{finals.length ? ` · ${t.confirmed} ${finals.join(', ')}${lang === 'ko' ? '일' : ''}` : ''}</p>
         </div>
 
         {selectedDay !== null && (
@@ -262,7 +262,7 @@ function Header({ t, poll, y, m, lang }: any) {
 
 function DayMembers({ t, lang, day, avail, maybe, onClose }: any) {
   const chip = (mm: any, dim: boolean) => (
-    <span key={mm.id} className="px-3 py-1 rounded-full text-[11px] font-bold border" style={{ color: ROLE_COLORS[mm.role] || '#aaa', borderColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '35' : '55'), backgroundColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '10' : '18'), opacity: dim ? 0.7 : 1 }}>{mm.name}</span>
+    <span key={mm.id} className="px-3 py-1 rounded-full text-[12px] font-bold border" style={{ color: ROLE_COLORS[mm.role] || '#aaa', borderColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '35' : '55'), backgroundColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '10' : '18'), opacity: dim ? 0.7 : 1 }}>{mm.name}</span>
   );
   return (
     <div className="rounded-2xl border p-5 mb-8 bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]">
@@ -283,7 +283,7 @@ function BestDays({ t, lang, bestDays, maxCount, finals, onPick }: any) {
   const isFinal = (d: number) => (finals || []).includes(d);
   return (
     <div className="rounded-2xl border p-5 mt-8 bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]">
-      <p className="text-[10px] font-black uppercase tracking-widest mb-4 text-zinc-400">{t.bestDays}</p>
+      <p className="text-[11px] font-black uppercase tracking-widest mb-4 text-zinc-400">{t.bestDays}</p>
       {bestDays.length === 0 ? <p className="text-[12px] text-zinc-400">{t.noneYet}</p> : (
         <div className="space-y-2">
           {bestDays.map(({ d, c, mb }: any) => (
@@ -293,7 +293,7 @@ function BestDays({ t, lang, bestDays, maxCount, finals, onPick }: any) {
                 <div className="h-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} />
                 <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />
               </div>
-              <span className="text-[11px] font-black w-14 text-right text-zinc-400">{t.people(c)}{mb ? `+${mb}` : ''}</span>
+              <span className="text-[12px] font-black w-14 text-right text-zinc-400">{t.people(c)}{mb ? `+${mb}` : ''}</span>
               {isFinal(d) && <span className="w-1.5 h-1.5 rounded-full bg-[#E3B24A] shrink-0" />}
             </button>
           ))}

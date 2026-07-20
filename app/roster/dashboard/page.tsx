@@ -1764,7 +1764,7 @@ export default function Dashboard() {
         const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setShowAvailModal(false)}>
-            <div onClick={e => e.stopPropagation()} className={`w-full max-w-2xl max-h-[92vh] overflow-y-auto border rounded-2xl p-7 sm:p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+            <div onClick={e => e.stopPropagation()} className={`w-full ${availPoll ? 'max-w-4xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto border rounded-2xl p-7 sm:p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-[16px] ${textMain}`}>{t.availOpenTitle}</h2>
                 <button onClick={() => setShowAvailModal(false)} className={`text-[13px] ${textSub} hover:opacity-70`}>✕</button>
@@ -1781,95 +1781,101 @@ export default function Dashboard() {
               ) : (
                 <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between gap-2">
-                    <p className={`text-[13px] font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-[11px] font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availSubmitted} {availSubs.length}/{proj.length}</span></p>
-                    <button onClick={copyAvailShareLink} className={`shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-full border transition-all ${btnBg}`}>{t.availCopyAll}</button>
+                    <p className={`text-[15px] font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-[12px] font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availSubmitted} {availSubs.length}/{proj.length}</span></p>
+                    <button onClick={copyAvailShareLink} className={`shrink-0 text-[11px] font-bold px-3.5 py-1.5 rounded-full border transition-all ${btnBg}`}>{t.availCopyAll}</button>
                   </div>
 
-                  {/* 히트맵 달력 */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className={`text-[10px] ${availBlockMode ? 'text-[#C98BA0]' : textSub}`}>{availBlockMode ? t.availBlockHint : ''}</p>
-                      <button onClick={() => { setAvailBlockMode(v => !v); setAvailSelDay(null); }}
-                        className={`text-[10px] font-black px-3 py-1 rounded-full border transition-all ${availBlockMode ? 'bg-[#C98BA0]/25 border-[#C98BA0]/50 text-[#E3B8C6]' : `${btnBg}`}`}>
-                        {availBlockMode ? t.availBlockDone : t.availBlockMode}</button>
-                    </div>
-                    <div className="grid grid-cols-7 gap-1 mb-1">{wd.map((w, i) => <div key={i} className={`text-center text-[9px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}</div>
-                    <div className="grid grid-cols-7 gap-1">
-                      {cells.map((d, i) => {
-                        if (d === null) return <div key={`e${i}`} />;
-                        const c = countOn(d); const isFinal = finals.includes(d); const isBlocked = blocked.includes(d); const sel = availSelDay === d;
-                        return (
-                          <button key={d} onClick={() => availBlockMode ? toggleBlockedDay(d) : setAvailSelDay(sel ? null : d)}
-                            className={`relative aspect-square rounded-lg border flex flex-col items-center justify-center transition-all hover:scale-[1.05]
-                              ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''} ${sel ? (theme === 'light' ? 'outline outline-1 outline-black/40' : 'outline outline-1 outline-white/50') : ''}
-                              ${isBlocked ? 'border-[#C98BA0]/50' : theme === 'light' ? 'border-black/8' : 'border-white/8'}`}
-                            style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.18)' : c > 0 ? `rgba(227,178,74,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
-                            <span className={`text-[11px] font-bold ${isBlocked ? 'text-[#C98BA0] line-through' : textMain}`}>{d}</span>
-                            {!isBlocked && c > 0 && <span className={`text-[8px] font-black ${textSub}`}>{c}</span>}
-                            {isFinal && <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* 선택한 날 멤버 */}
-                  {availSelDay !== null && (
-                    <div className={`rounded-xl border p-4 ${inputBg}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className={`text-[12px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPossible} {countOn(availSelDay)} · {t.availMaybe} {maybeOn(availSelDay)}</p>
-                        <button onClick={() => toggleFinalDay(availSelDay)}
-                          className={`text-[10px] font-black px-3 py-1 rounded-full border transition-all ${finals.includes(availSelDay) ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
-                          {finals.includes(availSelDay) ? t.availConfirmRemove : t.availConfirmAdd}</button>
+                  <div className="grid md:grid-cols-2 gap-6 items-start">
+                    {/* 좌: 달력 + 선택일 + 베스트 */}
+                    <div className="flex flex-col gap-5">
+                      {/* 히트맵 달력 */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2 gap-2">
+                          <p className={`text-[11px] ${availBlockMode ? 'text-[#C98BA0]' : textSub}`}>{availBlockMode ? t.availBlockHint : ''}</p>
+                          <button onClick={() => { setAvailBlockMode(v => !v); setAvailSelDay(null); }}
+                            className={`shrink-0 text-[11px] font-black px-3.5 py-1 rounded-full border transition-all ${availBlockMode ? 'bg-[#C98BA0]/25 border-[#C98BA0]/50 text-[#E3B8C6]' : `${btnBg}`}`}>
+                            {availBlockMode ? t.availBlockDone : t.availBlockMode}</button>
+                        </div>
+                        <div className="grid grid-cols-7 gap-1.5 mb-1.5">{wd.map((w, i) => <div key={i} className={`text-center text-[10px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}</div>
+                        <div className="grid grid-cols-7 gap-1.5">
+                          {cells.map((d, i) => {
+                            if (d === null) return <div key={`e${i}`} />;
+                            const c = countOn(d); const isFinal = finals.includes(d); const isBlocked = blocked.includes(d); const sel = availSelDay === d;
+                            return (
+                              <button key={d} onClick={() => availBlockMode ? toggleBlockedDay(d) : setAvailSelDay(sel ? null : d)}
+                                className={`relative aspect-square rounded-lg border flex flex-col items-center justify-center transition-all hover:scale-[1.05]
+                                  ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''} ${sel ? (theme === 'light' ? 'outline outline-1 outline-black/40' : 'outline outline-1 outline-white/50') : ''}
+                                  ${isBlocked ? 'border-[#C98BA0]/50' : theme === 'light' ? 'border-black/8' : 'border-white/8'}`}
+                                style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.18)' : c > 0 ? `rgba(227,178,74,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
+                                <span className={`text-[13px] font-bold ${isBlocked ? 'text-[#C98BA0] line-through' : textMain}`}>{d}</span>
+                                {!isBlocked && c > 0 && <span className={`text-[9px] font-black ${textSub}`}>{c}</span>}
+                                {isFinal && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {membersOnDay(availSelDay, 'available').map(m => <span key={m.id} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55', backgroundColor: (ROLE_COLORS[m.role] || '#aaa') + '18' }}>{m.name}</span>)}
-                        {membersOnDay(availSelDay, 'maybe').map(m => <span key={m.id} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-dashed" style={{ color: '#B3A88C', borderColor: '#B3A88C88', backgroundColor: '#B3A88C15' }}>{m.name} ?</span>)}
-                        {countOn(availSelDay) + maybeOn(availSelDay) === 0 && <span className={`text-[11px] ${textSub}`}>{t.availNoResp}</span>}
-                      </div>
-                    </div>
-                  )}
 
-                  {/* 베스트 데이 */}
-                  <div>
-                    <p className={`text-[10px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availBest}</p>
-                    {best.length === 0 ? <p className={`text-[12px] ${textSub}`}>{t.availNoResp}</p> : (
-                      <div className="space-y-1.5">{best.map(({ d, c, mb }) => (
-                        <button key={d} onClick={() => setAvailSelDay(d)} className="w-full flex items-center gap-2.5">
-                          <span className={`text-[12px] font-black w-9 text-left ${finals.includes(d) ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
-                          <div className={`flex-1 h-2 rounded-full overflow-hidden flex ${theme === 'light' ? 'bg-black/10' : 'bg-white/10'}`}>
-                            <div className="h-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} />
-                            <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />
+                      {/* 선택한 날 멤버 */}
+                      {availSelDay !== null && (
+                        <div className={`rounded-xl border p-4 ${inputBg}`}>
+                          <div className="flex items-center justify-between mb-2 gap-2">
+                            <p className={`text-[13px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPossible} {countOn(availSelDay)} · {t.availMaybe} {maybeOn(availSelDay)}</p>
+                            <button onClick={() => toggleFinalDay(availSelDay)}
+                              className={`shrink-0 text-[11px] font-black px-3.5 py-1 rounded-full border transition-all ${finals.includes(availSelDay) ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
+                              {finals.includes(availSelDay) ? t.availConfirmRemove : t.availConfirmAdd}</button>
                           </div>
-                          <span className={`text-[10px] font-black w-10 text-right ${textSub}`}>{c}{mb ? `+${mb}` : ''}</span>
-                        </button>
-                      ))}</div>
-                    )}
-                  </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {membersOnDay(availSelDay, 'available').map(m => <span key={m.id} className="px-3 py-1 rounded-full text-[11px] font-bold border" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55', backgroundColor: (ROLE_COLORS[m.role] || '#aaa') + '18' }}>{m.name}</span>)}
+                            {membersOnDay(availSelDay, 'maybe').map(m => <span key={m.id} className="px-3 py-1 rounded-full text-[11px] font-bold border border-dashed" style={{ color: '#B3A88C', borderColor: '#B3A88C88', backgroundColor: '#B3A88C15' }}>{m.name} ?</span>)}
+                            {countOn(availSelDay) + maybeOn(availSelDay) === 0 && <span className={`text-[12px] ${textSub}`}>{t.availNoResp}</span>}
+                          </div>
+                        </div>
+                      )}
 
-                  {/* 제출 현황 (어드민) */}
-                  <div>
-                    <p className={`text-[10px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availSubmitStatus} · {availSubs.length}/{proj.length}</p>
-                    <div className="space-y-1">
-                      {proj.map(m => {
-                        const done = isSubmitted(m);
-                        const cnt = availPicks.filter(p => p.member_id === m.id && p.status === 'available').length;
-                        const mcnt = availPicks.filter(p => p.member_id === m.id && p.status === 'maybe').length;
-                        return (
-                          <div key={m.id} className={`flex items-center justify-between px-3 py-2 rounded-lg ${inputBg}`}>
-                            <span className={`text-[12px] font-bold ${textMain}`}>{m.name} <span className={`text-[10px] font-normal ${textSub}`}>{m.role}</span></span>
-                            <div className="flex items-center gap-2.5">
-                              <span className={`text-[10px] font-black ${textSub}`}>{t.availPossible} {cnt}{mcnt ? ` · ${t.availMaybe} ${mcnt}` : ''}</span>
-                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
+                      {/* 베스트 데이 */}
+                      <div>
+                        <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availBest}</p>
+                        {best.length === 0 ? <p className={`text-[13px] ${textSub}`}>{t.availNoResp}</p> : (
+                          <div className="space-y-2">{best.map(({ d, c, mb }) => (
+                            <button key={d} onClick={() => setAvailSelDay(d)} className="w-full flex items-center gap-2.5">
+                              <span className={`text-[13px] font-black w-10 text-left ${finals.includes(d) ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
+                              <div className={`flex-1 h-2.5 rounded-full overflow-hidden flex ${theme === 'light' ? 'bg-black/10' : 'bg-white/10'}`}>
+                                <div className="h-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} />
+                                <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />
+                              </div>
+                              <span className={`text-[11px] font-black w-11 text-right ${textSub}`}>{c}{mb ? `+${mb}` : ''}</span>
+                            </button>
+                          ))}</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 우: 제출 현황 (어드민) */}
+                    <div className={`md:border-l md:pl-6 ${theme === 'light' ? 'md:border-black/10' : 'md:border-white/8'}`}>
+                      <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availSubmitStatus} · {availSubs.length}/{proj.length}</p>
+                      <div className="space-y-1.5">
+                        {proj.map(m => {
+                          const done = isSubmitted(m);
+                          const cnt = availPicks.filter(p => p.member_id === m.id && p.status === 'available').length;
+                          const mcnt = availPicks.filter(p => p.member_id === m.id && p.status === 'maybe').length;
+                          return (
+                            <div key={m.id} className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg ${inputBg}`}>
+                              <span className={`text-[13px] font-bold ${textMain}`}>{m.name} <span className={`text-[11px] font-normal ${textSub}`}>{m.role}</span></span>
+                              <div className="flex items-center gap-2.5">
+                                <span className={`text-[11px] font-black ${textSub}`}>{t.availPossible} {cnt}{mcnt ? ` · ${t.availMaybe} ${mcnt}` : ''}</span>
+                                <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                        {proj.length === 0 && <p className={`text-[13px] ${textSub}`}>{t.availNoResp}</p>}
+                      </div>
                     </div>
                   </div>
 
                   <button onClick={() => showConfirm(t.availClose, t.availCloseConfirm, async () => { await closeAvailPoll(); setConfirmModal(null); })}
-                    className={`py-3 rounded-xl border font-bold text-[12px] transition-all ${theme === 'light' ? 'border-black/15 text-zinc-600 hover:bg-black/5' : 'border-white/15 text-zinc-400 hover:bg-white/5'}`}>{t.availClose}</button>
+                    className={`py-3 rounded-xl border font-bold text-[13px] transition-all ${theme === 'light' ? 'border-black/15 text-zinc-600 hover:bg-black/5' : 'border-white/15 text-zinc-400 hover:bg-white/5'}`}>{t.availClose}</button>
                 </div>
               )}
             </div>
