@@ -1764,7 +1764,7 @@ export default function Dashboard() {
         const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setShowAvailModal(false)}>
-            <div onClick={e => e.stopPropagation()} className={`w-full max-w-lg max-h-[88vh] overflow-y-auto border rounded-2xl p-6 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+            <div onClick={e => e.stopPropagation()} className={`w-full max-w-2xl max-h-[92vh] overflow-y-auto border rounded-2xl p-7 sm:p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-[16px] ${textMain}`}>{t.availOpenTitle}</h2>
                 <button onClick={() => setShowAvailModal(false)} className={`text-[13px] ${textSub} hover:opacity-70`}>✕</button>
@@ -1782,7 +1782,7 @@ export default function Dashboard() {
                 <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between gap-2">
                     <p className={`text-[13px] font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-[11px] font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availSubmitted} {availSubs.length}/{proj.length}</span></p>
-                    <button onClick={copyAvailShareLink} className={`shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-full border transition-all ${btnBg}`}>🔗 {t.availCopyAll}</button>
+                    <button onClick={copyAvailShareLink} className={`shrink-0 text-[10px] font-bold px-3 py-1.5 rounded-full border transition-all ${btnBg}`}>{t.availCopyAll}</button>
                   </div>
 
                   {/* 히트맵 달력 */}
@@ -1791,7 +1791,7 @@ export default function Dashboard() {
                       <p className={`text-[10px] ${availBlockMode ? 'text-[#C98BA0]' : textSub}`}>{availBlockMode ? t.availBlockHint : ''}</p>
                       <button onClick={() => { setAvailBlockMode(v => !v); setAvailSelDay(null); }}
                         className={`text-[10px] font-black px-3 py-1 rounded-full border transition-all ${availBlockMode ? 'bg-[#C98BA0]/25 border-[#C98BA0]/50 text-[#E3B8C6]' : `${btnBg}`}`}>
-                        {availBlockMode ? `✓ ${t.availBlockDone}` : `🚫 ${t.availBlockMode}`}</button>
+                        {availBlockMode ? t.availBlockDone : t.availBlockMode}</button>
                     </div>
                     <div className="grid grid-cols-7 gap-1 mb-1">{wd.map((w, i) => <div key={i} className={`text-center text-[9px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}</div>
                     <div className="grid grid-cols-7 gap-1">
@@ -1805,8 +1805,8 @@ export default function Dashboard() {
                               ${isBlocked ? 'border-[#C98BA0]/50' : theme === 'light' ? 'border-black/8' : 'border-white/8'}`}
                             style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.18)' : c > 0 ? `rgba(227,178,74,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
                             <span className={`text-[11px] font-bold ${isBlocked ? 'text-[#C98BA0] line-through' : textMain}`}>{d}</span>
-                            {isBlocked ? <span className="text-[7px] font-black text-[#C98BA0]">🚫</span> : c > 0 && <span className={`text-[8px] font-black ${textSub}`}>{c}</span>}
-                            {isFinal && <span className="absolute top-0.5 right-0.5 text-[8px] text-[#E3B24A]">★</span>}
+                            {!isBlocked && c > 0 && <span className={`text-[8px] font-black ${textSub}`}>{c}</span>}
+                            {isFinal && <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
                           </button>
                         );
                       })}
@@ -1820,7 +1820,7 @@ export default function Dashboard() {
                         <p className={`text-[12px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPossible} {countOn(availSelDay)} · {t.availMaybe} {maybeOn(availSelDay)}</p>
                         <button onClick={() => toggleFinalDay(availSelDay)}
                           className={`text-[10px] font-black px-3 py-1 rounded-full border transition-all ${finals.includes(availSelDay) ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
-                          {finals.includes(availSelDay) ? `★ ${t.availConfirmRemove}` : t.availConfirmAdd}</button>
+                          {finals.includes(availSelDay) ? t.availConfirmRemove : t.availConfirmAdd}</button>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {membersOnDay(availSelDay, 'available').map(m => <span key={m.id} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55', backgroundColor: (ROLE_COLORS[m.role] || '#aaa') + '18' }}>{m.name}</span>)}
@@ -1860,7 +1860,7 @@ export default function Dashboard() {
                             <span className={`text-[12px] font-bold ${textMain}`}>{m.name} <span className={`text-[10px] font-normal ${textSub}`}>{m.role}</span></span>
                             <div className="flex items-center gap-2.5">
                               <span className={`text-[10px] font-black ${textSub}`}>{t.availPossible} {cnt}{mcnt ? ` · ${t.availMaybe} ${mcnt}` : ''}</span>
-                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? `✓ ${t.availSubmitted}` : t.availWaiting}</span>
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
                             </div>
                           </div>
                         );

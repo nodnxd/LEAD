@@ -20,7 +20,7 @@ const TX = {
     availability: '가능일 투표', notFound: '존재하지 않는 로스터예요', noPoll: '열린 가능일 투표가 없어요', closed: '마감됨',
     pickName: '이름을 골라 들어가세요', back: '← 이름 다시 고르기',
     guide: '한 번 누르면 가능, 두 번 누르면 미정, 세 번 누르면 해제',
-    available: '가능', maybe: '미정', submit: '확정하기', submitted: '✓ 제출 완료', reopen: '수정하기',
+    available: '가능', maybe: '미정', submit: '확정하기', submitted: '제출 완료', reopen: '수정하기',
     bestDays: '가장 많이 되는 날', people: (n: number) => `${n}명`, onDay: (d: number) => `${d}일`,
     noneYet: '아직 응답이 없어요', confirmed: '확정', done: '제출',
     weekdays: ['일', '월', '화', '수', '목', '금', '토'], total: '전체',
@@ -29,7 +29,7 @@ const TX = {
     availability: 'Availability', notFound: 'Roster not found', noPoll: 'No open availability poll', closed: 'Closed',
     pickName: 'Pick your name to enter', back: '← Change name',
     guide: 'Tap once = available, twice = maybe, three times = clear',
-    available: 'Available', maybe: 'Maybe', submit: 'Submit', submitted: '✓ Submitted', reopen: 'Edit',
+    available: 'Available', maybe: 'Maybe', submit: 'Submit', submitted: 'Submitted', reopen: 'Edit',
     bestDays: 'Best days', people: (n: number) => `${n}`, onDay: (d: number) => `Day ${d}`,
     noneYet: 'No responses yet', confirmed: 'Confirmed', done: 'Submitted',
     weekdays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'], total: 'Total',
@@ -169,7 +169,7 @@ export default function AvailabilityView() {
                         <button key={mm.id} onClick={() => setMeId(mm.id)}
                           className="flex items-center gap-2 px-4 py-2.5 rounded-full border font-black text-[13px] transition-all hover:scale-105"
                           style={{ color: col, borderColor: col + '55', backgroundColor: col + '18' }}>
-                          {mm.name}{done && <span className="text-[10px] font-bold" style={{ color: col }}>✓</span>}
+                          {mm.name}{done && <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: col }} />}
                         </button>
                       );
                     })}
@@ -227,14 +227,14 @@ export default function AvailabilityView() {
                     ${!isBlocked && poll.is_open ? 'hover:scale-[1.04] cursor-pointer' : 'cursor-default'}`}
                   style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.14)' : st === 'available' ? 'rgba(227,178,74,0.28)' : c > 0 ? `rgba(227,178,74,${(0.08 + (c / maxCount) * 0.4).toFixed(3)})` : 'transparent' }}>
                   <span className={`text-[12px] font-bold ${isBlocked ? 'text-[#C98BA0]/70 line-through' : st === 'available' ? 'text-[#EFCF8E]' : textMain}`}>{d}</span>
-                  {isBlocked ? <span className="text-[8px]">🚫</span> : c > 0 && <span className={`text-[9px] font-black ${textSub}`}>{c}</span>}
+                  {!isBlocked && c > 0 && <span className={`text-[9px] font-black ${textSub}`}>{c}</span>}
                   {!isBlocked && st === 'maybe' && <span className="absolute top-1 right-1 text-[8px] font-black text-[#B3A88C]">?</span>}
-                  {isFinal && <span className="absolute top-0.5 right-0.5 text-[8px] text-[#E3B24A]">★</span>}
+                  {isFinal && <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
                 </button>
               );
             })}
           </div>
-          <p className={`text-[10px] mt-3 ${textSub}`}>{t.total} {members.length}{lang === 'ko' ? '명' : ''} · {t.done} {subs.length}{finals.length ? ` · ★ ${finals.join(', ')}${lang === 'ko' ? '일' : ''} ${t.confirmed}` : ''}</p>
+          <p className={`text-[10px] mt-3 ${textSub}`}>{t.total} {members.length}{lang === 'ko' ? '명' : ''} · {t.done} {subs.length}{finals.length ? ` · ${t.confirmed} ${finals.join(', ')}${lang === 'ko' ? '일' : ''}` : ''}</p>
         </div>
 
         {selectedDay !== null && (
@@ -294,7 +294,7 @@ function BestDays({ t, lang, bestDays, maxCount, finals, onPick }: any) {
                 <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />
               </div>
               <span className="text-[11px] font-black w-14 text-right text-zinc-400">{t.people(c)}{mb ? `+${mb}` : ''}</span>
-              {isFinal(d) && <span className="text-[9px] font-black text-[#E3B24A]">★</span>}
+              {isFinal(d) && <span className="w-1.5 h-1.5 rounded-full bg-[#E3B24A] shrink-0" />}
             </button>
           ))}
         </div>
