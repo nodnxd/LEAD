@@ -72,6 +72,7 @@ const T = {
     availRemind: '독촉', availRemindAll: '미제출 문구 복사',
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] 확정 안내\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\n"${title}" 가능일 아직 제출 전이에요. 링크에서 이름 누르고 제출해주세요!\n${link}`,
+    inviteAccount: '계정 초대 (이메일)', inviteTitle: '이 멤버를 이메일로 초대', inviteSent: '초대 등록! 그 이메일로 로그인하면 자동 연결돼요',
   },
   en: {
     notice: 'Notice', history: 'History', voteClose: 'Close Vote', voteOpen: 'Open Vote',
@@ -124,6 +125,7 @@ const T = {
     availRemind: 'Remind', availRemindAll: 'Copy reminder (all)',
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] Confirmed\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\nPlease submit your availability for "${title}":\n${link}`,
+    inviteAccount: 'Invite account (email)', inviteTitle: 'Invite this member by email', inviteSent: 'Invite saved! They auto-link when they log in with that email',
   }
 };
 
@@ -307,7 +309,16 @@ export default function Dashboard() {
     return () => { window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp); };
   }, []);
 
-  useEffect(() => { supabase.auth.getUser().then(({ data }) => { if (!data.user) router.push('/roster'); else setUser(data.user); }); }, []);
+  useEffect(() => { supabase.auth.getUser().then(async ({ data }) => {
+    if (!data.user) { router.push('/roster'); return; }
+    // CAST 허락제: 슈퍼관리자/host_grants/기존 로스터 보유자만 호스트 대시보드 진입
+    const email = (data.user.email || '').toLowerCase();
+    let ok = ['everplayground@gmail.com', 'hseu2000@gmail.com'].includes(email);
+    if (!ok) { const { data: g } = await supabase.from('host_grants').select('id').eq('email', email).eq('status', 'approved').maybeSingle(); ok = !!g; }
+    if (!ok) { const { data: p } = await supabase.from('profiles').select('id').eq('user_id', data.user.id).limit(1); ok = !!(p && p.length); }
+    if (!ok) { router.push('/hub'); return; }
+    setUser(data.user);
+  }); }, []);
 
   // ── 데이터 fetch ──────────────────────────────────────────
   const fetchMembers = useCallback(async (u = user) => {
@@ -1971,6 +1982,10 @@ export default function Dashboard() {
             <div className={`border-t ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`} />
             <button onClick={() => toggleExcludeMember(roleDropdown.id, roleDropdown.excluded)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${roleDropdown.excluded ? 'text-[#EFCF8E]' : 'text-zinc-500'}`}>
               {roleDropdown.excluded ? t.include : t.exclude}
+            </button>
+            <button onClick={() => { const pid = roleDropdown.id; setRoleDropdown(null); showPrompt(t.inviteTitle, 'email@example.com', '', async (v) => { const em = (v || '').trim().toLowerCase(); if (!em.includes('@')) return; await supabase.from('invites').insert({ host_id: user.id, product: 'cast', email: em, project: currentProject, profile_id: pid }); setPromptModal(null); showToastMsg(t.inviteSent); }); }}
+              className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left text-[#E3B24A] ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`}>
+              {t.inviteAccount}
             </button>
           </div>
         </>

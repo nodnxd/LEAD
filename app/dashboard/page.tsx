@@ -432,8 +432,28 @@ export default function GuestView(){
   };
   const fileInputRef=useRef<HTMLInputElement>(null);
 
+  // 이메일 지정 초대 — 등록해두면 그 이메일이 가입/로그인하는 순간 자동 입장(claim_invites)
+  const [inviteList,setInviteList]=useState<any[]>([]);
+  const [inviteEmail,setInviteEmail]=useState('');
+  const fetchInvites=async()=>{
+    if(!hostId)return;
+    const{data}=await supabase.from('invites').select('*').eq('host_id',hostId).eq('product','lead').neq('status','revoked').order('created_at',{ascending:false});
+    setInviteList(data||[]);
+  };
+  const addInvite=async()=>{
+    const e=inviteEmail.trim().toLowerCase();
+    if(!e||!e.includes('@')||!hostId)return;
+    const{error}=await supabase.from('invites').insert({host_id:hostId,product:'lead',email:e});
+    if(!error)setInviteEmail('');
+    fetchInvites();
+  };
+  const revokeInvite=async(id:string)=>{
+    await supabase.from('invites').delete().eq('id',id);
+    setInviteList(p=>p.filter(x=>x.id!==id));
+  };
   const fetchMembers=async()=>{
     if(!hostId)return;
+    fetchInvites();
     setMemberLoading(true);
     const{data:approvals}=await supabase.from('member_approvals').select('*').eq('host_id',hostId).order('created_at',{ascending:false});
     if(!approvals){setMemberLoading(false);return;}
@@ -1548,6 +1568,26 @@ export default function GuestView(){
                 <button onClick={()=>setShowMembers(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-[13px] ${D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>✕</button>
               </div>
               <div className="overflow-y-auto flex-1 p-5">
+                {/* 이메일 초대 */}
+                <div className={`p-4 rounded-xl border mb-4 ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                  <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${dimText}`}>{t('이메일 초대','Invite by email')}</p>
+                  <div className="flex gap-2">
+                    <input value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addInvite()} type="email" placeholder={t('이메일 주소','Email address')} className={`flex-1 border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`}/>
+                    <button onClick={addInvite} disabled={!inviteEmail.trim()} className="px-4 py-2.5 rounded-xl bg-[#6366F1] text-white font-semibold text-[13px] disabled:opacity-40">{t('초대','Invite')}</button>
+                  </div>
+                  <p className={`text-[11px] mt-2 ${dimText}`}>{t('이 이메일로 가입/로그인하면 자동으로 입장돼요','They join automatically when they sign up / log in with this email')}</p>
+                  {inviteList.length>0&&(
+                    <div className="flex flex-col gap-1.5 mt-3">
+                      {inviteList.map(iv=>(
+                        <div key={iv.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${D?'bg-black/20':'bg-black/[0.04]'}`}>
+                          <span className={`flex-1 min-w-0 text-[12px] truncate ${D?'text-zinc-300':'text-zinc-700'}`}>{iv.email}</span>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${iv.status==='joined'?'bg-emerald-500/15 text-emerald-400':D?'bg-white/10 text-zinc-400':'bg-black/[0.06] text-zinc-500'}`}>{iv.status==='joined'?t('입장함','Joined'):t('대기','Invited')}</span>
+                          {iv.status!=='joined'&&<button onClick={()=>revokeInvite(iv.id)} className="text-[11px] font-bold text-red-400/70 hover:text-red-400">✕</button>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {memberLoading?(
                   <div className="flex items-center justify-center py-12"><div className="w-6 h-6 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin"/></div>
                 ):memberList.length===0?(

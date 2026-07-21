@@ -39,6 +39,7 @@ export default function HubPage() {
   const [operate, setOperate] = useState<{ id: string; name: string; owner: boolean }[]>([]);
   const [member, setMember] = useState<{ id: string; name: string }[]>([]);
   const [castProjects, setCastProjects] = useState<string[]>([]);
+  const [castMemberships, setCastMemberships] = useState<{ hostId: string; project: string; name: string }[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -47,6 +48,9 @@ export default function HubPage() {
       if (!u) { router.push('/'); return; }
       setUser(u);
       const email = (u.email || '').toLowerCase();
+
+      // 이메일 지정 초대 자동 입장 (lead → member_approvals 승인, cast → 로스터 프로필 연결)
+      try { await supabase.rpc('claim_invites'); } catch {}
 
       // 호스트 권한: 슈퍼관리자 / 허용명단 / host_grants / 기존 호스트 데이터(grandfather)
       let host = email === SUPER_ADMIN_EMAIL || BOTH_PRODUCT_EMAILS.includes(email);
@@ -95,6 +99,16 @@ export default function HubPage() {
         castList = [...new Set((profs || []).map((p: any) => p.project).filter(Boolean))] as string[];
       }
       setCastProjects(castList);
+
+      // 초대로 연결된 로스터 (멤버로 참여)
+      const { data: cm } = await supabase.from('profiles').select('user_id, project, name').eq('member_user_id', u.id);
+      const seen = new Set<string>();
+      setCastMemberships((cm || []).filter((p: any) => {
+        const k = `${p.user_id}|${p.project || ''}`;
+        if (p.user_id === u.id || seen.has(k)) return false;
+        seen.add(k); return true;
+      }).map((p: any) => ({ hostId: p.user_id, project: p.project || '', name: p.name || '' })));
+
       setLoading(false);
     })();
   }, []);
@@ -194,6 +208,13 @@ export default function HubPage() {
               <span className="text-[11px] text-zinc-600 font-medium">{t('로스터', 'Rosters')}</span>
             </div>
             <div className="grid gap-2.5">
+              {castMemberships.map(m => (
+                <button key={`${m.hostId}|${m.project}`} onClick={() => router.push(`/roster/view/${m.hostId}`)} {...hubCard('#E3B24A')}>
+                  <div {...hubIcon('#E3B24A')}>🎤</div>
+                  <div className="flex-1 min-w-0"><p className="font-black text-[15px] truncate">{m.project || t('로스터', 'Roster')}</p><p className="text-[12px] text-zinc-500">{t(`${m.name}(으)로 참여 중`, `Joined as ${m.name}`)}</p></div>
+                  <span className="text-[#E3B24A] text-[16px] font-black shrink-0 opacity-60">→</span>
+                </button>
+              ))}
               {castProjects.map(p => (
                 <button key={p} onClick={() => enterCast(p)} {...hubCard('#E3B24A', true)}>
                   <div {...hubIcon('#E3B24A')}>🎬</div>
@@ -201,10 +222,17 @@ export default function HubPage() {
                   <span className="text-[#E3B24A] text-[16px] font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
-              <button onClick={() => enterCast()} className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-[#E3B24A]/25 bg-[#E3B24A]/[0.03] hover:bg-[#E3B24A]/[0.07] text-left transition-all">
-                <div {...hubIcon('#E3B24A')}>＋</div>
-                <div className="flex-1 min-w-0"><p className="font-bold text-[14px] text-zinc-300">{castProjects.length ? t('새 로스터 · CAST 열기', 'New roster · Open CAST') : t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-[12px] text-zinc-500">{t('아티스트 로스터 짜기', 'Build your artist roster')}</p></div>
-              </button>
+              {(castProjects.length > 0 || canHost) ? (
+                <button onClick={() => enterCast()} className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-[#E3B24A]/25 bg-[#E3B24A]/[0.03] hover:bg-[#E3B24A]/[0.07] text-left transition-all">
+                  <div {...hubIcon('#E3B24A')}>＋</div>
+                  <div className="flex-1 min-w-0"><p className="font-bold text-[14px] text-zinc-300">{castProjects.length ? t('새 로스터 · CAST 열기', 'New roster · Open CAST') : t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-[12px] text-zinc-500">{t('아티스트 로스터 짜기', 'Build your artist roster')}</p></div>
+                </button>
+              ) : castMemberships.length === 0 ? (
+                <a href="mailto:everplayground@gmail.com?subject=CAST host access" className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-[#E3B24A]/25 bg-[#E3B24A]/[0.03] hover:bg-[#E3B24A]/[0.07] text-left transition-all">
+                  <div {...hubIcon('#E3B24A')}>＋</div>
+                  <div className="flex-1 min-w-0"><p className="font-bold text-[14px] text-zinc-300">{t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-[12px] text-zinc-500">{t('호스트 권한 요청 · 초대받으면 자동 입장', 'Request host access · invites auto-join')}</p></div>
+                </a>
+              ) : null}
             </div>
           </section>
 

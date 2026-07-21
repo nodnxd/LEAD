@@ -65,6 +65,15 @@ export default function MyPage() {
   const [genres, setGenres] = useState<string[]>([]);
   const [genreEtc, setGenreEtc] = useState('');
   const [demoLink, setDemoLink] = useState('');
+  const [bio, setBio] = useState('');
+  // 저작권 정보 (내부용 — 공개 카드에 안 나감, 스플릿 자동채움과 공유)
+  const [cp, setCp] = useState<any>(null);
+  const [cpPro, setCpPro] = useState('');
+  const [cpIpi, setCpIpi] = useState('');
+  const [cpLegalName, setCpLegalName] = useState('');
+  const [cpPublisher, setCpPublisher] = useState('');
+  const [cpPublisherIpi, setCpPublisherIpi] = useState('');
+  const [cpPhone, setCpPhone] = useState('');
   const [photoPreview, setPhotoPreview] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [editWorks, setEditWorks] = useState<Work[]>([]);
@@ -121,11 +130,15 @@ export default function MyPage() {
       setUserType('member');
       setMember(m);
       fillForm(m);
-      const [{ data: d }, { data: w }, { data: pitches }] = await Promise.all([
+      const [{ data: d }, { data: w }, { data: pitches }, { data: cprof }] = await Promise.all([
         supabase.from('demo_tracks').select('*').eq('member_id', uid).order('order_index'),
         supabase.from('released_works').select('*').eq('member_id', uid).order('order_index'),
         supabase.from('pitches').select('*').eq('member_id', uid).order('created_at', { ascending: false }),
+        supabase.from('copyright_profiles').select('*').eq('id', uid).maybeSingle(),
       ]);
+      setCp(cprof || null);
+      setCpPro(cprof?.pro || ''); setCpIpi(cprof?.ipi || ''); setCpLegalName(cprof?.legal_name || '');
+      setCpPublisher(cprof?.publisher_name || ''); setCpPublisherIpi(cprof?.publisher_ipi || ''); setCpPhone(cprof?.phone || '');
       if (d) setDemos(d);
       if (w) setWorks(w);
       if (pitches && pitches.length > 0) {
@@ -221,6 +234,7 @@ export default function MyPage() {
     setGenres(m.genres || []);
     setGenreEtc(m.genre_etc || '');
     setDemoLink(m.demo_link || '');
+    setBio(m.bio || '');
     setPhotoPreview(m.photo_url || '');
   };
   const openEdit = () => {
@@ -255,9 +269,19 @@ export default function MyPage() {
     await supabase.from('members').upsert({
       id: user.id,
       name, artist_name: artistName, gender, company: company || null, email,
-      instagram: instagram || null, photo_url: photoUrl,
+      instagram: instagram || null, photo_url: photoUrl, bio: bio.trim() || null,
       roles, genres: finalGenres, genre_etc: genreEtc || null, demo_link: demoLink || null,
     }).eq('id', user.id);
+    // 저작권 정보 (내부용)
+    if (cpPro || cpIpi || cpLegalName || cpPublisher || cpPublisherIpi || cpPhone || cp) {
+      await supabase.from('copyright_profiles').upsert({
+        id: user.id,
+        legal_name: cpLegalName.trim() || null, stage_name: artistName || null,
+        pro: cpPro.trim() || null, ipi: cpIpi.trim() || null,
+        publisher_name: cpPublisher.trim() || null, publisher_ipi: cpPublisherIpi.trim() || null,
+        email, phone: cpPhone.trim() || null, updated_at: new Date().toISOString(),
+      });
+    }
     await supabase.from('released_works').delete().eq('member_id', user.id);
     const validWorks = editWorks.filter(w => w.song_title.trim() && w.artist_name.trim() && w.link.trim());
     if (validWorks.length > 0) {
@@ -738,6 +762,12 @@ export default function MyPage() {
               </div>
             </div>
 
+            {member?.bio && (
+              <div className={`px-6 py-4 border-b ${divider}`}>
+                <p className={labelCls}>{t('바이오', 'Bio')}</p>
+                <p className={`text-[13px] leading-relaxed whitespace-pre-line ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{member.bio}</p>
+              </div>
+            )}
             <div className={`px-6 py-4 border-b ${divider} flex flex-wrap gap-4`}>
               {member?.email && (
                 <div><p className={labelCls}>{t('이메일', 'Email')}</p><p className={`text-[13px] ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{member.email}</p></div>
@@ -746,6 +776,12 @@ export default function MyPage() {
                 <div>
                   <p className={labelCls}>{t('인스타그램', 'Instagram')}</p>
                   <a href={`https://instagram.com/${member.instagram}`} target="_blank" rel="noopener noreferrer" className="text-[13px] text-[#6366F1] hover:underline">@{member.instagram}</a>
+                </div>
+              )}
+              {(cp?.pro || cp?.ipi) && (
+                <div>
+                  <p className={labelCls}>{t('저작권 정보', 'Copyright')} <span className="normal-case tracking-normal font-bold text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 ml-1">{t('내부용', 'internal')}</span></p>
+                  <p className={`text-[13px] ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{[cp?.pro, cp?.ipi].filter(Boolean).join(' · ')}</p>
                 </div>
               )}
             </div>
@@ -974,6 +1010,24 @@ export default function MyPage() {
                     <div className="mt-2">
                       <label className={labelCls}>{t('추가 데모 링크', 'More demos link')}</label>
                       <input value={demoLink} onChange={e => setDemoLink(e.target.value)} placeholder="https://..." className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all ${inputCls}`} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>{t('바이오 (공개)', 'Bio (public)')}</label>
+                    <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} placeholder={t('소개, 대표 스타일, 이력 등 — 컴카드에 공개돼요', 'Intro, style, background — shown on your public card')} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all resize-none ${inputCls}`} />
+                  </div>
+
+                  <div className={`p-4 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.07]' : 'bg-black/[0.02] border-black/[0.08]'}`}>
+                    <label className={labelCls}>{t('저작권 정보 (내부용)', 'Copyright info (internal)')}</label>
+                    <p className={`text-[11px] mb-3 ${dimText}`}>{t('공개 카드에는 표시되지 않아요. 스플릿시트 자동채움과 워크스페이스 내부에서만 쓰여요.', 'Not shown on your public card. Used for split-sheet auto-fill and inside workspaces only.')}</p>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <input value={cpLegalName} onChange={e => setCpLegalName(e.target.value)} placeholder={t('본명 (법적 이름)', 'Legal name')} className={`w-full border rounded-lg px-2.5 py-2 text-[12px] outline-none ${inputCls}`} />
+                      <input value={cpPhone} onChange={e => setCpPhone(e.target.value)} placeholder={t('연락처', 'Phone')} className={`w-full border rounded-lg px-2.5 py-2 text-[12px] outline-none ${inputCls}`} />
+                      <input value={cpPro} onChange={e => setCpPro(e.target.value)} placeholder={t('협회 (예: KOMCA)', 'PRO (e.g. KOMCA)')} className={`w-full border rounded-lg px-2.5 py-2 text-[12px] outline-none ${inputCls}`} />
+                      <input value={cpIpi} onChange={e => setCpIpi(e.target.value)} placeholder={t('회원번호 / IPI', 'Member no. / IPI')} className={`w-full border rounded-lg px-2.5 py-2 text-[12px] outline-none ${inputCls}`} />
+                      <input value={cpPublisher} onChange={e => setCpPublisher(e.target.value)} placeholder={t('퍼블리셔 (선택)', 'Publisher (optional)')} className={`w-full border rounded-lg px-2.5 py-2 text-[12px] outline-none ${inputCls}`} />
+                      <input value={cpPublisherIpi} onChange={e => setCpPublisherIpi(e.target.value)} placeholder={t('퍼블리셔 IPI (선택)', 'Publisher IPI (optional)')} className={`w-full border rounded-lg px-2.5 py-2 text-[12px] outline-none ${inputCls}`} />
                     </div>
                   </div>
 

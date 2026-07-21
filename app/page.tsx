@@ -16,10 +16,13 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [confirmSent, setConfirmSent] = useState(false);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('lead_saved_email');
     if (saved) { setEmail(saved); setRememberMe(true); }
+    if (new URLSearchParams(window.location.search).get('verified') === '1') setVerified(true);
   }, []);
 
   const handle = async () => {
@@ -27,11 +30,13 @@ export default function LoginPage() {
     setLoading(true); setError('');
     if (rememberMe && email) localStorage.setItem('lead_saved_email', email);
     else localStorage.removeItem('lead_saved_email');
-    const { error } = isSignUp
-      ? await supabase.auth.signUp({ email, password })
+    const { data, error } = isSignUp
+      ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/?verified=1` } })
       : await supabase.auth.signInWithPassword({ email, password });
     if (error) { setError(error.message); setLoading(false); return; }
     if (isSignUp) {
+      // 이메일 본인인증이 켜져 있으면 세션 없이 확인 메일만 발송됨
+      if (!data.session) { setConfirmSent(true); setLoading(false); return; }
       const { data: { user } } = await supabase.auth.getUser();
       if (user) await supabase.from('user_products').upsert({ user_id: user.id, product: 'lead' }, { onConflict: 'user_id,product' });
     }
@@ -75,7 +80,14 @@ export default function LoginPage() {
             <p className="mt-3 text-lg text-white/40">{t('로그인하고 시작하세요', 'Sign in to get started')}</p>
           </div>
 
-          {forgotMode ? (
+          {confirmSent ? (
+            <div className="text-center">
+              <div className="text-4xl mb-3">📩</div>
+              <p className="text-white font-bold text-lg mb-1">{t('인증 메일을 보냈어요', 'Confirmation email sent')}</p>
+              <p className="text-white/40 text-sm leading-relaxed">{email}<br />{t('메일 속 링크를 눌러 본인인증을 마치면 로그인할 수 있어요.', 'Click the link in the email to verify, then log in.')}</p>
+              <button onClick={() => { setConfirmSent(false); setIsSignUp(false); }} className="mt-6 text-base text-white/40 hover:text-white/70 transition-colors">← {t('로그인으로 돌아가기', 'Back to login')}</button>
+            </div>
+          ) : forgotMode ? (
             resetSent ? (
               <div className="text-center">
                 <div className="text-4xl mb-3">📩</div>
@@ -104,6 +116,7 @@ export default function LoginPage() {
           ) : (
             <>
               <div className="flex flex-col gap-5">
+                {verified && <p className="text-[13px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3">{t('이메일 인증 완료! 이제 로그인하세요.', 'Email verified! You can log in now.')}</p>}
                 <input value={email} onChange={e => setEmail(e.target.value)} placeholder={t('이메일', 'Email')} type="email"
                   onFocus={e => (e.currentTarget.style.borderColor = '#ffffff')} onBlur={e => (e.currentTarget.style.borderColor = '')}
                   className={`login-input ${inputCls}`} />
