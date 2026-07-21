@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useParams, useSearchParams } from 'next/navigation';
 import { getLang, LANG_EVENT } from '@/lib/lang';
+import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -24,6 +25,7 @@ const TX = {
     bestDays: '가장 많이 되는 날', people: (n: number) => `${n}명`, onDay: (d: number) => `${d}일`,
     noneYet: '아직 응답이 없어요', confirmed: '확정', done: '제출',
     weekdays: ['일', '월', '화', '수', '목', '금', '토'], total: '전체',
+    confirmedTitle: '확정된 날', saveIcs: '캘린더 저장 (.ics)',
   },
   en: {
     availability: 'Availability', notFound: 'Roster not found', noPoll: 'No open availability poll', closed: 'Closed',
@@ -33,6 +35,7 @@ const TX = {
     bestDays: 'Best days', people: (n: number) => `${n}`, onDay: (d: number) => `Day ${d}`,
     noneYet: 'No responses yet', confirmed: 'Confirmed', done: 'Submitted',
     weekdays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'], total: 'Total',
+    confirmedTitle: 'Confirmed days', saveIcs: 'Save calendar (.ics)',
   },
 };
 
@@ -155,6 +158,7 @@ export default function AvailabilityView() {
       <div className="min-h-screen font-pretendard bg-[#141414] text-white">
         <div className="max-w-2xl mx-auto px-5 py-10">
           <Header t={t} poll={poll} y={y} m={m} lang={lang} />
+          <FinalDaysCard t={t} lang={lang} poll={poll} m={m} />
           <p className={`text-[13px] font-bold mb-5 ${textSub}`}>{t.pickName}</p>
           <div className="flex flex-col gap-5">
             {byRole.map(({ role, items }) => {
@@ -191,6 +195,7 @@ export default function AvailabilityView() {
       <div className="max-w-2xl mx-auto px-5 py-10">
         <button onClick={() => { setMeId(null); setSelectedDay(null); }} className={`text-[12px] mb-4 ${textSub} hover:opacity-70`}>{t.back}</button>
         <Header t={t} poll={poll} y={y} m={m} lang={lang} />
+        <FinalDaysCard t={t} lang={lang} poll={poll} m={m} />
 
         <div className="flex items-center justify-between mb-3">
           <p className="text-[15px] font-black" style={{ color: ROLE_COLORS[me?.role] || '#fff' }}>{me?.name} <span className={`text-[11px] font-normal ${textSub}`}>{me?.role}</span></p>
@@ -256,6 +261,29 @@ function Header({ t, poll, y, m, lang }: any) {
       <p className="text-[10px] font-black uppercase tracking-widest text-[#E3B24A] mb-1">{t.availability}</p>
       <h1 className="font-black text-[26px] text-white">{poll.title || `${y}. ${String(m).padStart(2, '0')}`}</h1>
       <p className="text-[12px] mt-1 text-zinc-400">{y}. {String(m).padStart(2, '0')}{poll.is_open ? '' : ` · ${t.closed}`}</p>
+    </div>
+  );
+}
+
+function FinalDaysCard({ t, lang, poll, m }: any) {
+  const finals: number[] = (poll.final_days || []).slice().sort((a: number, b: number) => a - b);
+  if (!finals.length) return null;
+  const [yy, mm] = poll.month.split('-').map(Number);
+  const fmt = (d: number) => {
+    const w = new Date(yy, mm - 1, d).getDay();
+    return lang === 'ko' ? `${m}월 ${d}일(${['일', '월', '화', '수', '목', '금', '토'][w]})` : `${m}/${d} (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][w]})`;
+  };
+  const title = poll.title || `${yy}. ${String(mm).padStart(2, '0')}`;
+  return (
+    <div className="rounded-2xl border p-5 mb-8 border-[#E3B24A]/40 bg-[#E3B24A]/10">
+      <p className="text-[11px] font-black uppercase tracking-widest mb-3 text-[#EFCF8E]">{t.confirmedTitle}</p>
+      <div className="flex flex-wrap gap-2 mb-3.5">
+        {finals.map((d: number) => (
+          <span key={d} className="px-3.5 py-1.5 rounded-full text-[13px] font-black border border-[#E3B24A]/50 bg-[#E3B24A]/15 text-[#EFCF8E]">{fmt(d)}</span>
+        ))}
+      </div>
+      <button onClick={() => downloadIcs(title, buildDaysIcs(title, poll.month, finals, poll.id))}
+        className="text-[12px] font-black px-4 py-2 rounded-full border border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/15 transition-all">{t.saveIcs}</button>
     </div>
   );
 }

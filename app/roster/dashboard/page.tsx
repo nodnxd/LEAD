@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
+import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 import ProductHeader from '@/components/ProductHeader';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
@@ -67,6 +68,10 @@ const T = {
     availConfirmAdd: '확정에 추가', availConfirmRemove: '확정에서 빼기',
     availBlockMode: '차단일 설정', availBlockDone: '설정 완료', availBlocked: '차단됨',
     availBlockHint: '막을 날짜를 눌러 차단 (멤버는 못 고름)',
+    availFinalTitle: '확정일', availIcs: '캘린더 저장 (.ics)', availAnnounce: '확정 공지 복사',
+    availRemind: '독촉', availRemindAll: '미제출 문구 복사',
+    availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] 확정 안내\n${days}\n${link}`,
+    availRemindMsg: (who: string, title: string, link: string) => `${who}\n"${title}" 가능일 아직 제출 전이에요. 링크에서 이름 누르고 제출해주세요!\n${link}`,
   },
   en: {
     notice: 'Notice', history: 'History', voteClose: 'Close Vote', voteOpen: 'Open Vote',
@@ -115,6 +120,10 @@ const T = {
     availConfirmAdd: 'Add to confirmed', availConfirmRemove: 'Remove from confirmed',
     availBlockMode: 'Block days', availBlockDone: 'Done', availBlocked: 'Blocked',
     availBlockHint: 'Tap days to block (members cannot pick)',
+    availFinalTitle: 'Confirmed days', availIcs: 'Save calendar (.ics)', availAnnounce: 'Copy announcement',
+    availRemind: 'Remind', availRemindAll: 'Copy reminder (all)',
+    availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] Confirmed\n${days}\n${link}`,
+    availRemindMsg: (who: string, title: string, link: string) => `${who}\nPlease submit your availability for "${title}":\n${link}`,
   }
 };
 
@@ -735,8 +744,32 @@ export default function Dashboard() {
 
   const copyAvailShareLink = () => {
     if (!availPoll) return;
-    navigator.clipboard.writeText(`${window.location.origin}/roster/availability/${user.id}?poll=${availPoll.id}`);
+    navigator.clipboard.writeText(availLinkUrl());
     showToastMsg(t.linkCopied);
+  };
+
+  const availLinkUrl = () => `${window.location.origin}/roster/availability/${user.id}?poll=${availPoll.id}`;
+  const availPollName = () => availPoll?.title || (availPoll?.month || '').replace('-', '. ');
+  const fmtAvailDay = (d: number) => {
+    const [yy, mm] = (availPoll?.month || '2025-01').split('-').map(Number);
+    const w = new Date(yy, mm - 1, d).getDay();
+    return lang === 'ko' ? `${mm}월 ${d}일(${['일', '월', '화', '수', '목', '금', '토'][w]})` : `${mm}/${d} (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][w]})`;
+  };
+  const downloadAvailIcs = () => {
+    if (!availPoll || !(availPoll.final_days || []).length) return;
+    downloadIcs(availPollName(), buildDaysIcs(availPollName(), availPoll.month, availPoll.final_days, availPoll.id));
+  };
+  const copyAvailAnnounce = () => {
+    if (!availPoll) return;
+    const finals: number[] = (availPoll.final_days || []).slice().sort((a: number, b: number) => a - b);
+    navigator.clipboard.writeText(t.availAnnounceMsg(availPollName(), finals.map(fmtAvailDay).join(' · '), availLinkUrl()));
+    showToastMsg(t.codeCopied);
+  };
+  const copyAvailReminder = (names: string[]) => {
+    if (!availPoll || names.length === 0) return;
+    const who = lang === 'ko' ? names.map((n) => `${n}님`).join(', ') : names.join(', ');
+    navigator.clipboard.writeText(t.availRemindMsg(who, availPollName(), availLinkUrl()));
+    showToastMsg(t.codeCopied);
   };
 
   useEffect(() => {
@@ -1849,11 +1882,33 @@ export default function Dashboard() {
                           ))}</div>
                         )}
                       </div>
+
+                      {/* 확정일 → 일정 */}
+                      {finals.length > 0 && (
+                        <div className="rounded-xl border p-4 border-[#E3B24A]/35 bg-[#E3B24A]/8">
+                          <p className="text-[11px] font-black uppercase tracking-widest mb-2.5 text-[#EFCF8E]">{t.availFinalTitle}</p>
+                          <div className="flex flex-wrap gap-1.5 mb-3">
+                            {finals.slice().sort((a, b) => a - b).map(d => (
+                              <button key={d} onClick={() => setAvailSelDay(d)} className="px-3 py-1 rounded-full text-[12px] font-black border border-[#E3B24A]/50 bg-[#E3B24A]/15 text-[#EFCF8E] hover:bg-[#E3B24A]/25 transition-all">{fmtAvailDay(d)}</button>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={downloadAvailIcs} className={`flex-1 py-2 rounded-lg border font-bold text-[11px] transition-all ${btnBg}`}>{t.availIcs}</button>
+                            <button onClick={copyAvailAnnounce} className={`flex-1 py-2 rounded-lg border font-bold text-[11px] transition-all ${btnBg}`}>{t.availAnnounce}</button>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* 우: 제출 현황 (어드민) */}
                     <div className={`md:border-l md:pl-6 ${theme === 'light' ? 'md:border-black/10' : 'md:border-white/8'}`}>
-                      <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availSubmitStatus} · {availSubs.length}/{proj.length}</p>
+                      <div className="flex items-center justify-between mb-2.5 gap-2">
+                        <p className={`text-[11px] font-black uppercase tracking-widest ${textSub}`}>{t.availSubmitStatus} · {availSubs.length}/{proj.length}</p>
+                        {proj.some(m => !isSubmitted(m)) && (
+                          <button onClick={() => copyAvailReminder(proj.filter(m => !isSubmitted(m)).map(m => m.name))}
+                            className={`shrink-0 text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${btnBg}`}>{t.availRemindAll}</button>
+                        )}
+                      </div>
                       <div className="space-y-1.5">
                         {proj.map(m => {
                           const done = isSubmitted(m);
@@ -1864,6 +1919,7 @@ export default function Dashboard() {
                               <span className={`text-[13px] font-bold ${textMain}`}>{m.name} <span className={`text-[11px] font-normal ${textSub}`}>{m.role}</span></span>
                               <div className="flex items-center gap-2.5">
                                 <span className={`text-[11px] font-black ${textSub}`}>{t.availPossible} {cnt}{mcnt ? ` · ${t.availMaybe} ${mcnt}` : ''}</span>
+                                {!done && <button onClick={() => copyAvailReminder([m.name])} className={`text-[10px] font-black px-2 py-0.5 rounded-full border transition-all ${btnBg}`}>{t.availRemind}</button>}
                                 <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
                               </div>
                             </div>
