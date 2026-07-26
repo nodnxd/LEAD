@@ -144,6 +144,17 @@ export default function CardPage() {
               </div>
             )}
 
+            {/* SNS · Links */}
+            {profile.links && Object.values(profile.links).some(Boolean) && (
+              <div className={`mt-4 pt-4 border-t ${dv} flex flex-wrap gap-2`}>
+                {Object.entries(profile.links as Record<string, string>).filter(([, v]) => v).map(([k, v]) => {
+                  const label: Record<string, string> = { spotify: 'Spotify', youtube: 'YouTube', soundcloud: 'SoundCloud', x: 'X', tiktok: 'TikTok', website: 'Web' };
+                  const href = v.startsWith('http') ? v : `https://${v}`;
+                  return <a key={k} href={href} target="_blank" rel="noopener noreferrer" className={`text-[11px] font-black px-2.5 py-1 rounded-full border transition-all ${D ? 'border-white/10 bg-white/5 text-zinc-300 hover:text-white' : 'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>{label[k] || k} →</a>;
+                })}
+              </div>
+            )}
+
             {/* Released Works */}
             {works.length > 0 && (
               <div className={`mt-4 pt-4 border-t ${dv}`}>

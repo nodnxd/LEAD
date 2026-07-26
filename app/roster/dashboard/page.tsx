@@ -73,6 +73,7 @@ const T = {
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] 확정 안내\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\n"${title}" 가능일 아직 제출 전이에요. 링크에서 이름 누르고 제출해주세요!\n${link}`,
     inviteAccount: '계정 초대 (이메일)', inviteTitle: '이 멤버를 이메일로 초대', inviteSent: '초대 등록! 그 이메일로 로그인하면 자동 연결돼요',
+    availMemberPick: '클릭하면 이 멤버가 고른 날이 달력에 표시돼요',
   },
   en: {
     notice: 'Notice', history: 'History', voteClose: 'Close Vote', voteOpen: 'Open Vote',
@@ -126,6 +127,7 @@ const T = {
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] Confirmed\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\nPlease submit your availability for "${title}":\n${link}`,
     inviteAccount: 'Invite account (email)', inviteTitle: 'Invite this member by email', inviteSent: 'Invite saved! They auto-link when they log in with that email',
+    availMemberPick: 'Click to highlight this member’s picked days on the calendar',
   }
 };
 
@@ -253,6 +255,7 @@ export default function Dashboard() {
   const [availMonth, setAvailMonth] = useState(() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; });
   const [availTitle, setAvailTitle] = useState('');
   const [availSelDay, setAvailSelDay] = useState<number | null>(null);
+  const [availSelMember, setAvailSelMember] = useState<string | null>(null);
   const [availBlockMode, setAvailBlockMode] = useState(false);
 
   const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onOk: () => void } | null>(null);
@@ -1804,10 +1807,13 @@ export default function Dashboard() {
         const blocked: number[] = availPoll?.blocked_days || [];
         const best = Array.from({ length: daysInMonth }, (_, i) => i + 1).filter(d => !blocked.includes(d)).map(d => ({ d, c: countOn(d), mb: maybeOn(d) })).filter(x => x.c + x.mb > 0).sort((a, b) => (b.c - a.c) || (b.mb - a.mb)).slice(0, 6);
         const isSubmitted = (m: any) => availSubs.some(s => s.member_id === m.id);
+        const selMember = availSelMember ? proj.find(m => m.id === availSelMember) : null;
+        const memberStatusOn = (d: number): string | null => { if (!availSelMember) return null; const p = availPicks.find(x => x.member_id === availSelMember && x.day === d); return p ? p.status : null; };
+        const selMemberDays = availSelMember ? availPicks.filter(p => p.member_id === availSelMember).sort((a, b) => a.day - b.day) : [];
         const cells: (number | null)[] = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
         const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setShowAvailModal(false)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => { setShowAvailModal(false); setAvailSelMember(null); }}>
             <div onClick={e => e.stopPropagation()} className={`w-full ${availPoll ? 'max-w-4xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto border rounded-2xl p-7 sm:p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-[16px] ${textMain}`}>{t.availOpenTitle}</h2>
@@ -1840,16 +1846,25 @@ export default function Dashboard() {
                             className={`shrink-0 text-[11px] font-black px-3.5 py-1 rounded-full border transition-all ${availBlockMode ? 'bg-[#C98BA0]/25 border-[#C98BA0]/50 text-[#E3B8C6]' : `${btnBg}`}`}>
                             {availBlockMode ? t.availBlockDone : t.availBlockMode}</button>
                         </div>
+                        {selMember && (
+                          <div className="flex items-center justify-between gap-2 mb-2 px-3 py-2 rounded-lg border border-[#5FA39A]/40 bg-[#5FA39A]/10">
+                            <p className="text-[12px] font-black text-[#8FD4C8]">{selMember.name} · {t.availPossible} {selMemberDays.filter((p: any) => p.status === 'available').length} · {t.availMaybe} {selMemberDays.filter((p: any) => p.status === 'maybe').length}{selMemberDays.length === 0 ? ` · ${t.availWaiting}` : ''}</p>
+                            <button onClick={() => setAvailSelMember(null)} className="shrink-0 text-[11px] font-black text-[#8FD4C8] hover:opacity-70">✕</button>
+                          </div>
+                        )}
                         <div className="grid grid-cols-7 gap-1.5 mb-1.5">{wd.map((w, i) => <div key={i} className={`text-center text-[10px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}</div>
                         <div className="grid grid-cols-7 gap-1.5">
                           {cells.map((d, i) => {
                             if (d === null) return <div key={`e${i}`} />;
                             const c = countOn(d); const isFinal = finals.includes(d); const isBlocked = blocked.includes(d); const sel = availSelDay === d;
+                            const mst = memberStatusOn(d); // 선택 멤버가 이 날 고른 상태
+                            const dimByMember = !!availSelMember && !mst && !isBlocked;
                             return (
                               <button key={d} onClick={() => availBlockMode ? toggleBlockedDay(d) : setAvailSelDay(sel ? null : d)}
                                 className={`relative aspect-square rounded-lg border flex flex-col items-center justify-center transition-all hover:scale-[1.05]
                                   ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''} ${sel ? (theme === 'light' ? 'outline outline-1 outline-black/40' : 'outline outline-1 outline-white/50') : ''}
-                                  ${isBlocked ? 'border-[#C98BA0]/50' : theme === 'light' ? 'border-black/8' : 'border-white/8'}`}
+                                  ${mst === 'available' ? 'ring-2 ring-[#5FA39A]' : mst === 'maybe' ? 'ring-2 ring-[#5FA39A]/50 ring-dashed' : ''}
+                                  ${isBlocked ? 'border-[#C98BA0]/50' : theme === 'light' ? 'border-black/8' : 'border-white/8'} ${dimByMember ? 'opacity-35' : ''}`}
                                 style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.18)' : c > 0 ? `rgba(227,178,74,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
                                 <span className={`text-[13px] font-bold ${isBlocked ? 'text-[#C98BA0] line-through' : textMain}`}>{d}</span>
                                 {!isBlocked && c > 0 && <span className={`text-[9px] font-black ${textSub}`}>{c}</span>}
@@ -1925,12 +1940,15 @@ export default function Dashboard() {
                           const done = isSubmitted(m);
                           const cnt = availPicks.filter(p => p.member_id === m.id && p.status === 'available').length;
                           const mcnt = availPicks.filter(p => p.member_id === m.id && p.status === 'maybe').length;
+                          const selected = availSelMember === m.id;
                           return (
-                            <div key={m.id} className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg ${inputBg}`}>
-                              <span className={`text-[13px] font-bold ${textMain}`}>{m.name} <span className={`text-[11px] font-normal ${textSub}`}>{m.role}</span></span>
+                            <div key={m.id} onClick={() => setAvailSelMember(selected ? null : m.id)}
+                              title={t.availMemberPick}
+                              className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg cursor-pointer transition-all ${selected ? 'border border-[#5FA39A]/50 bg-[#5FA39A]/12' : `border border-transparent ${inputBg} hover:border-[#5FA39A]/30`}`}>
+                              <span className={`text-[13px] font-bold ${selected ? 'text-[#8FD4C8]' : textMain}`}>{m.name} <span className={`text-[11px] font-normal ${textSub}`}>{m.role}</span></span>
                               <div className="flex items-center gap-2.5">
                                 <span className={`text-[11px] font-black ${textSub}`}>{t.availPossible} {cnt}{mcnt ? ` · ${t.availMaybe} ${mcnt}` : ''}</span>
-                                {!done && <button onClick={() => copyAvailReminder([m.name])} className={`text-[10px] font-black px-2 py-0.5 rounded-full border transition-all ${btnBg}`}>{t.availRemind}</button>}
+                                {!done && <button onClick={(e) => { e.stopPropagation(); copyAvailReminder([m.name]); }} className={`text-[10px] font-black px-2 py-0.5 rounded-full border transition-all ${btnBg}`}>{t.availRemind}</button>}
                                 <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
                               </div>
                             </div>

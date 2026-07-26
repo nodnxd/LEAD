@@ -167,6 +167,16 @@ export default function GuestView(){
     setFileAction((fa:any)=>fa&&fa.id===f.id?{...fa,tags}:fa);
     await supabase.from('pitch_files').update({tags}).eq('id',f.id);
   };
+  const [bulkTag,setBulkTag]=useState('');
+  const applyBulkTag=async(ids:string[],tag:string)=>{
+    const tg=tag.trim().replace(/^#/,'');
+    if(!tg||ids.length===0)return;
+    const files=hostPitchFiles.filter(f=>ids.includes(f.id));
+    setHostPitchFiles(prev=>prev.map(f=>ids.includes(f.id)&&!(f.tags||[]).includes(tg)?{...f,tags:[...(f.tags||[]),tg]}:f));
+    setBulkTag('');
+    await Promise.all(files.filter(f=>!(f.tags||[]).includes(tg)).map(f=>supabase.from('pitch_files').update({tags:[...(f.tags||[]),tg]}).eq('id',f.id)));
+  };
+  const allFileTags=()=>[...new Set(hostPitchFiles.flatMap((f:any)=>f.tags||[]))].sort() as string[];
   const [playingFileId,setPlayingFileId]=useState<string|null>(null);
   const [hiddenFilesView,setHiddenFilesView]=useState(false);
   const [selFiles,setSelFiles]=useState<Set<string>>(new Set());
@@ -459,12 +469,18 @@ export default function GuestView(){
     if(!approvals){setMemberLoading(false);return;}
     const ids=approvals.map((a:any)=>a.member_id).filter(Boolean);
     if(ids.length===0){setMemberList(approvals);setMemberLoading(false);return;}
-    const{data:profiles}=await supabase.from('members').select('*').in('id',ids);
+    const[{data:profiles},{data:cprofs}]=await Promise.all([
+      supabase.from('members').select('*').in('id',ids),
+      supabase.from('copyright_profiles').select('*').in('id',ids),
+    ]);
     const profileMap:Record<string,any>={};
     if(profiles)profiles.forEach((p:any)=>{profileMap[p.id]=p;});
-    setMemberList(approvals.map((a:any)=>({...a,profile:profileMap[a.member_id]||null})));
+    const cpMap:Record<string,any>={};
+    if(cprofs)cprofs.forEach((c:any)=>{cpMap[c.id]=c;});
+    setMemberList(approvals.map((a:any)=>({...a,profile:profileMap[a.member_id]||null,copyright:cpMap[a.member_id]||null})));
     setMemberLoading(false);
   };
+  const [expMember,setExpMember]=useState<string|null>(null);
   const setMemberRole=async(memberId:string,status:string)=>{
     await supabase.from('member_approvals').update({status}).eq('member_id',memberId).eq('host_id',hostId);
     fetchMembers();
@@ -1070,8 +1086,12 @@ export default function GuestView(){
                     {fileKeyFilter&&<button onClick={()=>setFileKeyFilter('')} className="px-2.5 py-1 rounded-full text-[11px] font-black bg-[#6366F1]/15 text-[#6366F1] hover:bg-[#6366F1]/25">KEY: {fileKeyFilter} ✕</button>}
                     {fileTagFilter&&<button onClick={()=>setFileTagFilter('')} className="px-2.5 py-1 rounded-full text-[11px] font-black bg-pink-500/15 text-pink-400 hover:bg-pink-500/25">#{fileTagFilter} ✕</button>}
                     {(bpmMin||bpmMax)&&<button onClick={()=>{setBpmMin('');setBpmMax('');}} className={`px-2.5 py-1 rounded-full text-[11px] font-black ${D?'bg-white/10 text-zinc-300':'bg-black/[0.06] text-zinc-600'}`}>BPM {bpmMin||'0'}~{bpmMax||'∞'} ✕</button>}
-                    {selFiles.size>0&&<div className="ml-auto flex items-center gap-2">
+                    {selFiles.size>0&&<div className="ml-auto flex items-center gap-2 flex-wrap">
                       <span className="text-[12px] font-black text-[#6366F1]">{selFiles.size}{t('개 선택',' selected')}</span>
+                      <span className="inline-flex items-center gap-1">
+                        <input list="bulk-tag-list" value={bulkTag} onChange={e=>setBulkTag(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')applyBulkTag([...selFiles],bulkTag);}} placeholder={t('태그 일괄','Tag all')} className={`w-24 border rounded-full px-2.5 py-1 text-[11px] font-bold outline-none transition-all ${inputCls}`}/>
+                        <button onClick={()=>applyBulkTag([...selFiles],bulkTag)} disabled={!bulkTag.trim()} className="px-2.5 py-1 rounded-full text-[11px] font-black bg-pink-500/15 text-pink-400 hover:bg-pink-500/25 transition-all disabled:opacity-40">#+</button>
+                      </span>
                       <button onClick={()=>downloadMany(fv.filter((f:any)=>selFiles.has(f.id)))} disabled={zipping} className="px-3 py-1 rounded-full text-[11px] font-black bg-[#6366F1] text-white hover:opacity-90 transition-all disabled:opacity-50 inline-flex items-center gap-1.5"><i className="ti ti-download" aria-hidden="true"></i>{zipping?t('압축 중…','Zipping…'):t('전부 다운로드','Download all')}</button>
                       <button onClick={()=>setFilesHidden([...selFiles],!hiddenFilesView)} className={`px-3 py-1 rounded-full text-[11px] font-black transition-all ${hiddenFilesView?'bg-[#6366F1] text-white hover:opacity-90':'bg-red-500/15 text-red-400 hover:bg-red-500/25'}`}>{hiddenFilesView?t('복구','Restore'):t('제거','Remove')}</button>
                       <button onClick={()=>setSelFiles(new Set())} className={`px-2.5 py-1 rounded-full text-[11px] font-black ${dimText} hover:opacity-80`}>{t('선택 해제','Clear')}</button>
@@ -1142,6 +1162,15 @@ export default function GuestView(){
               const totalGenre=genreRank.reduce((s,x)=>s+x.n,0)||1;
               const vocalCount={male:0,female:0,both:0,none:0};hostPitchFiles.forEach(f=>{const v=f.vocal_gender;if(v==='male')vocalCount.male++;else if(v==='female')vocalCount.female++;else if(v==='both')vocalCount.both++;else vocalCount.none++;});
               const totalVocal=hostPitchFiles.length||1;
+              // 상태 집계
+              const statusCount:Record<string,number>={};hostPitches.forEach(p=>{if(p.status&&PITCH_STATUS[p.status])statusCount[p.status]=(statusCount[p.status]||0)+1;});
+              const triaged=Object.values(statusCount).reduce((s,n)=>s+n,0);
+              const untriaged=hostPitches.length-triaged;
+              const cutRate=triaged>0?Math.round(((statusCount.cut||0)/triaged)*100):0;
+              const pitchedRate=triaged>0?Math.round(((statusCount.pitched||0)/triaged)*100):0;
+              // 컷 순위 (상태=cut 기준 멤버/리드별)
+              const cutByMember:Record<string,number>={};hostPitches.filter(p=>p.status==='cut').forEach(p=>{const k=p.artist_name||'익명';cutByMember[k]=(cutByMember[k]||0)+1;});
+              const cutMemberRank=Object.entries(cutByMember).map(([name,n])=>({name,n})).sort((a,b)=>b.n-a.n).slice(0,6);
               const stat=(label:string,val:number,color:string)=>(
                 <div className={`relative flex-1 min-w-[140px] p-5 rounded-2xl border overflow-hidden ${D?'bg-gradient-to-b from-white/[0.04] to-white/[0.01] border-white/[0.08] shadow-lg shadow-black/20':'bg-gradient-to-b from-black/[0.02] to-transparent border-black/[0.08] shadow-sm'} before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/15 before:to-transparent`}>
                   <p className={`text-[12px] font-bold mb-1 ${dimText}`}>{label}</p>
@@ -1163,6 +1192,34 @@ export default function GuestView(){
                     {stat(t('활성 리드','Active Leads'),activeLeads,'text-emerald-400')}
                     {stat(t('받은 피칭','Pitches'),hostPitches.length,'text-[#6366F1]')}
                     {stat(t('받은 파일','Files'),hostPitchFiles.length,'text-amber-400')}
+                  </div>
+
+                  {/* 상태 파이프라인 */}
+                  <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                    <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+                      <p className={`text-[15px] font-black ${D?'text-white':'text-[#111]'}`}><i className="ti ti-adjustments" aria-hidden="true"></i> {t('상태 파이프라인','Status Pipeline')}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[12px] font-black text-[#818CF8]">{t('컷률','Cut rate')} {cutRate}%</span>
+                        <span className="text-[12px] font-black text-emerald-400">{t('피칭률','Pitched')} {pitchedRate}%</span>
+                      </div>
+                    </div>
+                    {/* 스택 바 */}
+                    <div className={`flex h-8 rounded-lg overflow-hidden mb-3 ${D?'bg-white/[0.04]':'bg-black/[0.04]'}`}>
+                      {PITCH_STATUS_KEYS.map(k=>{const n=statusCount[k]||0;if(!n)return null;const pct=(n/(hostPitches.length||1))*100;const bg={pitched:'#10b981',unpitched:'#a1a1aa',hold:'#f59e0b',cut:'#818CF8'}[k];return <div key={k} title={`${t(PITCH_STATUS[k].ko,PITCH_STATUS[k].en)} ${n}`} style={{width:`${pct}%`,background:bg}} className="h-full flex items-center justify-center"><span className="text-[10px] font-black text-white/90">{pct>8?n:''}</span></div>;})}
+                      {untriaged>0&&<div title={`${t('미분류','Untriaged')} ${untriaged}`} style={{width:`${(untriaged/(hostPitches.length||1))*100}%`}} className={`h-full ${D?'bg-white/10':'bg-black/10'}`}/>}
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                      {PITCH_STATUS_KEYS.map(k=>(
+                        <span key={k} className="inline-flex items-center gap-1.5 text-[12px] font-bold"><span className={`w-2.5 h-2.5 rounded-full ${PITCH_STATUS[k].dot}`}/><span className={dimText}>{t(PITCH_STATUS[k].ko,PITCH_STATUS[k].en)} {statusCount[k]||0}</span></span>
+                      ))}
+                      {untriaged>0&&<span className="inline-flex items-center gap-1.5 text-[12px] font-bold"><span className={`w-2.5 h-2.5 rounded-full ${D?'bg-white/20':'bg-black/20'}`}/><span className={dimText}>{t('미분류','Untriaged')} {untriaged}</span></span>}
+                    </div>
+                    {cutMemberRank.length>0&&(
+                      <div className={`mt-4 pt-4 border-t ${D?'border-white/[0.07]':'border-black/[0.07]'}`}>
+                        <p className={`text-[12px] font-black mb-2.5 ${dimText}`}>{t('컷 많이 낸 멤버','Most cuts by member')}</p>
+                        <div className="flex flex-col gap-2">{cutMemberRank.map(x=>bar(x.name,x.n,cutMemberRank[0].n,`${x.n}`,'bg-[#6366F1]'))}</div>
+                      </div>
+                    )}
                   </div>
 
                   <div className={`p-5 rounded-2xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
@@ -1470,6 +1527,7 @@ export default function GuestView(){
         </div>
       )}
 
+      <datalist id="bulk-tag-list">{allFileTags().map(tg=><option key={tg} value={tg}/>)}</datalist>
       {fileAction&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-0 sm:p-4" onClick={()=>setFileAction(null)}>
           <div className={`anim-rise w-full max-w-md border rounded-t-[2rem] sm:rounded-2xl shadow-2xl p-6 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
@@ -1486,7 +1544,7 @@ export default function GuestView(){
               </div>
             ):null;})()}
             <div className="flex gap-2 mb-5">
-              <input value={newTag} onChange={e=>setNewTag(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&newTag.trim()){toggleFileTag(fileAction,newTag.trim().replace(/^#/,''));setNewTag('');}}} placeholder={t('새 태그 (예: 서머, 아이유풍)','New tag (e.g. summer)')} className={`flex-1 border rounded-xl px-3 py-2.5 text-[14px] outline-none transition-all ${inputCls}`}/>
+              <input list="bulk-tag-list" value={newTag} onChange={e=>setNewTag(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&newTag.trim()){toggleFileTag(fileAction,newTag.trim().replace(/^#/,''));setNewTag('');}}} placeholder={t('새 태그 (예: 서머, 아이유풍)','New tag (e.g. summer)')} className={`flex-1 border rounded-xl px-3 py-2.5 text-[14px] outline-none transition-all ${inputCls}`}/>
               <button onClick={()=>{if(newTag.trim()){toggleFileTag(fileAction,newTag.trim().replace(/^#/,''));setNewTag('');}}} disabled={!newTag.trim()} className="px-4 py-2.5 rounded-xl bg-[#6366F1] text-white font-semibold text-[13px] disabled:opacity-40">{t('추가','Add')}</button>
             </div>
             <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${dimText}`}>{t('폴더 이동','Move to folder')}</p>
@@ -1602,13 +1660,15 @@ export default function GuestView(){
                         <div key={statusGroup} className="mb-2">
                           <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${D?'text-zinc-600':'text-zinc-400'}`}>{groupLabel}</p>
                           <div className="flex flex-col gap-2">
-                            {group.map(m=>(
-                              <div key={m.member_id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                            {group.map(m=>{const exp=expMember===m.member_id;const cp=m.copyright;const lk=m.profile?.links||{};const hasDetail=m.profile?.bio||cp||Object.values(lk).some(Boolean);return(
+                              <div key={m.member_id} className={`rounded-xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                              <div className="flex items-center gap-3 px-4 py-3">
                                 <button className="flex-1 min-w-0 text-left" onClick={()=>m.member_id&&window.open(`/card/${m.member_id}`,'_blank')}>
                                   <p className={`font-bold text-[13px] truncate ${D?'text-white hover:text-[#6366F1]':'text-[#111] hover:text-[#6366F1]'} transition-colors`}>{m.profile?.artist_name||'(이름 없음)'} <span className={`text-[10px] font-normal ${dimText}`}>↗</span></p>
                                   <p className={`text-[11px] truncate ${dimText}`}>{m.profile?.email||m.member_id}</p>
                                 </button>
                                 <div className="flex gap-1.5 shrink-0" onClick={e=>e.stopPropagation()}>
+                                  {hasDetail&&<button onClick={()=>setExpMember(exp?null:m.member_id)} title={t('내부 정보 (바이오·저작권)','Internal info (bio·copyright)')} className={`px-2 py-1 rounded-lg border text-[10px] font-black transition-all ${exp?'bg-[#6366F1]/15 border-[#6366F1]/30 text-[#6366F1]':D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-400 hover:text-[#111]'}`}><i className="ti ti-id-badge" aria-hidden="true"></i></button>}
                                   {statusGroup==='pending'&&<>
                                     <button onClick={()=>setMemberRole(m.member_id,'approved')} className="px-2.5 py-1 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-black hover:bg-green-500/20 transition-all">승인</button>
                                     <button onClick={()=>setMemberRole(m.member_id,'rejected')} className="px-2.5 py-1 rounded-lg border border-red-500/20 text-red-400 text-[10px] font-black hover:bg-red-500/10 transition-all">거절</button>
@@ -1625,7 +1685,27 @@ export default function GuestView(){
                                   </>}
                                 </div>
                               </div>
-                            ))}
+                              {exp&&hasDetail&&(
+                                <div className={`px-4 pb-3 pt-1 border-t flex flex-col gap-2.5 ${D?'border-white/[0.06]':'border-black/[0.06]'}`}>
+                                  {m.profile?.bio&&<p className={`text-[12px] leading-relaxed whitespace-pre-line ${D?'text-zinc-300':'text-zinc-700'}`}>{m.profile.bio}</p>}
+                                  {cp&&(cp.pro||cp.ipi||cp.legal_name)&&(
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+                                      {cp.legal_name&&<span className={dimText}>{t('본명','Legal')}: <span className={D?'text-zinc-300':'text-zinc-700'}>{cp.legal_name}</span></span>}
+                                      {cp.pro&&<span className={dimText}>{t('협회','PRO')}: <span className={D?'text-zinc-300':'text-zinc-700'}>{cp.pro}</span></span>}
+                                      {cp.ipi&&<span className={dimText}>IPI: <span className={D?'text-zinc-300':'text-zinc-700'}>{cp.ipi}</span></span>}
+                                      {cp.phone&&<span className={dimText}>{t('연락처','Phone')}: <span className={D?'text-zinc-300':'text-zinc-700'}>{cp.phone}</span></span>}
+                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">{t('내부용','internal')}</span>
+                                    </div>
+                                  )}
+                                  {Object.values(lk).some(Boolean)&&(
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {Object.entries(lk).filter(([,v]:any)=>v).map(([k,v]:any)=><a key={k} href={v.startsWith('http')?v:`https://${v}`} target="_blank" rel="noopener noreferrer" className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${D?'border-white/10 text-zinc-400 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{k} →</a>)}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              </div>
+                            );})}
                           </div>
                         </div>
                       );

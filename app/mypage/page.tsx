@@ -66,6 +66,8 @@ export default function MyPage() {
   const [genreEtc, setGenreEtc] = useState('');
   const [demoLink, setDemoLink] = useState('');
   const [bio, setBio] = useState('');
+  const [links, setLinks] = useState<Record<string, string>>({});
+  const setLink = (k: string, v: string) => setLinks(p => ({ ...p, [k]: v }));
   // 저작권 정보 (내부용 — 공개 카드에 안 나감, 스플릿 자동채움과 공유)
   const [cp, setCp] = useState<any>(null);
   const [cpPro, setCpPro] = useState('');
@@ -235,6 +237,7 @@ export default function MyPage() {
     setGenreEtc(m.genre_etc || '');
     setDemoLink(m.demo_link || '');
     setBio(m.bio || '');
+    setLinks(m.links || {});
     setPhotoPreview(m.photo_url || '');
   };
   const openEdit = () => {
@@ -270,6 +273,7 @@ export default function MyPage() {
       id: user.id,
       name, artist_name: artistName, gender, company: company || null, email,
       instagram: instagram || null, photo_url: photoUrl, bio: bio.trim() || null,
+      links: Object.fromEntries(Object.entries(links).filter(([, v]) => (v || '').trim())),
       roles, genres: finalGenres, genre_etc: genreEtc || null, demo_link: demoLink || null,
     }).eq('id', user.id);
     // 저작권 정보 (내부용)
@@ -1016,6 +1020,15 @@ export default function MyPage() {
                   <div>
                     <label className={labelCls}>{t('바이오 (공개)', 'Bio (public)')}</label>
                     <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} placeholder={t('소개, 대표 스타일, 이력 등 — 컴카드에 공개돼요', 'Intro, style, background — shown on your public card')} className={`w-full border rounded-xl px-3 py-2.5 text-[13px] outline-none transition-all resize-none ${inputCls}`} />
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>{t('SNS · 링크 (공개)', 'SNS · Links (public)')}</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([['spotify','Spotify'],['youtube','YouTube'],['soundcloud','SoundCloud'],['x','X (Twitter)'],['tiktok','TikTok'],['website',t('웹사이트','Website')]] as const).map(([k,l])=>(
+                        <input key={k} value={links[k]||''} onChange={e=>setLink(k,e.target.value)} placeholder={l} className={`w-full border rounded-lg px-2.5 py-2 text-[12px] outline-none ${inputCls}`} />
+                      ))}
+                    </div>
                   </div>
 
                   <div className={`p-4 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.07]' : 'bg-black/[0.02] border-black/[0.08]'}`}>

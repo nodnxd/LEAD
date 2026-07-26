@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useParams } from 'next/navigation';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
+import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -23,6 +24,8 @@ const TV = {
     noSession: '저장된 세션이 없어요',
     notice: '공지',
     members: (n: number) => `${n}명`,
+    portalHi: (n: string) => `${n}님, 반가워요`, portalDesc: '내 일정과 가능일 투표를 여기서 챙겨요',
+    portalConfirmed: '확정 일정', portalIcs: '캘린더 저장 (.ics)', portalVote: '가능일 투표하기', portalNoConfirm: '아직 확정된 일정이 없어요',
   },
   en: {
     attending: 'Attending', absent: 'Absent', pending: 'Undecided', noResponse: 'No Response',
@@ -31,6 +34,8 @@ const TV = {
     noSession: 'No sessions saved',
     notice: 'Notice',
     members: (n: number) => `${n}`,
+    portalHi: (n: string) => `Welcome, ${n}`, portalDesc: 'Your schedule and availability poll, all here',
+    portalConfirmed: 'Confirmed dates', portalIcs: 'Save calendar (.ics)', portalVote: 'Vote availability', portalNoConfirm: 'No confirmed dates yet',
   }
 };
 
@@ -60,6 +65,8 @@ export default function GuestView() {
   const [votingMemo, setVotingMemo] = useState('');
   const [selectedMemberId, setSelectedMemberId] = useState<any>(null);
   const [linkPopover, setLinkPopover] = useState<{ member: any; x: number; y: number } | null>(null);
+  const [me, setMe] = useState<any>(null); // 로그인한 멤버 본인(초대 연결됨)
+  const [portalPoll, setPortalPoll] = useState<any>(null); // 최신 열린/최근 가능일 투표
 
   const [lang, setLang] = useState<Lang>('ko');
   const [theme, setTheme] = useState<Theme>('dark');
@@ -171,9 +178,20 @@ export default function GuestView() {
     if (teamsFromDB.length > 0) setTeams(teamsFromDB);
   };
 
+  const fetchPortal = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setMe(null); return; }
+    const { data: prof } = await supabase.from('profiles').select('*').eq('user_id', hostId).eq('member_user_id', user.id).limit(1);
+    setMe(prof && prof.length ? prof[0] : null);
+    if (prof && prof.length) {
+      const { data: poll } = await supabase.from('availability_polls').select('*').eq('host_id', hostId).order('is_open', { ascending: false }).order('created_at', { ascending: false }).limit(1);
+      setPortalPoll(poll && poll.length ? poll[0] : null);
+    }
+  };
+
   useEffect(() => {
     if (!hostId) return;
-    fetchData(); fetchVotingStatus(); fetchNotices(); fetchSessions();
+    fetchData(); fetchVotingStatus(); fetchNotices(); fetchSessions(); fetchPortal();
     const channel = supabase.channel('guest-view')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `user_id=eq.${hostId}` }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'voting_sessions', filter: `host_id=eq.${hostId}` }, () => fetchVotingStatus())
@@ -358,6 +376,34 @@ export default function GuestView() {
                 <button key={d} onClick={() => setCurrentDay(d)}
                   className={`px-4 py-1.5 rounded-full font-normal text-[11px] transition-all border ${currentDay === d ? 'border-[#E3B24A]/40 bg-[#E3B24A]/10 text-[#E3B24A]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
               ))}
+            </div>
+          )}
+
+          {/* 멤버 포털 — 초대로 연결된 본인에게만 */}
+          {me && (
+            <div className="relative z-10 mb-6 rounded-2xl border border-[#E3B24A]/30 bg-[#E3B24A]/[0.07] p-5">
+              <p className={`font-black text-[16px] ${textMain}`}>{tv.portalHi(me.name || '')}</p>
+              <p className={`text-[12px] mb-4 ${textSub}`}>{tv.portalDesc}</p>
+              <div className="flex flex-col gap-3">
+                {portalPoll && (portalPoll.final_days || []).length > 0 ? (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-2 text-[#E3B24A]">{tv.portalConfirmed}</p>
+                    <div className="flex flex-wrap gap-1.5 mb-2.5">
+                      {(portalPoll.final_days || []).slice().sort((a: number, b: number) => a - b).map((d: number) => {
+                        const [yy, mm] = portalPoll.month.split('-').map(Number);
+                        const w = new Date(yy, mm - 1, d).getDay();
+                        const lbl = lang === 'ko' ? `${mm}월 ${d}일(${['일', '월', '화', '수', '목', '금', '토'][w]})` : `${mm}/${d} (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][w]})`;
+                        return <span key={d} className="px-3 py-1 rounded-full text-[12px] font-black border border-[#E3B24A]/50 bg-[#E3B24A]/15 text-[#EFCF8E]">{lbl}</span>;
+                      })}
+                    </div>
+                    <button onClick={() => { const ti = portalPoll.title || portalPoll.month; downloadIcs(ti, buildDaysIcs(ti, portalPoll.month, portalPoll.final_days, portalPoll.id)); }}
+                      className="text-[12px] font-black px-4 py-2 rounded-full border border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/15 transition-all">{tv.portalIcs}</button>
+                  </div>
+                ) : <p className={`text-[12px] ${textSub}`}>{tv.portalNoConfirm}</p>}
+                {portalPoll && portalPoll.is_open && (
+                  <a href={`/roster/availability/${hostId}?poll=${portalPoll.id}`} className="inline-flex w-fit items-center gap-1.5 text-[12px] font-black px-4 py-2 rounded-full bg-[#E3B24A]/20 border border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/30 transition-all">{tv.portalVote} →</a>
+                )}
+              </div>
             </div>
           )}
 
