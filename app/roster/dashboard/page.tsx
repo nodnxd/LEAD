@@ -1884,11 +1884,32 @@ export default function Dashboard() {
                               className={`shrink-0 text-[11px] font-black px-3.5 py-1 rounded-full border transition-all ${finals.includes(availSelDay) ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
                               {finals.includes(availSelDay) ? t.availConfirmRemove : t.availConfirmAdd}</button>
                           </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {membersOnDay(availSelDay, 'available').map(m => <span key={m.id} className="px-3 py-1 rounded-full text-[11px] font-bold border" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55', backgroundColor: (ROLE_COLORS[m.role] || '#aaa') + '18' }}>{m.name}</span>)}
-                            {membersOnDay(availSelDay, 'maybe').map(m => <span key={m.id} className="px-3 py-1 rounded-full text-[11px] font-bold border border-dashed" style={{ color: '#B3A88C', borderColor: '#B3A88C88', backgroundColor: '#B3A88C15' }}>{m.name} ?</span>)}
-                            {countOn(availSelDay) + maybeOn(availSelDay) === 0 && <span className={`text-[12px] ${textSub}`}>{t.availNoResp}</span>}
-                          </div>
+                          {(() => {
+                            const avail = membersOnDay(availSelDay, 'available');
+                            const maybe = membersOnDay(availSelDay, 'maybe');
+                            if (avail.length + maybe.length === 0) return <span className={`text-[12px] ${textSub}`}>{t.availNoResp}</span>;
+                            const roleGroups = [...ROLES, '__etc'].map(role => {
+                              const a = avail.filter(m => role === '__etc' ? !ROLES.includes(m.role) : m.role === role);
+                              const mb = maybe.filter(m => role === '__etc' ? !ROLES.includes(m.role) : m.role === role);
+                              return { role, a, mb };
+                            }).filter(g => g.a.length + g.mb.length > 0);
+                            return (
+                              <div className="flex flex-col gap-2.5">
+                                {roleGroups.map(({ role, a, mb }) => {
+                                  const col = ROLE_COLORS[role] || '#9aa';
+                                  return (
+                                    <div key={role} className="flex flex-col gap-1.5">
+                                      <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: col + 'cc' }}>{role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span className={textSub}>{a.length + mb.length}</span></p>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {a.map(m => <span key={m.id} className="px-3 py-1 rounded-full text-[11px] font-bold border" style={{ color: col, borderColor: col + '55', backgroundColor: col + '18' }}>{m.name}</span>)}
+                                        {mb.map(m => <span key={m.id} className="px-3 py-1 rounded-full text-[11px] font-bold border border-dashed" style={{ color: '#B3A88C', borderColor: '#B3A88C88', backgroundColor: '#B3A88C15' }}>{m.name} ?</span>)}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
 

@@ -290,19 +290,35 @@ function FinalDaysCard({ t, lang, poll, m }: any) {
 
 function DayMembers({ t, lang, day, avail, maybe, onClose }: any) {
   const chip = (mm: any, dim: boolean) => (
-    <span key={mm.id} className="px-3 py-1 rounded-full text-[12px] font-bold border" style={{ color: ROLE_COLORS[mm.role] || '#aaa', borderColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '35' : '55'), backgroundColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '10' : '18'), opacity: dim ? 0.7 : 1 }}>{mm.name}</span>
+    <span key={mm.id} className="px-3 py-1 rounded-full text-[12px] font-bold border" style={{ color: ROLE_COLORS[mm.role] || '#aaa', borderColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '35' : '55'), backgroundColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '10' : '18'), opacity: dim ? 0.7 : 1 }}>{mm.name}{dim ? ' ?' : ''}</span>
   );
+  const roleGroups = [...ROLE_ORDER, '__etc'].map(role => {
+    const a = avail.filter((m: any) => role === '__etc' ? !ROLE_ORDER.includes(m.role) : m.role === role);
+    const mb = maybe.filter((m: any) => role === '__etc' ? !ROLE_ORDER.includes(m.role) : m.role === role);
+    return { role, a, mb };
+  }).filter(g => g.a.length + g.mb.length > 0);
   return (
     <div className="rounded-2xl border p-5 mb-8 bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[13px] font-black text-white">{t.onDay(day)} · {t.available} {avail.length} · {t.maybe} {maybe.length}</p>
         <button onClick={onClose} className="text-[11px] text-zinc-400 hover:opacity-70">✕</button>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {avail.map((mm: any) => chip(mm, false))}
-        {maybe.map((mm: any) => chip(mm, true))}
-        {avail.length + maybe.length === 0 && <span className="text-[12px] text-zinc-400">{t.noneYet}</span>}
-      </div>
+      {avail.length + maybe.length === 0 ? <span className="text-[12px] text-zinc-400">{t.noneYet}</span> : (
+        <div className="flex flex-col gap-3">
+          {roleGroups.map(({ role, a, mb }) => {
+            const col = ROLE_COLORS[role] || '#9aa';
+            return (
+              <div key={role} className="flex flex-col gap-1.5">
+                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: col + 'cc' }}>{role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span className="text-zinc-500">{a.length + mb.length}</span></p>
+                <div className="flex flex-wrap gap-2">
+                  {a.map((mm: any) => chip(mm, false))}
+                  {mb.map((mm: any) => chip(mm, true))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
