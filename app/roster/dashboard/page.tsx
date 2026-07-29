@@ -23,6 +23,7 @@ const ROLE_COLORS: Record<string, string> = {
 const T = {
   ko: {
     notice: '공지', history: '히스토리', voteClose: '투표 닫기', voteOpen: '투표 열기',
+    stats: '통계', statsTitle: '로스터 통계', statsMembers: '멤버', statsRoles: '역할 분포', statsGender: '성비', statsAttend: '이번 세션 참석', statsAvail: '가능일 참여', statsAvailNone: '열린 가능일 투표 없음', statsMale: '남', statsFemale: '여', statsMost: '가장 잘 나오는 멤버',
     share: '공유', export: '내보내기', random: '랜덤', studio: '+ 스튜디오',
     logout: '로그아웃', artists: '아티스트', addFromArtists: '풀에서 추가',
     namePlaceholder: '이름 (쉼표 구분)', join: 'JOIN',
@@ -78,6 +79,7 @@ const T = {
   },
   en: {
     notice: 'Notice', history: 'History', voteClose: 'Close Vote', voteOpen: 'Open Vote',
+    stats: 'Stats', statsTitle: 'Roster Stats', statsMembers: 'Members', statsRoles: 'Roles', statsGender: 'Gender', statsAttend: 'Attendance', statsAvail: 'Availability', statsAvailNone: 'No open availability poll', statsMale: 'M', statsFemale: 'F', statsMost: 'Most available',
     share: 'Share', export: 'Export', random: 'Random', studio: '+ Studio',
     logout: 'Logout', artists: 'Artists', addFromArtists: 'Add from Pool',
     namePlaceholder: 'Name (comma separated)', join: 'JOIN',
@@ -251,6 +253,7 @@ export default function Dashboard() {
 
   // 월별 가능일 투표
   const [showAvailModal, setShowAvailModal] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   const [availPoll, setAvailPoll] = useState<any>(null);
   const [availPicks, setAvailPicks] = useState<any[]>([]);
   const [availSubs, setAvailSubs] = useState<any[]>([]);
@@ -1344,6 +1347,7 @@ export default function Dashboard() {
                   className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${availPoll ? 'bg-[#E3B24A]/20 border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/30' : btnBg}`}>
                   {t.availOpen}{availPoll ? ' •' : ''}
                 </button>
+                <button onClick={() => setShowStats(true)} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.stats}</button>
                 <button onClick={() => setShowNoticeBoard(!showNoticeBoard)} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.notice}</button>
                 <button onClick={copyShareLink} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.share}</button>
                 <button onClick={() => showPrompt(t.randomMatch, t.teamCount, '2', async (v) => { const n = parseInt(v); setPromptModal(null); if (n > 0) await generateRandomRoster(n)(); })}
@@ -1795,6 +1799,68 @@ export default function Dashboard() {
       )}
 
       {/* 가능일 투표 모달 */}
+      {showStats && (() => {
+        const proj = members.filter(m => m.project === currentProject && !m.excluded);
+        const total = proj.length;
+        const byRole = ROLES.map(r => ({ r, n: proj.filter(m => m.role === r).length })).filter(x => x.n > 0);
+        const male = proj.filter(m => m.gender === 'male' || m.gender === 'M' || m.gender === '남').length;
+        const female = proj.filter(m => m.gender === 'female' || m.gender === 'F' || m.gender === '여').length;
+        const att = { attending: 0, absent: 0, pending: 0, none: 0 };
+        proj.forEach(m => { att[m.attendance === 'attending' ? 'attending' : m.attendance === 'absent' ? 'absent' : m.attendance === 'pending' ? 'pending' : 'none']++; });
+        const availTotal = availPoll ? proj.length : 0;
+        const submitted = availPoll ? proj.filter(m => availSubs.some(s => s.member_id === m.id)).length : 0;
+        const mostAvail = availPoll ? proj.map(m => ({ m, c: availPicks.filter(p => p.member_id === m.id && p.status === 'available').length })).filter(x => x.c > 0).sort((a, b) => b.c - a.c).slice(0, 5) : [];
+        const bar = (label: string, n: number, tot: number, col: string) => (
+          <div className="flex items-center gap-2.5">
+            <span className={`text-[12px] font-bold w-16 shrink-0 ${textSub}`}>{label}</span>
+            <div className={`flex-1 h-5 rounded-md overflow-hidden ${theme === 'light' ? 'bg-black/8' : 'bg-white/8'}`}><div className="h-full rounded-md" style={{ width: `${tot ? (n / tot) * 100 : 0}%`, backgroundColor: col }} /></div>
+            <span className={`text-[12px] font-black w-8 text-right ${textMain}`}>{n}</span>
+          </div>
+        );
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setShowStats(false)}>
+            <div onClick={e => e.stopPropagation()} className={`w-full max-w-md max-h-[92vh] overflow-y-auto border rounded-2xl p-7 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+              <div className="flex items-center justify-between mb-5">
+                <h2 className={`font-black text-[16px] ${textMain}`}>{t.statsTitle} <span className={`text-[12px] font-normal ${textSub}`}>{currentProject}</span></h2>
+                <button onClick={() => setShowStats(false)} className={`text-[13px] ${textSub} hover:opacity-70`}>✕</button>
+              </div>
+              <div className="flex flex-col gap-5">
+                <div className="flex gap-3">
+                  <div className={`flex-1 rounded-xl border p-4 ${inputBg}`}><p className={`text-[26px] font-black ${textMain}`}>{total}</p><p className={`text-[11px] ${textSub}`}>{t.statsMembers}</p></div>
+                  <div className={`flex-1 rounded-xl border p-4 ${inputBg}`}><p className={`text-[26px] font-black text-[#77B18E]`}>{att.attending}</p><p className={`text-[11px] ${textSub}`}>{t.attending}</p></div>
+                  {(male > 0 || female > 0) && <div className={`flex-1 rounded-xl border p-4 ${inputBg}`}><p className={`text-[15px] font-black ${textMain}`}>{t.statsMale}{male} · {t.statsFemale}{female}</p><p className={`text-[11px] ${textSub}`}>{t.statsGender}</p></div>}
+                </div>
+                <div>
+                  <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.statsRoles}</p>
+                  <div className="flex flex-col gap-2">{byRole.map(({ r, n }) => bar(r, n, total, ROLE_COLORS[r] || '#888'))}</div>
+                </div>
+                <div>
+                  <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.statsAttend}</p>
+                  <div className="flex flex-col gap-2">
+                    {bar(t.attending, att.attending, total, '#77B18E')}
+                    {bar(t.absent, att.absent, total, '#9A8F8A')}
+                    {bar(t.pending, att.pending, total, '#B3A88C')}
+                    {bar(t.noResponse, att.none, total, theme === 'light' ? '#00000022' : '#ffffff22')}
+                  </div>
+                </div>
+                <div>
+                  <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.statsAvail}</p>
+                  {!availPoll ? <p className={`text-[13px] ${textSub}`}>{t.statsAvailNone}</p> : (
+                    <>
+                      {bar(t.availSubmitted, submitted, availTotal, '#E3B24A')}
+                      {mostAvail.length > 0 && <>
+                        <p className={`text-[11px] font-black mt-3 mb-2 ${textSub}`}>{t.statsMost}</p>
+                        <div className="flex flex-col gap-2">{mostAvail.map(({ m, c }) => bar(m.name, c, mostAvail[0].c, ROLE_COLORS[m.role] || '#E3B24A'))}</div>
+                      </>}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {showAvailModal && (() => {
         const proj = members.filter(m => m.project === currentProject && !m.excluded);
         const month = availPoll?.month || availMonth;
