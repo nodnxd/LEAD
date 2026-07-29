@@ -74,6 +74,7 @@ const T = {
     availRemindMsg: (who: string, title: string, link: string) => `${who}\n"${title}" 가능일 아직 제출 전이에요. 링크에서 이름 누르고 제출해주세요!\n${link}`,
     inviteAccount: '계정 초대 (이메일)', inviteTitle: '이 멤버를 이메일로 초대', inviteSent: '초대 등록! 그 이메일로 로그인하면 자동 연결돼요',
     availMemberPick: '클릭하면 이 멤버가 고른 날이 달력에 표시돼요',
+    availRoleCover: '이 날 되는 역할 (프로듀서·탑라이너·엔지니어·A&R)',
   },
   en: {
     notice: 'Notice', history: 'History', voteClose: 'Close Vote', voteOpen: 'Open Vote',
@@ -128,6 +129,7 @@ const T = {
     availRemindMsg: (who: string, title: string, link: string) => `${who}\nPlease submit your availability for "${title}":\n${link}`,
     inviteAccount: 'Invite account (email)', inviteTitle: 'Invite this member by email', inviteSent: 'Invite saved! They auto-link when they log in with that email',
     availMemberPick: 'Click to highlight this member’s picked days on the calendar',
+    availRoleCover: 'Roles available this day (Producer·Topliner·Engineer·A&R)',
   }
 };
 
@@ -1917,16 +1919,22 @@ export default function Dashboard() {
                       <div>
                         <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availBest}</p>
                         {best.length === 0 ? <p className={`text-[13px] ${textSub}`}>{t.availNoResp}</p> : (
-                          <div className="space-y-2">{best.map(({ d, c, mb }) => (
+                          <div className="space-y-2">{best.map(({ d, c, mb }) => {
+                            const availRoles = new Set(membersOnDay(d, 'available').map(mm => mm.role));
+                            return (
                             <button key={d} onClick={() => setAvailSelDay(d)} className="w-full flex items-center gap-2.5">
                               <span className={`text-[13px] font-black w-10 text-left ${finals.includes(d) ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
                               <div className={`flex-1 h-2.5 rounded-full overflow-hidden flex ${theme === 'light' ? 'bg-black/10' : 'bg-white/10'}`}>
                                 <div className="h-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} />
                                 <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />
                               </div>
+                              <span className="flex items-center gap-0.5 shrink-0" title={t.availRoleCover}>
+                                {ROLES.map(r => { const on = availRoles.has(r); return <span key={r} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: on ? (ROLE_COLORS[r] || '#aaa') : (theme === 'light' ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)') }} />; })}
+                              </span>
                               <span className={`text-[11px] font-black w-11 text-right ${textSub}`}>{c}{mb ? `+${mb}` : ''}</span>
                             </button>
-                          ))}</div>
+                            );
+                          })}</div>
                         )}
                       </div>
 
