@@ -159,6 +159,14 @@ export default function GuestView() {
     const { data } = await supabase.from('notices').select('*').eq('host_id', hostId).order('created_at', { ascending: false });
     if (data) setNotices(data);
   };
+  // 안 읽은 공지: 지난 방문 이후 올라온 것 (localStorage, DB 불필요)
+  const [noticeSeen] = useState<number>(() => (typeof window !== 'undefined' ? Number(localStorage.getItem(`cast_notice_seen_${hostId}`) || 0) : 0));
+  useEffect(() => {
+    if (notices.length && typeof window !== 'undefined') {
+      const latest = Math.max(...notices.map(n => new Date(n.created_at).getTime()));
+      localStorage.setItem(`cast_notice_seen_${hostId}`, String(latest));
+    }
+  }, [notices, hostId]);
 
   const fetchSessions = async () => {
     const { data } = await supabase.from('sessions').select('*').eq('host_id', hostId).order('created_at', { ascending: false });
@@ -412,7 +420,7 @@ export default function GuestView() {
             <div className="relative z-10 mb-6 flex flex-col gap-3">
               {notices.map(n => (
                 <div key={n.id} className="rounded-2xl border border-[#E3B24A]/20 bg-[#E3B24A]/5 p-4">
-                  <p className="text-[10px] font-normal uppercase tracking-widest text-[#E3B24A]/60 mb-1">{tv.notice}</p>
+                  <p className="text-[10px] font-normal uppercase tracking-widest text-[#E3B24A]/60 mb-1 flex items-center gap-1.5">{tv.notice}{new Date(n.created_at).getTime() > noticeSeen && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-[#E3B24A] text-black">NEW</span>}</p>
                   <p className={`font-bold text-[14px] mb-1 ${textMain}`}>{n.title}</p>
                   {n.content && <p className={`text-[12px] leading-relaxed whitespace-pre-line ${textSub}`}>{n.content}</p>}
                 </div>

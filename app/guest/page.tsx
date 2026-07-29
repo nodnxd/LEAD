@@ -6,6 +6,13 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useLang, LangToggle } from '@/lib/lang';
 
+const PSTATUS: Record<string, { ko: string; en: string; cls: string }> = {
+  pitched: { ko: '피칭', en: 'Pitched', cls: 'bg-emerald-500/15 text-emerald-400' },
+  unpitched: { ko: '논피칭', en: 'Unpitched', cls: 'bg-zinc-500/15 text-zinc-400' },
+  hold: { ko: '보류', en: 'On hold', cls: 'bg-amber-500/15 text-amber-400' },
+  cut: { ko: '컷', en: 'Cut', cls: 'bg-[#6366F1]/15 text-[#818CF8]' },
+};
+
 const ROLES = [
   { id: 'producer', label: 'Producer' },
   { id: 'topliner', label: 'Top-liner' },
@@ -40,6 +47,15 @@ export default function MyPage() {
   const [toast, setToast] = useState('');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [myPitches, setMyPitches] = useState<any[]>([]);
+  // 상태 변경 알림: 지난 방문 이후 바뀐 피칭 (localStorage, DB 불필요)
+  const [pitchSeen] = useState<Record<string, number>>(() => { try { return JSON.parse(localStorage.getItem('lead_pitch_seen') || '{}'); } catch { return {}; } });
+  useEffect(() => {
+    if (!myPitches.length) return;
+    const map: Record<string, number> = {};
+    myPitches.forEach((p: any) => { const log = p.status_log || []; if (log.length) map[p.id] = new Date(log[log.length - 1].at).getTime(); });
+    localStorage.setItem('lead_pitch_seen', JSON.stringify(map));
+  }, [myPitches]);
+  const pitchChanged = (p: any) => { const log = p.status_log || []; if (!log.length || !p.status) return false; return new Date(log[log.length - 1].at).getTime() > (pitchSeen[p.id] || 0); };
   const [myPitchFiles, setMyPitchFiles] = useState<any[]>([]);
   const [myLeads, setMyLeads] = useState<any[]>([]);
 
@@ -374,9 +390,12 @@ export default function MyPage() {
                           <p className={`font-bold text-[13px] ${D ? 'text-white' : 'text-[#111]'}`}>{lead?.artist || '—'} <span className={`font-normal ${dimText}`}>— {lead?.title || ''}</span></p>
                           <p className={`text-[11px] mt-0.5 ${dimText}`}>{new Date(p.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
-                        {files.length > 0 && (
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>
-                        )}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {p.status && PSTATUS[p.status] && <span className={`text-[10px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${PSTATUS[p.status].cls}`}>{pitchChanged(p) && <span className="w-1.5 h-1.5 rounded-full bg-current" />}{t(PSTATUS[p.status].ko, PSTATUS[p.status].en)}</span>}
+                          {files.length > 0 && (
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>
+                          )}
+                        </div>
                       </div>
                       {p.message && <p className={`text-[12px] leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>}
                       {files.length > 0 && (

@@ -69,7 +69,7 @@ const T = {
     availConfirmAdd: '확정에 추가', availConfirmRemove: '확정에서 빼기',
     availBlockMode: '차단일 설정', availBlockDone: '설정 완료', availBlocked: '차단됨',
     availBlockHint: '막을 날짜를 눌러 차단 (멤버는 못 고름)',
-    availFinalTitle: '확정일', availIcs: '캘린더 저장 (.ics)', availAnnounce: '확정 공지 복사',
+    availFinalTitle: '확정일', availIcs: '캘린더 저장 (.ics)', availAnnounce: '확정 공지 복사', availMakeSessions: '이 날들로 세션 만들기', availSessionsMade: (n: number) => `세션 ${n}개 만들었어요`,
     availRemind: '독촉', availRemindAll: '미제출 문구 복사',
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] 확정 안내\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\n"${title}" 가능일 아직 제출 전이에요. 링크에서 이름 누르고 제출해주세요!\n${link}`,
@@ -125,7 +125,7 @@ const T = {
     availConfirmAdd: 'Add to confirmed', availConfirmRemove: 'Remove from confirmed',
     availBlockMode: 'Block days', availBlockDone: 'Done', availBlocked: 'Blocked',
     availBlockHint: 'Tap days to block (members cannot pick)',
-    availFinalTitle: 'Confirmed days', availIcs: 'Save calendar (.ics)', availAnnounce: 'Copy announcement',
+    availFinalTitle: 'Confirmed days', availIcs: 'Save calendar (.ics)', availAnnounce: 'Copy announcement', availMakeSessions: 'Make sessions from these days', availSessionsMade: (n: number) => `Created ${n} sessions`,
     availRemind: 'Remind', availRemindAll: 'Copy reminder (all)',
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] Confirmed\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\nPlease submit your availability for "${title}":\n${link}`,
@@ -783,6 +783,21 @@ export default function Dashboard() {
     const finals: number[] = (availPoll.final_days || []).slice().sort((a: number, b: number) => a - b);
     navigator.clipboard.writeText(t.availAnnounceMsg(availPollName(), finals.map(fmtAvailDay).join(' · '), availLinkUrl()));
     showToastMsg(t.codeCopied);
+  };
+  // 확정일 → 세션보드에 자동 등록 (각 확정일 = 그 날 가능한 멤버들이 로스터)
+  const createSessionsFromFinals = async () => {
+    if (!availPoll) return;
+    const finals: number[] = (availPoll.final_days || []).slice().sort((a: number, b: number) => a - b);
+    if (!finals.length) return;
+    const proj = members.filter(m => m.project === currentProject && !m.excluded);
+    const rows = finals.map((d, i) => {
+      const avail = proj.filter(m => availPicks.some(p => p.member_id === m.id && p.day === d && p.status === 'available'));
+      const roster = [{ team: fmtAvailDay(d), members: avail.map(m => ({ name: m.name, role: m.role, gender: m.gender })) }];
+      return { host_id: user.id, project: currentProject, camp_name: fmtAvailDay(d), day_number: i + 1, memo: availPollName(), links: [], roster };
+    });
+    await supabase.from('sessions').insert(rows);
+    fetchSessions(user);
+    showToastMsg(t.availSessionsMade(finals.length));
   };
   const copyAvailReminder = (names: string[]) => {
     if (!availPoll || names.length === 0) return;
@@ -2013,10 +2028,11 @@ export default function Dashboard() {
                               <button key={d} onClick={() => setAvailSelDay(d)} className="px-3 py-1 rounded-full text-[12px] font-black border border-[#E3B24A]/50 bg-[#E3B24A]/15 text-[#EFCF8E] hover:bg-[#E3B24A]/25 transition-all">{fmtAvailDay(d)}</button>
                             ))}
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 mb-2">
                             <button onClick={downloadAvailIcs} className={`flex-1 py-2 rounded-lg border font-bold text-[11px] transition-all ${btnBg}`}>{t.availIcs}</button>
                             <button onClick={copyAvailAnnounce} className={`flex-1 py-2 rounded-lg border font-bold text-[11px] transition-all ${btnBg}`}>{t.availAnnounce}</button>
                           </div>
+                          <button onClick={createSessionsFromFinals} className="w-full py-2 rounded-lg border border-[#E3B24A]/40 bg-[#E3B24A]/15 text-[#EFCF8E] font-black text-[11px] hover:bg-[#E3B24A]/25 transition-all">{t.availMakeSessions}</button>
                         </div>
                       )}
                     </div>
