@@ -127,7 +127,8 @@ export default function GuestView(){
   const [annContent,setAnnContent]=useState('');
   const [editingAnnId,setEditingAnnId]=useState<string|null>(null);
   const [annSaving,setAnnSaving]=useState(false);
-  const [view,setView]=useState<'calendar'|'list'|'pitches'|'files'|'stats'>('calendar');
+  const [view,setView]=useState<'calendar'|'list'|'pitches'|'files'|'stats'|'library'>('calendar');
+  const [libArtist,setLibArtist]=useState('');
   const [hostCompany,setHostCompany]=useState('');
   const [hostFolders,setHostFolders]=useState<string[]>([]);
   const [addFolderInput,setAddFolderInput]=useState('');
@@ -358,7 +359,7 @@ export default function GuestView(){
       setShowWsPicker(false);setShowWsAdmins(false);setShowLeadForm(false);setEditingLead(null);
       setShowAnnModal(false);setShowHiddenPitches(false);setFileAction(null);setShowHostApprovals(false);
       setShowHostGrants(false);setShowMyPitches(false);setShowMembers(false);setShowDemoMgr(false);
-      setEditingDemo(null);setEditingCompany(false);
+      setEditingDemo(null);setEditingCompany(false);setViewingLead(null);setNewFolderOpen(false);
     };
     window.addEventListener('keydown',onKey);
     return()=>window.removeEventListener('keydown',onKey);
@@ -851,6 +852,7 @@ export default function GuestView(){
             <button onClick={()=>setView('list')} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='list'?'bg-[#6366F1] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-list text-[15px]" aria-hidden="true"></i>{t('목록','List')}</button>
             <button onClick={()=>{setView('pitches');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='pitches'?'bg-[#6366F1] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-inbox text-[15px]" aria-hidden="true"></i>{t('수신 피칭','Pitches')}{hostPitches.length>0&&<span className="opacity-70">{hostPitches.length}</span>}</button>
             <button onClick={()=>{setView('files');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='files'?'bg-[#6366F1] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-folder text-[15px]" aria-hidden="true"></i>{t('파일','Files')}{hostPitchFiles.length>0&&<span className="opacity-70">{hostPitchFiles.length}</span>}</button>
+            <button onClick={()=>{setView('library');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='library'?'bg-[#6366F1] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-vinyl text-[15px]" aria-hidden="true"></i>{t('라이브러리','Library')}</button>
             <button onClick={()=>{setView('stats');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='stats'?'bg-[#6366F1] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-chart-bar text-[15px]" aria-hidden="true"></i>{t('통계','Stats')}</button>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -1140,6 +1142,72 @@ export default function GuestView(){
                     </div>
                   )}
                 </>
+              );
+            })()}
+          </div>
+        )}
+
+        {view==='library'&&(
+          <div className="relative z-10">
+            {hostPitchLoading?(
+              <div className="flex items-center justify-center py-16"><div className="w-6 h-6 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin"/></div>
+            ):(()=>{
+              const pById:Record<string,any>={};hostPitches.forEach(p=>pById[p.id]=p);
+              const lib=hostPitchFiles.filter(f=>!f.hidden).map(f=>{const p=pById[f.pitch_id];const lead=p?[...leads,...demoDrives].find(l=>l.id===p.lead_id):null;return{...f,_artist:p?.artist_name||t('익명','Unknown'),_lead:lead?.artist||'',_status:p?.status||null};});
+              const byArtist:Record<string,any[]>={};lib.forEach(f=>{(byArtist[f._artist]=byArtist[f._artist]||[]).push(f);});
+              const artists=Object.entries(byArtist).map(([name,fs])=>({name,n:fs.length,cuts:fs.filter((f:any)=>f._status==='cut').length})).sort((a,b)=>b.n-a.n);
+              const sel=libArtist&&byArtist[libArtist]?libArtist:'';
+              const songs=(sel?byArtist[sel]:lib).slice().sort((a:any,b:any)=>new Date(b.created_at).getTime()-new Date(a.created_at).getTime());
+              const chip=D?'bg-white/[0.08] text-zinc-300':'bg-black/[0.05] text-zinc-600';
+              return lib.length===0?(
+                <div className="text-center py-20"><p className={`text-[15px] ${D?'text-zinc-600':'text-zinc-400'}`}>{t('아직 곡이 없어요','No songs yet')}</p></div>
+              ):(
+                <div className="anim-rise grid grid-cols-1 md:grid-cols-[230px_1fr] gap-5 items-start">
+                  {/* 작가 목록 */}
+                  <div className={`rounded-2xl border p-3 flex flex-col gap-1 md:sticky md:top-4 ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
+                    <button onClick={()=>setLibArtist('')} className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all ${!sel?'bg-[#6366F1] text-white':D?'hover:bg-white/5 text-zinc-300':'hover:bg-black/5 text-zinc-700'}`}>
+                      <span className="text-[13px] font-black">{t('전체','All')}</span><span className={`text-[11px] font-black ${!sel?'text-white/70':dimText}`}>{lib.length}</span>
+                    </button>
+                    {artists.map(a=>(
+                      <button key={a.name} onClick={()=>setLibArtist(libArtist===a.name?'':a.name)} className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-left transition-all ${sel===a.name?'bg-[#6366F1] text-white':D?'hover:bg-white/5 text-zinc-300':'hover:bg-black/5 text-zinc-700'}`}>
+                        <span className="text-[13px] font-bold truncate">{a.name}</span>
+                        <span className="flex items-center gap-1.5 shrink-0">
+                          {a.cuts>0&&<span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${sel===a.name?'bg-white/20 text-white':'bg-[#6366F1]/15 text-[#818CF8]'}`}>{t('컷','Cut')} {a.cuts}</span>}
+                          <span className={`text-[11px] font-black ${sel===a.name?'text-white/70':dimText}`}>{a.n}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  {/* 곡 목록 (디스코그라피) */}
+                  <div className="flex flex-col gap-1.5 min-w-0">
+                    <p className={`text-[12px] font-black px-1 mb-1 ${dimText}`}>{sel||t('전체','All')} · {songs.length}{t('곡',' songs')}</p>
+                    {songs.map((f:any)=>{
+                      const on=playingFileId===f.id;
+                      return(
+                        <div key={f.id} className={`rounded-xl border transition-all ${on?(D?'bg-white/[0.05] border-[#6366F1]/40':'bg-[#6366F1]/[0.05] border-[#6366F1]/30'):(D?'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04]':'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]')}`}>
+                          <div className="flex items-center gap-2.5 px-3 py-2.5">
+                            <button onClick={()=>setPlayingFileId(on?null:f.id)} className={`w-9 h-9 rounded-xl flex items-center justify-center text-[16px] shrink-0 transition-all ${on?'bg-[#6366F1] text-white':D?'bg-white/5 text-zinc-300 hover:bg-white/10':'bg-black/[0.04] text-zinc-600 hover:bg-black/[0.08]'}`}><i className={on?'ti ti-player-pause':'ti ti-player-play'} aria-hidden="true"></i></button>
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-bold text-[14px] leading-tight truncate ${D?'text-white':'text-[#111]'}`}>{f.file_name||'audio.mp3'}</p>
+                              <div className="flex items-center gap-1 flex-wrap mt-1">
+                                {!sel&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${D?'bg-white/10 text-zinc-200':'bg-black/[0.06] text-zinc-700'}`}><i className="ti ti-user" aria-hidden="true"></i> {f._artist}</span>}
+                                {f._status&&PITCH_STATUS[f._status]&&<span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${PITCH_STATUS[f._status].cls}`}>{t(PITCH_STATUS[f._status].ko,PITCH_STATUS[f._status].en)}</span>}
+                                {f.bpm>0&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip}`}>{f.bpm} BPM</span>}
+                                {f.key&&<span className={`text-[11px] font-black px-1.5 py-0.5 rounded ${chip}`}>{f.key}</span>}
+                                {f.genre&&<span className="text-[11px] font-black px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">{f.genre}</span>}
+                                {(f.tags||[]).map((tg:string)=><span key={tg} className="text-[11px] font-black px-1.5 py-0.5 rounded bg-pink-500/15 text-pink-400">#{tg}</span>)}
+                                {f._lead&&<span className={`text-[11px] ${dimText}`}>→ {f._lead}</span>}
+                                <span className={`text-[11px] ${dimText}`}>{new Date(f.created_at).toLocaleDateString('ko-KR',{year:'2-digit',month:'numeric',day:'numeric'})}</span>
+                              </div>
+                            </div>
+                            <button onClick={()=>downloadFile(f)} title={t('다운로드','Download')} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-[15px] shrink-0 transition-all ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}><i className="ti ti-download" aria-hidden="true"></i></button>
+                          </div>
+                          {on&&f.file_url&&<div className="px-3 pb-3"><audio autoPlay controls preload="none" src={f.file_url} className="w-full" style={{height:'40px',colorScheme:D?'dark':'light'}} onEnded={()=>{const i=songs.findIndex((x:any)=>x.id===f.id);if(i>=0&&songs[i+1])setPlayingFileId(songs[i+1].id);}}/></div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })()}
           </div>
