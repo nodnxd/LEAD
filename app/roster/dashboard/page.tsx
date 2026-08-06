@@ -75,6 +75,7 @@ const T = {
     availRemindMsg: (who: string, title: string, link: string) => `${who}\n"${title}" 가능일 아직 제출 전이에요. 링크에서 이름 누르고 제출해주세요!\n${link}`,
     inviteAccount: '계정 초대 (이메일)', inviteTitle: '이 멤버를 이메일로 초대', inviteSent: '초대 등록! 그 이메일로 로그인하면 자동 연결돼요',
     availMemberPick: '클릭하면 이 멤버가 고른 날이 달력에 표시돼요',
+    availKick: '빼기', availKicked: '제외됨 (불참 처리)', availRestoreM: '복구',
     availRoleCover: '이 날 되는 역할 (프로듀서·탑라이너·엔지니어·A&R)',
   },
   en: {
@@ -131,6 +132,7 @@ const T = {
     availRemindMsg: (who: string, title: string, link: string) => `${who}\nPlease submit your availability for "${title}":\n${link}`,
     inviteAccount: 'Invite account (email)', inviteTitle: 'Invite this member by email', inviteSent: 'Invite saved! They auto-link when they log in with that email',
     availMemberPick: 'Click to highlight this member’s picked days on the calendar',
+    availKick: 'Remove', availKicked: 'Removed (marked absent)', availRestoreM: 'Restore',
     availRoleCover: 'Roles available this day (Producer·Topliner·Engineer·A&R)',
   }
 };
@@ -784,6 +786,20 @@ export default function Dashboard() {
     navigator.clipboard.writeText(t.availAnnounceMsg(availPollName(), finals.map(fmtAvailDay).join(' · '), availLinkUrl()));
     showToastMsg(t.codeCopied);
   };
+  // 가능일에서 멤버 빼기 = poll.excluded_members 토글 + 참석상태 불참/복구
+  const toggleAvailExclude = async (memberId: string) => {
+    if (!availPoll) return;
+    const cur: string[] = availPoll.excluded_members || [];
+    const out = !cur.includes(memberId);
+    const next = out ? [...cur, memberId] : cur.filter(x => x !== memberId);
+    setAvailPoll({ ...availPoll, excluded_members: next });
+    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, attendance: out ? 'absent' : null } : m));
+    await Promise.all([
+      supabase.from('availability_polls').update({ excluded_members: next }).eq('id', availPoll.id),
+      supabase.from('profiles').update({ attendance: out ? 'absent' : null }).eq('id', memberId),
+    ]);
+  };
+
   // 확정일 → 세션보드에 자동 등록 (각 확정일 = 그 날 가능한 멤버들이 로스터)
   const createSessionsFromFinals = async () => {
     if (!availPoll) return;
@@ -1877,13 +1893,17 @@ export default function Dashboard() {
       })()}
 
       {showAvailModal && (() => {
-        const proj = members.filter(m => m.project === currentProject && !m.excluded);
+        const kicked: string[] = availPoll?.excluded_members || [];
+        const projAll = members.filter(m => m.project === currentProject && !m.excluded);
+        const proj = projAll.filter(m => !kicked.includes(m.id));
+        const kickedMembers = projAll.filter(m => kicked.includes(m.id));
+        const projIds = new Set(proj.map(m => m.id));
         const month = availPoll?.month || availMonth;
         const [yy, mm] = (month || '2025-01').split('-').map(Number);
         const daysInMonth = new Date(yy, mm, 0).getDate();
         const firstWeekday = new Date(yy, mm - 1, 1).getDay();
-        const countOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'available').length;
-        const maybeOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'maybe').length;
+        const countOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'available' && projIds.has(p.member_id)).length;
+        const maybeOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'maybe' && projIds.has(p.member_id)).length;
         const maxCount = Math.max(1, proj.length);
         const membersOnDay = (d: number, st: string) => proj.filter(m => availPicks.some(p => p.member_id === m.id && p.day === d && p.status === st));
         const finals: number[] = availPoll?.final_days || [];
@@ -1914,7 +1934,7 @@ export default function Dashboard() {
               ) : (
                 <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between gap-2">
-                    <p className={`text-[15px] font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-[12px] font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availSubmitted} {availSubs.length}/{proj.length}</span></p>
+                    <p className={`text-[15px] font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-[12px] font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availSubmitted} {availSubs.filter(s => projIds.has(s.member_id)).length}/{proj.length}</span></p>
                     <button onClick={copyAvailShareLink} className={`shrink-0 text-[11px] font-bold px-3.5 py-1.5 rounded-full border transition-all ${btnBg}`}>{t.availCopyAll}</button>
                   </div>
 
@@ -2040,7 +2060,7 @@ export default function Dashboard() {
                     {/* 우: 제출 현황 (어드민) */}
                     <div className={`md:border-l md:pl-6 ${theme === 'light' ? 'md:border-black/10' : 'md:border-white/8'}`}>
                       <div className="flex items-center justify-between mb-2.5 gap-2">
-                        <p className={`text-[11px] font-black uppercase tracking-widest ${textSub}`}>{t.availSubmitStatus} · {availSubs.length}/{proj.length}</p>
+                        <p className={`text-[11px] font-black uppercase tracking-widest ${textSub}`}>{t.availSubmitStatus} · {availSubs.filter(s => projIds.has(s.member_id)).length}/{proj.length}</p>
                         {proj.some(m => !isSubmitted(m)) && (
                           <button onClick={() => copyAvailReminder(proj.filter(m => !isSubmitted(m)).map(m => m.name))}
                             className={`shrink-0 text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${btnBg}`}>{t.availRemindAll}</button>
@@ -2061,11 +2081,23 @@ export default function Dashboard() {
                                 <span className={`text-[11px] font-black ${textSub}`}>{t.availPossible} {cnt}{mcnt ? ` · ${t.availMaybe} ${mcnt}` : ''}</span>
                                 {!done && <button onClick={(e) => { e.stopPropagation(); copyAvailReminder([m.name]); }} className={`text-[10px] font-black px-2 py-0.5 rounded-full border transition-all ${btnBg}`}>{t.availRemind}</button>}
                                 <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
+                                <button onClick={(e) => { e.stopPropagation(); toggleAvailExclude(m.id); }} title={t.availKick} className={`text-[11px] font-black px-1.5 py-0.5 rounded-full transition-all ${textSub} hover:text-[#C98BA0]`}>✕</button>
                               </div>
                             </div>
                           );
                         })}
                         {proj.length === 0 && <p className={`text-[13px] ${textSub}`}>{t.availNoResp}</p>}
+                        {kickedMembers.length > 0 && (
+                          <div className="pt-2">
+                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 text-[#C98BA0]/80`}>{t.availKicked}</p>
+                            {kickedMembers.map(m => (
+                              <div key={m.id} className={`flex items-center justify-between px-3.5 py-2 rounded-lg opacity-60 ${inputBg}`}>
+                                <span className={`text-[13px] font-bold line-through ${textSub}`}>{m.name} <span className="text-[11px] font-normal">{m.role}</span></span>
+                                <button onClick={() => toggleAvailExclude(m.id)} className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border transition-all ${btnBg}`}>{t.availRestoreM}</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

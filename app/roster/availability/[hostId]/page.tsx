@@ -107,11 +107,11 @@ export default function AvailabilityView() {
     const { data } = await supabase.from('availability_submissions').select('*').eq('poll_id', pollId);
     if (data) setSubs(data);
   }, []);
-  const fetchMembers = useCallback(async (project: string | null) => {
+  const fetchMembers = useCallback(async (project: string | null, kicked: string[] = []) => {
     let q = supabase.from('profiles').select('*').eq('user_id', hostId);
     if (project) q = q.eq('project', project);
     const { data } = await q.order('name', { ascending: true });
-    if (data) setMembers(data.filter((m: any) => !m.excluded));
+    if (data) setMembers(data.filter((m: any) => !m.excluded && !kicked.includes(m.id)));
     else setNotFound(true);
   }, [hostId]);
 
@@ -119,7 +119,7 @@ export default function AvailabilityView() {
 
   useEffect(() => {
     if (!poll) return;
-    fetchMembers(poll.project ?? null);
+    fetchMembers(poll.project ?? null, poll.excluded_members || []);
     fetchPicks(poll.id); fetchSubs(poll.id);
     const ch = supabase.channel(`avail-${poll.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'availability_picks', filter: `poll_id=eq.${poll.id}` }, () => fetchPicks(poll.id))
