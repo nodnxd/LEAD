@@ -76,6 +76,7 @@ const T = {
     inviteAccount: '계정 초대 (이메일)', inviteTitle: '이 멤버를 이메일로 초대', inviteSent: '초대 등록! 그 이메일로 로그인하면 자동 연결돼요',
     availMemberPick: '클릭하면 이 멤버가 고른 날이 달력에 표시돼요',
     availKick: '빼기', availKicked: '제외됨 (불참 처리)', availRestoreM: '복구',
+    availDayKick: '클릭하면 이 날에서 빠져요',
     availRoleCover: '이 날 되는 역할 (프로듀서·탑라이너·엔지니어·A&R)',
   },
   en: {
@@ -133,6 +134,7 @@ const T = {
     inviteAccount: 'Invite account (email)', inviteTitle: 'Invite this member by email', inviteSent: 'Invite saved! They auto-link when they log in with that email',
     availMemberPick: 'Click to highlight this member’s picked days on the calendar',
     availKick: 'Remove', availKicked: 'Removed (marked absent)', availRestoreM: 'Restore',
+    availDayKick: 'Click to remove from this day',
     availRoleCover: 'Roles available this day (Producer·Topliner·Engineer·A&R)',
   }
 };
@@ -786,6 +788,13 @@ export default function Dashboard() {
     navigator.clipboard.writeText(t.availAnnounceMsg(availPollName(), finals.map(fmtAvailDay).join(' · '), availLinkUrl()));
     showToastMsg(t.codeCopied);
   };
+  // 특정 날짜에서 멤버 빼기 = 그 날의 pick 삭제
+  const removeDayPick = async (memberId: string, day: number) => {
+    if (!availPoll) return;
+    setAvailPicks(prev => prev.filter(p => !(p.member_id === memberId && p.day === day)));
+    await supabase.from('availability_picks').delete().eq('poll_id', availPoll.id).eq('member_id', memberId).eq('day', day);
+  };
+
   // 가능일에서 멤버 빼기 = poll.excluded_members 토글 + 참석상태 불참/복구
   const toggleAvailExclude = async (memberId: string) => {
     if (!availPoll) return;
@@ -2004,8 +2013,8 @@ export default function Dashboard() {
                                     <div key={role} className="flex flex-col gap-1.5">
                                       <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: col + 'cc' }}>{role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span className={textSub}>{a.length + mb.length}</span></p>
                                       <div className="flex flex-wrap gap-1.5">
-                                        {a.map(m => <span key={m.id} className="px-3 py-1 rounded-full text-[11px] font-bold border" style={{ color: col, borderColor: col + '55', backgroundColor: col + '18' }}>{m.name}</span>)}
-                                        {mb.map(m => <span key={m.id} className="px-3 py-1 rounded-full text-[11px] font-bold border border-dashed" style={{ color: '#B3A88C', borderColor: '#B3A88C88', backgroundColor: '#B3A88C15' }}>{m.name} ?</span>)}
+                                        {a.map(m => <button key={m.id} onClick={() => removeDayPick(m.id, availSelDay)} title={t.availDayKick} className="group px-3 py-1 rounded-full text-[11px] font-bold border transition-all hover:opacity-80" style={{ color: col, borderColor: col + '55', backgroundColor: col + '18' }}>{m.name} <span className="opacity-40 group-hover:opacity-100">✕</span></button>)}
+                                        {mb.map(m => <button key={m.id} onClick={() => removeDayPick(m.id, availSelDay)} title={t.availDayKick} className="group px-3 py-1 rounded-full text-[11px] font-bold border border-dashed transition-all hover:opacity-80" style={{ color: '#B3A88C', borderColor: '#B3A88C88', backgroundColor: '#B3A88C15' }}>{m.name} ? <span className="opacity-40 group-hover:opacity-100">✕</span></button>)}
                                       </div>
                                     </div>
                                   );
