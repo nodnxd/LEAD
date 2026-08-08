@@ -77,6 +77,7 @@ const T = {
     availMemberPick: '클릭하면 이 멤버가 고른 날이 달력에 표시돼요',
     availKick: '빼기', availKicked: '제외됨 (불참 처리)', availRestoreM: '복구',
     availDayKick: '클릭하면 이 날에서 빠져요',
+    availDayAdd: '이 날에 넣기', availDayAddTip: '클릭하면 이 날 가능으로 추가돼요',
     availRoleCover: '이 날 되는 역할 (프로듀서·탑라이너·엔지니어·A&R)',
   },
   en: {
@@ -135,6 +136,7 @@ const T = {
     availMemberPick: 'Click to highlight this member’s picked days on the calendar',
     availKick: 'Remove', availKicked: 'Removed (marked absent)', availRestoreM: 'Restore',
     availDayKick: 'Click to remove from this day',
+    availDayAdd: 'Add to this day', availDayAddTip: 'Click to add as available on this day',
     availRoleCover: 'Roles available this day (Producer·Topliner·Engineer·A&R)',
   }
 };
@@ -793,6 +795,12 @@ export default function Dashboard() {
     if (!availPoll) return;
     setAvailPicks(prev => prev.filter(p => !(p.member_id === memberId && p.day === day)));
     await supabase.from('availability_picks').delete().eq('poll_id', availPoll.id).eq('member_id', memberId).eq('day', day);
+  };
+  // 특정 날짜에 멤버 넣기 = 그 날 pick을 '가능'으로 추가
+  const addDayPick = async (memberId: string, day: number) => {
+    if (!availPoll) return;
+    setAvailPicks(prev => [...prev.filter(p => !(p.member_id === memberId && p.day === day)), { poll_id: availPoll.id, member_id: memberId, day, status: 'available' }]);
+    await supabase.from('availability_picks').upsert({ poll_id: availPoll.id, member_id: memberId, day, status: 'available' }, { onConflict: 'poll_id,member_id,day' });
   };
 
   // 가능일에서 멤버 빼기 = poll.excluded_members 토글 + 참석상태 불참/복구
@@ -1999,7 +2007,19 @@ export default function Dashboard() {
                           {(() => {
                             const avail = membersOnDay(availSelDay, 'available');
                             const maybe = membersOnDay(availSelDay, 'maybe');
-                            if (avail.length + maybe.length === 0) return <span className={`text-[12px] ${textSub}`}>{t.availNoResp}</span>;
+                            const inDay = new Set([...avail, ...maybe].map(m => m.id));
+                            const rest = proj.filter(m => !inDay.has(m.id));
+                            const addChips = rest.length > 0 && (
+                              <div className={`mt-2.5 pt-2.5 border-t ${theme === 'light' ? 'border-black/8' : 'border-white/8'}`}>
+                                <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 ${textSub}`}>{t.availDayAdd}</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {rest.map(m => (
+                                    <button key={m.id} onClick={() => addDayPick(m.id, availSelDay)} title={t.availDayAddTip} className="px-3 py-1 rounded-full text-[11px] font-bold border border-dashed transition-all opacity-50 hover:opacity-100" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55' }}>+ {m.name}</button>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                            if (avail.length + maybe.length === 0) return <><span className={`text-[12px] ${textSub}`}>{t.availNoResp}</span>{addChips}</>;
                             const roleGroups = [...ROLES, '__etc'].map(role => {
                               const a = avail.filter(m => role === '__etc' ? !ROLES.includes(m.role) : m.role === role);
                               const mb = maybe.filter(m => role === '__etc' ? !ROLES.includes(m.role) : m.role === role);
@@ -2019,6 +2039,7 @@ export default function Dashboard() {
                                     </div>
                                   );
                                 })}
+                                {addChips}
                               </div>
                             );
                           })()}
