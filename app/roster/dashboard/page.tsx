@@ -30,6 +30,7 @@ const T = {
     rosterPool: 'ROSTER POOL', rosterDelete: '로스터 삭제', rosterDeleteMsg: (p: string) => `"${p}" 로스터를 삭제할까요?`,
     newRoster: 'New Roster', rosterNamePlaceholder: '로스터 이름',
     studioDelete: '스튜디오 삭제', studioDeleteMsg: (t: string) => `"${t}"을 삭제할까요?`,
+    studioHint: '빈 곳 우클릭으로도 스튜디오를 추가할 수 있어요', studioAdded: (n: string) => `${n} 추가됨`,
     memberDelete: '멤버 삭제', memberDeleteMsg: (n: string) => `"${n}"을 삭제할까요?`,
     dayDelete: (l: string) => `${l} 삭제`, dayDeleteMsg: (l: string) => `${l}를 삭제할까요?`,
     addDay: '+ Day', cancel: '취소', confirm: '확인',
@@ -89,6 +90,7 @@ const T = {
     rosterPool: 'ROSTER POOL', rosterDelete: 'Delete Roster', rosterDeleteMsg: (p: string) => `Delete "${p}"?`,
     newRoster: 'New Roster', rosterNamePlaceholder: 'Roster name',
     studioDelete: 'Delete Studio', studioDeleteMsg: (t: string) => `Delete "${t}"?`,
+    studioHint: 'Right-click empty space to add a studio', studioAdded: (n: string) => `${n} added`,
     memberDelete: 'Delete Member', memberDeleteMsg: (n: string) => `Delete "${n}"?`,
     dayDelete: (l: string) => `Delete ${l}`, dayDeleteMsg: (l: string) => `Delete ${l}?`,
     addDay: '+ Day', cancel: 'Cancel', confirm: 'OK',
@@ -790,6 +792,13 @@ export default function Dashboard() {
     navigator.clipboard.writeText(t.availAnnounceMsg(availPollName(), finals.map(fmtAvailDay).join(' · '), availLinkUrl()));
     showToastMsg(t.codeCopied);
   };
+  // 스튜디오 추가 (버튼 + 보드 빈 곳 우클릭)
+  const addStudio = async () => {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; let n = '';
+    for (const c of alphabet) { if (!teams.includes(`Studio ${c}`)) { n = `Studio ${c}`; break; } }
+    if (n) { const next = [...teams, n]; setTeams(next); await saveTeamOrder(user.id, currentProject, currentDay, next); showToastMsg(t.studioAdded(n)); }
+  };
+
   // 특정 날짜에서 멤버 빼기 = 그 날의 pick 삭제
   const removeDayPick = async (memberId: string, day: number) => {
     if (!availPoll) return;
@@ -1355,11 +1364,7 @@ export default function Dashboard() {
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <button onClick={async () => {
-                    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; let n = '';
-                    for (const c of alphabet) { if (!teams.includes(`Studio ${c}`)) { n = `Studio ${c}`; break; } }
-                    if (n) { const next = [...teams, n]; setTeams(next); await saveTeamOrder(user.id, currentProject, currentDay, next); }
-                  }} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all text-[#E3B24A] ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
+                  <button onClick={addStudio} title={t.studioHint} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all text-[#E3B24A] ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
                   <button onClick={() => setShowSessionBoard(!showSessionBoard)} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.history}</button>
                   <button onClick={exportRoster} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.export}</button>
                   <button onClick={() => router.push('/roster/artists')} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.artists}</button>
@@ -1654,7 +1659,9 @@ export default function Dashboard() {
             {/* 스튜디오 보드 */}
             <Droppable droppableId="teams-board" direction="horizontal" type="TEAM">
               {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} id="roster-board" className="relative z-10 flex flex-wrap gap-6 items-start pb-20">
+                <div {...provided.droppableProps} ref={provided.innerRef} id="roster-board" title={t.studioHint}
+                  onContextMenu={(e) => { if ((e.target as HTMLElement).closest('[data-studio-card]')) return; e.preventDefault(); addStudio(); }}
+                  className="relative z-10 flex flex-wrap gap-6 items-start pb-20 min-h-[200px]">
                   {otherTeams.map((tName, idx) => {
                     const counts = getTeamCounts(tName);
                     const countEntries = ROLES.filter(r => counts[r]);
@@ -1662,7 +1669,7 @@ export default function Dashboard() {
                     return (
                       <Draggable key={tName} draggableId={`team-${tName}`} index={idx}>
                         {(provided) => (
-                          <div ref={provided.innerRef} {...provided.draggableProps} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
+                          <div ref={provided.innerRef} {...provided.draggableProps} data-studio-card className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
                             <div className={`backdrop-blur-2xl border rounded-[2rem] p-6 min-h-[400px] shadow-2xl flex flex-col ${cardBg}`}>
                               <div {...provided.dragHandleProps} className="flex justify-between items-start mb-4 px-1 border-l-4 border-[#E3B24A] pl-4 cursor-grab">
                                 <div className="flex flex-col gap-1.5 flex-1">
