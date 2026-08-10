@@ -31,6 +31,7 @@ const T = {
     newRoster: 'New Roster', rosterNamePlaceholder: '로스터 이름',
     studioDelete: '스튜디오 삭제', studioDeleteMsg: (t: string) => `"${t}"을 삭제할까요?`,
     studioHint: '빈 곳 우클릭으로도 스튜디오를 추가할 수 있어요', studioAdded: (n: string) => `${n} 추가됨`,
+    dayRenameHint: '우클릭(또는 더블클릭)으로 이름 바꾸기',
     memberDelete: '멤버 삭제', memberDeleteMsg: (n: string) => `"${n}"을 삭제할까요?`,
     dayDelete: (l: string) => `${l} 삭제`, dayDeleteMsg: (l: string) => `${l}를 삭제할까요?`,
     addDay: '+ Day', cancel: '취소', confirm: '확인',
@@ -91,6 +92,7 @@ const T = {
     newRoster: 'New Roster', rosterNamePlaceholder: 'Roster name',
     studioDelete: 'Delete Studio', studioDeleteMsg: (t: string) => `Delete "${t}"?`,
     studioHint: 'Right-click empty space to add a studio', studioAdded: (n: string) => `${n} added`,
+    dayRenameHint: 'Right-click (or double-click) to rename',
     memberDelete: 'Delete Member', memberDeleteMsg: (n: string) => `Delete "${n}"?`,
     dayDelete: (l: string) => `Delete ${l}`, dayDeleteMsg: (l: string) => `Delete ${l}?`,
     addDay: '+ Day', cancel: 'Cancel', confirm: 'OK',
@@ -1418,7 +1420,9 @@ export default function Dashboard() {
                       onKeyDown={e => { if (e.key === 'Enter') saveDayName(d, dayNameInput || `Day ${d}`); if (e.key === 'Escape') setEditingDayName(null); }}
                       className="bg-transparent px-3 py-1.5 text-[11px] font-bold outline-none text-[#E3B24A] w-24" />
                   ) : (
-                    <button onClick={() => setCurrentDay(d)} onDoubleClick={() => { setEditingDayName(d); setDayNameInput(dayNames[d] || `Day ${d}`); }}
+                    <button onClick={() => setCurrentDay(d)} title={t.dayRenameHint}
+                      onDoubleClick={() => { setEditingDayName(d); setDayNameInput(dayNames[d] || `Day ${d}`); }}
+                      onContextMenu={(e) => { e.preventDefault(); setEditingDayName(d); setDayNameInput(dayNames[d] || `Day ${d}`); }}
                       className={`px-4 py-1.5 font-bold text-[11px] transition-all ${currentDay === d ? 'text-[#E3B24A]' : textSub}`}>{getDayLabel(d)}</button>
                   )}
                   {days.length > 1 && <button onClick={() => showConfirm(t.dayDelete(getDayLabel(d)), t.dayDeleteMsg(getDayLabel(d)), () => { removeDay(d); setConfirmModal(null); })} className="pr-3 text-zinc-700 hover:text-red-500 text-[12px]">×</button>}
