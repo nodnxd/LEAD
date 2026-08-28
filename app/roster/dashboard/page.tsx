@@ -1615,19 +1615,18 @@ export default function Dashboard() {
                   <button onClick={() => showConfirm(lang === 'ko' ? '출석 초기화' : 'Reset attendance', lang === 'ko' ? '모든 참석/불참 응답을 초기화할까요?' : 'Reset all attendance responses?', async () => { await resetAttendance(); setConfirmModal(null); })}
                     className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all ${btnBg}`}>{lang === 'ko' ? '초기화' : 'Reset'}</button>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {([['attending', attendingMembers, '#77B18E', t.attending], ['absent', absentMembers, '#9A8F8A', t.absent]] as const).map(([key, list, color, label]) => (
-                    <div key={key}>
-                      <p className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: color + '99' }}>{label} {list.length}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {list.map((m: any) => (
-                          <span key={m.id} className="flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-lg" style={{ backgroundColor: color + '14', color: color }}>
-                            <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} />
-                            {m.name}
-                          </span>
-                        ))}
-                        {list.length === 0 && <span className="text-[10px] text-zinc-600">—</span>}
-                      </div>
+                <div className="flex flex-wrap gap-x-7 gap-y-3">
+                  {([['attending', attendingMembers, '#77B18E', t.attending], ['absent', absentMembers, '#9A8F8A', t.absent]] as const)
+                    .filter(([, list]) => list.length > 0)
+                    .map(([key, list, color, label]) => (
+                    <div key={key} className="flex items-center gap-2.5 flex-wrap">
+                      <p className="text-[9px] font-black uppercase tracking-widest shrink-0" style={{ color: color + '99' }}>{label} {list.length}</p>
+                      {list.map((m: any) => (
+                        <span key={m.id} className="flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-lg" style={{ backgroundColor: color + '14', color: color }}>
+                          <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} />
+                          {m.name}
+                        </span>
+                      ))}
                     </div>
                   ))}
                 </div>
@@ -1667,7 +1666,7 @@ export default function Dashboard() {
                                       <div
                                         onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                         onDoubleClick={() => setLinkModal(m)}
-                                        className={`flex items-center justify-between p-2.5 rounded-xl w-[160px] h-[44px] shadow-xl cursor-pointer shrink-0 ${getRoleCardStyle(m.role, m.excluded)}`}
+                                        className={`group flex items-center justify-between p-2.5 rounded-xl w-[160px] h-[44px] shadow-xl cursor-pointer shrink-0 ${getRoleCardStyle(m.role, m.excluded)}`}
                                       >
                                         <div className="flex items-center gap-1.5 overflow-hidden flex-1 pl-1">
                                           {editingId === String(m.id) ? (
@@ -1680,7 +1679,7 @@ export default function Dashboard() {
                                             </span>
                                           )}
                                         </div>
-                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} className="text-zinc-600 hover:text-red-500 text-lg px-1 shrink-0">×</button>
+                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} className="text-zinc-600 hover:text-red-500 text-lg px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                                       </div>
                                     </PortalDraggable>
                                   ))}
@@ -1716,7 +1715,7 @@ export default function Dashboard() {
                       <Draggable key={tName} draggableId={`team-${tName}`} index={idx}>
                         {(provided) => (
                           <div ref={provided.innerRef} {...provided.draggableProps} data-studio-card className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
-                            <div className={`backdrop-blur-2xl border rounded-[2rem] p-6 min-h-[400px] shadow-2xl flex flex-col ${cardBg}`}>
+                            <div className={`group/studio backdrop-blur-2xl border rounded-[2rem] p-6 min-h-[320px] shadow-2xl flex flex-col ${cardBg}`}>
                               <div {...provided.dragHandleProps} className="flex justify-between items-start mb-4 px-1 border-l-4 border-[#E3B24A] pl-4 cursor-grab">
                                 <div className="flex flex-col gap-1.5 flex-1">
                                   {editingTeam === tName ? (
@@ -1737,10 +1736,10 @@ export default function Dashboard() {
                                     <h2 onClick={() => { setEditingTeam(tName); setTeamEditValue(tName); }} className={`text-[14px] font-black uppercase cursor-pointer hover:opacity-80 ${textMain}`}>{tName}</h2>
                                   )}
                                   {countEntries.length > 0 && (
-                                    <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                    <div className="flex flex-wrap gap-1.5">
                                       {countEntries.map(r => (
-                                        <span key={r} className="text-[8px] font-black px-1.5 py-0.5 rounded-full border text-center"
-                                          style={{ color: ROLE_COLORS[r], borderColor: ROLE_COLORS[r] + '40', backgroundColor: ROLE_COLORS[r] + '15' }}>
+                                        <span key={r} className="text-[10px] font-black px-2 py-0.5 rounded-full border"
+                                          style={{ color: ROLE_COLORS[r], borderColor: ROLE_COLORS[r] + '66', backgroundColor: ROLE_COLORS[r] + '22' }}>
                                           {r.slice(0, 3)} {counts[r]}
                                         </span>
                                       ))}
@@ -1753,7 +1752,7 @@ export default function Dashboard() {
                                   const next = teams.filter(t => t !== tName); setTeams(next);
                                   await saveTeamOrder(user.id, currentProject, currentDay, next);
                                   fetchAssignments(user); setConfirmModal(null);
-                                })} className="text-zinc-600 hover:text-red-500 text-xl shrink-0 ml-2">×</button>
+                                })} className="text-zinc-600 hover:text-red-500 text-xl shrink-0 ml-2 opacity-0 group-hover/studio:opacity-100 transition-opacity">×</button>
                               </div>
                               <Droppable droppableId={tName} type="MEMBER">
                                 {(provided) => (
@@ -1763,7 +1762,7 @@ export default function Dashboard() {
                                         <div
                                           onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                           onDoubleClick={() => setLinkModal(m)}
-                                          className={`flex justify-between items-center p-4 rounded-2xl shadow-xl transition-all cursor-pointer ${getRoleCardStyle(m.role, m.excluded)}`}
+                                          className={`group flex justify-between items-center p-4 rounded-2xl shadow-xl transition-all cursor-pointer ${getRoleCardStyle(m.role, m.excluded)}`}
                                         >
                                           <div className="flex items-center gap-2 overflow-hidden flex-1 pl-1">
                                             {editingId === String(m.id) ? (
@@ -1776,13 +1775,13 @@ export default function Dashboard() {
                                                   {getAttendanceBadge(m.attendance)}
                                                   {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                                 </span>
-                                                <button onClick={(e) => { e.stopPropagation(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }} className="text-[8px] font-bold uppercase tracking-widest mt-1 text-left text-zinc-500 hover:text-zinc-300 transition-colors">
+                                                <button onClick={(e) => { e.stopPropagation(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }} className="text-[9px] font-bold uppercase tracking-widest mt-1 text-left text-zinc-400 hover:text-white transition-colors">
                                                   {m.role}
                                                 </button>
                                               </div>
                                             )}
                                           </div>
-                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} className="text-zinc-600 hover:text-red-500 text-lg px-1 shrink-0">×</button>
+                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} className="text-zinc-600 hover:text-red-500 text-lg px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                                         </div>
                                       </PortalDraggable>
                                     ))}
