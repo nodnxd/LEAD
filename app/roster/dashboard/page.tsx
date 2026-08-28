@@ -1367,7 +1367,7 @@ export default function Dashboard() {
             </Droppable>
 
             {/* 서브 헤더 */}
-            <header className={`relative z-10 mb-6 border-b pb-4 ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`}>
+            <header className={`relative z-30 mb-6 border-b pb-4 ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`}>
               {/* 1줄 */}
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
@@ -1423,7 +1423,7 @@ export default function Dashboard() {
                   {menuOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                      <div className={`absolute right-0 top-full mt-2 z-50 w-52 rounded-xl border shadow-2xl backdrop-blur-xl overflow-hidden anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#171717] border-white/10'}`}>
+                      <div className={`absolute right-0 top-full mt-2 z-50 w-52 max-h-[70vh] overflow-y-auto rounded-xl border shadow-2xl anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#171717] border-white/10'}`}>
                         {([
                           [t.availOpen, () => { setAvailSelDay(null); setShowAvailModal(true); }, !!availPoll],
                           [votingOpen ? t.voteClose : t.voteOpen, () => votingOpen
