@@ -26,6 +26,7 @@ const TV = {
     members: (n: number) => `${n}명`,
     portalHi: (n: string) => `${n}님, 반가워요`, portalDesc: '내 일정과 가능일 투표를 여기서 챙겨요',
     portalConfirmed: '확정 일정', portalIcs: '캘린더 저장 (.ics)', portalVote: '가능일 투표하기', portalNoConfirm: '아직 확정된 일정이 없어요',
+    myStudio: '내 스튜디오', myMates: '함께', myStudioNone: '이 날은 아직 배치 전이에요',
   },
   en: {
     attending: 'Attending', absent: 'Absent', noResponse: 'No Response',
@@ -36,6 +37,7 @@ const TV = {
     members: (n: number) => `${n}`,
     portalHi: (n: string) => `Welcome, ${n}`, portalDesc: 'Your schedule and availability poll, all here',
     portalConfirmed: 'Confirmed dates', portalIcs: 'Save calendar (.ics)', portalVote: 'Vote availability', portalNoConfirm: 'No confirmed dates yet',
+    myStudio: 'My studio', myMates: 'With', myStudioNone: 'Not assigned for this day yet',
   }
 };
 
@@ -60,6 +62,7 @@ export default function GuestView() {
   const [currentDay, setCurrentDay] = useState(1);
   const [days, setDays] = useState<number[]>([1]);
   const [dayNames, setDayNames] = useState<Record<number, string>>({});
+  const [dayDates, setDayDates] = useState<Record<number, string>>({});
 
   const [votingOpen, setVotingOpen] = useState(false);
   const [votingTitle, setVotingTitle] = useState('');
@@ -209,6 +212,7 @@ export default function GuestView() {
     setDays(list);
     setCurrentDay(prev => list.includes(prev) ? prev : list[0]);
     setDayNames(to[`${currentProject}_daynames`] || {});
+    setDayDates(to[`${currentProject}_daydates`] || {});
   }, [currentProject, settings, assignments]);
 
   // 스튜디오 순서: 대시보드가 저장한 순서 그대로 (없는 건 뒤에 붙임)
@@ -281,7 +285,21 @@ export default function GuestView() {
   const absent = allMembers.filter(m => m.attendance === 'absent');
   const noResponse = allMembers.filter(m => m.attendance !== 'attending' && m.attendance !== 'absent');
   const sessionsByCamp = sessions.reduce((acc: any, s: any) => { if (!acc[s.camp_name]) acc[s.camp_name] = []; acc[s.camp_name].push(s); return acc; }, {});
-  const getDayLabel = (d: number) => dayNames[d] || `Day ${d}`;
+  const WD = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const fmtDate = (iso: string) => {
+    const [yy, mo, dd] = iso.split('-').map(Number);
+    const w = WD[new Date(yy, mo - 1, dd).getDay()];
+    return lang === 'ko' ? `${mo}월 ${dd}일(${w})` : `${mo}/${dd} ${w}`;
+  };
+  const getDayLabel = (d: number) => (dayDates[d] ? fmtDate(dayDates[d]) : (dayNames[d] || `Day ${d}`));
+
+  // 초대로 연결된 본인의 이번 Day 배치 — 링크 열자마자 "나는 어디" 가 보이게
+  const myTeam = (() => {
+    if (!me) return null;
+    const a = assignments.find((x: any) => x.project === currentProject && x.day_number === currentDay && x.team !== 'Unassigned' && String(x.profile_id) === String(me.id));
+    if (!a) return null;
+    return { team: a.team, mates: getSortedMembers(a.team).filter((x: any) => String(x.id) !== String(me.id)) };
+  })();
 
   const MemberCard = ({ m }: { m: any }) => (
     <div
@@ -402,6 +420,28 @@ export default function GuestView() {
               <p className={`font-black text-[16px] ${textMain}`}>{tv.portalHi(me.name || '')}</p>
               <p className={`text-[12px] mb-4 ${textSub}`}>{tv.portalDesc}</p>
               <div className="flex flex-col gap-3">
+                {/* 내 스튜디오 */}
+                <div className={`rounded-xl border p-4 ${theme === 'light' ? 'border-black/10 bg-white' : 'border-white/10 bg-white/[0.04]'}`}>
+                  <p className="text-[10px] font-black uppercase tracking-widest mb-2 text-[#E3B24A]">{tv.myStudio}</p>
+                  {myTeam ? (
+                    <>
+                      <p className={`font-black text-[22px] leading-tight ${textMain}`}>{myTeam.team}</p>
+                      <p className={`text-[12px] mt-1 ${textSub}`}>{getDayLabel(currentDay)}{currentProject ? ` · ${currentProject}` : ''}</p>
+                      {myTeam.mates.length > 0 && (
+                        <div className="mt-3">
+                          <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 ${textSub}`}>{tv.myMates}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {myTeam.mates.map((mm: any) => (
+                              <span key={mm.id} className={`px-2.5 py-1 rounded-full text-[12px] font-bold border ${theme === 'light' ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-white/5'} ${textMain}`}>
+                                {mm.name}<span className={`ml-1.5 text-[9px] font-normal uppercase ${textSub}`}>{mm.role?.slice(0, 3)}</span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : <p className={`text-[13px] ${textSub}`}>{tv.myStudioNone}</p>}
+                </div>
                 {portalPoll && (portalPoll.final_days || []).length > 0 ? (
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest mb-2 text-[#E3B24A]">{tv.portalConfirmed}</p>

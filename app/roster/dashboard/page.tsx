@@ -79,6 +79,18 @@ const T = {
     availMemberPick: '클릭하면 이 멤버가 고른 날이 달력에 표시돼요',
     availKick: '빼기', availKicked: '제외됨 (불참 처리)', availRestoreM: '복구',
     more: '더보기', availLive: '진행 중',
+    daySetDate: '이 Day의 날짜 지정',
+    stepPoll: '가능일', stepConfirm: '확정', stepAssign: '배치', stepShare: '공유',
+    randomDone: (n: number, t: number) => `${t}팀에 ${n}명 배치했어요`,
+    randomTitle: '랜덤 배치', randomAvoid: '지난번이랑 안 겹치게', randomAvoidSub: '히스토리에서 같이 한 조합에 페널티',
+    randomMix: '성비 섞기', randomMixSub: '한 팀에 같은 성별 몰리지 않게',
+    randomSkipBusy: '그날 불가인 사람 빼기', randomSkipBusySub: '가능일 투표에서 불가라고 낸 사람 제외',
+    randomNoDate: '이 Day에 날짜가 없어서 가능일과 못 맞춰요',
+    randomRun: '배치하기',
+    availToDays: '확정일을 Day 날짜로 반영',
+    availToDaysMsg: (n: number) => `확정일 ${n}개를 Day 1~${n}의 날짜로 넣을게요. 기존 배치는 그대로예요.`,
+    availToDaysDone: (n: number) => `Day ${n}개에 날짜를 넣었어요`,
+    busy: '불가',
     availDayKick: '클릭하면 이 날에서 빠져요',
     availDayAdd: '이 날에 넣기', availDayAddTip: '클릭하면 이 날 가능으로 추가돼요',
     availRoleCover: '이 날 되는 역할 (프로듀서·탑라이너·엔지니어·A&R)',
@@ -144,6 +156,18 @@ const T = {
     availDayAdd: 'Add to this day', availDayAddTip: 'Click to add as available on this day',
     availRoleCover: 'Roles available this day (Producer·Topliner·Engineer·A&R)',
     more: 'More', availLive: 'live',
+    daySetDate: 'Set date for this day',
+    stepPoll: 'Poll', stepConfirm: 'Confirm', stepAssign: 'Assign', stepShare: 'Share',
+    randomDone: (n: number, t: number) => `${n} placed across ${t} studios`,
+    randomTitle: 'Random match', randomAvoid: 'Avoid repeat pairings', randomAvoidSub: 'Penalize pairs that already worked together',
+    randomMix: 'Mix gender', randomMixSub: 'Avoid stacking one gender per studio',
+    randomSkipBusy: 'Skip people marked unavailable', randomSkipBusySub: 'Uses the availability poll for this date',
+    randomNoDate: 'No date on this Day, so availability can’t be matched',
+    randomRun: 'Match',
+    availToDays: 'Apply confirmed dates to Days',
+    availToDaysMsg: (n: number) => `Set ${n} confirmed dates as Day 1–${n}. Assignments stay as they are.`,
+    availToDaysDone: (n: number) => `Dates set on ${n} days`,
+    busy: 'Busy',
   }
 };
 
@@ -212,6 +236,7 @@ export default function Dashboard() {
   const [currentDay, setCurrentDay] = useState(1);
   const [days, setDays] = useState<number[]>([1]);
   const [dayNames, setDayNames] = useState<Record<number, string>>({});
+  const [dayDates, setDayDates] = useState<Record<number, string>>({}); // Day → 'YYYY-MM-DD'
   const [editingDayName, setEditingDayName] = useState<number | null>(null);
   const [dayNameInput, setDayNameInput] = useState('');
 
@@ -297,12 +322,17 @@ export default function Dashboard() {
 
   // 툴바 더보기 메뉴
   const [menuOpen, setMenuOpen] = useState(false);
+  const [randomModal, setRandomModal] = useState(false);
+  const [randTeams, setRandTeams] = useState('2');
+  const [randAvoid, setRandAvoid] = useState(true);
+  const [randMix, setRandMix] = useState(false);
+  const [randSkipBusy, setRandSkipBusy] = useState(true);
 
   // Esc = 열려 있는 것 닫기
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
-      setMenuOpen(false); setRoleDropdown(null);
+      setMenuOpen(false); setRoleDropdown(null); setRandomModal(false);
       setShowAvailModal(false); setShowStats(false); setShowVotingModal(false);
       setShowNoticeModal(false); setShowExportModal(false); setShowSessionModal(false);
       setPromptModal(null); setConfirmModal(null);
@@ -441,6 +471,7 @@ export default function Dashboard() {
     if (!currentProject || !user) return;
     const savedDays = JSON.parse(localStorage.getItem(`epg_days_${user.id}_${currentProject}`) || 'null');
     const savedNames = JSON.parse(localStorage.getItem(`epg_daynames_${user.id}_${currentProject}`) || '{}');
+    setDayDates(JSON.parse(localStorage.getItem(`epg_daydates_${user.id}_${currentProject}`) || '{}'));
     if (savedDays && savedDays.length > 0) {
       setDays(savedDays); setCurrentDay(prev => savedDays.includes(prev) ? prev : savedDays[0]);
     } else {
@@ -492,12 +523,21 @@ export default function Dashboard() {
     await supabase.from('host_settings').upsert({ host_id: uid, project_order: projectList, team_order: (existing as any)?.team_order || {} });
   };
 
-  const saveDays = async (uid: string, project: string, dayList: number[], names: Record<number, string>) => {
+  const saveDays = async (uid: string, project: string, dayList: number[], names: Record<number, string>, dates?: Record<number, string>) => {
+    const d = dates ?? dayDates;
     localStorage.setItem(`epg_days_${uid}_${project}`, JSON.stringify(dayList));
     localStorage.setItem(`epg_daynames_${uid}_${project}`, JSON.stringify(names));
+    localStorage.setItem(`epg_daydates_${uid}_${project}`, JSON.stringify(d));
     const { data: existing } = await supabase.from('host_settings').select('*').eq('host_id', uid).single();
     const prev = (existing as any)?.team_order || {};
-    await supabase.from('host_settings').upsert({ host_id: uid, team_order: { ...prev, [`${project}_days`]: dayList, [`${project}_daynames`]: names }, project_order: (existing as any)?.project_order || [] });
+    await supabase.from('host_settings').upsert({ host_id: uid, team_order: { ...prev, [`${project}_days`]: dayList, [`${project}_daynames`]: names, [`${project}_daydates`]: d }, project_order: (existing as any)?.project_order || [] });
+  };
+
+  // Day에 날짜 지정 (네이티브 date input)
+  const saveDayDate = async (day: number, iso: string) => {
+    const next = { ...dayDates }; if (iso) next[day] = iso; else delete next[day];
+    setDayDates(next);
+    await saveDays(user.id, currentProject, days, dayNames, next);
   };
 
   // ── Day 관리 ──────────────────────────────────────────
@@ -513,8 +553,9 @@ export default function Dashboard() {
     await supabase.from('roster_assignments').delete().eq('user_id', user.id).eq('project', currentProject).eq('day_number', day);
     const newDays = days.filter(d => d !== day);
     const newNames = { ...dayNames }; delete newNames[day];
-    setDays(newDays); setCurrentDay(newDays[0]); setDayNames(newNames);
-    await saveDays(user.id, currentProject, newDays, newNames);
+    const newDates = { ...dayDates }; delete newDates[day];
+    setDays(newDays); setCurrentDay(newDays[0]); setDayNames(newNames); setDayDates(newDates);
+    await saveDays(user.id, currentProject, newDays, newNames, newDates);
     fetchAssignments(user);
   };
 
@@ -628,15 +669,57 @@ export default function Dashboard() {
   };
 
   // ── 랜덤 배치 ──────────────────────────────────────────
-  const generateRandomRoster = (teamCount: number) => async () => {
+  // 지난 세션 스냅샷에서 "누가 누구랑 몇 번 붙었는지" 세기 — 랜덤이 같은 조합을 반복하지 않도록
+  const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+  const buildPairHistory = () => {
+    const h = new Map<string, number>();
+    for (const ses of sessions) {
+      for (const team of (ses.roster || [])) {
+        const names = (team.members || []).map((m: any) => m.name).filter(Boolean);
+        for (let i = 0; i < names.length; i++)
+          for (let j = i + 1; j < names.length; j++) {
+            const k = pairKey(names[i], names[j]);
+            h.set(k, (h.get(k) || 0) + 1);
+          }
+      }
+    }
+    return h;
+  };
+
+  const generateRandomRoster = (teamCount: number, opts?: { avoidRepeats?: boolean; mixGender?: boolean; skipBusy?: boolean }) => async () => {
+    const { avoidRepeats = true, mixGender = false, skipBusy = true } = opts || {};
     const day = currentDay; // 클로저로 현재 Day 고정
     const proj = currentProject;
-    const pool = members.filter(m => m.project === proj && !m.excluded && m.attendance !== 'absent');
-    const producers = pool.filter(m => m.role === 'Producer').sort(() => Math.random() - 0.5);
-    const topliners = pool.filter(m => m.role === 'Topliner').sort(() => Math.random() - 0.5);
-    const others = pool.filter(m => m.role !== 'Producer' && m.role !== 'Topliner').sort(() => Math.random() - 0.5);
+    const pool = members.filter(m =>
+      m.project === proj && !m.excluded && m.attendance !== 'absent' &&
+      !(skipBusy && isBusyOn(m.id, day))
+    );
+    const shuffle = <T,>(a: T[]) => a.slice().sort(() => Math.random() - 0.5);
+    const producers = shuffle(pool.filter(m => m.role === 'Producer'));
+    const topliners = shuffle(pool.filter(m => m.role === 'Topliner'));
+    const others = shuffle(pool.filter(m => m.role !== 'Producer' && m.role !== 'Topliner'));
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const newTeams = Array.from({ length: teamCount }, (_, i) => `Studio ${alphabet[i]}`);
+
+    const history = avoidRepeats ? buildPairHistory() : new Map<string, number>();
+    const buckets: any[][] = Array.from({ length: teamCount }, () => []);
+    // 역할별로 팀에 균등 배분하되, 같은 조합이 반복되지 않는 팀을 우선 (그리디)
+    const place = (arr: any[]) => {
+      for (const m of arr) {
+        let best = 0, bestScore = Infinity;
+        for (let ti = 0; ti < teamCount; ti++) {
+          const b = buckets[ti];
+          const sameRole = b.filter(x => x.role === m.role).length;
+          const repeat = b.reduce((sum, x) => sum + (history.get(pairKey(m.name, x.name)) || 0), 0);
+          const genderClash = mixGender ? b.filter(x => x.gender === m.gender).length : 0;
+          // 1순위 같은 역할 수, 2순위 과거 중복, 3순위 성비, 4순위 팀 크기
+          const score = sameRole * 1000 + repeat * 50 + genderClash * 10 + b.length;
+          if (score < bestScore) { bestScore = score; best = ti; }
+        }
+        buckets[best].push(m);
+      }
+    };
+    place(producers); place(topliners); place(others);
 
     // 현재 Day + 현재 프로젝트 assignments만 삭제
     await supabase.from('roster_assignments')
@@ -646,18 +729,19 @@ export default function Dashboard() {
       .eq('day_number', day);
 
     const toInsert: any[] = [];
-    const assignAll = (arr: any[], startIdx: number) => {
-      arr.forEach((m, i) => toInsert.push({
+    buckets.forEach((b, ti) => {
+      const ordered = [...b.filter(m => m.role === 'Producer'), ...b.filter(m => m.role === 'Topliner'), ...b.filter(m => m.role !== 'Producer' && m.role !== 'Topliner')];
+      ordered.forEach((m, i) => toInsert.push({
         profile_id: String(m.id), user_id: user.id, project: proj,
-        day_number: day, team: newTeams[i % teamCount], order_index: startIdx + i,
+        day_number: day, team: newTeams[ti], order_index: i,
       }));
-    };
-    assignAll(producers, 0); assignAll(topliners, 10); assignAll(others, 50);
+    });
     if (toInsert.length > 0) await supabase.from('roster_assignments').insert(toInsert);
 
     const next = ['Unassigned', ...newTeams]; setTeams(next);
     await saveTeamOrder(user.id, proj, day, next);
     fetchAssignments(user);
+    showToastMsg(t.randomDone(toInsert.length, teamCount));
   };
 
   // ── Drag & Drop ──────────────────────────────────────────
@@ -861,6 +945,23 @@ export default function Dashboard() {
     fetchSessions(user);
     showToastMsg(t.availSessionsMade(finals.length));
   };
+  // 확정일 → Day에 날짜로 반영 (Day 1 = 첫 확정일, ...). Day는 줄이지 않고 부족하면 늘림.
+  const applyFinalsToDays = async () => {
+    if (!availPoll) return;
+    const finals: number[] = (availPoll.final_days || []).slice().sort((a: number, b: number) => a - b);
+    if (!finals.length) return;
+    const [yy, mm] = availPoll.month.split('-');
+    showConfirm(t.availToDays, t.availToDaysMsg(finals.length), async () => {
+      const newDays = Array.from(new Set([...days, ...finals.map((_, i) => i + 1)])).sort((a, b) => a - b);
+      const newDates = { ...dayDates };
+      finals.forEach((d, i) => { newDates[i + 1] = `${yy}-${mm}-${String(d).padStart(2, '0')}`; });
+      setDays(newDays); setDayDates(newDates); setCurrentDay(1);
+      await saveDays(user.id, currentProject, newDays, dayNames, newDates);
+      setConfirmModal(null);
+      showToastMsg(t.availToDaysDone(finals.length));
+    });
+  };
+
   const copyAvailReminder = (names: string[]) => {
     if (!availPoll || names.length === 0) return;
     const who = lang === 'ko' ? names.map((n) => `${n}님`).join(', ') : names.join(', ');
@@ -1250,6 +1351,148 @@ export default function Dashboard() {
   };;;
 
   // Canvas 유틸
+  // ── 콜시트 이미지 (카톡/인스타용 세로 9:16 · 정사각 1:1) ───────────────
+  // 화면 캡처가 아니라 공유 전용 레이아웃. 촬영 콜시트 타이포(대문자 라벨·괘선·고정폭 숫자).
+  const buildCallSheetCanvas = (teamData: any[], ratio: '9:16' | '1:1') => {
+    const RC: Record<string, string> = { Producer: '#E3B24A', Topliner: '#5FA39A', Engineer: '#C98BA0', 'A&R': '#C98BA0' };
+    const SHORT: Record<string, string> = { Producer: 'PRO', Topliner: 'TOP', Engineer: 'ENG', 'A&R': 'A&R' };
+    const W = 1080, H = ratio === '9:16' ? 1920 : 1080;
+    const PAD = ratio === '9:16' ? 84 : 64;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const x = cv.getContext('2d')!;
+    const sans = (w: string, sz: number) => `${w} ${sz}px "Pretendard", system-ui, -apple-system, sans-serif`;
+    const track = (px: number) => { try { (x as any).letterSpacing = `${px}px`; } catch { /* 미지원 브라우저는 무시 */ } };
+    const rule = (y: number, alpha = 0.14) => { x.strokeStyle = `rgba(255,255,255,${alpha})`; x.lineWidth = 1; x.beginPath(); x.moveTo(PAD, y + 0.5); x.lineTo(W - PAD, y + 0.5); x.stroke(); };
+
+    x.fillStyle = '#0B0B0C'; x.fillRect(0, 0, W, H);
+
+    // ── 헤더
+    let y = PAD;
+    track(6); x.font = sans('800', 26); x.fillStyle = '#E3B24A';
+    x.fillText('CAST', PAD, y + 22);
+    track(4); x.font = sans('500', 15); x.fillStyle = '#5A5A5E';
+    x.textAlign = 'right'; x.fillText('BY NEN', W - PAD, y + 22); x.textAlign = 'left';
+    track(0);
+    y += 46; rule(y); y += 46;
+
+    track(5); x.font = sans('700', 17); x.fillStyle = '#8A8A90';
+    x.fillText(currentProject.toUpperCase(), PAD, y + 14);
+    track(0);
+    y += 44;
+
+    const iso = dayDates[currentDay];
+    const bigDate = iso
+      ? (() => { const [yy, mo, dd] = iso.split('-').map(Number); return lang === 'ko' ? `${mo}월 ${dd}일 (${WD[new Date(yy, mo - 1, dd).getDay()]})` : `${mo}/${dd} ${WD[new Date(yy, mo - 1, dd).getDay()]}`; })()
+      : (dayNames[currentDay] || `Day ${currentDay}`);
+    x.font = sans('800', ratio === '9:16' ? 68 : 56); x.fillStyle = '#FFFFFF';
+    x.fillText(bigDate, PAD, y + (ratio === '9:16' ? 54 : 45));
+    y += ratio === '9:16' ? 86 : 72;
+
+    const people = teamData.reduce((n, t) => n + (t.members || []).filter(Boolean).length, 0);
+    track(3); x.font = sans('600', 16); x.fillStyle = '#6E6E74';
+    const dayTag = dayNames[currentDay] && dayNames[currentDay] !== currentProject ? dayNames[currentDay] : (iso ? `DAY ${currentDay}` : '');
+    const meta = lang === 'ko'
+      ? `${dayTag ? dayTag + ' · ' : ''}스튜디오 ${teamData.length} · ${people}명`
+      : `${dayTag ? dayTag + ' · ' : ''}${teamData.length} STUDIOS · ${people} PEOPLE`;
+    x.fillText(meta, PAD, y + 14);
+    track(0);
+    y += 40; rule(y, 0.22); y += ratio === '9:16' ? 54 : 40;
+
+    // ── 본문: 스튜디오 블록
+    const footerH = 96;
+    const bodyTop = y, bodyH = H - PAD - footerH - bodyTop;
+    const TITLE_H = 44;
+    let cols = ratio === '1:1' ? 2 : 1;
+    // 한 열의 총 높이 (마지막 블록 뒤 간격은 빼고)
+    const need = (c: number, rowH: number, gap: number) => {
+      const perCol: number[] = Array(c).fill(0);
+      const cnt: number[] = Array(c).fill(0);
+      teamData.forEach((td, i) => { perCol[i % c] += TITLE_H + (td.members || []).length * rowH + gap; cnt[i % c]++; });
+      return Math.max(...perCol.map((v, i) => v - (cnt[i] ? gap : 0)), 0);
+    };
+    let ROW_H = ratio === '9:16' ? 62 : 50;
+    let GAP = ratio === '9:16' ? 44 : 30;
+    // 스튜디오가 많으면 열을 늘리고, 그래도 넘치면 행 높이를 줄인다
+    while (need(cols, ROW_H, GAP) > bodyH && cols < 3) cols++;
+    while (need(cols, ROW_H, GAP) > bodyH && ROW_H > 28) ROW_H -= 2;
+    // 아래가 휑하지 않게 남는 공간을 행 높이 → 블록 간격 순으로 되돌려준다
+    const rowCap = ratio === '9:16' ? 96 : 74;
+    while (ROW_H < rowCap && need(cols, ROW_H + 2, GAP) <= bodyH) ROW_H += 2;
+    const blocksPerCol = Math.ceil(teamData.length / cols);
+    if (blocksPerCol > 1) {
+      const slack = bodyH - need(cols, ROW_H, GAP);
+      GAP += Math.max(0, Math.min(slack / (blocksPerCol - 1), GAP * 2.2));
+    }
+
+    const colW = (W - PAD * 2 - (cols - 1) * 40) / cols;
+    const colY: number[] = Array(cols).fill(bodyTop);
+
+    teamData.forEach((td, i) => {
+      const ci = i % cols;
+      const cx = PAD + ci * (colW + 40);
+      let cy = colY[ci];
+      const ms = (td.members || []).filter(Boolean);
+
+      // 스튜디오 이름 + 역할 카운트
+      track(4); x.font = sans('800', ratio === '9:16' ? 24 : 20); x.fillStyle = '#FFFFFF';
+      x.fillText(String(td.name).toUpperCase(), cx, cy + 20);
+      const counts: Record<string, number> = {};
+      ms.forEach((m: any) => { counts[m.role] = (counts[m.role] || 0) + 1; });
+      x.textAlign = 'right'; x.font = sans('700', 13);
+      let rx = cx + colW;
+      Object.entries(counts).reverse().forEach(([r, n]) => {
+        const label = `${SHORT[r] || r} ${n}`;
+        x.fillStyle = RC[r] || '#777';
+        x.fillText(label, rx, cy + 19);
+        rx -= x.measureText(label).width + 16;
+      });
+      x.textAlign = 'left'; track(0);
+      cy += 30;
+      x.strokeStyle = 'rgba(255,255,255,0.10)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(cx, cy + 0.5); x.lineTo(cx + colW, cy + 0.5); x.stroke();
+      cy += ratio === '9:16' ? 20 : 14;
+
+      if (ms.length === 0) {
+        x.font = sans('500', 15); x.fillStyle = '#4A4A50';
+        x.fillText(lang === 'ko' ? '—' : '—', cx, cy + 16);
+        cy += ROW_H;
+      }
+      ms.forEach((m: any) => {
+        const rc = RC[m.role] || '#666';
+        x.fillStyle = rc; x.fillRect(cx, cy + 4, 3, ROW_H - 18);
+        x.font = sans('700', ratio === '9:16' ? 27 : 22); x.fillStyle = '#F2F2F4';
+        x.fillText(m.name, cx + 18, cy + (ROW_H - 18) * 0.72);
+        x.textAlign = 'right'; track(3);
+        x.font = sans('700', 12); x.fillStyle = rc + 'CC';
+        x.fillText((SHORT[m.role] || m.role).toUpperCase(), cx + colW, cy + (ROW_H - 18) * 0.66);
+        x.textAlign = 'left'; track(0);
+        cy += ROW_H;
+      });
+      colY[ci] = cy + GAP;
+    });
+
+    // ── 푸터
+    rule(H - PAD - 46, 0.14);
+    track(3); x.font = sans('600', 14); x.fillStyle = '#5A5A5E';
+    x.fillText('everplayground@gmail.com', PAD, H - PAD - 12);
+    x.textAlign = 'right'; x.fillStyle = '#E3B24A';
+    x.fillText(new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US'), W - PAD, H - PAD - 12);
+    x.textAlign = 'left'; track(0);
+    return cv;
+  };
+
+  const exportCallSheet = (ratio: '9:16' | '1:1') => {
+    const activeTeams = teams.filter(tn => tn !== 'Unassigned');
+    const teamData = activeTeams.map(tn => ({ name: tn, members: getDayMembers(tn) as any[] }));
+    const cv = buildCallSheetCanvas(teamData, ratio);
+    const link = document.createElement('a');
+    link.download = `${currentProject}_${dayDates[currentDay] || getDayLabel(currentDay)}_callsheet_${ratio.replace(':', 'x')}.jpg`;
+    link.href = cv.toDataURL('image/jpeg', 0.94);
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    showToastMsg('📸 ' + (lang === 'ko' ? '콜시트 저장됐어요!' : 'Call sheet saved!'));
+  };
+
   function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -1299,7 +1542,28 @@ export default function Dashboard() {
   };
 
   const otherTeams = teams.filter(t => t !== 'Unassigned');
-  const getDayLabel = (d: number) => dayNames[d] || `Day ${d}`;
+  const WD = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const fmtDate = (iso: string) => {
+    const [y, mo, dd] = iso.split('-').map(Number);
+    const w = WD[new Date(y, mo - 1, dd).getDay()];
+    return lang === 'ko' ? `${mo}/${dd}(${w})` : `${mo}/${dd} ${w}`;
+  };
+  const getDayLabel = (d: number) => (dayDates[d] ? fmtDate(dayDates[d]) : (dayNames[d] || `Day ${d}`));
+
+  // ── 그 Day 날짜에 "불가능"이라 답한 멤버 판별 (가능일 투표 ↔ 배치 연결) ──
+  const dayOfMonthFor = (day: number): number | null => {
+    const iso = dayDates[day];
+    if (!iso || !availPoll) return null;
+    const [y, mo, dd] = iso.split('-').map(Number);
+    return availPoll.month === `${y}-${String(mo).padStart(2, '0')}` ? dd : null;
+  };
+  const availStatusOf = (memberId: any, day = currentDay): 'available' | 'unavailable' | null => {
+    const dom = dayOfMonthFor(day);
+    if (dom === null) return null;
+    const p = availPicks.find(x => x.member_id === memberId && x.day === dom);
+    return p ? (p.status as any) : null;
+  };
+  const isBusyOn = (memberId: any, day = currentDay) => availStatusOf(memberId, day) === 'unavailable';
 
   const getTeamCounts = (tName: string) => {
     const ms = getDayMembers(tName) as any[];
@@ -1413,7 +1677,7 @@ export default function Dashboard() {
                   </button>
                 )}
                 <button onClick={copyShareLink} className={`px-4 py-1.5 rounded-xl border font-normal text-[11px] transition-all ${btnBg}`}>{t.share}</button>
-                <button onClick={() => showPrompt(t.randomMatch, t.teamCount, '2', async (v) => { const n = parseInt(v); setPromptModal(null); if (n > 0) await generateRandomRoster(n)(); })}
+                <button onClick={() => setRandomModal(true)}
                   className="bg-[#E3B24A] text-white px-5 py-1.5 rounded-xl font-normal text-[11px] hover:opacity-90 transition-all uppercase tracking-tighter">{t.random}</button>
 
                 {/* 더보기 */}
@@ -1452,6 +1716,45 @@ export default function Dashboard() {
               </div>
             </header>
 
+            {/* 진행 단계 — 지금 뭘 할 차례인지 */}
+            {(() => {
+              const projMembers = members.filter(m => m.project === currentProject && !m.excluded);
+              const finals: number[] = availPoll?.final_days || [];
+              const submitted = availPoll ? projMembers.filter(m => availSubs.some(sb => sb.member_id === m.id)).length : 0;
+              const placed = assignments.filter(a => a.project === currentProject && a.day_number === currentDay && a.team !== 'Unassigned').length;
+              const steps = [
+                { label: t.stepPoll, done: !!availPoll, note: availPoll ? `${submitted}/${projMembers.length}` : '', go: () => { setAvailSelDay(null); setShowAvailModal(true); } },
+                { label: t.stepConfirm, done: finals.length > 0, note: finals.length ? `${finals.length}${lang === 'ko' ? '일' : ''}` : '', go: () => { setAvailSelDay(null); setShowAvailModal(true); } },
+                { label: t.stepAssign, done: placed > 0, note: placed ? `${placed}${lang === 'ko' ? '명' : ''}` : '', go: () => setRandomModal(true) },
+                { label: t.stepShare, done: false, note: '', go: copyShareLink },
+              ];
+              const cur = steps.findIndex(x => !x.done);
+              return (
+                <div className="relative z-10 flex items-center gap-1 mb-5 overflow-x-auto no-scrollbar">
+                  {steps.map((st, i) => {
+                    const isCur = i === cur;
+                    return (
+                      <div key={i} className="flex items-center gap-1 shrink-0">
+                        <button onClick={st.go}
+                          className={`flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full border text-[11px] font-bold transition-all
+                            ${isCur ? 'border-[#E3B24A]/60 bg-[#E3B24A]/12 text-[#E3B24A]'
+                              : st.done ? (theme === 'light' ? 'border-black/10 bg-black/[0.03] text-zinc-600' : 'border-white/10 bg-white/[0.03] text-zinc-400')
+                              : (theme === 'light' ? 'border-black/8 text-zinc-400' : 'border-white/8 text-zinc-600')}`}>
+                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0
+                            ${st.done ? 'bg-[#E3B24A] text-black' : isCur ? 'border border-[#E3B24A] text-[#E3B24A]' : theme === 'light' ? 'border border-black/15' : 'border border-white/15'}`}>
+                            {st.done ? '✓' : i + 1}
+                          </span>
+                          {st.label}
+                          {st.note && <span className="opacity-60 font-normal">{st.note}</span>}
+                        </button>
+                        {i < steps.length - 1 && <span className={`w-3 h-px ${theme === 'light' ? 'bg-black/12' : 'bg-white/12'}`} />}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
             {/* Day 탭 */}
             <div className="relative z-10 flex items-center gap-2 mb-6">
               {days.map(d => (
@@ -1467,6 +1770,11 @@ export default function Dashboard() {
                       onContextMenu={(e) => { e.preventDefault(); setEditingDayName(d); setDayNameInput(dayNames[d] || `Day ${d}`); }}
                       className={`px-4 py-1.5 font-bold text-[11px] transition-all ${currentDay === d ? 'text-[#E3B24A]' : textSub}`}>{getDayLabel(d)}</button>
                   )}
+                  <label title={t.daySetDate} className={`relative px-1.5 cursor-pointer text-[11px] transition-all ${dayDates[d] ? 'text-[#E3B24A]' : 'text-zinc-600 hover:text-[#E3B24A]'}`}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
+                    <input type="date" value={dayDates[d] || ''} onChange={e => saveDayDate(d, e.target.value)}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                  </label>
                   {days.length > 1 && <button onClick={() => showConfirm(t.dayDelete(getDayLabel(d)), t.dayDeleteMsg(getDayLabel(d)), () => { removeDay(d); setConfirmModal(null); })} className="pr-3 text-zinc-700 hover:text-red-500 text-[12px]">×</button>}
                 </div>
               ))}
@@ -1666,7 +1974,8 @@ export default function Dashboard() {
                                       <div
                                         onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                         onDoubleClick={() => setLinkModal(m)}
-                                        className={`group flex items-center justify-between p-2.5 rounded-xl w-[160px] h-[44px] shadow-xl cursor-pointer shrink-0 ${getRoleCardStyle(m.role, m.excluded)}`}
+                                        className={`group flex items-center justify-between p-2.5 rounded-xl w-[160px] h-[44px] shadow-xl cursor-pointer shrink-0 ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'opacity-45' : ''}`}
+                                        title={isBusyOn(m.id) ? `${getDayLabel(currentDay)} ${t.busy}` : undefined}
                                       >
                                         <div className="flex items-center gap-1.5 overflow-hidden flex-1 pl-1">
                                           {editingId === String(m.id) ? (
@@ -1675,6 +1984,7 @@ export default function Dashboard() {
                                             <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                               {m.name}
                                               {getAttendanceBadge(m.attendance)}
+                                              {isBusyOn(m.id) && <span className="text-[8px] font-black px-1 py-0.5 rounded shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22' }}>{t.busy}</span>}
                                               {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                             </span>
                                           )}
@@ -1762,7 +2072,7 @@ export default function Dashboard() {
                                         <div
                                           onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                           onDoubleClick={() => setLinkModal(m)}
-                                          className={`group flex justify-between items-center p-4 rounded-2xl shadow-xl transition-all cursor-pointer ${getRoleCardStyle(m.role, m.excluded)}`}
+                                          className={`group flex justify-between items-center p-4 rounded-2xl shadow-xl transition-all cursor-pointer ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'ring-1 ring-[#E0575F]/50' : ''}`}
                                         >
                                           <div className="flex items-center gap-2 overflow-hidden flex-1 pl-1">
                                             {editingId === String(m.id) ? (
@@ -1773,6 +2083,7 @@ export default function Dashboard() {
                                                   <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={m.gender === 'female' ? 'F' : 'M'} />
                                                   {m.name}
                                                   {getAttendanceBadge(m.attendance)}
+                                                  {isBusyOn(m.id) && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22', border: '1px solid #E0575F55' }}>{t.busy}</span>}
                                                   {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
                                                 </span>
                                                 <button onClick={(e) => { e.stopPropagation(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }} className="text-[9px] font-bold uppercase tracking-widest mt-1 text-left text-zinc-400 hover:text-white transition-colors">
@@ -2134,6 +2445,7 @@ export default function Dashboard() {
                             <button onClick={copyAvailAnnounce} className={`flex-1 py-2 rounded-lg border font-bold text-[11px] transition-all ${btnBg}`}>{t.availAnnounce}</button>
                           </div>
                           <button onClick={createSessionsFromFinals} className="w-full py-2 rounded-lg border border-[#E3B24A]/40 bg-[#E3B24A]/15 text-[#EFCF8E] font-black text-[11px] hover:bg-[#E3B24A]/25 transition-all">{t.availMakeSessions}</button>
+                          <button onClick={applyFinalsToDays} className={`w-full mt-2 py-2 rounded-lg border font-bold text-[11px] transition-all ${btnBg}`}>{t.availToDays}</button>
                         </div>
                       )}
                     </div>
@@ -2234,6 +2546,49 @@ export default function Dashboard() {
       )}
 
       {/* 내보내기 모달 — 2단계 */}
+      {randomModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setRandomModal(false)}>
+          <div onClick={e => e.stopPropagation()} className={`w-full max-w-sm border rounded-2xl p-6 shadow-2xl anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#141414] border-white/10'}`}>
+            <h2 className={`font-black text-[15px] mb-1 ${textMain}`}>{t.randomTitle}</h2>
+            <p className={`text-[11px] mb-5 ${textSub}`}>{getDayLabel(currentDay)}{!dayDates[currentDay] && ` · ${t.randomNoDate}`}</p>
+
+            <label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.teamCount}</label>
+            <div className="flex items-center gap-1.5 mb-5">
+              {['2', '3', '4', '5', '6'].map(n => (
+                <button key={n} onClick={() => setRandTeams(n)}
+                  className={`flex-1 py-2 rounded-lg border font-black text-[13px] transition-all ${randTeams === n ? 'bg-[#E3B24A]/20 border-[#E3B24A]/50 text-[#E3B24A]' : btnBg}`}>{n}</button>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-2 mb-5">
+              {([
+                [randAvoid, setRandAvoid, t.randomAvoid, t.randomAvoidSub, true],
+                [randSkipBusy, setRandSkipBusy, t.randomSkipBusy, t.randomSkipBusySub, !!dayDates[currentDay] && !!availPoll],
+                [randMix, setRandMix, t.randomMix, t.randomMixSub, true],
+              ] as const).map(([on, set, label, sub, enabled], i) => (
+                <button key={i} disabled={!enabled} onClick={() => (set as any)(!on)}
+                  className={`flex items-start gap-3 px-3.5 py-3 rounded-xl border text-left transition-all disabled:opacity-35 ${on && enabled ? 'border-[#E3B24A]/40 bg-[#E3B24A]/10' : theme === 'light' ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-white/[0.03]'}`}>
+                  <span className={`mt-0.5 w-4 h-4 rounded-[5px] border flex items-center justify-center text-[10px] font-black shrink-0 ${on && enabled ? 'bg-[#E3B24A] border-[#E3B24A] text-black' : theme === 'light' ? 'border-black/20' : 'border-white/20'}`}>{on && enabled ? '✓' : ''}</span>
+                  <span>
+                    <span className={`block text-[12px] font-bold ${textMain}`}>{label}</span>
+                    <span className={`block text-[10px] ${textSub}`}>{sub}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={() => setRandomModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
+              <button onClick={async () => {
+                const n = parseInt(randTeams);
+                setRandomModal(false);
+                if (n > 0) await generateRandomRoster(n, { avoidRepeats: randAvoid, mixGender: randMix, skipBusy: randSkipBusy && !!dayDates[currentDay] })();
+              }} className="flex-1 py-3 rounded-xl bg-[#E3B24A] text-black font-black text-[12px] hover:opacity-90 transition-all">{t.randomRun}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showExportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard" onClick={() => setShowExportModal(false)}>
           <div className={`w-full max-w-xs border rounded-2xl p-6 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} onClick={e => e.stopPropagation()}>
@@ -2245,6 +2600,16 @@ export default function Dashboard() {
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[13px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
                     <span className="text-[18px]">📋</span>
                     <div className="text-left"><p className="font-black">{lang === 'ko' ? '텍스트 복사' : 'Copy Text'}</p><p className={`text-[11px] font-normal ${textSub}`}>{lang === 'ko' ? '현재 Day 클립보드 복사' : 'Copy current day'}</p></div>
+                  </button>
+                  <button onClick={() => { exportCallSheet('9:16'); setShowExportModal(false); }}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[13px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
+                    <span className="text-[18px]">📱</span>
+                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '콜시트 · 세로' : 'Call sheet · Story'}</p><p className={`text-[11px] font-normal ${textSub}`}>1080×1920 · {lang === 'ko' ? '스토리/카톡용' : 'for stories'}</p></div>
+                  </button>
+                  <button onClick={() => { exportCallSheet('1:1'); setShowExportModal(false); }}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[13px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
+                    <span className="text-[18px]">⬛</span>
+                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '콜시트 · 정사각' : 'Call sheet · Square'}</p><p className={`text-[11px] font-normal ${textSub}`}>1080×1080 · {lang === 'ko' ? '피드/DM용' : 'for feed'}</p></div>
                   </button>
                   <button onClick={() => { setExportType('jpeg'); setExportStep('scope'); }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[13px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
