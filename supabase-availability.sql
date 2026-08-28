@@ -1,5 +1,5 @@
 -- 월별 가능일 투표 (availability poll) — 최종 스키마
--- 링크 하나 + 이름 클릭으로 참여 (코드 없음). 하루당 상태: available(가능)/maybe(미정).
+-- 링크 하나 + 이름 클릭으로 참여 (코드 없음). 하루당 상태: available(가능)/unavailable(불가능).
 -- 읽기·쓰기 모두 공개(기존 참석투표와 동일한 신뢰모델). '확정하기'=제출 현황.
 
 -- 1) 월별 가능일 투표
@@ -22,7 +22,7 @@ create table if not exists availability_picks (
   poll_id uuid not null references availability_polls (id) on delete cascade,
   member_id uuid not null references profiles (id) on delete cascade,
   day int not null check (day between 1 and 31),
-  status text not null default 'available',   -- 'available' | 'maybe'
+  status text not null default 'available',   -- 'available' | 'unavailable'
   created_at timestamptz default now(),
   unique (poll_id, member_id, day)
 );

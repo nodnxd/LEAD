@@ -18,7 +18,7 @@ const ROLE_ORDER = ['Producer', 'Topliner', 'Engineer', 'A&R'];
 
 const TV = {
   ko: {
-    attending: '참석', absent: '불참', pending: '미정', noResponse: '미응답',
+    attending: '참석', absent: '불참', noResponse: '미응답',
     vote: 'Vote', history: '히스토리', guest: 'Guest',
     notFound: '존재하지 않는 로스터예요',
     noSession: '저장된 세션이 없어요',
@@ -28,7 +28,7 @@ const TV = {
     portalConfirmed: '확정 일정', portalIcs: '캘린더 저장 (.ics)', portalVote: '가능일 투표하기', portalNoConfirm: '아직 확정된 일정이 없어요',
   },
   en: {
-    attending: 'Attending', absent: 'Absent', pending: 'Undecided', noResponse: 'No Response',
+    attending: 'Attending', absent: 'Absent', noResponse: 'No Response',
     vote: 'Vote', history: 'History', guest: 'Guest',
     notFound: 'Roster not found',
     noSession: 'No sessions saved',
@@ -48,7 +48,8 @@ export default function GuestView() {
 
   const [members, setMembers] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
-  const [projects, setProjects] = useState<string[]>([]);
+  const [rawProjects, setRawProjects] = useState<string[]>([]);
+  const [settings, setSettings] = useState<any>(null);
   const [currentProject, setCurrentProject] = useState('');
   const [teams, setTeams] = useState<string[]>([]);
   const [notFound, setNotFound] = useState(false);
@@ -124,29 +125,17 @@ export default function GuestView() {
     const { data } = await supabase.from('profiles').select('*').eq('user_id', hostId).order('name', { ascending: true });
     if (!data || data.length === 0) { setNotFound(true); return; }
     setMembers(data);
-    const dbProjects = Array.from(new Set(data.map((m: any) => m.project).filter(Boolean))) as string[];
-    setProjects(dbProjects);
-    if (dbProjects.length > 0 && !currentProject) setCurrentProject(dbProjects[0]);
+    setRawProjects(Array.from(new Set(data.map((m: any) => m.project).filter(Boolean))) as string[]);
 
     // roster_assignments 가져오기
     const { data: asgn } = await supabase.from('roster_assignments').select('*').eq('user_id', hostId).order('order_index', { ascending: true });
-    if (asgn) {
-      setAssignments(asgn);
-      // 팀 목록 복원
-      setCurrentProject(prev => {
-        const p = prev || dbProjects[0];
-        if (p) {
-          setCurrentDay(d => {
-            const teamsFromDB = Array.from(new Set(
-              asgn.filter((a: any) => a.project === p && a.day_number === d && a.team !== 'Unassigned').map((a: any) => a.team)
-            )) as string[];
-            if (teamsFromDB.length > 0) setTeams(teamsFromDB);
-            return d;
-          });
-        }
-        return p;
-      });
-    }
+    if (asgn) setAssignments(asgn);
+  };
+
+  // 호스트가 저장한 순서(host_settings) — 대시보드와 동일한 정렬을 쓰기 위해
+  const fetchSettings = async () => {
+    const { data } = await supabase.from('host_settings').select('*').eq('host_id', hostId).maybeSingle();
+    setSettings(data || {});
   };
 
   const fetchVotingStatus = async () => {
@@ -173,19 +162,6 @@ export default function GuestView() {
     if (data) setSessions(data);
   };
 
-  const fetchTeamOrder = async (project: string, day: number) => {
-    const { data } = await supabase.from('host_settings').select('team_order').eq('host_id', hostId).single();
-    const daysKey = `${project}_days`;
-    const namesKey = `${project}_daynames`;
-    if ((data as any)?.team_order?.[daysKey]) setDays((data as any).team_order[daysKey]);
-    if ((data as any)?.team_order?.[namesKey]) setDayNames((data as any).team_order[namesKey]);
-    // 팀 목록은 assignments에서 추출
-    const teamsFromDB = Array.from(new Set(
-      assignments.filter((a: any) => a.project === project && a.day_number === day && a.team !== 'Unassigned').map((a: any) => a.team)
-    )) as string[];
-    if (teamsFromDB.length > 0) setTeams(teamsFromDB);
-  };
-
   const fetchPortal = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setMe(null); return; }
@@ -199,21 +175,56 @@ export default function GuestView() {
 
   useEffect(() => {
     if (!hostId) return;
-    fetchData(); fetchVotingStatus(); fetchNotices(); fetchSessions(); fetchPortal();
+    fetchData(); fetchSettings(); fetchVotingStatus(); fetchNotices(); fetchSessions(); fetchPortal();
     const channel = supabase.channel('guest-view')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `user_id=eq.${hostId}` }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'roster_assignments', filter: `user_id=eq.${hostId}` }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'voting_sessions', filter: `host_id=eq.${hostId}` }, () => fetchVotingStatus())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notices', filter: `host_id=eq.${hostId}` }, () => fetchNotices())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'host_settings', filter: `host_id=eq.${hostId}` }, () => fetchTeamOrder(currentProject, currentDay))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'host_settings', filter: `host_id=eq.${hostId}` }, () => fetchSettings())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [hostId]);
 
-  useEffect(() => {
-    if (currentProject && members.length > 0) fetchTeamOrder(currentProject, currentDay);
-  }, [currentProject, currentDay, members]);
+  // 프로젝트 탭 순서: 호스트가 저장한 project_order 우선
+  const projects = (() => {
+    const order: string[] = settings?.project_order || [];
+    return [...order.filter(p => rawProjects.includes(p)), ...rawProjects.filter(p => !order.includes(p))];
+  })();
 
-  const vote = async (memberId: any, attendance: 'attending' | 'absent' | 'pending') => {
+  useEffect(() => {
+    if (settings === null) return;
+    if (!currentProject && projects.length) setCurrentProject(projects[0]);
+  }, [settings, projects.join('|')]); // eslint-disable-line
+
+  // Day 목록/이름: 호스트 설정 우선, 없으면 assignments에서 복원
+  useEffect(() => {
+    if (!currentProject) return;
+    const to = settings?.team_order || {};
+    const saved: number[] = to[`${currentProject}_days`] || [];
+    const fromDB = Array.from(new Set(
+      assignments.filter((a: any) => a.project === currentProject).map((a: any) => a.day_number)
+    )).sort((a: any, b: any) => a - b) as number[];
+    const list = saved.length ? saved : (fromDB.length ? fromDB : [1]);
+    setDays(list);
+    setCurrentDay(prev => list.includes(prev) ? prev : list[0]);
+    setDayNames(to[`${currentProject}_daynames`] || {});
+  }, [currentProject, settings, assignments]);
+
+  // 스튜디오 순서: 대시보드가 저장한 순서 그대로 (없는 건 뒤에 붙임)
+  useEffect(() => {
+    if (!currentProject) return;
+    const saved: string[] = (settings?.team_order || {})[`${currentProject}_day${currentDay}`] || [];
+    const fromDB = Array.from(new Set(
+      assignments
+        .filter((a: any) => a.project === currentProject && a.day_number === currentDay && a.team !== 'Unassigned')
+        .map((a: any) => a.team)
+    )) as string[];
+    const ordered = saved.filter(t => t !== 'Unassigned');
+    setTeams([...ordered, ...fromDB.filter(t => !ordered.includes(t))]);
+  }, [currentProject, currentDay, settings, assignments]);
+
+  const vote = async (memberId: any, attendance: 'attending' | 'absent') => {
     await supabase.from('profiles').update({ attendance }).eq('id', memberId);
     setMembers(prev => prev.map(m => m.id === memberId ? { ...m, attendance } : m));
     setSelectedMemberId(null);
@@ -251,7 +262,6 @@ export default function GuestView() {
   const getVoteIcon = (attendance: string | null) => {
     if (attendance === 'attending') return <span className="text-[#77B18E] shrink-0"><CheckIcon /></span>;
     if (attendance === 'absent') return <span className="text-[#9A8F8A] shrink-0"><XIcon /></span>;
-    if (attendance === 'pending') return <span className="text-[#B3A88C] shrink-0"><DotIcon /></span>;
     return <span className="text-zinc-600 shrink-0"><DotIcon /></span>;
   };
 
@@ -269,8 +279,7 @@ export default function GuestView() {
   const membersByRole = ROLE_GROUPS.map(roles => ({ role: roles[0], label: roles.join(' / '), items: allMembers.filter(m => roles.includes(m.role)) })).filter(g => g.items.length > 0);
   const attending = allMembers.filter(m => m.attendance === 'attending');
   const absent = allMembers.filter(m => m.attendance === 'absent');
-  const pending = allMembers.filter(m => m.attendance === 'pending');
-  const noResponse = allMembers.filter(m => !m.attendance);
+  const noResponse = allMembers.filter(m => m.attendance !== 'attending' && m.attendance !== 'absent');
   const sessionsByCamp = sessions.reduce((acc: any, s: any) => { if (!acc[s.camp_name]) acc[s.camp_name] = []; acc[s.camp_name].push(s); return acc; }, {});
   const getDayLabel = (d: number) => dayNames[d] || `Day ${d}`;
 
@@ -455,7 +464,6 @@ export default function GuestView() {
                                 <div className="flex gap-1.5 pl-1">
                                   <button onClick={() => vote(m.id, 'attending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#77B18E]/50 bg-[#77B18E]/25 text-white hover:bg-[#77B18E]/40 transition-all whitespace-nowrap"><CheckIcon /> {tv.attending}</button>
                                   <button onClick={() => vote(m.id, 'absent')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#9A8F8A]/50 bg-[#9A8F8A]/25 text-white hover:bg-[#9A8F8A]/40 transition-all whitespace-nowrap"><XIcon /> {tv.absent}</button>
-                                  <button onClick={() => vote(m.id, 'pending')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border border-[#B5AC90]/50 bg-[#B5AC90]/20 text-white hover:bg-[#B5AC90]/35 transition-all whitespace-nowrap"><DotIcon /> {tv.pending}</button>
                                 </div>
                               )}
                             </div>
@@ -472,10 +480,9 @@ export default function GuestView() {
                   {[
                     { label: tv.attending, items: attending, headerColor: 'text-[#77B18E]', borderColor: 'border-[#77B18E]' },
                     { label: tv.absent, items: absent, headerColor: 'text-[#9A8F8A]', borderColor: 'border-[#9A8F8A]' },
-                    { label: tv.pending, items: pending, headerColor: 'text-[#B3A88C]', borderColor: 'border-[#B5AC90]' },
                     { label: tv.noResponse, items: noResponse, headerColor: 'text-zinc-500', borderColor: 'border-zinc-600' },
                   ].map(({ label, items, headerColor, borderColor }) => (
-                    <div key={label} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(25%-18px)]">
+                    <div key={label} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
                       <div className={`backdrop-blur-2xl border rounded-[2rem] p-6 min-h-[80px] shadow-2xl flex flex-col ${cardBg}`}>
                         <div className={`flex justify-between items-center mb-4 px-1 border-l-4 ${borderColor} pl-4`}>
                           <h2 className={`text-[14px] font-black uppercase ${headerColor}`}>{label}</h2>

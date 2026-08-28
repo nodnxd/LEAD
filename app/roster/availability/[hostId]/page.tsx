@@ -13,39 +13,48 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const ROLE_ORDER = ['Producer', 'Topliner', 'Engineer', 'A&R'];
 const ROLE_COLORS: Record<string, string> = { 'Producer': '#E3B24A', 'Topliner': '#5FA39A', 'Engineer': '#C98BA0', 'A&R': '#C98BA0' };
 
+// 가능 = 파랑, 불가능 = 빨강, 확정 = 골드. 미정 없음.
+const YES = '#4C8DF6';
+const NO = '#E0575F';
+const GOLD = '#E3B24A';
+
 type Lang = 'ko' | 'en';
-type Status = 'available' | 'maybe';
+type Status = 'available' | 'unavailable';
+
+const FONT = `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', -apple-system, sans-serif; }`;
 
 const TX = {
   ko: {
     availability: '가능일 투표', notFound: '존재하지 않는 로스터예요', noPoll: '열린 가능일 투표가 없어요', closed: '마감됨',
-    pickName: '이름을 골라 들어가세요', back: '← 이름 다시 고르기',
-    guide: '한 번 누르면 가능, 두 번 누르면 미정, 세 번 누르면 해제',
-    available: '가능', maybe: '미정', submit: '확정하기', submitted: '제출 완료', reopen: '수정하기',
+    pickName: '이름을 골라 들어가세요', back: '이름 다시 고르기',
+    available: '가능', unavailable: '불가능', noAnswer: '미응답',
+    submit: '제출하기', submitted: '제출 완료', reopen: '수정하기',
     bestDays: '가장 많이 되는 날', people: (n: number) => `${n}명`, onDay: (d: number) => `${d}일`,
-    noneYet: '아직 응답이 없어요', confirmed: '확정', done: '제출',
-    weekdays: ['일', '월', '화', '수', '목', '금', '토'], total: '전체',
+    noneYet: '아직 응답이 없어요', blocked: '차단된 날',
+    weekdays: ['일', '월', '화', '수', '목', '금', '토'],
     confirmedTitle: '확정된 날', saveIcs: '캘린더 저장 (.ics)',
-    brushAvail: '가능', brushMaybe: '미정', brushErase: '지우기',
-    brushGuide: '색을 고른 뒤 날짜를 누르거나 쭉 드래그하세요',
-    quickPick: '빠른 선택', quickWeekend: '주말', quickWeekday: '평일', quickAll: '전체 가능', quickClear: '전체 해제',
+    guide: '날짜를 누르면 파랑(가능) ↔ 빨강(불가능). 쭉 드래그하면 여러 날 한 번에.',
+    quickPick: '빠른 선택', quickWeekend: '주말 가능', quickWeekday: '평일 가능', quickAll: '전부 가능', quickNone: '전부 불가능', quickClear: '전부 지우기',
     reviewTitle: '이대로 제출할까요?', reviewSubmit: '제출하기', reviewMore: '더 고를래요', reviewNone: '아직 고른 날이 없어요',
-    myAvail: '내 가능일', myMaybe: '내 미정',
+    progress: (a: number, b: number) => `${a}/${b} 제출`,
+    left: (n: number) => `${n}일 안 골랐어요`, allPicked: '전부 골랐어요',
+    day: (n: number) => `${n}일`,
   },
   en: {
     availability: 'Availability', notFound: 'Roster not found', noPoll: 'No open availability poll', closed: 'Closed',
-    pickName: 'Pick your name to enter', back: '← Change name',
-    guide: 'Tap once = available, twice = maybe, three times = clear',
-    available: 'Available', maybe: 'Maybe', submit: 'Submit', submitted: 'Submitted', reopen: 'Edit',
+    pickName: 'Pick your name to enter', back: 'Change name',
+    available: 'Available', unavailable: 'Unavailable', noAnswer: 'No answer',
+    submit: 'Submit', submitted: 'Submitted', reopen: 'Edit',
     bestDays: 'Best days', people: (n: number) => `${n}`, onDay: (d: number) => `Day ${d}`,
-    noneYet: 'No responses yet', confirmed: 'Confirmed', done: 'Submitted',
-    weekdays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'], total: 'Total',
+    noneYet: 'No responses yet', blocked: 'Blocked',
+    weekdays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
     confirmedTitle: 'Confirmed days', saveIcs: 'Save calendar (.ics)',
-    brushAvail: 'Available', brushMaybe: 'Maybe', brushErase: 'Erase',
-    brushGuide: 'Pick a color, then tap or drag across days',
-    quickPick: 'Quick pick', quickWeekend: 'Weekends', quickWeekday: 'Weekdays', quickAll: 'All available', quickClear: 'Clear all',
+    guide: 'Tap a day to flip blue (available) ↔ red (unavailable). Drag across days to set many.',
+    quickPick: 'Quick pick', quickWeekend: 'Weekends ok', quickWeekday: 'Weekdays ok', quickAll: 'All ok', quickNone: 'None ok', quickClear: 'Clear all',
     reviewTitle: 'Submit these?', reviewSubmit: 'Submit', reviewMore: 'Keep editing', reviewNone: 'No days picked yet',
-    myAvail: 'My available', myMaybe: 'My maybe',
+    progress: (a: number, b: number) => `${a}/${b} submitted`,
+    left: (n: number) => `${n} days left`, allPicked: 'All days answered',
+    day: (n: number) => `${n}`,
   },
 };
 
@@ -60,7 +69,6 @@ export default function AvailabilityView() {
   const hostId = params.hostId as string;
 
   const [lang, setLang] = useState<Lang>('ko');
-  const dk = true; // 공개 페이지는 다크 고정
   const [notFound, setNotFound] = useState(false);
   const [poll, setPoll] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
@@ -68,21 +76,20 @@ export default function AvailabilityView() {
   const [subs, setSubs] = useState<any[]>([]);
   const [meId, setMeId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [brush, setBrush] = useState<Status | 'erase'>('available');
   const [reviewing, setReviewing] = useState(false);
   const paintedRef = useRef<Set<number>>(new Set());
-  const paintingRef = useRef(false);
+  const paintingRef = useRef<Status | null>(null);
 
   useEffect(() => {
-    const end = () => { paintingRef.current = false; };
+    const end = () => { paintingRef.current = null; };
     window.addEventListener('pointerup', end);
     window.addEventListener('pointercancel', end);
     return () => { window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end); };
   }, []);
 
   const t = TX[lang];
-  const textMain = 'text-white', textSub = 'text-zinc-400';
-  const cardBg = 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]';
+  const textSub = 'text-zinc-400';
+  const cardBg = 'bg-[#1a1a1a] border-white/[0.07]';
 
   useEffect(() => {
     setLang(getLang());
@@ -101,7 +108,8 @@ export default function AvailabilityView() {
 
   const fetchPicks = useCallback(async (pollId: string) => {
     const { data } = await supabase.from('availability_picks').select('*').eq('poll_id', pollId);
-    if (data) setPicks(data);
+    // 예전 '미정(maybe)' 데이터는 무시 — 이제 가능/불가능만 있음
+    if (data) setPicks(data.filter((p: any) => p.status === 'available' || p.status === 'unavailable'));
   }, []);
   const fetchSubs = useCallback(async (pollId: string) => {
     const { data } = await supabase.from('availability_submissions').select('*').eq('poll_id', pollId);
@@ -135,7 +143,6 @@ export default function AvailabilityView() {
   };
   const iSubmitted = !!meId && subs.some((s) => s.member_id === meId);
 
-  // 한 날짜를 정확한 상태로 설정 (붓칠)
   const setDay = (day: number, status: Status | null) => {
     if (!meId || !poll || !poll.is_open) return;
     if ((poll.blocked_days || []).includes(day)) return;
@@ -146,7 +153,7 @@ export default function AvailabilityView() {
     if (status) supabase.from('availability_picks').upsert({ poll_id: poll.id, member_id: meId, day, status }, { onConflict: 'poll_id,member_id,day' });
     else supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).eq('day', day);
   };
-  // 여러 날짜 한번에 (빠른 선택)
+
   const bulkSet = async (days: number[], status: Status | null) => {
     if (!meId || !poll || !poll.is_open) return;
     const valid = days.filter((d) => !(poll.blocked_days || []).includes(d));
@@ -158,42 +165,58 @@ export default function AvailabilityView() {
     if (status) await supabase.from('availability_picks').upsert(valid.map((d) => ({ poll_id: poll.id, member_id: meId, day: d, status })), { onConflict: 'poll_id,member_id,day' });
     else await supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).in('day', valid);
   };
-  // 드래그 붓칠 (마우스+터치 공용)
-  const paintAt = (clientX: number, clientY: number) => {
+
+  // 누르면 파랑↔빨강. 드래그하면 처음 정해진 색으로 쭉 칠함.
+  const dayAt = (clientX: number, clientY: number) => {
     const el = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
     const wrap = el?.closest('[data-day]') as HTMLElement | null;
-    if (!wrap) return;
-    const day = Number(wrap.getAttribute('data-day'));
+    return wrap ? Number(wrap.getAttribute('data-day')) : 0;
+  };
+  const startPaint = (clientX: number, clientY: number) => {
+    const day = dayAt(clientX, clientY);
+    if (!day) return;
+    const next: Status = myStatus(day) === 'available' ? 'unavailable' : 'available';
+    paintingRef.current = next;
+    paintedRef.current = new Set([day]);
+    setDay(day, next);
+  };
+  const movePaint = (clientX: number, clientY: number) => {
+    const target = paintingRef.current;
+    if (!target) return;
+    const day = dayAt(clientX, clientY);
     if (!day || paintedRef.current.has(day)) return;
     paintedRef.current.add(day);
-    setDay(day, brush === 'erase' ? null : brush);
+    setDay(day, target);
   };
 
   const toggleSubmit = async () => {
     if (!meId || !poll) return;
-    if (iSubmitted) { await supabase.from('availability_submissions').delete().eq('poll_id', poll.id).eq('member_id', meId); }
-    else { await supabase.from('availability_submissions').upsert({ poll_id: poll.id, member_id: meId }, { onConflict: 'poll_id,member_id' }); }
+    if (iSubmitted) await supabase.from('availability_submissions').delete().eq('poll_id', poll.id).eq('member_id', meId);
+    else await supabase.from('availability_submissions').upsert({ poll_id: poll.id, member_id: meId }, { onConflict: 'poll_id,member_id' });
     fetchSubs(poll.id);
   };
 
-  if (notFound) return <Screen>{t.notFound}</Screen>;
-  if (!poll) return <Screen>{t.noPoll}</Screen>;
+  if (notFound) return <Screen>{TX[lang].notFound}</Screen>;
+  if (!poll) return <Screen>{TX[lang].noPoll}</Screen>;
 
   const { daysInMonth, firstWeekday, y, m } = monthMeta(poll.month);
   const finals: number[] = poll.final_days || [];
   const blocked: number[] = poll.blocked_days || [];
-  const availOn = (d: number) => picks.filter((p) => p.day === d && p.status === 'available').length;
-  const maybeOn = (d: number) => picks.filter((p) => p.day === d && p.status === 'maybe').length;
+  const yesOn = (d: number) => picks.filter((p) => p.day === d && p.status === 'available').length;
+  const noOn = (d: number) => picks.filter((p) => p.day === d && p.status === 'unavailable').length;
   const maxCount = Math.max(1, members.length);
   const membersOnDay = (d: number, st: Status) => members.filter((mm) => picks.some((p) => p.member_id === mm.id && p.day === d && p.status === st));
-  const bestDays = Array.from({ length: daysInMonth }, (_, i) => i + 1).filter((d) => !blocked.includes(d)).map((d) => ({ d, c: availOn(d), mb: maybeOn(d) })).filter((x) => x.c + x.mb > 0).sort((a, b) => (b.c - a.c) || (b.mb - a.mb)).slice(0, 6);
-  const cells: (number | null)[] = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
-  const me = members.find((mm) => mm.id === meId);
   const allDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const weekendDays = allDays.filter((d) => { const w = new Date(y, m - 1, d).getDay(); return w === 0 || w === 6; });
-  const weekdayDays = allDays.filter((d) => { const w = new Date(y, m - 1, d).getDay(); return w !== 0 && w !== 6; });
-  const myAvailDays = picks.filter((p) => p.member_id === meId && p.status === 'available').map((p) => p.day).sort((a, b) => a - b);
-  const myMaybeDays = picks.filter((p) => p.member_id === meId && p.status === 'maybe').map((p) => p.day).sort((a, b) => a - b);
+  const openDays = allDays.filter((d) => !blocked.includes(d));
+  const bestDays = openDays.map((d) => ({ d, c: yesOn(d), no: noOn(d) })).filter((x) => x.c + x.no > 0).sort((a, b) => (b.c - a.c) || (a.no - b.no)).slice(0, 6);
+  const cells: (number | null)[] = [...Array(firstWeekday).fill(null), ...allDays];
+  const me = members.find((mm) => mm.id === meId);
+  const weekendDays = openDays.filter((d) => { const w = new Date(y, m - 1, d).getDay(); return w === 0 || w === 6; });
+  const weekdayDays = openDays.filter((d) => { const w = new Date(y, m - 1, d).getDay(); return w !== 0 && w !== 6; });
+  const myYes = picks.filter((p) => p.member_id === meId && p.status === 'available').map((p) => p.day).sort((a, b) => a - b);
+  const myNo = picks.filter((p) => p.member_id === meId && p.status === 'unavailable').map((p) => p.day).sort((a, b) => a - b);
+  const unanswered = openDays.length - myYes.length - myNo.length;
+  const submittedCount = members.filter((mm) => subs.some((s) => s.member_id === mm.id)).length;
 
   // ── 이름 선택 화면 ──
   if (!meId) {
@@ -202,8 +225,9 @@ export default function AvailabilityView() {
     if (other.length) byRole.push({ role: 'Other', items: other });
     return (
       <div className="min-h-screen font-pretendard bg-[#141414] text-white">
-        <div className="max-w-2xl mx-auto px-5 py-10">
-          <Header t={t} poll={poll} y={y} m={m} lang={lang} />
+        <style dangerouslySetInnerHTML={{ __html: FONT }} />
+        <div className="max-w-2xl mx-auto px-5 py-10 anim-fade">
+          <Header t={t} poll={poll} y={y} m={m} done={submittedCount} total={members.length} />
           <FinalDaysCard t={t} lang={lang} poll={poll} m={m} />
           <p className={`text-[13px] font-bold mb-5 ${textSub}`}>{t.pickName}</p>
           <div className="flex flex-col gap-5">
@@ -217,9 +241,10 @@ export default function AvailabilityView() {
                       const done = subs.some((s) => s.member_id === mm.id);
                       return (
                         <button key={mm.id} onClick={() => setMeId(mm.id)}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-full border font-black text-[14px] transition-all hover:scale-105"
-                          style={{ color: col, borderColor: col + '55', backgroundColor: col + '18' }}>
-                          {mm.name}{done && <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: col }} />}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-full border font-black text-[14px] transition-all hover:scale-105 active:scale-95"
+                          style={{ color: col, borderColor: col + (done ? '55' : '30'), backgroundColor: col + (done ? '18' : '0c') }}>
+                          {mm.name}
+                          {done && <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ backgroundColor: col + '25' }}>✓</span>}
                         </button>
                       );
                     })}
@@ -230,151 +255,203 @@ export default function AvailabilityView() {
             {members.length === 0 && <p className={`text-[13px] ${textSub}`}>{t.noneYet}</p>}
           </div>
           <BestDays t={t} lang={lang} bestDays={bestDays} maxCount={maxCount} finals={finals} onPick={setSelectedDay} />
+          {selectedDay !== null && (
+            <DayMembers t={t} lang={lang} day={selectedDay} yes={membersOnDay(selectedDay, 'available')} no={membersOnDay(selectedDay, 'unavailable')} onClose={() => setSelectedDay(null)} />
+          )}
         </div>
       </div>
     );
   }
 
+  const roleCol = ROLE_COLORS[me?.role] || '#fff';
+
   // ── 개인 편집 화면 ──
   return (
     <div className="min-h-screen font-pretendard bg-[#141414] text-white">
-      <div className="max-w-2xl mx-auto px-5 py-10">
-        <button onClick={() => { setMeId(null); setSelectedDay(null); }} className={`text-[12px] mb-4 ${textSub} hover:opacity-70`}>{t.back}</button>
-        <Header t={t} poll={poll} y={y} m={m} lang={lang} />
+      <style dangerouslySetInnerHTML={{ __html: FONT }} />
+      <div className="max-w-2xl mx-auto px-5 py-10 pb-28 anim-fade">
+        <button onClick={() => { setMeId(null); setSelectedDay(null); }} className={`text-[12px] mb-4 ${textSub} hover:text-white transition-colors`}>← {t.back}</button>
+        <Header t={t} poll={poll} y={y} m={m} done={submittedCount} total={members.length} />
         <FinalDaysCard t={t} lang={lang} poll={poll} m={m} />
 
-        <div className="mb-4">
-          <p className="text-[15px] font-black" style={{ color: ROLE_COLORS[me?.role] || '#fff' }}>{me?.name} <span className={`text-[11px] font-normal ${textSub}`}>{me?.role}</span></p>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: roleCol }} />
+          <p className="text-[16px] font-black" style={{ color: roleCol }}>{me?.name}</p>
+          <span className={`text-[11px] ${textSub}`}>{me?.role}</span>
         </div>
 
         {poll.is_open ? (
           <>
-            {/* 붓 모드 선택 */}
-            <div className="flex items-center gap-2 mb-2.5">
-              {([['available', t.brushAvail, '#E3B24A'], ['maybe', t.brushMaybe, '#B3A88C'], ['erase', t.brushErase, '#8a8a8a']] as const).map(([mode, label, col]) => {
-                const on = brush === mode;
-                return (
-                  <button key={mode} onClick={() => setBrush(mode as Status | 'erase')}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border font-black text-[13px] transition-all"
-                    style={on ? { color: '#111', backgroundColor: col, borderColor: col } : { color: col, borderColor: col + '55', backgroundColor: col + '14' }}>
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: on ? '#111' : col, border: mode === 'maybe' ? `1.5px dashed ${on ? '#111' : col}` : 'none' }} />{label}
-                  </button>
-                );
-              })}
+            {/* 범례 */}
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
+              <Legend color={YES} label={t.available} />
+              <Legend color={NO} label={t.unavailable} />
+              <Legend color="#3a3a3a" label={t.noAnswer} />
             </div>
-            <p className={`text-[12px] mb-3 ${textSub}`}>{t.brushGuide}</p>
+            <p className={`text-[12px] mb-3.5 ${textSub}`}>{t.guide}</p>
 
             {/* 빠른 선택 */}
-            <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-              <span className={`text-[10px] font-black uppercase tracking-widest ${textSub}`}>{t.quickPick}</span>
-              <button onClick={() => bulkSet(weekendDays, 'available')} className="text-[11px] font-black px-3 py-1 rounded-full border border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/15 transition-all">{t.quickWeekend}</button>
-              <button onClick={() => bulkSet(weekdayDays, 'available')} className="text-[11px] font-black px-3 py-1 rounded-full border border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/15 transition-all">{t.quickWeekday}</button>
-              <button onClick={() => bulkSet(allDays, 'available')} className="text-[11px] font-black px-3 py-1 rounded-full border border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/15 transition-all">{t.quickAll}</button>
-              <button onClick={() => bulkSet(allDays, null)} className={`text-[11px] font-black px-3 py-1 rounded-full border ${textSub} border-white/15 hover:bg-white/5 transition-all`}>{t.quickClear}</button>
+            <div className="flex items-center gap-1.5 mb-3.5 flex-wrap">
+              <span className={`text-[10px] font-black uppercase tracking-widest mr-0.5 ${textSub}`}>{t.quickPick}</span>
+              <Quick color={YES} onClick={() => bulkSet(weekendDays, 'available')}>{t.quickWeekend}</Quick>
+              <Quick color={YES} onClick={() => bulkSet(weekdayDays, 'available')}>{t.quickWeekday}</Quick>
+              <Quick color={YES} onClick={() => bulkSet(openDays, 'available')}>{t.quickAll}</Quick>
+              <Quick color={NO} onClick={() => bulkSet(openDays, 'unavailable')}>{t.quickNone}</Quick>
+              <Quick color="#8a8a8a" onClick={() => bulkSet(allDays, null)}>{t.quickClear}</Quick>
             </div>
           </>
         ) : (
           <p className={`text-[12px] mb-3 ${textSub}`}>{t.closed}</p>
         )}
 
-        {/* calendar */}
-        <div className={`rounded-2xl border p-4 sm:p-6 mb-6 ${cardBg}`}>
+        {/* 달력 */}
+        <div className={`rounded-2xl border p-4 sm:p-5 mb-5 ${cardBg}`}>
           <div className="grid grid-cols-7 gap-1.5 mb-2">
-            {t.weekdays.map((w, i) => <div key={i} className={`text-center text-[11px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}
+            {t.weekdays.map((w, i) => <div key={i} className={`text-center text-[11px] font-black ${i === 0 || i === 6 ? 'text-zinc-300' : 'text-zinc-500'}`}>{w}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-1.5" style={{ touchAction: poll.is_open ? 'none' : 'auto' }}
-            onPointerDown={(e) => { if (!poll.is_open) return; paintingRef.current = true; paintedRef.current = new Set(); paintAt(e.clientX, e.clientY); }}
-            onPointerMove={(e) => { if (paintingRef.current) paintAt(e.clientX, e.clientY); }}>
+            onPointerDown={(e) => { if (poll.is_open) startPaint(e.clientX, e.clientY); }}
+            onPointerMove={(e) => movePaint(e.clientX, e.clientY)}>
             {cells.map((d, i) => {
               if (d === null) return <div key={`e${i}`} />;
-              const c = availOn(d); const st = myStatus(d); const isFinal = finals.includes(d); const isBlocked = blocked.includes(d);
+              const c = yesOn(d); const st = myStatus(d); const isFinal = finals.includes(d); const isBlocked = blocked.includes(d);
+              const bg = isBlocked ? 'transparent'
+                : st === 'available' ? YES
+                : st === 'unavailable' ? 'rgba(224,87,95,0.22)'
+                : c > 0 ? `rgba(76,141,246,${(0.07 + (c / maxCount) * 0.28).toFixed(3)})` : 'transparent';
+              const border = isBlocked ? 'rgba(255,255,255,0.06)'
+                : st === 'available' ? YES
+                : st === 'unavailable' ? 'rgba(224,87,95,0.85)'
+                : 'rgba(255,255,255,0.08)';
               return (
-                <div key={d} data-day={d} onContextMenu={(e) => { e.preventDefault(); setSelectedDay(selectedDay === d ? null : d); }}
-                  className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center transition-transform select-none
+                <div key={d} data-day={d}
+                  onContextMenu={(e) => { e.preventDefault(); setSelectedDay(selectedDay === d ? null : d); }}
+                  className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center select-none transition-[transform,background-color] duration-150
                     ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''}
-                    ${isBlocked ? 'border-[#C98BA0]/40 cursor-not-allowed' : st === 'available' ? 'border-[#E3B24A]/80' : st === 'maybe' ? 'border-[#B3A88C]/70 border-dashed' : 'border-white/8'}
-                    ${!isBlocked && poll.is_open ? 'cursor-pointer active:scale-95' : 'cursor-default'}`}
-                  style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.14)' : st === 'available' ? 'rgba(227,178,74,0.28)' : st === 'maybe' ? 'rgba(179,168,140,0.18)' : c > 0 ? `rgba(227,178,74,${(0.08 + (c / maxCount) * 0.4).toFixed(3)})` : 'transparent' }}>
-                  <span className={`text-[14px] sm:text-[13px] font-bold pointer-events-none ${isBlocked ? 'text-[#C98BA0]/70 line-through' : st === 'available' ? 'text-[#EFCF8E]' : textMain}`}>{d}</span>
-                  {!isBlocked && c > 0 && !st && <span className={`text-[10px] font-black pointer-events-none ${textSub}`}>{c}</span>}
-                  {!isBlocked && st === 'maybe' && <span className="absolute top-1 right-1 text-[8px] font-black text-[#B3A88C] pointer-events-none">?</span>}
-                  {isFinal && <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-[#E3B24A] pointer-events-none" />}
+                    ${!isBlocked && poll.is_open ? 'cursor-pointer active:scale-90' : 'cursor-default'}`}
+                  style={{
+                    backgroundColor: bg, borderColor: border,
+                    backgroundImage: isBlocked ? 'repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 4px, transparent 4px 8px)' : undefined,
+                  }}
+                  title={isBlocked ? t.blocked : undefined}>
+                  <span className={`text-[14px] font-black pointer-events-none ${isBlocked ? 'text-zinc-600 line-through' : st === 'available' ? 'text-[#0d1b33]' : st === 'unavailable' ? 'text-[#FF9BA1]' : 'text-white'}`}>{d}</span>
+                  {!isBlocked && !st && c > 0 && <span className="text-[10px] font-black pointer-events-none text-zinc-400">{c}</span>}
+                  {isFinal && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#E3B24A] pointer-events-none" />}
                 </div>
               );
             })}
           </div>
-          <p className={`text-[11px] mt-3 ${textSub}`}>{t.myAvail} {myAvailDays.length}{lang === 'ko' ? '일' : ''}{myMaybeDays.length ? ` · ${t.myMaybe} ${myMaybeDays.length}${lang === 'ko' ? '일' : ''}` : ''}</p>
+          <div className="flex items-center gap-3 mt-3.5 text-[11px] font-bold flex-wrap">
+            <span style={{ color: YES }}>{t.available} {myYes.length}</span>
+            <span style={{ color: NO }}>{t.unavailable} {myNo.length}</span>
+            <span className={unanswered > 0 ? 'text-zinc-500' : 'text-[#8FD4C8]'}>{unanswered > 0 ? t.left(unanswered) : t.allPicked}</span>
+          </div>
+          {/* 진행 막대 */}
+          <div className="mt-2 h-1.5 rounded-full overflow-hidden bg-white/[0.07] flex">
+            <div className="h-full transition-all duration-300" style={{ width: `${(myYes.length / Math.max(1, openDays.length)) * 100}%`, backgroundColor: YES }} />
+            <div className="h-full transition-all duration-300" style={{ width: `${(myNo.length / Math.max(1, openDays.length)) * 100}%`, backgroundColor: NO }} />
+          </div>
         </div>
 
-        {/* 제출 바 */}
-        {poll.is_open && (
-          <div className="flex items-center gap-2 mb-8">
-            {iSubmitted ? (
-              <>
-                <span className="flex-1 text-[12px] font-black text-[#8FD4C8] flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#5FA39A]" />{t.submitted}</span>
-                <button onClick={toggleSubmit} className={`text-[12px] font-black px-4 py-2.5 rounded-full border transition-all ${textSub} border-white/15 hover:bg-white/5`}>{t.reopen}</button>
-              </>
-            ) : (
-              <button onClick={() => setReviewing(true)}
-                className="flex-1 py-3 rounded-full bg-[#E3B24A]/20 border border-[#E3B24A]/40 text-[#EFCF8E] font-black text-[14px] hover:bg-[#E3B24A]/30 transition-all">
-                {t.submit}
-              </button>
-            )}
-          </div>
-        )}
-
         {selectedDay !== null && (
-          <DayMembers t={t} lang={lang} day={selectedDay} avail={membersOnDay(selectedDay, 'available')} maybe={membersOnDay(selectedDay, 'maybe')} onClose={() => setSelectedDay(null)} />
+          <DayMembers t={t} lang={lang} day={selectedDay} yes={membersOnDay(selectedDay, 'available')} no={membersOnDay(selectedDay, 'unavailable')} onClose={() => setSelectedDay(null)} />
         )}
         <BestDays t={t} lang={lang} bestDays={bestDays} maxCount={maxCount} finals={finals} onPick={setSelectedDay} />
+      </div>
 
-        {/* 제출 전 확인 시트 */}
-        {reviewing && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4" onClick={() => setReviewing(false)}>
-            <div onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md bg-[#1a1a1a] border border-white/10 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl">
-              <h3 className="font-black text-[18px] text-white mb-1">{t.reviewTitle}</h3>
-              <p className="text-[12px] text-zinc-400 mb-5">{me?.name} · {poll.title || `${y}.${String(m).padStart(2, '0')}`}</p>
-              {myAvailDays.length + myMaybeDays.length === 0 ? (
-                <p className="text-[13px] text-zinc-500 mb-5">{t.reviewNone}</p>
-              ) : (
-                <div className="flex flex-col gap-3 mb-5">
-                  {myAvailDays.length > 0 && (
-                    <div>
-                      <p className="text-[11px] font-black uppercase tracking-widest text-[#EFCF8E] mb-1.5">{t.available} {myAvailDays.length}</p>
-                      <div className="flex flex-wrap gap-1.5">{myAvailDays.map((d) => <span key={d} className="px-2.5 py-1 rounded-full text-[12px] font-black bg-[#E3B24A]/15 border border-[#E3B24A]/40 text-[#EFCF8E]">{d}{lang === 'ko' ? '일' : ''}</span>)}</div>
-                    </div>
-                  )}
-                  {myMaybeDays.length > 0 && (
-                    <div>
-                      <p className="text-[11px] font-black uppercase tracking-widest text-[#B3A88C] mb-1.5">{t.maybe} {myMaybeDays.length}</p>
-                      <div className="flex flex-wrap gap-1.5">{myMaybeDays.map((d) => <span key={d} className="px-2.5 py-1 rounded-full text-[12px] font-black bg-[#B3A88C]/15 border border-dashed border-[#B3A88C]/50 text-[#D6CDB4]">{d}{lang === 'ko' ? '일' : ''}</span>)}</div>
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="flex gap-2.5">
-                <button onClick={() => setReviewing(false)} className="flex-1 py-3 rounded-xl border border-white/15 text-zinc-400 font-bold text-[13px] hover:bg-white/5 transition-all">{t.reviewMore}</button>
-                <button onClick={async () => { await toggleSubmit(); setReviewing(false); }} disabled={myAvailDays.length + myMaybeDays.length === 0}
-                  className="flex-1 py-3 rounded-xl bg-[#5FA39A]/25 border border-[#5FA39A]/50 text-[#8FD4C8] font-black text-[13px] hover:bg-[#5FA39A]/35 transition-all disabled:opacity-40">{t.reviewSubmit}</button>
+      {/* 하단 고정 제출 바 */}
+      {poll.is_open && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/[0.07] bg-[#141414]/95 backdrop-blur-md">
+          <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center gap-3">
+            {iSubmitted ? (
+              <>
+                <span className="flex-1 text-[13px] font-black text-[#8FD4C8] flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#5FA39A]" />{t.submitted}</span>
+                <button onClick={toggleSubmit} className="text-[12px] font-black px-5 py-2.5 rounded-full border border-white/15 text-zinc-400 hover:bg-white/5 transition-all">{t.reopen}</button>
+              </>
+            ) : (
+              <>
+                <span className="text-[12px] font-bold text-zinc-500 shrink-0 hidden sm:block">{myYes.length + myNo.length}/{openDays.length}</span>
+                <button onClick={() => setReviewing(true)} disabled={myYes.length + myNo.length === 0}
+                  className="flex-1 py-3 rounded-full font-black text-[14px] text-[#0d1b33] transition-all disabled:opacity-30 active:scale-[0.98]"
+                  style={{ backgroundColor: YES }}>
+                  {t.submit}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 제출 전 확인 */}
+      {reviewing && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 anim-fade" onClick={() => setReviewing(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md bg-[#1a1a1a] border border-white/10 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl anim-rise">
+            <h3 className="font-black text-[18px] text-white mb-1">{t.reviewTitle}</h3>
+            <p className="text-[12px] text-zinc-400 mb-5">{me?.name} · {poll.title || `${y}.${String(m).padStart(2, '0')}`}</p>
+            {myYes.length + myNo.length === 0 ? (
+              <p className="text-[13px] text-zinc-500 mb-5">{t.reviewNone}</p>
+            ) : (
+              <div className="flex flex-col gap-3.5 mb-5 max-h-[45vh] overflow-y-auto">
+                <DayChips label={t.available} days={myYes} color={YES} lang={lang} />
+                <DayChips label={t.unavailable} days={myNo} color={NO} lang={lang} />
               </div>
+            )}
+            <div className="flex gap-2.5">
+              <button onClick={() => setReviewing(false)} className="flex-1 py-3 rounded-xl border border-white/15 text-zinc-400 font-bold text-[13px] hover:bg-white/5 transition-all">{t.reviewMore}</button>
+              <button onClick={async () => { await toggleSubmit(); setReviewing(false); }} disabled={myYes.length + myNo.length === 0}
+                className="flex-1 py-3 rounded-xl font-black text-[13px] text-[#0d1b33] transition-all disabled:opacity-30" style={{ backgroundColor: YES }}>{t.reviewSubmit}</button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function Screen({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-screen bg-[#141414] flex items-center justify-center text-zinc-500 text-sm">{children}</div>;
+  return <div className="min-h-screen bg-[#141414] flex items-center justify-center text-zinc-500 text-sm font-pretendard"><style dangerouslySetInnerHTML={{ __html: FONT }} />{children}</div>;
 }
 
-function Header({ t, poll, y, m, lang }: any) {
+function Legend({ color, label }: { color: string; label: string }) {
   return (
-    <div className="mb-8">
-      <p className="text-[10px] font-black uppercase tracking-widest text-[#E3B24A] mb-1">{t.availability}</p>
-      <h1 className="font-black text-[26px] text-white">{poll.title || `${y}. ${String(m).padStart(2, '0')}`}</h1>
-      <p className="text-[12px] mt-1 text-zinc-400">{y}. {String(m).padStart(2, '0')}{poll.is_open ? '' : ` · ${t.closed}`}</p>
+    <span className="flex items-center gap-1.5 text-[11px] font-bold text-zinc-400">
+      <span className="w-3 h-3 rounded-[5px] border" style={{ backgroundColor: color === '#3a3a3a' ? 'transparent' : color, borderColor: color === '#3a3a3a' ? 'rgba(255,255,255,0.15)' : color }} />{label}
+    </span>
+  );
+}
+
+function Quick({ color, onClick, children }: any) {
+  return (
+    <button onClick={onClick} className="text-[11px] font-black px-3 py-1.5 rounded-full border transition-all hover:brightness-125 active:scale-95"
+      style={{ color, borderColor: color + '55', backgroundColor: color + '12' }}>{children}</button>
+  );
+}
+
+function DayChips({ label, days, color, lang }: any) {
+  if (!days.length) return null;
+  return (
+    <div>
+      <p className="text-[11px] font-black uppercase tracking-widest mb-1.5" style={{ color }}>{label} {days.length}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {days.map((d: number) => <span key={d} className="px-2.5 py-1 rounded-full text-[12px] font-black border" style={{ color, borderColor: color + '55', backgroundColor: color + '18' }}>{d}{lang === 'ko' ? '일' : ''}</span>)}
+      </div>
+    </div>
+  );
+}
+
+function Header({ t, poll, y, m, done, total }: any) {
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  return (
+    <div className="mb-7">
+      <p className="text-[10px] font-black uppercase tracking-widest text-[#E3B24A] mb-1.5">{t.availability}</p>
+      <h1 className="font-black text-[28px] text-white leading-tight">{poll.title || `${y}. ${String(m).padStart(2, '0')}`}</h1>
+      <div className="flex items-center gap-2.5 mt-2">
+        <p className="text-[12px] text-zinc-400">{y}. {String(m).padStart(2, '0')}{poll.is_open ? '' : ` · ${t.closed}`}</p>
+        <div className="flex-1 h-1 rounded-full bg-white/[0.07] overflow-hidden max-w-[120px]">
+          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: GOLD }} />
+        </div>
+        <p className="text-[11px] font-black text-zinc-500">{t.progress(done, total)}</p>
+      </div>
     </div>
   );
 }
@@ -389,7 +466,7 @@ function FinalDaysCard({ t, lang, poll, m }: any) {
   };
   const title = poll.title || `${yy}. ${String(mm).padStart(2, '0')}`;
   return (
-    <div className="rounded-2xl border p-5 mb-8 border-[#E3B24A]/40 bg-[#E3B24A]/10">
+    <div className="rounded-2xl border p-5 mb-7 border-[#E3B24A]/35 bg-[#E3B24A]/[0.08]">
       <p className="text-[11px] font-black uppercase tracking-widest mb-3 text-[#EFCF8E]">{t.confirmedTitle}</p>
       <div className="flex flex-wrap gap-2 mb-3.5">
         {finals.map((d: number) => (
@@ -402,35 +479,37 @@ function FinalDaysCard({ t, lang, poll, m }: any) {
   );
 }
 
-function DayMembers({ t, lang, day, avail, maybe, onClose }: any) {
-  const chip = (mm: any, dim: boolean) => (
-    <span key={mm.id} className="px-3 py-1 rounded-full text-[12px] font-bold border" style={{ color: ROLE_COLORS[mm.role] || '#aaa', borderColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '35' : '55'), backgroundColor: (ROLE_COLORS[mm.role] || '#aaa') + (dim ? '10' : '18'), opacity: dim ? 0.7 : 1 }}>{mm.name}{dim ? ' ?' : ''}</span>
+function DayMembers({ t, lang, day, yes, no, onClose }: any) {
+  const chip = (mm: any, ok: boolean) => (
+    <span key={mm.id} className={`px-3 py-1 rounded-full text-[12px] font-bold border ${ok ? '' : 'line-through opacity-70'}`}
+      style={ok
+        ? { color: ROLE_COLORS[mm.role] || '#aaa', borderColor: (ROLE_COLORS[mm.role] || '#aaa') + '55', backgroundColor: (ROLE_COLORS[mm.role] || '#aaa') + '18' }
+        : { color: NO, borderColor: NO + '45', backgroundColor: NO + '10' }}>{mm.name}</span>
   );
-  const roleGroups = [...ROLE_ORDER, '__etc'].map(role => {
-    const a = avail.filter((m: any) => role === '__etc' ? !ROLE_ORDER.includes(m.role) : m.role === role);
-    const mb = maybe.filter((m: any) => role === '__etc' ? !ROLE_ORDER.includes(m.role) : m.role === role);
-    return { role, a, mb };
-  }).filter(g => g.a.length + g.mb.length > 0);
+  const roleGroups = [...ROLE_ORDER, '__etc'].map((role) => {
+    const a = yes.filter((mm: any) => role === '__etc' ? !ROLE_ORDER.includes(mm.role) : mm.role === role);
+    const b = no.filter((mm: any) => role === '__etc' ? !ROLE_ORDER.includes(mm.role) : mm.role === role);
+    return { role, a, b };
+  }).filter((g) => g.a.length + g.b.length > 0);
   return (
-    <div className="rounded-2xl border p-5 mb-8 bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]">
+    <div className="rounded-2xl border p-5 mb-2 bg-[#1a1a1a] border-white/[0.07] anim-rise">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[13px] font-black text-white">{t.onDay(day)} · {t.available} {avail.length} · {t.maybe} {maybe.length}</p>
-        <button onClick={onClose} className="text-[11px] text-zinc-400 hover:opacity-70">✕</button>
+        <p className="text-[13px] font-black text-white">{t.onDay(day)} · <span style={{ color: YES }}>{t.available} {yes.length}</span> · <span style={{ color: NO }}>{t.unavailable} {no.length}</span></p>
+        <button onClick={onClose} className="text-[11px] text-zinc-400 hover:text-white transition-colors">✕</button>
       </div>
-      {avail.length + maybe.length === 0 ? <span className="text-[12px] text-zinc-400">{t.noneYet}</span> : (
+      {yes.length + no.length === 0 ? <span className="text-[12px] text-zinc-400">{t.noneYet}</span> : (
         <div className="flex flex-col gap-3">
-          {roleGroups.map(({ role, a, mb }) => {
-            const col = ROLE_COLORS[role] || '#9aa';
-            return (
-              <div key={role} className="flex flex-col gap-1.5">
-                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: col + 'cc' }}>{role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span className="text-zinc-500">{a.length + mb.length}</span></p>
-                <div className="flex flex-wrap gap-2">
-                  {a.map((mm: any) => chip(mm, false))}
-                  {mb.map((mm: any) => chip(mm, true))}
-                </div>
+          {roleGroups.map(({ role, a, b }) => (
+            <div key={role} className="flex flex-col gap-1.5">
+              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: (ROLE_COLORS[role] || '#9aa') + 'cc' }}>
+                {role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span className="text-zinc-500">{a.length + b.length}</span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {a.map((mm: any) => chip(mm, true))}
+                {b.map((mm: any) => chip(mm, false))}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -440,18 +519,20 @@ function DayMembers({ t, lang, day, avail, maybe, onClose }: any) {
 function BestDays({ t, lang, bestDays, maxCount, finals, onPick }: any) {
   const isFinal = (d: number) => (finals || []).includes(d);
   return (
-    <div className="rounded-2xl border p-5 mt-8 bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]">
+    <div className="rounded-2xl border p-5 mt-6 bg-[#1a1a1a] border-white/[0.07]">
       <p className="text-[11px] font-black uppercase tracking-widest mb-4 text-zinc-400">{t.bestDays}</p>
       {bestDays.length === 0 ? <p className="text-[12px] text-zinc-400">{t.noneYet}</p> : (
-        <div className="space-y-2">
-          {bestDays.map(({ d, c, mb }: any) => (
-            <button key={d} onClick={() => onPick(d)} className="w-full flex items-center gap-3">
+        <div className="space-y-2.5">
+          {bestDays.map(({ d, c, no }: any) => (
+            <button key={d} onClick={() => onPick(d)} className="w-full flex items-center gap-3 group">
               <span className={`text-[13px] font-black w-10 text-left ${isFinal(d) ? 'text-[#EFCF8E]' : 'text-white'}`}>{d}{lang === 'ko' ? '일' : ''}</span>
-              <div className="flex-1 h-2.5 rounded-full overflow-hidden bg-white/10 flex">
-                <div className="h-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} />
-                <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />
+              <div className="flex-1 h-2.5 rounded-full overflow-hidden bg-white/[0.08] flex">
+                <div className="h-full transition-all duration-300" style={{ width: `${(c / maxCount) * 100}%`, backgroundColor: YES }} />
+                <div className="h-full transition-all duration-300" style={{ width: `${(no / maxCount) * 100}%`, backgroundColor: NO + '99' }} />
               </div>
-              <span className="text-[12px] font-black w-14 text-right text-zinc-400">{t.people(c)}{mb ? `+${mb}` : ''}</span>
+              <span className="text-[12px] font-black w-14 text-right">
+                <span style={{ color: YES }}>{c}</span>{no ? <span style={{ color: NO }}> −{no}</span> : ''}
+              </span>
               {isFinal(d) && <span className="w-1.5 h-1.5 rounded-full bg-[#E3B24A] shrink-0" />}
             </button>
           ))}

@@ -52,7 +52,7 @@ const T = {
     edit: '수정', delete: '삭제',
     voteOpenTitle: '투표 열기', voteTitleLabel: '투표 제목', voteTitlePlaceholder: '예: 5월 세션 참여 여부',
     voteMemoPlaceholder: '예: 5월 20일 오후 2시', voteStart: '투표 시작',
-    attending: '참석', absent: '불참', pending: '미정', noResponse: '미응답',
+    attending: '참석', absent: '불참', noResponse: '미응답',
     exclude: '✕ 제외하기', include: '✓ 포함시키기',
     sessionDeleteMsg: (d: number) => `Day ${d} 삭제할까요?`, sessionDelete: '세션 삭제',
     contact: 'Contact : everplayground@gmail.com', loading: 'Loading...',
@@ -67,7 +67,7 @@ const T = {
     availCopyLink: '개인 링크', availCopyAll: '공유 링크 복사', availNoResp: '아직 응답이 없어요',
     codeCopied: '📋 복사됐어요', availPeople: (n: number) => `${n}명`,
     availSubmitStatus: '제출 현황', availSubmitted: '제출', availWaiting: '미제출',
-    availPossible: '가능', availMaybe: '미정',
+    availPossible: '가능', availNo: '불가능',
     availConfirmAdd: '확정에 추가', availConfirmRemove: '확정에서 빼기',
     availBlockMode: '차단일 설정', availBlockDone: '설정 완료', availBlocked: '차단됨',
     availBlockHint: '막을 날짜를 눌러 차단 (멤버는 못 고름)',
@@ -78,6 +78,7 @@ const T = {
     inviteAccount: '계정 초대 (이메일)', inviteTitle: '이 멤버를 이메일로 초대', inviteSent: '초대 등록! 그 이메일로 로그인하면 자동 연결돼요',
     availMemberPick: '클릭하면 이 멤버가 고른 날이 달력에 표시돼요',
     availKick: '빼기', availKicked: '제외됨 (불참 처리)', availRestoreM: '복구',
+    more: '더보기', availLive: '진행 중',
     availDayKick: '클릭하면 이 날에서 빠져요',
     availDayAdd: '이 날에 넣기', availDayAddTip: '클릭하면 이 날 가능으로 추가돼요',
     availRoleCover: '이 날 되는 역할 (프로듀서·탑라이너·엔지니어·A&R)',
@@ -113,7 +114,7 @@ const T = {
     edit: 'Edit', delete: 'Delete',
     voteOpenTitle: 'Open Vote', voteTitleLabel: 'Vote Title', voteTitlePlaceholder: 'e.g. May Session Attendance',
     voteMemoPlaceholder: 'e.g. May 20, 2pm', voteStart: 'Start Vote',
-    attending: 'Attending', absent: 'Absent', pending: 'Undecided', noResponse: 'No Response',
+    attending: 'Attending', absent: 'Absent', noResponse: 'No Response',
     exclude: '✕ Exclude', include: '✓ Include',
     sessionDeleteMsg: (d: number) => `Delete Day ${d}?`, sessionDelete: 'Delete Session',
     contact: 'Contact : everplayground@gmail.com', loading: 'Loading...',
@@ -128,7 +129,7 @@ const T = {
     availCopyLink: 'Personal link', availCopyAll: 'Copy share link', availNoResp: 'No responses yet',
     codeCopied: '📋 Copied', availPeople: (n: number) => `${n}`,
     availSubmitStatus: 'Submissions', availSubmitted: 'Submitted', availWaiting: 'Waiting',
-    availPossible: 'Available', availMaybe: 'Maybe',
+    availPossible: 'Available', availNo: 'Unavailable',
     availConfirmAdd: 'Add to confirmed', availConfirmRemove: 'Remove from confirmed',
     availBlockMode: 'Block days', availBlockDone: 'Done', availBlocked: 'Blocked',
     availBlockHint: 'Tap days to block (members cannot pick)',
@@ -142,6 +143,7 @@ const T = {
     availDayKick: 'Click to remove from this day',
     availDayAdd: 'Add to this day', availDayAddTip: 'Click to add as available on this day',
     availRoleCover: 'Roles available this day (Producer·Topliner·Engineer·A&R)',
+    more: 'More', availLive: 'live',
   }
 };
 
@@ -292,6 +294,22 @@ export default function Dashboard() {
     setPromptValue(defaultValue); setPromptModal({ title, placeholder, onOk });
   };
   const showToastMsg = (msg: string) => { setToastMsg(msg); setShowToast(true); setTimeout(() => setShowToast(false), 2500); };
+
+  // 툴바 더보기 메뉴
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Esc = 열려 있는 것 닫기
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setMenuOpen(false); setRoleDropdown(null);
+      setShowAvailModal(false); setShowStats(false); setShowVotingModal(false);
+      setShowNoticeModal(false); setShowExportModal(false); setShowSessionModal(false);
+      setPromptModal(null); setConfirmModal(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   useEffect(() => {
     setLang(getLang());
@@ -1269,7 +1287,6 @@ export default function Dashboard() {
   const getAttendanceBadge = (attendance: string | null) => {
     if (attendance === 'attending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#77B18E]/20 text-[#77B18E] border border-[#77B18E]/30 shrink-0">{t.attending}</span>;
     if (attendance === 'absent') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#9A8F8A]/20 text-[#9A8F8A] border border-[#9A8F8A]/30 shrink-0">{t.absent}</span>;
-    if (attendance === 'pending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#B5AC90]/20 text-[#B3A88C] border border-[#B5AC90]/30 shrink-0">{t.pending}</span>;
     return votingOpen ? <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-600 border border-white/10 shrink-0">{t.noResponse}</span> : null;
   };
 
@@ -1295,8 +1312,7 @@ export default function Dashboard() {
   const absentMembers = members.filter(m => m.project === currentProject && m.attendance === 'absent');
   const attendingCount = attendingMembers.length;
   const absentCount = absentMembers.length;
-  const pendingCount = members.filter(m => m.project === currentProject && m.attendance === 'pending').length;
-  const noResponseCount = members.filter(m => m.project === currentProject && !m.excluded && !m.attendance).length;
+  const noResponseCount = members.filter(m => m.project === currentProject && !m.excluded && m.attendance !== 'attending' && m.attendance !== 'absent').length;
 
   const sessionsByCamp = sessions.reduce((acc: any, s: any) => { if (!acc[s.camp_name]) acc[s.camp_name] = []; acc[s.camp_name].push(s); return acc; }, {});
 
@@ -1360,18 +1376,11 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2 ml-2">
                       <span className="text-[10px] font-bold text-[#77B18E]">{t.attending} {attendingCount}</span>
                       <span className="text-[10px] font-bold text-[#9A8F8A]">{t.absent} {absentCount}</span>
-                      <span className="text-[10px] font-bold text-[#B3A88C]">{t.pending} {pendingCount}</span>
                       <span className={`text-[10px] font-bold ${textSub}`}>{t.noResponse} {noResponseCount}</span>
                     </div>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <button onClick={addStudio} title={t.studioHint} className={`border px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all text-[#E3B24A] ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
-                  <button onClick={() => setShowSessionBoard(!showSessionBoard)} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.history}</button>
-                  <button onClick={exportRoster} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.export}</button>
-                  <button onClick={() => router.push('/roster/artists')} className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${btnBg}`}>{t.artists}</button>
-                  <button onClick={() => { setShowArtistPanel(p => !p); if (!showArtistPanel) fetchArtists(user); }}
-                    className={`border px-3 py-1.5 rounded-lg font-normal text-[11px] transition-all ${showArtistPanel ? 'border-[#E3B24A]/50 text-[#E3B24A] bg-[#E3B24A]/10' : btnBg}`}>{t.addFromArtists}</button>
                   <div className={`flex p-1 rounded-lg border gap-1 shadow-lg backdrop-blur-md ${inputBg}`}>
                     <input value={name} onChange={e => setName(e.target.value)}
                       onCompositionStart={() => { isComposing.current = true; }}
@@ -1390,23 +1399,56 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              {/* 2줄 */}
+              {/* 2줄 — 자주 쓰는 것만 밖에, 나머지는 더보기 안에 */}
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <button onClick={() => votingOpen
-                  ? showConfirm(t.voteClose, t.closeVoteConfirm, async () => { await closeVoting(); setConfirmModal(null); })
-                  : setShowVotingModal(true)}
-                  className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${votingOpen ? 'bg-[#E3B24A]/20 border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/30' : btnBg}`}>
-                  {votingOpen ? t.voteClose : t.voteOpen}
-                </button>
-                <button onClick={() => { setAvailSelDay(null); setShowAvailModal(true); }}
-                  className={`px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all border ${availPoll ? 'bg-[#E3B24A]/20 border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/30' : btnBg}`}>
-                  {t.availOpen}{availPoll ? ' •' : ''}
-                </button>
-                <button onClick={() => setShowStats(true)} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.stats}</button>
-                <button onClick={() => setShowNoticeBoard(!showNoticeBoard)} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.notice}</button>
-                <button onClick={copyShareLink} className={`border px-4 py-1.5 rounded-xl font-normal text-[11px] transition-all ${btnBg}`}>{t.share}</button>
+                <button onClick={addStudio} title={t.studioHint}
+                  className={`px-3.5 py-1.5 rounded-xl border font-bold text-[11px] transition-all text-[#E3B24A] ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
+                {(votingOpen || availPoll) && (
+                  <button onClick={() => votingOpen
+                    ? showConfirm(t.voteClose, t.closeVoteConfirm, async () => { await closeVoting(); setConfirmModal(null); })
+                    : (setAvailSelDay(null), setShowAvailModal(true))}
+                    className="px-4 py-1.5 rounded-xl font-bold text-[11px] transition-all border bg-[#E3B24A]/20 border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/30 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#E3B24A] animate-pulse" />
+                    {votingOpen ? t.voteClose : `${t.availOpen} ${t.availLive}`}
+                  </button>
+                )}
+                <button onClick={copyShareLink} className={`px-4 py-1.5 rounded-xl border font-normal text-[11px] transition-all ${btnBg}`}>{t.share}</button>
                 <button onClick={() => showPrompt(t.randomMatch, t.teamCount, '2', async (v) => { const n = parseInt(v); setPromptModal(null); if (n > 0) await generateRandomRoster(n)(); })}
                   className="bg-[#E3B24A] text-white px-5 py-1.5 rounded-xl font-normal text-[11px] hover:opacity-90 transition-all uppercase tracking-tighter">{t.random}</button>
+
+                {/* 더보기 */}
+                <div className="relative">
+                  <button onClick={() => setMenuOpen(v => !v)} title={t.more}
+                    className={`px-3.5 py-1.5 rounded-xl border font-black text-[13px] leading-none transition-all ${menuOpen ? 'border-[#E3B24A]/50 text-[#E3B24A] bg-[#E3B24A]/10' : btnBg}`}>⋯</button>
+                  {menuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                      <div className={`absolute right-0 top-full mt-2 z-50 w-52 rounded-xl border shadow-2xl backdrop-blur-xl overflow-hidden anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#171717] border-white/10'}`}>
+                        {([
+                          [t.availOpen, () => { setAvailSelDay(null); setShowAvailModal(true); }, !!availPoll],
+                          [votingOpen ? t.voteClose : t.voteOpen, () => votingOpen
+                            ? showConfirm(t.voteClose, t.closeVoteConfirm, async () => { await closeVoting(); setConfirmModal(null); })
+                            : setShowVotingModal(true), votingOpen],
+                          [t.stats, () => setShowStats(true), false],
+                          [t.notice, () => setShowNoticeBoard(!showNoticeBoard), showNoticeBoard],
+                          [t.history, () => setShowSessionBoard(!showSessionBoard), showSessionBoard],
+                          ['—', null, false],
+                          [t.addFromArtists, () => { setShowArtistPanel(p => !p); if (!showArtistPanel) fetchArtists(user); }, showArtistPanel],
+                          [t.artists, () => router.push('/roster/artists'), false],
+                          [t.export, () => exportRoster(), false],
+                        ] as const).map(([label, fn, active], i) => fn === null
+                          ? <div key={i} className={`h-px my-1 ${theme === 'light' ? 'bg-black/8' : 'bg-white/8'}`} />
+                          : (
+                            <button key={i} onClick={() => { setMenuOpen(false); (fn as () => void)(); }}
+                              className={`w-full text-left px-4 py-2.5 text-[12px] font-bold transition-all flex items-center justify-between gap-2
+                                ${active ? 'text-[#E3B24A]' : textMain} ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/5'}`}>
+                              {label}{active && <span className="w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
+                            </button>
+                          ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </header>
 
@@ -1864,8 +1906,8 @@ export default function Dashboard() {
         const byRole = ROLES.map(r => ({ r, n: proj.filter(m => m.role === r).length })).filter(x => x.n > 0);
         const male = proj.filter(m => m.gender === 'male' || m.gender === 'M' || m.gender === '남').length;
         const female = proj.filter(m => m.gender === 'female' || m.gender === 'F' || m.gender === '여').length;
-        const att = { attending: 0, absent: 0, pending: 0, none: 0 };
-        proj.forEach(m => { att[m.attendance === 'attending' ? 'attending' : m.attendance === 'absent' ? 'absent' : m.attendance === 'pending' ? 'pending' : 'none']++; });
+        const att = { attending: 0, absent: 0, none: 0 };
+        proj.forEach(m => { att[m.attendance === 'attending' ? 'attending' : m.attendance === 'absent' ? 'absent' : 'none']++; });
         const availTotal = availPoll ? proj.length : 0;
         const submitted = availPoll ? proj.filter(m => availSubs.some(s => s.member_id === m.id)).length : 0;
         const mostAvail = availPoll ? proj.map(m => ({ m, c: availPicks.filter(p => p.member_id === m.id && p.status === 'available').length })).filter(x => x.c > 0).sort((a, b) => b.c - a.c).slice(0, 5) : [];
@@ -1898,7 +1940,6 @@ export default function Dashboard() {
                   <div className="flex flex-col gap-2">
                     {bar(t.attending, att.attending, total, '#77B18E')}
                     {bar(t.absent, att.absent, total, '#9A8F8A')}
-                    {bar(t.pending, att.pending, total, '#B3A88C')}
                     {bar(t.noResponse, att.none, total, theme === 'light' ? '#00000022' : '#ffffff22')}
                   </div>
                 </div>
@@ -1931,12 +1972,12 @@ export default function Dashboard() {
         const daysInMonth = new Date(yy, mm, 0).getDate();
         const firstWeekday = new Date(yy, mm - 1, 1).getDay();
         const countOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'available' && projIds.has(p.member_id)).length;
-        const maybeOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'maybe' && projIds.has(p.member_id)).length;
+        const noOn = (d: number) => availPicks.filter(p => p.day === d && p.status === 'unavailable' && projIds.has(p.member_id)).length;
         const maxCount = Math.max(1, proj.length);
         const membersOnDay = (d: number, st: string) => proj.filter(m => availPicks.some(p => p.member_id === m.id && p.day === d && p.status === st));
         const finals: number[] = availPoll?.final_days || [];
         const blocked: number[] = availPoll?.blocked_days || [];
-        const best = Array.from({ length: daysInMonth }, (_, i) => i + 1).filter(d => !blocked.includes(d)).map(d => ({ d, c: countOn(d), mb: maybeOn(d) })).filter(x => x.c + x.mb > 0).sort((a, b) => (b.c - a.c) || (b.mb - a.mb)).slice(0, 6);
+        const best = Array.from({ length: daysInMonth }, (_, i) => i + 1).filter(d => !blocked.includes(d)).map(d => ({ d, c: countOn(d), mb: noOn(d) })).filter(x => x.c + x.mb > 0).sort((a, b) => (b.c - a.c) || (a.mb - b.mb)).slice(0, 6);
         const isSubmitted = (m: any) => availSubs.some(s => s.member_id === m.id);
         const selMember = availSelMember ? proj.find(m => m.id === availSelMember) : null;
         const memberStatusOn = (d: number): string | null => { if (!availSelMember) return null; const p = availPicks.find(x => x.member_id === availSelMember && x.day === d); return p ? p.status : null; };
@@ -1979,7 +2020,7 @@ export default function Dashboard() {
                         </div>
                         {selMember && (
                           <div className="flex items-center justify-between gap-2 mb-2 px-3 py-2 rounded-lg border border-[#5FA39A]/40 bg-[#5FA39A]/10">
-                            <p className="text-[12px] font-black text-[#8FD4C8]">{selMember.name} · {t.availPossible} {selMemberDays.filter((p: any) => p.status === 'available').length} · {t.availMaybe} {selMemberDays.filter((p: any) => p.status === 'maybe').length}{selMemberDays.length === 0 ? ` · ${t.availWaiting}` : ''}</p>
+                            <p className="text-[12px] font-black text-[#8FD4C8]">{selMember.name} · {t.availPossible} {selMemberDays.filter((p: any) => p.status === 'available').length} · {t.availNo} {selMemberDays.filter((p: any) => p.status === 'unavailable').length}{selMemberDays.length === 0 ? ` · ${t.availWaiting}` : ''}</p>
                             <button onClick={() => setAvailSelMember(null)} className="shrink-0 text-[11px] font-black text-[#8FD4C8] hover:opacity-70">✕</button>
                           </div>
                         )}
@@ -1994,9 +2035,9 @@ export default function Dashboard() {
                               <button key={d} onClick={() => availBlockMode ? toggleBlockedDay(d) : setAvailSelDay(sel ? null : d)}
                                 className={`relative aspect-square rounded-lg border flex flex-col items-center justify-center transition-all hover:scale-[1.05]
                                   ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''} ${sel ? (theme === 'light' ? 'outline outline-1 outline-black/40' : 'outline outline-1 outline-white/50') : ''}
-                                  ${mst === 'available' ? 'ring-2 ring-[#5FA39A]' : mst === 'maybe' ? 'ring-2 ring-[#5FA39A]/50 ring-dashed' : ''}
+                                  ${mst === 'available' ? 'ring-2 ring-[#4C8DF6]' : mst === 'unavailable' ? 'ring-2 ring-[#E0575F]' : ''}
                                   ${isBlocked ? 'border-[#C98BA0]/50' : theme === 'light' ? 'border-black/8' : 'border-white/8'} ${dimByMember ? 'opacity-35' : ''}`}
-                                style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.18)' : c > 0 ? `rgba(227,178,74,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
+                                style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.18)' : c > 0 ? `rgba(76,141,246,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
                                 <span className={`text-[13px] font-bold ${isBlocked ? 'text-[#C98BA0] line-through' : textMain}`}>{d}</span>
                                 {!isBlocked && c > 0 && <span className={`text-[9px] font-black ${textSub}`}>{c}</span>}
                                 {isFinal && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
@@ -2010,14 +2051,14 @@ export default function Dashboard() {
                       {availSelDay !== null && (
                         <div className={`rounded-xl border p-4 ${inputBg}`}>
                           <div className="flex items-center justify-between mb-2 gap-2">
-                            <p className={`text-[13px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPossible} {countOn(availSelDay)} · {t.availMaybe} {maybeOn(availSelDay)}</p>
+                            <p className={`text-[13px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPossible} {countOn(availSelDay)} · {t.availNo} {noOn(availSelDay)}</p>
                             <button onClick={() => toggleFinalDay(availSelDay)}
                               className={`shrink-0 text-[11px] font-black px-3.5 py-1 rounded-full border transition-all ${finals.includes(availSelDay) ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
                               {finals.includes(availSelDay) ? t.availConfirmRemove : t.availConfirmAdd}</button>
                           </div>
                           {(() => {
                             const avail = membersOnDay(availSelDay, 'available');
-                            const maybe = membersOnDay(availSelDay, 'maybe');
+                            const maybe = membersOnDay(availSelDay, 'unavailable');
                             const inDay = new Set([...avail, ...maybe].map(m => m.id));
                             const rest = proj.filter(m => !inDay.has(m.id));
                             const addChips = rest.length > 0 && (
@@ -2045,7 +2086,7 @@ export default function Dashboard() {
                                       <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: col + 'cc' }}>{role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span className={textSub}>{a.length + mb.length}</span></p>
                                       <div className="flex flex-wrap gap-1.5">
                                         {a.map(m => <button key={m.id} onClick={() => removeDayPick(m.id, availSelDay)} title={t.availDayKick} className="group px-3 py-1 rounded-full text-[11px] font-bold border transition-all hover:opacity-80" style={{ color: col, borderColor: col + '55', backgroundColor: col + '18' }}>{m.name} <span className="opacity-40 group-hover:opacity-100">✕</span></button>)}
-                                        {mb.map(m => <button key={m.id} onClick={() => removeDayPick(m.id, availSelDay)} title={t.availDayKick} className="group px-3 py-1 rounded-full text-[11px] font-bold border border-dashed transition-all hover:opacity-80" style={{ color: '#B3A88C', borderColor: '#B3A88C88', backgroundColor: '#B3A88C15' }}>{m.name} ? <span className="opacity-40 group-hover:opacity-100">✕</span></button>)}
+                                        {mb.map(m => <button key={m.id} onClick={() => removeDayPick(m.id, availSelDay)} title={t.availDayKick} className="group px-3 py-1 rounded-full text-[11px] font-bold border transition-all hover:opacity-80 line-through" style={{ color: '#E0575F', borderColor: '#E0575F66', backgroundColor: '#E0575F14' }}>{m.name} <span className="opacity-40 group-hover:opacity-100 no-underline">✕</span></button>)}
                                       </div>
                                     </div>
                                   );
@@ -2067,13 +2108,13 @@ export default function Dashboard() {
                             <button key={d} onClick={() => setAvailSelDay(d)} className="w-full flex items-center gap-2.5">
                               <span className={`text-[13px] font-black w-10 text-left ${finals.includes(d) ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
                               <div className={`flex-1 h-2.5 rounded-full overflow-hidden flex ${theme === 'light' ? 'bg-black/10' : 'bg-white/10'}`}>
-                                <div className="h-full bg-[#E3B24A]" style={{ width: `${(c / maxCount) * 100}%` }} />
-                                <div className="h-full bg-[#B3A88C]/50" style={{ width: `${(mb / maxCount) * 100}%` }} />
+                                <div className="h-full bg-[#4C8DF6]" style={{ width: `${(c / maxCount) * 100}%` }} />
+                                <div className="h-full bg-[#E0575F]/60" style={{ width: `${(mb / maxCount) * 100}%` }} />
                               </div>
                               <span className="flex items-center gap-0.5 shrink-0" title={t.availRoleCover}>
                                 {ROLES.map(r => { const on = availRoles.has(r); return <span key={r} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: on ? (ROLE_COLORS[r] || '#aaa') : (theme === 'light' ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)') }} />; })}
                               </span>
-                              <span className={`text-[11px] font-black w-11 text-right ${textSub}`}>{c}{mb ? `+${mb}` : ''}</span>
+                              <span className={`text-[11px] font-black w-11 text-right ${textSub}`}>{c}{mb ? <span className="text-[#E0575F]"> -{mb}</span> : ''}</span>
                             </button>
                             );
                           })}</div>
@@ -2111,7 +2152,7 @@ export default function Dashboard() {
                         {proj.map(m => {
                           const done = isSubmitted(m);
                           const cnt = availPicks.filter(p => p.member_id === m.id && p.status === 'available').length;
-                          const mcnt = availPicks.filter(p => p.member_id === m.id && p.status === 'maybe').length;
+                          const mcnt = availPicks.filter(p => p.member_id === m.id && p.status === 'unavailable').length;
                           const selected = availSelMember === m.id;
                           return (
                             <div key={m.id} onClick={() => setAvailSelMember(selected ? null : m.id)}
@@ -2119,7 +2160,7 @@ export default function Dashboard() {
                               className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg cursor-pointer transition-all ${selected ? 'border border-[#5FA39A]/50 bg-[#5FA39A]/12' : `border border-transparent ${inputBg} hover:border-[#5FA39A]/30`}`}>
                               <span className={`text-[13px] font-bold ${selected ? 'text-[#8FD4C8]' : textMain}`}>{m.name} <span className={`text-[11px] font-normal ${textSub}`}>{m.role}</span></span>
                               <div className="flex items-center gap-2.5">
-                                <span className={`text-[11px] font-black ${textSub}`}>{t.availPossible} {cnt}{mcnt ? ` · ${t.availMaybe} ${mcnt}` : ''}</span>
+                                <span className={`text-[11px] font-black ${textSub}`}><span className="text-[#7FB0FF]">{cnt}</span>{mcnt ? <> · <span className="text-[#E0575F]">{mcnt}</span></> : ''}</span>
                                 {!done && <button onClick={(e) => { e.stopPropagation(); copyAvailReminder([m.name]); }} className={`text-[10px] font-black px-2 py-0.5 rounded-full border transition-all ${btnBg}`}>{t.availRemind}</button>}
                                 <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
                                 <button onClick={(e) => { e.stopPropagation(); toggleAvailExclude(m.id); }} title={t.availKick} className={`text-[11px] font-black px-1.5 py-0.5 rounded-full transition-all ${textSub} hover:text-[#C98BA0]`}>✕</button>
