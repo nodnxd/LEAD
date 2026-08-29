@@ -312,8 +312,8 @@ export default function MyPage() {
   const bg = D ? 'bg-[#141414] text-white' : 'bg-[#E6E6EC] text-[#111]';
   const card = D ? 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.1] shadow-sm';
   const inputCls = D
-    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-500 focus:border-[#6366F1]/60'
-    : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#6366F1]/60';
+    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-500 focus:border-[#7C5AE8]/60'
+    : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#7C5AE8]/60';
   const labelCls = `text-[10px] font-black uppercase tracking-widest mb-1.5 block ${D ? 'text-zinc-500' : 'text-zinc-400'}`;
   const dimText = D ? 'text-zinc-500' : 'text-zinc-600';
   const divider = D ? 'border-white/[0.07]' : 'border-black/[0.1]';
@@ -322,7 +322,7 @@ export default function MyPage() {
 
   if (loading || userType === 'loading') return (
     <div className={`min-h-screen ${bg} flex items-center justify-center`}>
-      <div className="w-6 h-6 border-2 border-[#6366F1] border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-[#7C5AE8] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -336,15 +336,15 @@ export default function MyPage() {
 
     return (
       <>
-        <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
-        <main className={`min-h-screen ${bg} font-pretendard p-5 lg:p-8 relative overflow-hidden`} style={{zoom:1.1}}>
-          {D && <div className="absolute top-[-15%] right-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#6366F1',filter:'blur(180px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
+        <style dangerouslySetInnerHTML={{ __html: `}` }} />
+        <main className={`min-h-screen ${bg} font-ui p-5 lg:p-8 relative overflow-hidden`} style={{zoom:1.1}}>
+          {D && <div className="absolute top-[-15%] right-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(180px)'}} />}
 
           <div className="relative z-10 max-w-2xl mx-auto">
             {/* 헤더 */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-baseline gap-2.5">
-                <h1 className="text-2xl font-semibold text-[#6366F1] uppercase tracking-tighter">LEAD</h1>
+                <h1 className="text-2xl font-semibold text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1>
                 <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>HOST PAGE</span>
               </div>
               <div className="flex items-center gap-2">
@@ -398,7 +398,7 @@ export default function MyPage() {
                   )}
                   {hostProfile?.bio && <p className={`text-[12px] leading-relaxed ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{hostProfile.bio}</p>}
                   {hostProfile?.instagram && (
-                    <a href={`https://instagram.com/${hostProfile.instagram}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1 text-[11px] text-[#6366F1] hover:underline">📸 @{hostProfile.instagram}</a>
+                    <a href={`https://instagram.com/${hostProfile.instagram}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1 text-[11px] text-[#7C5AE8] hover:underline">📸 @{hostProfile.instagram}</a>
                   )}
                 </div>
               )}
@@ -413,7 +413,7 @@ export default function MyPage() {
             {/* 통계 카드 */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               {[
-                { label: t('전체 리드', 'Total leads'), value: hostLeads.length, sub: `${t('활성', 'Active')} ${activeLeads.length}`, color: 'text-[#6366F1]' },
+                { label: t('전체 리드', 'Total leads'), value: hostLeads.length, sub: `${t('활성', 'Active')} ${activeLeads.length}`, color: 'text-[#7C5AE8]' },
                 { label: t('피칭 수신', 'Pitches in'), value: hostPitches.length, sub: t('총 피칭', 'Total'), color: 'text-emerald-400' },
                 { label: t('승인 멤버', 'Members'), value: approvedMembers.length, sub: `${t('대기', 'Pending')} ${pendingMembers.length}`, color: 'text-amber-400' },
               ].map(s => (
@@ -468,7 +468,7 @@ export default function MyPage() {
                 {(['pitches', 'members'] as const).map(tab => (
                   <button key={tab} onClick={() => setHostTab(tab)}
                     className={`flex-1 py-3.5 text-[12px] font-black transition-all ${hostTab === tab
-                      ? D ? 'text-white border-b-2 border-[#6366F1]' : 'text-[#111] border-b-2 border-[#6366F1]'
+                      ? D ? 'text-white border-b-2 border-[#7C5AE8]' : 'text-[#111] border-b-2 border-[#7C5AE8]'
                       : dimText}`}>
                     {tab === 'pitches' ? `📨 ${t('수신 피칭', 'Pitches')} (${hostPitches.length})` : `👥 ${t('멤버', 'Members')} (${hostMembers.length})`}
                   </button>
@@ -483,13 +483,13 @@ export default function MyPage() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className={`text-[9px] font-black uppercase tracking-widest w-8 shrink-0 ${dimText}`}>{t('정렬', 'Sort')}</span>
                       {([['recent',t('최신순','Recent')],['bpm','BPM'],['vocal',t('보컬','Vocal')],['key','Key']] as const).map(([v,l])=>(
-                        <button key={v} onClick={()=>setPitchSort(v)} className={`text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${pitchSort===v?'bg-[#6366F1] border-[#6366F1] text-white':D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
+                        <button key={v} onClick={()=>setPitchSort(v)} className={`text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${pitchSort===v?'bg-[#7C5AE8] border-[#7C5AE8] text-white':D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
                       ))}
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className={`text-[9px] font-black uppercase tracking-widest w-8 shrink-0 ${dimText}`}>{t('보컬', 'Vocal')}</span>
                       {([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=>(
-                        <button key={v} onClick={()=>setPitchVocalFilter(v)} className={`text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${pitchVocalFilter===v?'bg-[#6366F1] border-[#6366F1] text-white':D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
+                        <button key={v} onClick={()=>setPitchVocalFilter(v)} className={`text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${pitchVocalFilter===v?'bg-[#7C5AE8] border-[#7C5AE8] text-white':D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
                       ))}
                     </div>
                   </div>
@@ -540,7 +540,7 @@ export default function MyPage() {
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-[12px]">🎵</span>
                                     <span className={`flex-1 min-w-0 text-[11px] truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
-                                    {vLabel && <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#6366F1]/15 text-[#6366F1]">{vLabel}</span>}
+                                    {vLabel && <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#7C5AE8]/15 text-[#7C5AE8]">{vLabel}</span>}
                                     {f.bpm > 0 && <span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
                                     {f.key && <span className={`text-[10px] font-black ${dimText}`}>{f.key}</span>}
                                     {f.genre && <span className="text-[10px] font-black text-emerald-400">{f.genre}</span>}
@@ -573,10 +573,10 @@ export default function MyPage() {
                       const statusLabel = a.status === 'approved' ? t('승인', 'Approved') : a.status === 'pending' ? t('대기', 'Pending') : t('거절', 'Rejected');
                       return (
                         <div key={a.id} className={`flex items-center gap-3 p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
-                          <div className="w-9 h-9 rounded-full overflow-hidden bg-[#6366F1]/10 border border-[#6366F1]/20 flex items-center justify-center shrink-0">
+                          <div className="w-9 h-9 rounded-full overflow-hidden bg-[#7C5AE8]/10 border border-[#7C5AE8]/20 flex items-center justify-center shrink-0">
                             {m?.photo_url
                               ? <img src={m.photo_url} alt="" className="w-full h-full object-cover" />
-                              : <span className="text-[13px] font-black text-[#6366F1]">{(m?.artist_name || '?')[0].toUpperCase()}</span>
+                              : <span className="text-[13px] font-black text-[#7C5AE8]">{(m?.artist_name || '?')[0].toUpperCase()}</span>
                             }
                           </div>
                           <div className="flex-1 min-w-0">
@@ -599,7 +599,7 @@ export default function MyPage() {
           </div>
 
           {hostEditing && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4 overflow-y-auto" onClick={() => setHostEditing(false)}>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={() => setHostEditing(false)}>
               <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
                 <div className="p-6 max-h-[85vh] overflow-y-auto">
                   <div className="flex items-center justify-between mb-5">
@@ -673,7 +673,7 @@ export default function MyPage() {
                       {t('취소', 'Cancel')}
                     </button>
                     <button onClick={saveHostProfile} disabled={hostSaving}
-                      className="flex-1 py-3 rounded-xl bg-[#6366F1] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50">
+                      className="flex-1 py-3 rounded-xl bg-[#7C5AE8] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50">
                       {hostSaving ? t('저장 중...', 'Saving…') : t('저장', 'Save')}
                     </button>
                   </div>
@@ -683,7 +683,7 @@ export default function MyPage() {
           )}
 
           {toast && (
-            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-pretendard">{toast}</div>
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-ui">{toast}</div>
           )}
         </main>
       </>
@@ -695,15 +695,15 @@ export default function MyPage() {
   // ════════════════════════════════════════
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
-      <main className={`min-h-screen ${bg} font-pretendard p-5 lg:p-8 relative overflow-hidden`} style={{zoom:1.1}}>
-        {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#6366F1',filter:'blur(180px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
+      <style dangerouslySetInnerHTML={{ __html: `}` }} />
+      <main className={`min-h-screen ${bg} font-ui p-5 lg:p-8 relative overflow-hidden`} style={{zoom:1.1}}>
+        {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(180px)'}} />}
 
         <div className="relative z-10 max-w-2xl mx-auto">
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-2xl font-black text-[#6366F1] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="text-2xl font-black text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>MY PAGE</span>
             </div>
             <div className="flex items-center gap-2">
@@ -727,17 +727,17 @@ export default function MyPage() {
           <div className={`border rounded-2xl overflow-hidden mb-5 ${card}`}>
             <div className={`p-6 border-b ${divider}`}>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full overflow-hidden bg-[#6366F1]/10 border border-[#6366F1]/20 flex items-center justify-center shrink-0">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-[#7C5AE8]/10 border border-[#7C5AE8]/20 flex items-center justify-center shrink-0">
                   {member?.photo_url
                     ? <img src={member.photo_url} alt="" className="w-full h-full object-cover" />
-                    : <span className="text-2xl font-black text-[#6366F1]">{(member?.artist_name || '?')[0].toUpperCase()}</span>
+                    : <span className="text-2xl font-black text-[#7C5AE8]">{(member?.artist_name || '?')[0].toUpperCase()}</span>
                   }
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <h2 className={`font-black text-[20px] ${D ? 'text-white' : 'text-[#111]'}`}>{member?.artist_name}</h2>
                     {member?.roles?.map((r: string) => (
-                      <span key={r} className="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#6366F1]/10 border border-[#6366F1]/20 text-[#6366F1]">
+                      <span key={r} className="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#7C5AE8]/10 border border-[#7C5AE8]/20 text-[#7C5AE8]">
                         {roleLabels[r] || r}
                       </span>
                     ))}
@@ -755,7 +755,7 @@ export default function MyPage() {
                 </div>
                 <div className="flex flex-col gap-1.5 shrink-0">
                   <button onClick={openEdit}
-                    className="px-3 py-2 rounded-xl bg-[#6366F1]/10 border border-[#6366F1]/20 text-[#6366F1] text-[11px] font-bold hover:bg-[#6366F1]/20 transition-all">
+                    className="px-3 py-2 rounded-xl bg-[#7C5AE8]/10 border border-[#7C5AE8]/20 text-[#7C5AE8] text-[11px] font-bold hover:bg-[#7C5AE8]/20 transition-all">
                     ✏️ {t('수정', 'Edit')}
                   </button>
                   <a href={`/card/${user?.id}`} target="_blank" rel="noopener noreferrer"
@@ -779,7 +779,7 @@ export default function MyPage() {
               {member?.instagram && (
                 <div>
                   <p className={labelCls}>{t('인스타그램', 'Instagram')}</p>
-                  <a href={`https://instagram.com/${member.instagram}`} target="_blank" rel="noopener noreferrer" className="text-[13px] text-[#6366F1] hover:underline">@{member.instagram}</a>
+                  <a href={`https://instagram.com/${member.instagram}`} target="_blank" rel="noopener noreferrer" className="text-[13px] text-[#7C5AE8] hover:underline">@{member.instagram}</a>
                 </div>
               )}
               {(cp?.pro || cp?.ipi) && (
@@ -812,13 +812,13 @@ export default function MyPage() {
                           document.body.appendChild(a); a.click();
                           document.body.removeChild(a); URL.revokeObjectURL(url);
                         } catch { showToast(t('다운로드 실패', 'Download failed')); }
-                      }} className="text-[#6366F1] text-[11px] font-bold hover:underline">⬇ {t('다운', 'Get')}</button>
+                      }} className="text-[#7C5AE8] text-[11px] font-bold hover:underline">⬇ {t('다운', 'Get')}</button>
                     </div>
                   ))}
                 </div>
               ) : <p className={`text-[12px] ${dimText}`}>{t('등록된 데모곡이 없어요', 'No demos yet')}</p>}
               {member?.demo_link && (
-                <a href={member.demo_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-[11px] text-[#6366F1] hover:underline">🔗 {t('추가 데모 링크', 'More demos')}</a>
+                <a href={member.demo_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-[11px] text-[#7C5AE8] hover:underline">🔗 {t('추가 데모 링크', 'More demos')}</a>
               )}
             </div>
 
@@ -828,15 +828,15 @@ export default function MyPage() {
                 <div className="flex flex-col gap-2">
                   {works.map((w, i) => (
                     <a key={i} href={w.link} target="_blank" rel="noopener noreferrer"
-                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all hover:border-[#6366F1]/30 ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
-                      <div className="w-8 h-8 rounded-lg bg-[#6366F1]/10 border border-[#6366F1]/20 flex items-center justify-center shrink-0">
+                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all hover:border-[#7C5AE8]/30 ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                      <div className="w-8 h-8 rounded-lg bg-[#7C5AE8]/10 border border-[#7C5AE8]/20 flex items-center justify-center shrink-0">
                         <span className="text-[12px]">🎶</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-[12px] font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
                         <p className={`text-[11px] ${dimText}`}>{w.artist_name}</p>
                       </div>
-                      <span className="text-[#6366F1] text-[11px]">→</span>
+                      <span className="text-[#7C5AE8] text-[11px]">→</span>
                     </a>
                   ))}
                 </div>
@@ -880,7 +880,7 @@ export default function MyPage() {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-[12px]">🎵</span>
                                 <span className={`flex-1 min-w-0 text-[11px] truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
-                                {vLabel && <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#6366F1]/15 text-[#6366F1]">{vLabel}</span>}
+                                {vLabel && <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#7C5AE8]/15 text-[#7C5AE8]">{vLabel}</span>}
                                 {f.bpm > 0 && <span className={`text-[10px] font-black ${dimText}`}>{f.bpm}BPM</span>}
                                 {f.key && <span className={`text-[10px] font-black ${dimText}`}>{f.key}</span>}
                                 {f.genre && <span className="text-[10px] font-black text-emerald-400">{f.genre}</span>}
@@ -901,7 +901,7 @@ export default function MyPage() {
 
         {/* 수정 모달 */}
         {editing && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4 overflow-y-auto" onClick={() => setEditing(false)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={() => setEditing(false)}>
             <div className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
               <div className="p-6 max-h-[85vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-5">
@@ -912,7 +912,7 @@ export default function MyPage() {
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-4">
                     <button onClick={() => photoRef.current?.click()} className="relative group">
-                      <div className="w-16 h-16 rounded-full overflow-hidden bg-[#6366F1]/10 border-2 border-dashed border-[#6366F1]/30 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full overflow-hidden bg-[#7C5AE8]/10 border-2 border-dashed border-[#7C5AE8]/30 flex items-center justify-center">
                         {photoPreview ? <img src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-xl">📷</span>}
                       </div>
                       <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -933,7 +933,7 @@ export default function MyPage() {
                     <div className="flex gap-2">
                       {[['male', t('남성','Male')], ['female', t('여성','Female')], ['other', t('기타','Other')]].map(([v, l]) => (
                         <button key={v} onClick={() => setGender(v)}
-                          className={`flex-1 py-2 rounded-xl border text-[12px] font-bold transition-all ${gender === v ? 'bg-[#6366F1]/20 border-[#6366F1]/50 text-[#6366F1]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                          className={`flex-1 py-2 rounded-xl border text-[12px] font-bold transition-all ${gender === v ? 'bg-[#7C5AE8]/20 border-[#7C5AE8]/50 text-[#7C5AE8]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
                           {l}
                         </button>
                       ))}
@@ -955,7 +955,7 @@ export default function MyPage() {
                     <div className="flex flex-wrap gap-2">
                       {ROLES.map(r => (
                         <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)}
-                          className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${roles.includes(r.id) ? 'bg-[#6366F1]/20 border-[#6366F1]/50 text-[#6366F1]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                          className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${roles.includes(r.id) ? 'bg-[#7C5AE8]/20 border-[#7C5AE8]/50 text-[#7C5AE8]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
                           {r.label}
                         </button>
                       ))}
@@ -967,7 +967,7 @@ export default function MyPage() {
                     <div className="flex flex-wrap gap-2">
                       {GENRES.map(g => (
                         <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)}
-                          className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${genres.includes(g.id) ? 'bg-[#6366F1]/20 border-[#6366F1]/50 text-[#6366F1]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                          className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${genres.includes(g.id) ? 'bg-[#7C5AE8]/20 border-[#7C5AE8]/50 text-[#7C5AE8]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
                           {g.label}
                         </button>
                       ))}
@@ -1003,9 +1003,9 @@ export default function MyPage() {
                     {newDemoFiles.length > 0 && (
                       <div className="flex flex-col gap-1 mt-2">
                         {newDemoFiles.map((f, i) => (
-                          <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#6366F1]/5 border border-[#6366F1]/20">
+                          <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#7C5AE8]/5 border border-[#7C5AE8]/20">
                             <span className="text-[12px]">🎵</span>
-                            <span className="flex-1 text-[11px] text-[#6366F1] truncate">{f.name}</span>
+                            <span className="flex-1 text-[11px] text-[#7C5AE8] truncate">{f.name}</span>
                             <button onClick={() => setNewDemoFiles(p => p.filter((_, idx) => idx !== i))} className="text-red-400/60 text-[10px]">✕</button>
                           </div>
                         ))}
@@ -1076,7 +1076,7 @@ export default function MyPage() {
                     {t('취소', 'Cancel')}
                   </button>
                   <button onClick={handleSave} disabled={saving}
-                    className="flex-1 py-3 rounded-xl bg-[#6366F1] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50">
+                    className="flex-1 py-3 rounded-xl bg-[#7C5AE8] text-white font-semibold text-[13px] hover:opacity-90 transition-all disabled:opacity-50">
                     {saving ? t('저장 중...', 'Saving…') : t('저장', 'Save')}
                   </button>
                 </div>
@@ -1086,7 +1086,7 @@ export default function MyPage() {
         )}
 
         {toast && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-pretendard">{toast}</div>
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-ui">{toast}</div>
         )}
       </main>
     </>

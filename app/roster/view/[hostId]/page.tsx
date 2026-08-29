@@ -328,21 +328,18 @@ export default function GuestView() {
   );
 
   if (notFound) return (
-    <div className={`min-h-screen ${bg} flex flex-col items-center justify-center font-pretendard`}>
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }`}} />
+    <div className={`min-h-screen ${bg} flex flex-col items-center justify-center font-ui`}>
       <p className="text-zinc-400 text-[12px] font-bold tracking-widest uppercase">{tv.notFound}</p>
     </div>
   );
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }`}} />
-
       {/* 링크 팝오버 */}
       {linkPopover && (
         <div className="fixed inset-0 z-40" onClick={() => setLinkPopover(null)}>
           <div
-            className={`absolute z-50 border rounded-2xl p-3 shadow-lg font-pretendard ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/15'}`}
+            className={`absolute z-50 border rounded-2xl p-3 shadow-lg font-ui ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/15'}`}
             style={{ top: Math.min(linkPopover.y, window.innerHeight - 180), left: Math.min(linkPopover.x, window.innerWidth - 210), minWidth: '180px' }}
             onClick={e => e.stopPropagation()}
           >
@@ -360,7 +357,7 @@ export default function GuestView() {
       )}
 
       <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: `${100 / zoom}%`, minHeight: `${100 / zoom}vh` }}>
-        <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-150`}>
+        <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-ui relative overflow-hidden transition-colors duration-150`}>
           {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[520px] h-[520px] rounded-full pointer-events-none opacity-[0.07]" style={{background:'#E3B24A',filter:'blur(200px)'}} />}
 
           {/* room 홍보 — 공유된 로스터 페이지 상단 배너 */}
@@ -442,7 +439,7 @@ export default function GuestView() {
                   <p className="text-[10px] font-black uppercase tracking-widest mb-2 text-[#E3B24A]">{tv.myStudio}</p>
                   {myTeam ? (
                     <>
-                      <p className={`font-black text-[20px] leading-tight ${textMain}`}>{myTeam.team}</p>
+                      <p className={`font-display font-bold text-[20px] leading-tight ${textMain}`}>{myTeam.team}</p>
                       <p className={`text-[12px] mt-1 ${textSub}`}>{getDayLabel(currentDay)}{currentProject ? ` · ${currentProject}` : ''}</p>
                       {myTeam.mates.length > 0 && (
                         <div className="mt-3">
@@ -617,7 +614,7 @@ export default function GuestView() {
       </div>
 
       {/* 줌 컨트롤 */}
-      <div className="flex fixed bottom-6 left-6 z-50 flex-col items-center gap-1.5 select-none font-pretendard">
+      <div className="flex fixed bottom-6 left-6 z-50 flex-col items-center gap-1.5 select-none font-ui">
         <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" aria-label={lang === 'ko' ? '확대' : 'Zoom in'} className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#E3B24A]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>

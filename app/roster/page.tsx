@@ -53,9 +53,9 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#141414] text-white flex items-center justify-center font-pretendard relative overflow-hidden">
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
-      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#E3B24A', filter:'blur(200px)', animation:'orb-pulse 4s ease-in-out infinite'}} />
+    <main className="min-h-screen bg-[#141414] text-white flex items-center justify-center font-ui relative overflow-hidden">
+      <style dangerouslySetInnerHTML={{__html: `}`}} />
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-[0.07]" style={{background:'#E3B24A', filter:'blur(200px)'}} />
 
       <div className="relative z-10 w-full max-w-sm px-6">
         {/* 로고 */}

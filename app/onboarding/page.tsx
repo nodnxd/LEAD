@@ -112,8 +112,8 @@ export default function OnboardingPage() {
   const bg = D ? 'bg-[#141414]' : 'bg-[#F2F2F7]';
   const card = D ? 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]';
   const inputCls = D
-    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-[#6366F1]/60'
-    : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#6366F1]/60';
+    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-[#7C5AE8]/60'
+    : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-[#7C5AE8]/60';
   const labelCls = D ? 'text-zinc-500' : 'text-zinc-400';
   const dimText = D ? 'text-zinc-500' : 'text-zinc-400';
 
@@ -215,15 +215,15 @@ export default function OnboardingPage() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard{font-family:'Pretendard',sans-serif;} @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}` }} />
-      <main className={`min-h-screen ${bg} font-pretendard flex flex-col items-center justify-center p-5 relative overflow-hidden`}>
+      <style dangerouslySetInnerHTML={{ __html: `}` }} />
+      <main className={`min-h-screen ${bg} font-ui flex flex-col items-center justify-center p-5 relative overflow-hidden`}>
 
-        {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#6366F1',filter:'blur(180px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
+        {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(180px)'}} />}
 
         <div className="absolute top-5 right-5 z-20"><LangToggle /></div>
         <div className="relative z-10 w-full max-w-lg">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-semibold text-[#6366F1] uppercase tracking-tighter mb-1">LEAD</h1>
+            <h1 className="text-3xl font-semibold text-[#7C5AE8] uppercase tracking-tighter mb-1">LEAD</h1>
             <p className={`text-[12px] font-bold ${dimText}`}>{t('프로필을 완성해주세요', 'Complete your profile')}</p>
           </div>
 
@@ -236,12 +236,12 @@ export default function OnboardingPage() {
               return (
                 <div key={i} className="flex items-center gap-2 flex-1">
                   <div className={`flex items-center gap-2 ${active ? 'opacity-100' : done ? 'opacity-60' : 'opacity-25'}`}>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 transition-all ${active ? 'bg-[#6366F1] text-white' : done ? 'bg-[#6366F1]/30 text-[#6366F1]' : D ? 'bg-white/10 text-zinc-500' : 'bg-black/10 text-zinc-400'}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 transition-all ${active ? 'bg-[#7C5AE8] text-white' : done ? 'bg-[#7C5AE8]/30 text-[#7C5AE8]' : D ? 'bg-white/10 text-zinc-500' : 'bg-black/10 text-zinc-400'}`}>
                       {done ? '✓' : num}
                     </div>
                     <span className={`text-[11px] font-bold hidden sm:block ${active ? D ? 'text-white' : 'text-[#111]' : dimText}`}>{s}</span>
                   </div>
-                  {i < STEPS.length - 1 && <div className={`h-px flex-1 transition-all ${done ? 'bg-[#6366F1]/40' : D ? 'bg-white/10' : 'bg-black/10'}`} />}
+                  {i < STEPS.length - 1 && <div className={`h-px flex-1 transition-all ${done ? 'bg-[#7C5AE8]/40' : D ? 'bg-white/10' : 'bg-black/10'}`} />}
                 </div>
               );
             })}
@@ -258,7 +258,7 @@ export default function OnboardingPage() {
                 </div>
                 <div className="flex flex-col items-center gap-3">
                   <button onClick={() => photoRef.current?.click()} className="relative group">
-                    <div className={`w-24 h-24 rounded-full border-2 border-dashed overflow-hidden flex items-center justify-center transition-all ${D ? 'border-white/20 bg-white/[0.03] hover:border-[#6366F1]/50' : 'border-black/20 bg-black/[0.03] hover:border-[#6366F1]/50'}`}>
+                    <div className={`w-24 h-24 rounded-full border-2 border-dashed overflow-hidden flex items-center justify-center transition-all ${D ? 'border-white/20 bg-white/[0.03] hover:border-[#7C5AE8]/50' : 'border-black/20 bg-black/[0.03] hover:border-[#7C5AE8]/50'}`}>
                       {photoPreview ? <img src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-3xl">📷</span>}
                     </div>
                     <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -282,7 +282,7 @@ export default function OnboardingPage() {
                   <label className={`text-[10px] font-black uppercase tracking-widest block mb-2 ${labelCls}`}>{t('성별', 'Gender')} *</label>
                   <div className="flex gap-2">
                     {[['male', t('남성','Male')], ['female', t('여성','Female')], ['other', t('기타','Other')]].map(([v, l]) => (
-                      <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2.5 rounded-xl border text-[12px] font-bold transition-all ${gender === v ? 'bg-[#6366F1]/20 border-[#6366F1]/50 text-[#6366F1]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
+                      <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2.5 rounded-xl border text-[12px] font-bold transition-all ${gender === v ? 'bg-[#7C5AE8]/20 border-[#7C5AE8]/50 text-[#7C5AE8]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
                     ))}
                   </div>
                 </div>
@@ -304,7 +304,7 @@ export default function OnboardingPage() {
                   <label className={`text-[10px] font-black uppercase tracking-widest block mb-3 ${labelCls}`}>{t('역할', 'Roles')} *</label>
                   <div className="flex flex-wrap gap-2">
                     {ROLES.map(r => (
-                      <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-4 py-2 rounded-xl border text-[12px] font-bold transition-all ${roles.includes(r.id) ? 'bg-[#6366F1]/20 border-[#6366F1]/50 text-[#6366F1]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{r.label}</button>
+                      <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-4 py-2 rounded-xl border text-[12px] font-bold transition-all ${roles.includes(r.id) ? 'bg-[#7C5AE8]/20 border-[#7C5AE8]/50 text-[#7C5AE8]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{r.label}</button>
                     ))}
                   </div>
                 </div>
@@ -312,7 +312,7 @@ export default function OnboardingPage() {
                   <label className={`text-[10px] font-black uppercase tracking-widest block mb-3 ${labelCls}`}>{t('선호 장르', 'Genres')} *</label>
                   <div className="flex flex-wrap gap-2">
                     {GENRES.map(g => (
-                      <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-4 py-2 rounded-xl border text-[12px] font-bold transition-all ${genres.includes(g.id) ? 'bg-[#6366F1]/20 border-[#6366F1]/50 text-[#6366F1]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{g.label}</button>
+                      <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-4 py-2 rounded-xl border text-[12px] font-bold transition-all ${genres.includes(g.id) ? 'bg-[#7C5AE8]/20 border-[#7C5AE8]/50 text-[#7C5AE8]' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{g.label}</button>
                     ))}
                   </div>
                   {genres.includes('ETC') && (
@@ -417,16 +417,16 @@ export default function OnboardingPage() {
               <button onClick={() => setStep(s => s - 1)} className={`flex-1 py-3.5 rounded-xl border font-bold text-[13px] transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{t('이전', 'Back')}</button>
             )}
             {step < 4 ? (
-              <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className={`flex-1 py-3.5 rounded-xl font-black text-[13px] transition-all ${canNext() ? 'bg-[#6366F1] text-white hover:opacity-90' : D ? 'bg-white/5 text-zinc-700 cursor-not-allowed' : 'bg-black/5 text-zinc-400 cursor-not-allowed'}`}>{t('다음', 'Next')} →</button>
+              <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className={`flex-1 py-3.5 rounded-xl font-black text-[13px] transition-all ${canNext() ? 'bg-[#7C5AE8] text-white hover:opacity-90' : D ? 'bg-white/5 text-zinc-700 cursor-not-allowed' : 'bg-black/5 text-zinc-400 cursor-not-allowed'}`}>{t('다음', 'Next')} →</button>
             ) : (
-              <button onClick={handleFinish} disabled={saving} className="flex-1 py-3.5 rounded-xl bg-[#6366F1] text-white font-semibold text-[13px] transition-all hover:opacity-90 disabled:opacity-50">
+              <button onClick={handleFinish} disabled={saving} className="flex-1 py-3.5 rounded-xl bg-[#7C5AE8] text-white font-semibold text-[13px] transition-all hover:opacity-90 disabled:opacity-50">
                 {saving ? t('저장 중...', 'Saving…') : t('완료 🎉', 'Done 🎉')}
               </button>
             )}
           </div>
 
           {step === 4 && (
-            <button onClick={handleFinish} className={`w-full mt-3 text-[11px] font-bold transition-colors ${dimText} hover:text-[#6366F1]`}>{t('나중에 입력할게요', 'I’ll do this later')}</button>
+            <button onClick={handleFinish} className={`w-full mt-3 text-[11px] font-bold transition-colors ${dimText} hover:text-[#7C5AE8]`}>{t('나중에 입력할게요', 'I’ll do this later')}</button>
           )}
         </div>
       </main>

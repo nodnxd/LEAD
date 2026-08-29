@@ -176,7 +176,7 @@ type Lang = 'ko' | 'en';
 type Theme = 'dark' | 'light';
 
 const Modal = ({ title, message, children, theme }: any) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui">
     <div className={`w-full max-w-sm mx-4 border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
       {title && <h2 className={`font-black text-[16px] mb-2 ${theme === 'light' ? 'text-black' : 'text-white'}`}>{title}</h2>}
       {message && <p className={`text-[14px] mb-5 leading-relaxed whitespace-pre-line ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>{message}</p>}
@@ -1368,7 +1368,9 @@ export default function Dashboard() {
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const x = cv.getContext('2d')!;
-    const sans = (w: string, sz: number) => `${w} ${sz}px "Pretendard", system-ui, -apple-system, sans-serif`;
+    const sans = (w: string, sz: number) => `${w} ${sz}px "IBM Plex Sans KR", -apple-system, "Apple SD Gothic Neo", sans-serif`;
+    const serif = (w: string, sz: number) => `${w} ${sz}px "Noto Serif KR", "Apple SD Gothic Neo", serif`;
+    const mono = (w: string, sz: number) => `${w} ${sz}px "IBM Plex Mono", ui-monospace, monospace`;
     const track = (px: number) => { try { (x as any).letterSpacing = `${px}px`; } catch { /* 미지원 브라우저는 무시 */ } };
     const rule = (y: number, alpha = 0.14) => { x.strokeStyle = `rgba(255,255,255,${alpha})`; x.lineWidth = 1; x.beginPath(); x.moveTo(PAD, y + 0.5); x.lineTo(W - PAD, y + 0.5); x.stroke(); };
 
@@ -1376,14 +1378,14 @@ export default function Dashboard() {
 
     // ── 헤더
     let y = PAD;
-    track(6); x.font = sans('800', 26); x.fillStyle = '#E3B24A';
+    track(6); x.font = mono('600', 26); x.fillStyle = '#E3B24A';
     x.fillText('CAST', PAD, y + 22);
-    track(4); x.font = sans('500', 15); x.fillStyle = '#5A5A5E';
+    track(4); x.font = mono('400', 15); x.fillStyle = '#5A5A5E';
     x.textAlign = 'right'; x.fillText('BY NEN', W - PAD, y + 22); x.textAlign = 'left';
     track(0);
     y += 46; rule(y); y += 46;
 
-    track(5); x.font = sans('700', 17); x.fillStyle = '#8A8A90';
+    track(5); x.font = mono('500', 17); x.fillStyle = '#8A8A90';
     x.fillText(currentProject.toUpperCase(), PAD, y + 14);
     track(0);
     y += 44;
@@ -1392,7 +1394,7 @@ export default function Dashboard() {
     const bigDate = iso
       ? (() => { const [yy, mo, dd] = iso.split('-').map(Number); return lang === 'ko' ? `${mo}월 ${dd}일 (${WD[new Date(yy, mo - 1, dd).getDay()]})` : `${mo}/${dd} ${WD[new Date(yy, mo - 1, dd).getDay()]}`; })()
       : (dayNames[currentDay] || `Day ${currentDay}`);
-    x.font = sans('800', ratio === '9:16' ? 68 : 56); x.fillStyle = '#FFFFFF';
+    x.font = serif('700', ratio === '9:16' ? 68 : 56); x.fillStyle = '#FFFFFF';
     x.fillText(bigDate, PAD, y + (ratio === '9:16' ? 54 : 45));
     y += ratio === '9:16' ? 86 : 72;
 
@@ -1442,11 +1444,11 @@ export default function Dashboard() {
       const ms = (td.members || []).filter(Boolean);
 
       // 스튜디오 이름 + 역할 카운트
-      track(4); x.font = sans('800', ratio === '9:16' ? 24 : 20); x.fillStyle = '#FFFFFF';
+      track(4); x.font = mono('600', ratio === '9:16' ? 24 : 20); x.fillStyle = '#FFFFFF';
       x.fillText(String(td.name).toUpperCase(), cx, cy + 20);
       const counts: Record<string, number> = {};
       ms.forEach((m: any) => { counts[m.role] = (counts[m.role] || 0) + 1; });
-      x.textAlign = 'right'; x.font = sans('700', 13);
+      x.textAlign = 'right'; x.font = mono('500', 13);
       let rx = cx + colW;
       Object.entries(counts).reverse().forEach(([r, n]) => {
         const label = `${SHORT[r] || r} ${n}`;
@@ -1471,7 +1473,7 @@ export default function Dashboard() {
         x.font = sans('700', ratio === '9:16' ? 27 : 22); x.fillStyle = '#F2F2F4';
         x.fillText(m.name, cx + 18, cy + (ROW_H - 18) * 0.72);
         x.textAlign = 'right'; track(3);
-        x.font = sans('700', 12); x.fillStyle = rc + 'CC';
+        x.font = mono('500', 12); x.fillStyle = rc + 'CC';
         x.fillText((SHORT[m.role] || m.role).toUpperCase(), cx + colW, cy + (ROW_H - 18) * 0.66);
         x.textAlign = 'left'; track(0);
         cy += ROW_H;
@@ -1595,9 +1597,8 @@ export default function Dashboard() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }`}} />
       <div style={{ transform: `scale(${zoom * 1.1})`, transformOrigin: 'top left', width: `${100 / (zoom * 1.1)}%`, minHeight: `${100 / (zoom * 1.1)}vh` }}>
-        <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-150`}>
+        <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-ui relative overflow-hidden transition-colors duration-150`}>
           {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[520px] h-[520px] rounded-full pointer-events-none opacity-[0.07]" style={{background:'#E3B24A',filter:'blur(200px)'}} />}
 
           {/* 헤더 */}
@@ -2127,7 +2128,7 @@ export default function Dashboard() {
 
       {/* 첫 로스터 모달 */}
       {showFirstRosterModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-pretendard">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-ui">
           <div className={`w-full max-w-sm mx-4 border rounded-2xl p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <div className="text-center mb-6">
               <h1 className="text-4xl font-semibold text-[#E3B24A] uppercase tracking-tighter mb-2">CAST</h1>
@@ -2144,7 +2145,7 @@ export default function Dashboard() {
 
       {/* 링크 모달 */}
       {linkModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui">
           <div className={`w-full max-w-sm mx-4 border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <h2 className={`font-black text-[16px] mb-1 ${textMain}`}>{linkModal.name}</h2>
             <p className={`text-[12px] mb-4 ${textSub}`}>{t.linkAdd}</p>
@@ -2236,7 +2237,7 @@ export default function Dashboard() {
           </div>
         );
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setShowStats(false)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => setShowStats(false)}>
             <div onClick={e => e.stopPropagation()} className={`w-full max-w-md max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-2xl p-7 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-[16px] ${textMain}`}>{t.statsTitle} <span className={`text-[12px] font-normal ${textSub}`}>{currentProject}</span></h2>
@@ -2302,7 +2303,7 @@ export default function Dashboard() {
         const cells: (number | null)[] = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
         const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => { setShowAvailModal(false); setAvailSelMember(null); }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => { setShowAvailModal(false); setAvailSelMember(null); }}>
             <div onClick={e => e.stopPropagation()} className={`w-full ${availPoll ? 'max-w-4xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-2xl p-7 sm:p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-[16px] ${textMain}`}>{t.availOpenTitle}</h2>
@@ -2536,7 +2537,7 @@ export default function Dashboard() {
       {roleDropdown && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setRoleDropdown(null)} />
-          <div className={`fixed z-50 border rounded-xl shadow-lg overflow-hidden font-pretendard ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} style={{ top: roleDropdown.y, left: roleDropdown.x }}>
+          <div className={`fixed z-50 border rounded-xl shadow-lg overflow-hidden font-ui ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} style={{ top: roleDropdown.y, left: roleDropdown.x }}>
             {ROLES.map(r => (
               <button key={r} onClick={() => updateMemberRole(roleDropdown.id, r)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`} style={{ color: ROLE_COLORS[r] }}>{r}</button>
             ))}
@@ -2554,7 +2555,7 @@ export default function Dashboard() {
 
       {/* 내보내기 모달 — 2단계 */}
       {randomModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setRandomModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => setRandomModal(false)}>
           <div onClick={e => e.stopPropagation()} className={`w-full max-w-sm border rounded-2xl p-6 shadow-lg anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#141414] border-white/10'}`}>
             <h2 className={`font-black text-[16px] mb-1 ${textMain}`}>{t.randomTitle}</h2>
             <p className={`text-[12px] mb-5 ${textSub}`}>{getDayLabel(currentDay)}{!dayDates[currentDay] && ` · ${t.randomNoDate}`}</p>
@@ -2597,7 +2598,7 @@ export default function Dashboard() {
       )}
 
       {showExportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard" onClick={() => setShowExportModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui" onClick={() => setShowExportModal(false)}>
           <div className={`w-full max-w-xs border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} onClick={e => e.stopPropagation()}>
             {exportStep === 'type' ? (
               <>
@@ -2656,7 +2657,7 @@ export default function Dashboard() {
 
       {/* 토스트 */}
       {showToast && (
-        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 backdrop-blur-md border text-[12px] font-bold px-5 py-3 rounded-2xl shadow-lg font-pretendard ${theme === 'light' ? 'bg-black/80 border-black/20 text-white' : 'bg-white/10 border-white/20 text-white'}`}>{toastMsg}</div>
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 backdrop-blur-md border text-[12px] font-bold px-5 py-3 rounded-2xl shadow-lg font-ui ${theme === 'light' ? 'bg-black/80 border-black/20 text-white' : 'bg-white/10 border-white/20 text-white'}`}>{toastMsg}</div>
       )}
 
       {/* 줌 컨트롤 */}

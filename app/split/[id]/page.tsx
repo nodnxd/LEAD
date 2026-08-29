@@ -12,7 +12,7 @@ import { useTheme, ThemeToggle } from '@/lib/theme';
 function ProSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
     <select value={value || ''} disabled={disabled} onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#6366F1] disabled:opacity-60">
+      className="w-full rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#7C5AE8] disabled:opacity-60">
       <option value="">PRO…</option>
       {PRO_GROUPS.map((g) => (
         <optgroup key={g.region} label={g.region}>
@@ -338,8 +338,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     w.document.open(); w.document.write(agreementHtml(true)); w.document.close();
   }
 
-  const field = 'w-full rounded-md bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366F1]';
-  const hfield = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366F1]';
+  const field = 'w-full rounded-md bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/25 focus:outline-none focus:border-[#7C5AE8]';
+  const hfield = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#7C5AE8]';
 
   if (loading || !sheet) return <div className={`min-h-[100dvh] flex items-center justify-center ${D ? 'bg-[#0a0a0a] text-white/40' : 'bg-[#f6f6f7] text-black/40'}`}>…</div>;
 
@@ -371,7 +371,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         .split-light .hover\\:bg-white\\/\\[0\\.02\\]:hover{background-color:rgb(0 0 0/.03)}
         .split-light .placeholder\\:text-white\\/25::placeholder{color:rgb(0 0 0/.3)}
       ` }} />}
-      {toast && <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#6366F1] text-white text-sm shadow-lg">{toast}</div>}
+      {toast && <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#7C5AE8] text-white text-sm shadow-lg">{toast}</div>}
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8">
         {/* header bar */}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
@@ -419,9 +419,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
         {/* contributor sign prompt */}
         {needMySign && (
-          <div className="flex items-center gap-3 mb-5 px-4 py-3 rounded-xl border border-[#6366F1]/30 bg-[#6366F1]/[0.08]">
+          <div className="flex items-center gap-3 mb-5 px-4 py-3 rounded-xl border border-[#7C5AE8]/30 bg-[#7C5AE8]/[0.08]">
             <span className="text-sm">{sheet.signature_requested_at ? t('서명 요청이 왔어요.', 'You were asked to sign.') : t('내 지분을 확인하고', 'Review your splits —')} {t(`${myUnsigned.length}건 서명이 필요해요.`, `${myUnsigned.length} signature(s) needed.`)}</span>
-            <button onClick={() => setSignRow(myUnsigned[0])} className="ml-auto text-sm px-4 py-1.5 rounded-lg bg-[#6366F1] hover:bg-[#818CF8] transition-colors">{t('지금 서명', 'Sign now')}</button>
+            <button onClick={() => setSignRow(myUnsigned[0])} className="ml-auto text-sm px-4 py-1.5 rounded-lg bg-[#7C5AE8] hover:bg-[#A48BF0] transition-colors">{t('지금 서명', 'Sign now')}</button>
           </div>
         )}
 
@@ -514,7 +514,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                             <input type="number" min={0} max={100} value={Number(r.share) || 0} disabled={!editable}
                               onChange={(e) => setRowLocal(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
                               onBlur={(e) => commitRow(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
-                              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-xs text-white text-center focus:outline-none focus:border-[#6366F1] disabled:opacity-60" />
+                              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-xs text-white text-center focus:outline-none focus:border-[#7C5AE8] disabled:opacity-60" />
                             <span className="text-[11px] text-white/30">%</span>
                           </div>
                           {r.user_id && <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400/80">{t('연동', 'Linked')}</span>}
@@ -528,7 +528,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                               className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${mine ? 'border-white/15 text-white/60 hover:bg-white/5' : 'border-white/10 text-white/25'}`}
                               title={mine ? t('서명', 'Sign') : t('연동된 본인만 서명 가능', 'Only the linked person can sign')}>{t('서명', 'Sign')}</button>
                           )}
-                          {isOwner && !r.signed && !locked && <button onClick={() => copySignLink(r)} title={t('외부 서명 링크 복사 (계정 없이 서명 가능)', 'Copy external signing link (no account needed)')} className="text-xs text-white/35 hover:text-[#6366F1] transition-colors px-1 ml-auto">🔗 {t('서명 링크', 'Sign link')}</button>}
+                          {isOwner && !r.signed && !locked && <button onClick={() => copySignLink(r)} title={t('외부 서명 링크 복사 (계정 없이 서명 가능)', 'Copy external signing link (no account needed)')} className="text-xs text-white/35 hover:text-[#7C5AE8] transition-colors px-1 ml-auto">🔗 {t('서명 링크', 'Sign link')}</button>}
                           {editable && <button onClick={() => deleteRow(r.id)} className={`text-xs text-white/25 hover:text-red-400 transition-colors px-1 ${isOwner && !r.signed && !locked ? '' : 'ml-auto'}`}>{t('삭제', 'Delete')}</button>}
                         </div>
                         <details className="mt-2">
@@ -555,7 +555,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                       onKeyDown={(e) => { if (e.key === 'Enter') addByEmail(cat.key); }}
                       className={`${hfield} max-w-[300px]`} />
                     <button onClick={() => addByEmail(cat.key)} disabled={adding}
-                      className="text-sm px-4 py-2 rounded-xl bg-[#6366F1] hover:bg-[#818CF8] disabled:opacity-50 font-medium transition-colors">
+                      className="text-sm px-4 py-2 rounded-xl bg-[#7C5AE8] hover:bg-[#A48BF0] disabled:opacity-50 font-medium transition-colors">
                       {adding ? '…' : t(`+ ${cat.label} 추가`, `+ Add ${cat.en.toLowerCase()}`)}
                     </button>
                   </div>
@@ -624,7 +624,7 @@ function SignatureModal({ row, catLabel, t, onClose, onSubmit }: {
         <p className="text-xs text-white/45 mb-4">{catLabel} · {row.stage_name || row.legal_name || t('기여자', 'contributor')} · {Number(row.share) || 0}% — {t('아래 지분에 동의하고 서명합니다.', 'sign to agree to the split above.')}</p>
         <label className="block text-[11px] text-white/40 mb-1">{t('서명자 법적 이름', 'Signer legal name')}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('이름', 'Name')}
-          className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#6366F1] mb-3" />
+          className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#7C5AE8] mb-3" />
         <label className="block text-[11px] text-white/40 mb-1">{t('서명 (손으로 그리기 · 선택)', 'Signature (draw · optional)')}</label>
         <div className="rounded-lg bg-white overflow-hidden mb-1">
           <canvas ref={canvasRef} width={400} height={140} className="w-full touch-none"
@@ -637,7 +637,7 @@ function SignatureModal({ row, catLabel, t, onClose, onSubmit }: {
         </label>
         <div className="flex gap-2">
           <button onClick={submit} disabled={!name.trim() || !agree}
-            className="flex-1 text-sm px-4 py-2.5 rounded-xl bg-[#6366F1] hover:bg-[#818CF8] disabled:opacity-40 font-medium transition-colors">{t('서명 완료', 'Sign')}</button>
+            className="flex-1 text-sm px-4 py-2.5 rounded-xl bg-[#7C5AE8] hover:bg-[#A48BF0] disabled:opacity-40 font-medium transition-colors">{t('서명 완료', 'Sign')}</button>
           <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-white/15 text-sm hover:bg-white/5 transition-colors">{t('취소', 'Cancel')}</button>
         </div>
       </div>

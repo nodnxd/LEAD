@@ -218,9 +218,9 @@ export default function ArtistsPage() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
-      <main className="min-h-screen bg-[#141414] text-white p-5 lg:p-8 font-pretendard relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#E3B24A',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />
+      <style dangerouslySetInnerHTML={{__html: `}`}} />
+      <main className="min-h-screen bg-[#141414] text-white p-5 lg:p-8 font-ui relative overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[520px] h-[520px] rounded-full pointer-events-none opacity-[0.07]" style={{background:'#E3B24A',filter:'blur(200px)'}} />
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-8">
@@ -341,7 +341,7 @@ export default function ArtistsPage() {
 
       {/* 아티스트 상세 모달 */}
       {viewingArtist && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4" onClick={() => setViewingArtist(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={() => setViewingArtist(null)}>
           <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="relative h-56 bg-white/5">
               {viewingArtist.photo_url ? (
@@ -409,7 +409,7 @@ export default function ArtistsPage() {
 
       {/* 로스터 추가 모달 */}
       {addToRosterArtist && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4" onClick={() => setAddToRosterArtist(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={() => setAddToRosterArtist(null)}>
           <div className="w-full max-w-sm bg-[#111] border border-white/10 rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h2 className="text-white font-black text-[16px] mb-1">{addToRosterArtist.name}</h2>
             <p className="text-zinc-500 text-[12px] mb-5">{t('로스터에 추가할 프로젝트를 선택하세요', 'Pick a roster to add to')}</p>
@@ -453,7 +453,7 @@ export default function ArtistsPage() {
 
       {/* 추가/수정 모달 */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-pretendard p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto">
           <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl shadow-2xl my-4">
             <div className="p-6">
               <h2 className="text-white font-black text-[16px] mb-5">{editingArtist ? t('아티스트 수정', 'Edit artist') : t('아티스트 추가', 'Add artist')}</h2>
@@ -514,7 +514,7 @@ export default function ArtistsPage() {
       )}
 
       {showToast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-pretendard">{toastMsg}</div>
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-ui">{toastMsg}</div>
       )}
     </>
   );

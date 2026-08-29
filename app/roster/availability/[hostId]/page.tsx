@@ -42,7 +42,7 @@ const tokens = (dark: boolean) => ({
 });
 type Tok = ReturnType<typeof tokens>;
 
-const FONT = `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', -apple-system, sans-serif; }`;
+const FONT = ``;
 
 const TX = {
   ko: {
@@ -265,8 +265,7 @@ export default function AvailabilityView() {
     const other = members.filter((mm) => !ROLE_ORDER.includes(mm.role));
     if (other.length) byRole.push({ role: 'Other', items: other });
     return (
-      <div className="min-h-screen font-pretendard" style={{ backgroundColor: c.bg, color: c.text }}>
-        <style dangerouslySetInnerHTML={{ __html: FONT }} />
+      <div className="min-h-screen font-ui" style={{ backgroundColor: c.bg, color: c.text }}>
         <div className="max-w-2xl mx-auto px-5 py-10 anim-fade">
           <TopBar c={c} lang={lang} dark={dark} onTheme={toggleTheme} onLang={toggleLang} />
           <Header t={t} c={c} poll={poll} y={y} m={m} done={submittedCount} total={members.length} />
@@ -309,8 +308,7 @@ export default function AvailabilityView() {
 
   // ── 개인 편집 화면 ──
   return (
-    <div className="min-h-screen font-pretendard" style={{ backgroundColor: c.bg, color: c.text }}>
-      <style dangerouslySetInnerHTML={{ __html: FONT }} />
+    <div className="min-h-screen font-ui" style={{ backgroundColor: c.bg, color: c.text }}>
       <div className="max-w-2xl mx-auto px-5 py-10 pb-28 anim-fade">
         <TopBar c={c} lang={lang} dark={dark} onTheme={toggleTheme} onLang={toggleLang}
           left={<button onClick={() => { setMeId(null); setSelectedDay(null); }} className="text-[12px] hover:opacity-70 transition-opacity" style={{ color: c.sub }}>← {t.back}</button>} />
@@ -479,7 +477,7 @@ function shade(hex: string) {
 }
 
 function Screen({ children, c }: { children: React.ReactNode; c: Tok }) {
-  return <div className="min-h-screen flex items-center justify-center text-[14px] font-pretendard" style={{ backgroundColor: c.bg, color: c.faint }}><style dangerouslySetInnerHTML={{ __html: FONT }} />{children}</div>;
+  return <div className="min-h-screen flex items-center justify-center text-[14px] font-ui" style={{ backgroundColor: c.bg, color: c.faint }}>{children}</div>;
 }
 
 function TopBar({ c, lang, dark, onTheme, onLang, left }: any) {
@@ -526,8 +524,8 @@ function Header({ t, c, poll, y, m, done, total }: any) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   return (
     <div className="mb-7">
-      <p className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: c.goldText }}>{t.availability}</p>
-      <h1 className="font-black text-[26px] leading-tight" style={{ color: c.text }}>{poll.title || `${y}. ${String(m).padStart(2, '0')}`}</h1>
+      <p className="font-mono-num text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: c.goldText }}>{t.availability}</p>
+      <h1 className="font-display font-bold text-[26px] leading-tight" style={{ color: c.text }}>{poll.title || `${y}. ${String(m).padStart(2, '0')}`}</h1>
       <div className="flex items-center gap-2.5 mt-2">
         <p className="text-[12px]" style={{ color: c.sub }}>{y}. {String(m).padStart(2, '0')}{poll.is_open ? '' : ` · ${t.closed}`}</p>
         <div className="flex-1 h-1 rounded-full overflow-hidden max-w-[120px]" style={{ backgroundColor: c.track }}>
@@ -587,7 +585,7 @@ function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
         <div className="flex flex-col gap-3">
           {roleGroups.map(({ role, a, b }) => (
             <div key={role} className="flex flex-col gap-1.5">
-              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: dark ? (ROLE_COLORS[role] || '#8a8a8a') + 'cc' : shade(ROLE_COLORS[role] || '#8a8a8a') }}>
+              <p className="font-mono-num text-[10px] font-semibold uppercase tracking-widest" style={{ color: dark ? (ROLE_COLORS[role] || '#8a8a8a') + 'cc' : shade(ROLE_COLORS[role] || '#8a8a8a') }}>
                 {role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span style={{ color: c.faint }}>{a.length + b.length}</span>
               </p>
               <div className="flex flex-wrap gap-2">

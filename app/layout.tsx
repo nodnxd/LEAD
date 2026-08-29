@@ -1,16 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// 폰트는 next/font 대신 Google Fonts 링크 한 줄로.
+// next/font는 이 한글 폰트들의 korean 서브셋을 안 받아와서 한글이 시스템 폰트로 떨어짐.
+// css2 링크는 unicode-range로 쪼개져 있어 한글 파일은 실제로 한글이 나올 때만 내려옴.
+const FONTS =
+  "https://fonts.googleapis.com/css2" +
+  "?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700" +
+  "&family=Noto+Serif+KR:wght@400;600;700" +
+  "&family=IBM+Plex+Mono:wght@400;500;600" +
+  "&display=swap";
 
 export const metadata: Metadata = {
   title: "LEAD by NEN",
@@ -44,11 +43,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="ko" className="h-full antialiased">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="stylesheet" href={FONTS} />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
       </head>
       <body className="min-h-full flex flex-col">{children}</body>

@@ -53,24 +53,22 @@ export default function LoginPage() {
     setResetSent(true); setLoading(false);
   };
 
-  const accent = '#6366F1';
-  const accentHover = '#4F46E5';
+  const accent = '#7C5AE8';
+  const accentHover = '#6A48D6';
   const inputCls = 'w-full rounded-xl bg-white/5 border border-white/10 focus:border-white px-5 py-4 text-lg text-white placeholder:text-white/30 focus:outline-none transition-colors';
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        .font-pretendard { font-family: 'Pretendard', sans-serif; }
-        @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.05;}50%{transform:scale(1.1);opacity:0.09;}}
+        }
       `}} />
-      <main className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center px-6 font-pretendard relative overflow-hidden">
+      <main className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center px-6 font-ui relative overflow-hidden">
         <div className="relative z-10 w-full max-w-md">
           {/* 브랜드 — 세 제품 통합 (선택은 로그인 후 hub에서) */}
           <div className="mb-12">
             <div className="flex items-baseline gap-3 flex-wrap">
               <h1 className="text-5xl font-black uppercase tracking-tighter leading-none">
-                <span style={{ color: '#6366F1' }}>LEAD</span>
+                <span style={{ color: '#7C5AE8' }}>LEAD</span>
                 <span className="text-white/15"> · </span>
                 <span style={{ color: '#E3B24A' }}>CAST</span>
                 <span className="text-white/15"> · </span>
