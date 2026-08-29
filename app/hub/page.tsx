@@ -1,4 +1,5 @@
 'use client';
+import { warnFail } from '@/lib/log';
 import Link from 'next/link';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
@@ -51,7 +52,7 @@ export default function HubPage() {
       const email = (u.email || '').toLowerCase();
 
       // 이메일 지정 초대 자동 입장 (lead → member_approvals 승인, cast → 로스터 프로필 연결)
-      try { await supabase.rpc('claim_invites'); } catch {}
+      try { await supabase.rpc('claim_invites'); } catch (e) { warnFail('claim_invites', e); }
 
       // 호스트 권한: 슈퍼관리자 / 허용명단 / host_grants / 기존 호스트 데이터(grandfather)
       let host = email === SUPER_ADMIN_EMAIL || BOTH_PRODUCT_EMAILS.includes(email);

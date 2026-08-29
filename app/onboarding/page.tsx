@@ -37,6 +37,9 @@ export default function OnboardingPage() {
   const [user, setUser] = useState<any>(null);
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  // 네이티브 alert()는 블로킹이고 iOS에선 "localhost 사이트 내용:"이 붙는다 — 인라인 토스트로 바꿈
+  const [errToast, setErrToast] = useState<string | null>(null);
+  const showErr = (m: string) => { setErrToast(m); setTimeout(() => setErrToast(null), 4000); };
   const [theme] = useState<'dark' | 'light'>(() =>
     typeof window !== 'undefined' ? (localStorage.getItem('lead_theme') as any || 'dark') : 'dark'
   );
@@ -90,7 +93,7 @@ export default function OnboardingPage() {
         if (draft.demoLink) setDemoLink(draft.demoLink);
         if (draft.works) setWorks(draft.works);
         if (draft.step) setStep(draft.step);
-      } catch {}
+      } catch { /* 저장된 임시본이 깨졌으면 그냥 빈 폼으로 시작한다 */ }
     });
   }, []);
 
@@ -123,9 +126,9 @@ export default function OnboardingPage() {
   };
 
   const addDemo = (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.mp3')) { alert(t('MP3만 가능해요!', 'MP3 only!')); return; }
-    if (file.size > 20 * 1024 * 1024) { alert(t('20MB 이하만 가능해요!', 'Max 20MB!')); return; }
-    if (demoFiles.length >= 3) { alert(t('최대 3개까지예요!', 'Up to 3 files!')); return; }
+    if (!file.name.toLowerCase().endsWith('.mp3')) { showErr(t('MP3 파일만 올릴 수 있어요. 파일을 MP3로 변환해 다시 시도해주세요.', 'MP3 files only — convert the file and try again.')); return; }
+    if (file.size > 20 * 1024 * 1024) { showErr(t('파일이 20MB를 넘어요. 비트레이트를 낮춰 다시 올려주세요.', 'File is over 20 MB — lower the bitrate and try again.')); return; }
+    if (demoFiles.length >= 3) { showErr(t('데모는 3개까지예요. 기존 파일을 지우고 올려주세요.', 'Up to 3 demos — remove one first.')); return; }
     const id = `d${++demoCounter}`;
     setDemoFiles(p => [...p, { id, file, uploading: false }]);
   };
@@ -215,6 +218,7 @@ export default function OnboardingPage() {
 
   return (
     <>
+      {errToast && <div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl max-w-[90vw] text-center">{errToast}</div>}
       <main className={`min-h-screen ${bg} font-ui flex flex-col items-center justify-center p-5 relative overflow-hidden`}>
 
         <div className="absolute top-5 right-5 z-20"><LangToggle /></div>

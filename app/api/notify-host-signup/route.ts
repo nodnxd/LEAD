@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// 새 호스트가 가입하면 관리자에게 승인 요청 메일을 보냄
+// 새 호스트가 가입하면 관리자에게 승인 요청 메일을 보냄.
+// 메일 속 링크는 확인 화면(GET)으로만 이어진다 — 실제 승인/거절은 그 화면의 POST 버튼이 한다.
+// 메일 게이트웨이가 링크를 미리 열어도 상태가 바뀌지 않게 하려는 것이다.
+
+/** 가입자가 넣은 값이 그대로 HTML에 들어가지 않게 */
+function esc(s: string) {
+  return s.replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
+  );
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email, host_id } = await req.json();
@@ -21,11 +31,11 @@ export async function POST(req: NextRequest) {
         <h2 style="margin:0 0 4px;font-size:20px">🏢 새 호스트 가입 요청</h2>
         <p style="color:#9ca3af;font-size:13px;margin:0 0 16px">아래 호스트가 LEAD 대시보드 가입을 요청했어요.</p>
         <div style="background:#161616;border:1px solid #262626;border-radius:12px;padding:14px;margin-bottom:18px">
-          <p style="margin:0;font-size:15px;font-weight:800">${email || host_id}</p>
+          <p style="margin:0;font-size:15px;font-weight:800">${esc(String(email || host_id || ''))}</p>
         </div>
         <div style="display:flex;gap:10px">
-          <a href="${approveUrl}" style="flex:1;display:inline-block;text-align:center;padding:12px 16px;background:#3358E8;color:#fff;text-decoration:none;border-radius:10px;font-weight:800;font-size:14px">✅ 승인하기</a>
-          <a href="${rejectUrl}" style="display:inline-block;text-align:center;padding:12px 16px;background:#2a1212;color:#f87171;text-decoration:none;border-radius:10px;font-weight:800;font-size:14px">거절</a>
+          <a href="${esc(approveUrl)}" style="flex:1;display:inline-block;text-align:center;padding:12px 16px;background:#3358E8;color:#fff;text-decoration:none;border-radius:10px;font-weight:800;font-size:14px">✅ 승인 화면 열기</a>
+          <a href="${esc(rejectUrl)}" style="display:inline-block;text-align:center;padding:12px 16px;background:#2a1212;color:#f87171;text-decoration:none;border-radius:10px;font-weight:800;font-size:14px">거절</a>
         </div>
         <p style="color:#6b7280;font-size:11px;margin:16px 0 0">대시보드 🛡️ 호스트 승인 버튼에서도 처리할 수 있어요.</p>
       </div>`;
@@ -33,7 +43,7 @@ export async function POST(req: NextRequest) {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from, to: [admin], subject: `🏢 새 호스트 가입 요청: ${email || host_id}`, html }),
+      body: JSON.stringify({ from, to: [admin], subject: `🏢 새 호스트 가입 요청: ${String(email || host_id || '')}`, html }),
     });
     const data = await r.json();
     return NextResponse.json({ ok: r.ok, data }, { status: 200 });

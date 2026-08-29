@@ -1,4 +1,5 @@
 'use client';
+import { warnFail } from '@/lib/log';
 import Link from 'next/link';
 import { pressable } from '@/lib/a11y';
 
@@ -17,7 +18,7 @@ const parseSections = (content:string): Section[]|null => {
     const p = JSON.parse(content);
     if(Array.isArray(p)&&p.length>0&&'body' in p[0])
       return p.map((x:any,i:number)=>({id:`s${i}`,title:x.title||'',body:x.body||''}));
-  } catch{}
+  } catch { /* 섹션 JSON이 아니면 평문 본문 — null 반환이 정상 경로다 */ }
   return null;
 };
 
@@ -133,6 +134,9 @@ export default function GuestView(){
   const [isHost,setIsHost]=useState(false);
   const [previewMode,setPreviewMode]=useState(false);
   const [shareToast,setShareToast]=useState(false);
+  // 실패를 사용자에게 보이게 하는 자리 — 예전엔 번역 실패가 조용히 사라졌다
+  const [errToast,setErrToast]=useState<string|null>(null);
+  const showErr=(m:string)=>{setErrToast(m);setTimeout(()=>setErrToast(null),4000);};
   const [theme,setTheme]=useState<'dark'|'light'>('dark');
   const [zoom,setZoom]=useState(1);
   const draggingZoom=useRef(false);const zoomStartY=useRef(0);const zoomStart=useRef(1);
@@ -234,8 +238,8 @@ export default function GuestView(){
   useEffect(()=>{if(!hostId)return;const ch=supabase.channel('gl').on('postgres_changes',{event:'*',schema:'public',table:'leads',filter:`host_id=eq.${hostId}`},fetchAll).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
   const addFile=async(file:File)=>{
-    if(!file.name.toLowerCase().endsWith('.mp3')){alert('MP3 파일만 업로드 가능해요!');return;}
-    if(file.size>50*1024*1024){alert('50MB 이하 파일만 가능해요!');return;}
+    if(!file.name.toLowerCase().endsWith('.mp3')){showErr('MP3 파일만 올릴 수 있어요. 파일을 MP3로 변환해 다시 시도해주세요.');return;}
+    if(file.size>50*1024*1024){showErr('파일이 50MB를 넘어요. 비트레이트를 낮춰 다시 올려주세요.');return;}
     const id=`f${++fileCounter}`;
     setPitchFiles(prev=>[...prev,{id,file,hash:'',vocal:'unknown',duration:0,analyzing:true,isDuplicate:false,bpm:'',genre:'',key:'',vocalOverride:''}]);
     const [hash,analysis]=await Promise.all([getFileHash(file),analyzeAudio(file)]);
@@ -321,7 +325,10 @@ export default function GuestView(){
         setTranslatedCache(p=>({...p,[lead.id]:[{id:'en0',title:'',body}]}));
       }
       setContentLang('en');
-    }catch{}
+    }catch(e){
+      warnFail('번역',e);
+      showErr('번역에 실패했어요. 잠시 후 다시 시도해주세요.');
+    }
     setTranslating(false);
   };
   const switchToEn=async(lead:any)=>{
@@ -575,7 +582,7 @@ export default function GuestView(){
 
   return(
     <>
-      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 pb-24 sm:pb-5 font-ui relative`} style={{zoom: zoom*1.1}}>
+      <main className={`${mainBg} p-5 lg:p-8 pb-24 sm:pb-5 font-ui relative`} style={{zoom: zoom*1.1, minHeight:`calc(100dvh / ${zoom*1.1})`}}>
         <div className="relative z-10 flex flex-col items-center mb-8">
           <div className="flex items-baseline justify-center gap-2.5"><h1 className="font-display text-display text-brand-lead-text uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-mini font-bold tracking-[0.2em]`}>by NEN</span></div>
           {hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-brand-lead/25 bg-brand-lead/10"><span className={`text-mini font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}
@@ -797,6 +804,7 @@ export default function GuestView(){
         </div>
       )}
 
+      {errToast&&<div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl max-w-[90vw] text-center">{errToast}</div>}
       {shareToast&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl"><i className="ti ti-link" aria-hidden="true"></i> 링크가 복사됐어요!</div>}
 
       {showLeadForm&&(

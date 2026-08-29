@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/lib/database.types';
 import { SplitSheet, Contributor, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal } from '@/lib/splitsheet';
 import { useLang, LangToggle } from '@/lib/lang';
 import { useTheme, ThemeToggle } from '@/lib/theme';
@@ -74,7 +75,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   function setSheetLocal<K extends keyof SplitSheet>(k: K, v: SplitSheet[K]) { setSheet((s) => s ? { ...s, [k]: v } : s); }
   async function commitSheet<K extends keyof SplitSheet>(k: K) {
     if (!sheet || !isOwner || lockedGuard()) return;
-    await supabase.from('split_sheets').update({ [k]: sheet[k], updated_at: new Date().toISOString() }).eq('id', sheet.id);
+    // 계산된 키 하나만 갱신 — 제네릭이 넓어져 Postgrest의 Update 타입과 안 맞아서 좁혀 준다
+    const patch = { [k]: sheet[k], updated_at: new Date().toISOString() } as Database['public']['Tables']['split_sheets']['Update'];
+    await supabase.from('split_sheets').update(patch).eq('id', sheet.id);
   }
 
   async function uploadAudio(file: File | undefined) {

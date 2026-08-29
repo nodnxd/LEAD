@@ -1,4 +1,5 @@
 'use client';
+import { warnFail } from '@/lib/log';
 import { fmtDate } from '@/lib/format';
 import Link from 'next/link';
 import { pressable } from '@/lib/a11y';
@@ -20,7 +21,7 @@ const parseSections = (content:string): Section[]|null => {
     const p = JSON.parse(content);
     if(Array.isArray(p)&&p.length>0&&'body' in p[0])
       return p.map((x:any,i:number)=>({id:`s${i}`,title:x.title||'',body:x.body||''}));
-  } catch{}
+  } catch { /* 섹션 JSON이 아니면 평문 본문 — null 반환이 정상 경로다 */ }
   return null;
 };
 
@@ -159,6 +160,9 @@ export default function GuestView(){
   const [pitchToast,setPitchToast]=useState<{artist:string;lead:string;pitchId:string}|null>(null);
   const pitchToastTimer=useRef<any>(null);
   const [shareToast,setShareToast]=useState(false);
+  // 실패를 사용자에게 보이게 하는 자리 — 예전엔 번역 실패가 조용히 사라졌다
+  const [errToast,setErrToast]=useState<string|null>(null);
+  const showErr=(m:string)=>{setErrToast(m);setTimeout(()=>setErrToast(null),4000);};
   const [fileSort,setFileSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [fileVocalFilter,setFileVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
   const [fileSearch,setFileSearch]=useState('');
@@ -282,7 +286,7 @@ export default function GuestView(){
     };
     const loadWorkspaces=async(user:any)=>{
       // 이메일로 초대된 관리자면 admin_id 백필 (본인 행만)
-      try{await supabase.from('workspace_admins').update({admin_id:user.id}).is('admin_id',null).eq('admin_email',(user.email||'').toLowerCase());}catch{}
+      try{await supabase.from('workspace_admins').update({admin_id:user.id}).is('admin_id',null).eq('admin_email',(user.email||'').toLowerCase());}catch(e){warnFail('workspace_admins 백필',e);}
       const{data:wa}=await supabase.from('workspace_admins').select('workspace_id').eq('admin_id',user.id);
       const ids=[...new Set([user.id,...((wa||[]).map((w:any)=>w.workspace_id))])];
       const{data:hp}=await supabase.from('host_profiles').select('id,company,display_name').in('id',ids);
@@ -393,7 +397,7 @@ export default function GuestView(){
   // ── 파일 관리: 삭제 / 폴더 ──
   const deleteFile=async(f:any)=>{
     if(!confirm('이 파일을 영구 삭제할까요?'))return;
-    if(f.file_url){const m=f.file_url.split('/pitch-files/')[1];if(m){try{await supabase.storage.from('pitch-files').remove([decodeURIComponent(m)]);}catch{}}}
+    if(f.file_url){const m=f.file_url.split('/pitch-files/')[1];if(m){try{await supabase.storage.from('pitch-files').remove([decodeURIComponent(m)]);}catch(e){warnFail('스토리지 파일 삭제(고아 파일 남을 수 있음)',e);}}}
     await supabase.from('pitch_files').delete().eq('id',f.id);
     setFileAction(null);fetchHostPitches();
   };
@@ -411,7 +415,7 @@ export default function GuestView(){
       a.href=url;a.download=dlName(f);
       document.body.appendChild(a);a.click();document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    }catch{alert('다운로드 실패');}
+    }catch(e){warnFail('다운로드',e);showErr(t('다운로드에 실패했어요. 네트워크를 확인하고 다시 시도해주세요.','Download failed — check your connection and try again.'));}
   };
   // 여러 개를 한 번에 — zip으로 묶어 다운로드
   const downloadMany=async(files:any[])=>{
@@ -430,7 +434,7 @@ export default function GuestView(){
       const url=URL.createObjectURL(out);
       const a=document.createElement('a');a.href=url;a.download=`pitch-files-${new Date().toISOString().slice(0,10)}.zip`;
       document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-    }catch{alert('다운로드 실패');}
+    }catch(e){warnFail('다운로드',e);showErr(t('다운로드에 실패했어요. 네트워크를 확인하고 다시 시도해주세요.','Download failed — check your connection and try again.'));}
     setZipping(false);
   };
   // 파일 소프트 히드 — 목록에서만 숨김, DB(히스토리)엔 남김. 하나/여러개 모두 처리
@@ -557,8 +561,8 @@ export default function GuestView(){
   useEffect(()=>{if(!hostId)return;const ch=supabase.channel('members_rt').on('postgres_changes',{event:'*',schema:'public',table:'member_approvals',filter:`host_id=eq.${hostId}`},()=>fetchMembers()).subscribe();return()=>{supabase.removeChannel(ch);};},[hostId]);
 
   const addFile=async(file:File)=>{
-    if(!file.name.toLowerCase().endsWith('.mp3')){alert('MP3 파일만 업로드 가능해요!');return;}
-    if(file.size>50*1024*1024){alert('50MB 이하 파일만 가능해요!');return;}
+    if(!file.name.toLowerCase().endsWith('.mp3')){showErr(t('MP3 파일만 올릴 수 있어요. 파일을 MP3로 변환해 다시 시도해주세요.','MP3 files only — convert the file and try again.'));return;}
+    if(file.size>50*1024*1024){showErr(t('파일이 50MB를 넘어요. 비트레이트를 낮춰 다시 올려주세요.','File is over 50 MB — lower the bitrate and try again.'));return;}
     const id=`f${++fileCounter}`;
     setPitchFiles(prev=>[...prev,{id,file,hash:'',vocal:'unknown',duration:0,analyzing:true,isDuplicate:false,bpm:'',genre:''}]);
     const [hash,analysis]=await Promise.all([getFileHash(file),analyzeAudio(file)]);
@@ -632,7 +636,10 @@ export default function GuestView(){
         setTranslatedCache(p=>({...p,[lead.id]:[{id:'en0',title:'',body}]}));
       }
       setContentLang('en');
-    }catch{}
+    }catch(e){
+      warnFail('번역',e);
+      showErr(t('번역에 실패했어요. 잠시 후 다시 시도해주세요.','Translation failed. Please try again.'));
+    }
     setTranslating(false);
   };
   const switchToEn=async(lead:any)=>{
@@ -806,7 +813,7 @@ export default function GuestView(){
 
   return(
     <>
-      <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-ui relative`} style={{zoom: zoom*1.1}}>
+      <main className={`${mainBg} p-5 lg:p-8 font-ui relative`} style={{zoom: zoom*1.1, minHeight:`calc(100dvh / ${zoom*1.1})`}}>
         <div className="relative z-10 mb-8">
           <ProductHeader product="lead" dark={D} className="mb-3" right={<>
             <button onClick={()=>{setLangValue(globalEn?'ko':'en');}} className={`h-8 px-2.5 rounded-lg border flex items-center justify-center text-mini font-bold transition ${globalEn?'bg-brand-lead border-brand-lead text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{globalEn?'EN':'KO'}</button>
@@ -1868,6 +1875,7 @@ export default function GuestView(){
           </div>
         </button>
       )}
+      {errToast&&<div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl max-w-[90vw] text-center">{errToast}</div>}
       {shareToast&&(
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-5 py-3 rounded-full bg-brand-lead text-white text-body font-black shadow-2xl shadow-brand-lead/30 animate-[slideIn_0.25s_ease]">
           <i className="ti ti-check" aria-hidden="true"></i> {t('공유 링크가 복사됐어요','Share link copied')}

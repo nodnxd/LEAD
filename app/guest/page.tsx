@@ -32,8 +32,9 @@ const GENRES = [
   { id: 'ETC', label: 'ETC' },
 ];
 
-type Work = { id?: string; song_title: string; artist_name: string; link: string; order_index?: number };
-type Demo = { id?: string; file_url: string; file_name: string; order_index?: number };
+// nullable은 DB 스키마를 따른 것 — 예전엔 string으로 적어놔서 null이 그대로 렌더될 수 있었다
+type Work = { id?: string; song_title: string; artist_name: string; link: string; order_index?: number | null; member_id?: string | null; created_at?: string | null };
+type Demo = { id?: string; file_url: string; file_name: string | null; order_index?: number | null; member_id?: string | null; created_at?: string | null };
 
 export default function MyPage() {
   const router = useRouter();
@@ -240,7 +241,7 @@ export default function MyPage() {
 
   return (
     <>
-      <main className={`min-h-screen ${bg} font-ui p-5 lg:p-8 relative overflow-hidden`} style={{zoom:1.1}}>
+      <main className={`${bg} font-ui p-5 lg:p-8 relative overflow-hidden`} style={{zoom:1.1, minHeight:'calc(100dvh / 1.1)'}}>
 
         <div className="relative z-10 max-w-2xl mx-auto">
 
