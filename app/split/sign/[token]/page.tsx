@@ -23,10 +23,7 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
   const dirty = useRef(false);
 
   async function load() {
-    // ponytail: 이 두 RPC(split_get_by_token / split_sign_by_token)는 DB에 아직 없다.
-    // 생성 SQL을 적용하고 lib/database.types.ts를 재생성하면 이 캐스트를 지울 수 있다.
-    // 그 전까지는 이 페이지(서명 링크)가 동작하지 않는다 — 타입이 그 사실을 잡아낸 것.
-    const { data: res } = await (supabase.rpc as any)('split_get_by_token', { p_token: token });
+    const { data: res } = await supabase.rpc('split_get_by_token', { p_token: token });
     const p = res as Payload | null;
     setData(p);
     if (p?.me) { setName(p.me.legal_name ?? ''); setDone(!!p.me.signed); }
@@ -57,7 +54,7 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
     setSigning(true);
     const hash = await agreementHash(data);
     const dataUrl = dirty.current ? canvasRef.current!.toDataURL('image/png') : '';
-    const { data: ok } = await (supabase.rpc as any)('split_sign_by_token', { p_token: token, p_name: name.trim(), p_data: dataUrl, p_hash: hash });
+    const { data: ok } = await supabase.rpc('split_sign_by_token', { p_token: token, p_name: name.trim(), p_data: dataUrl, p_hash: hash });
     setSigning(false);
     if (ok) { setDone(true); load(); }
   }

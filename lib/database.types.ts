@@ -1650,6 +1650,16 @@ export type Database = {
       is_split_owner: { Args: { p_sheet_id: string }; Returns: boolean }
       is_ws_admin: { Args: { uid: string; ws: string }; Returns: boolean }
       shares_team: { Args: { target: string }; Returns: boolean }
+      split_get_by_token: { Args: { p_token: string }; Returns: Json }
+      split_sign_by_token: {
+        Args: {
+          p_data: string
+          p_hash: string
+          p_name: string
+          p_token: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
