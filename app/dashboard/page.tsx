@@ -774,7 +774,6 @@ export default function GuestView(){
     <>
       <style dangerouslySetInnerHTML={{__html:`}`}}/>
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-ui relative overflow-hidden`}>
-        {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(200px)'}}/>}
         <div className="w-full max-w-sm text-center">
           <div className="flex items-center justify-center gap-3 mb-10 flex-wrap">
             <div className="flex items-baseline gap-2.5"><h1 className="text-4xl font-semibold text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[12px] font-normal tracking-[0.2em]`}>by NEN</span></div>
@@ -807,7 +806,6 @@ export default function GuestView(){
     <>
       <style dangerouslySetInnerHTML={{__html:`}`}}/>
       <main className={`min-h-screen ${mainBg} p-5 lg:p-8 font-ui relative`} style={{zoom: zoom*1.1}}>
-        {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(200px)'}}/>}
         <div className="relative z-10 mb-8">
           <ProductHeader product="lead" dark={D} className="mb-3" right={<>
             <button onClick={()=>{setLangValue(globalEn?'ko':'en');}} className={`h-8 px-2.5 rounded-lg border flex items-center justify-center text-[12px] font-bold transition-all ${globalEn?'bg-[#7C5AE8] border-[#7C5AE8] text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{globalEn?'EN':'KO'}</button>

@@ -36,7 +36,6 @@ export default function ResetPasswordPage() {
     <>
       <style dangerouslySetInnerHTML={{ __html: `}` }} />
       <main className="min-h-screen bg-[#141414] flex items-center justify-center p-5 font-ui relative overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(200px)'}} />
         <div className="absolute top-5 right-5 z-20"><LangToggle /></div>
         <div className="w-full max-w-sm relative z-10">
           <div className="text-center mb-8">

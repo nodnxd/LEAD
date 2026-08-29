@@ -242,8 +242,6 @@ export default function MyPage() {
       <style dangerouslySetInnerHTML={{ __html: `}` }} />
       <main className={`min-h-screen ${bg} font-ui p-5 lg:p-8 relative overflow-hidden`} style={{zoom:1.1}}>
 
-        {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(180px)'}} />}
-
         <div className="relative z-10 max-w-2xl mx-auto">
 
           {/* 헤더 */}

@@ -496,7 +496,6 @@ export default function GuestView(){
     <>
       <style dangerouslySetInnerHTML={{__html:`}`}}/>
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-ui relative overflow-hidden`}>
-        {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(200px)'}}/>}
         <div className="w-full max-w-sm text-center">
           <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#7C5AE8]/25 bg-[#7C5AE8]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           <div className={`border rounded-2xl p-8 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
@@ -535,7 +534,6 @@ export default function GuestView(){
     <>
       <style dangerouslySetInnerHTML={{__html:`}`}}/>
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-ui relative overflow-hidden`}>
-        {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(200px)'}}/>}
         <div className="w-full max-w-sm relative z-10">
           <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#7C5AE8]/25 bg-[#7C5AE8]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           {noProfile?(
@@ -579,7 +577,6 @@ export default function GuestView(){
     <>
       <style dangerouslySetInnerHTML={{__html:`}`}}/>
       <main className={`min-h-screen ${mainBg} p-5 lg:p-8 pb-24 sm:pb-5 font-ui relative`} style={{zoom: zoom*1.1}}>
-        {D&&<div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(200px)'}}/>}
         <div className="relative z-10 flex flex-col items-center mb-8">
           <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
           {hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#7C5AE8]/25 bg-[#7C5AE8]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}

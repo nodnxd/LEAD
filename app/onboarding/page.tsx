@@ -218,8 +218,6 @@ export default function OnboardingPage() {
       <style dangerouslySetInnerHTML={{ __html: `}` }} />
       <main className={`min-h-screen ${bg} font-ui flex flex-col items-center justify-center p-5 relative overflow-hidden`}>
 
-        {D && <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{background:'#7C5AE8',filter:'blur(180px)'}} />}
-
         <div className="absolute top-5 right-5 z-20"><LangToggle /></div>
         <div className="relative z-10 w-full max-w-lg">
           <div className="text-center mb-8">
