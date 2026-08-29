@@ -1,4 +1,5 @@
 'use client';
+import { pressable } from '@/lib/a11y';
 
 // 📁 app/page.tsx
 
@@ -53,55 +54,54 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#141414] text-white flex items-center justify-center font-ui relative overflow-hidden">
-      <style dangerouslySetInnerHTML={{__html: `}`}} />
+    <main className="min-h-screen bg-surface-1 text-white flex items-center justify-center font-ui relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none opacity-[0.07]" style={{background:'#E3B24A', filter:'blur(200px)'}} />
 
       <div className="relative z-10 w-full max-w-sm px-6">
         {/* 로고 */}
         <div className="text-center mb-10">
           <div className="flex items-baseline justify-center gap-2.5">
-            <h1 className="font-display text-6xl text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
-            <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
+            <h1 className="font-display text-display text-brand-cast-text uppercase tracking-tighter">CAST</h1>
+            <span className="text-zinc-500 text-mini font-bold tracking-[0.2em]">by NEN</span>
           </div>
-          <p className="text-[9px] font-bold tracking-[0.5em] uppercase mt-2" style={{ color: '#4a7fa5', opacity: 0.7 }}>Roster Manager</p>
+          <p className="text-micro font-bold tracking-[0.5em] uppercase mt-2" style={{ color: '#4a7fa5', opacity: 0.7 }}>Roster Manager</p>
         </div>
 
         {signupDone ? (
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 text-center">
-            <p className="text-3xl mb-3">📧</p>
+            <p className="text-display mb-3">📧</p>
             <p className="text-white font-bold mb-2">이메일을 확인해주세요</p>
-            <p className="text-zinc-500 text-[12px] leading-relaxed">가입 확인 메일을 보냈어요.<br />확인 후 로그인하세요.</p>
-            <button onClick={() => { setSignupDone(false); setAuthMode('login'); }} className="mt-6 text-[#E3B24A] text-[12px] font-bold hover:underline">로그인 →</button>
+            <p className="text-zinc-500 text-mini leading-relaxed">가입 확인 메일을 보냈어요.<br />확인 후 로그인하세요.</p>
+            <button onClick={() => { setSignupDone(false); setAuthMode('login'); }} className="mt-6 text-brand-cast-text text-mini font-bold hover:underline">로그인 →</button>
           </div>
         ) : (
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
             <div className="flex gap-1 mb-6 bg-white/5 rounded-xl p-1">
               {(['login', 'signup'] as AuthMode[]).map(m => (
-                <button key={m} onClick={() => { setAuthMode(m); setError(''); }} className={`flex-1 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${authMode === m ? 'bg-[#E3B24A] text-white shadow-lg shadow-black/20' : 'text-zinc-500 hover:text-white'}`}>
+                <button key={m} onClick={() => { setAuthMode(m); setError(''); }} className={`flex-1 py-2 rounded-lg text-mini font-black uppercase tracking-widest transition ${authMode === m ? 'bg-brand-cast text-white shadow-lg shadow-black/20' : 'text-zinc-500 hover:text-white'}`}>
                   {m === 'login' ? '로그인' : '회원가입'}
                 </button>
               ))}
             </div>
             <div className="flex flex-col gap-3">
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#E3B24A]/50 transition-all placeholder:text-zinc-600 text-white" />
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호" onKeyDown={e => e.key === 'Enter' && handleAuth()} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-[#E3B24A]/50 transition-all placeholder:text-zinc-600 text-white" />
+              <input type="email" autoComplete="email" spellCheck={false} name="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="이메일" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-body outline-none focus:border-brand-cast/50 transition placeholder:text-zinc-600 text-white" />
+              <input type="password" autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} name="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호" onKeyDown={e => e.key === 'Enter' && handleAuth()} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-body outline-none focus:border-brand-cast/50 transition placeholder:text-zinc-600 text-white" />
               {authMode === 'login' && (
                 <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-                  <div onClick={() => setRememberEmail(!rememberEmail)} className={`w-4 h-4 rounded-[4px] border transition-all flex items-center justify-center shrink-0 ${rememberEmail ? 'bg-[#E3B24A] border-[#E3B24A]' : 'border-white/20 bg-white/5 group-hover:border-white/40'}`}>
+                  <div {...pressable(() => setRememberEmail(!rememberEmail))} className={`w-4 h-4 rounded-[4px] border transition flex items-center justify-center shrink-0 ${rememberEmail ? 'bg-brand-cast border-brand-cast' : 'border-white/20 bg-white/5 group-hover:border-white/40'}`}>
                     {rememberEmail && <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                   </div>
-                  <span className="text-zinc-500 text-[11px] group-hover:text-zinc-300 transition-colors">아이디 기억하기</span>
+                  <span className="text-zinc-500 text-mini group-hover:text-zinc-300 transition-colors">아이디 기억하기</span>
                 </label>
               )}
-              {error && <p className="text-red-400 text-[11px]">{error}</p>}
-              <button onClick={handleAuth} disabled={loading} className="w-full bg-[#E3B24A] text-white py-3 rounded-xl font-semibold text-[12px] uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-50 mt-1">
-                {loading ? '...' : authMode === 'login' ? '로그인' : '회원가입'}
+              {error && <p className="text-red-400 text-mini">{error}</p>}
+              <button onClick={handleAuth} disabled={loading} className="w-full bg-brand-cast text-white py-3 rounded-xl font-semibold text-mini uppercase tracking-widest hover:opacity-90 transition disabled:opacity-50 mt-1">
+                {loading ? '…' : authMode === 'login' ? '로그인' : '회원가입'}
               </button>
             </div>
           </div>
         )}
-        <p className="text-center text-zinc-700 text-[10px] mt-8">Contact : everplayground@gmail.com</p>
+        <p className="text-center text-zinc-700 text-micro mt-8">Contact : everplayground@gmail.com</p>
       </div>
     </main>
   );

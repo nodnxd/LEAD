@@ -270,22 +270,22 @@ export default function AvailabilityView() {
           <TopBar c={c} lang={lang} dark={dark} onTheme={toggleTheme} onLang={toggleLang} />
           <Header t={t} c={c} poll={poll} y={y} m={m} done={submittedCount} total={members.length} />
           <FinalDaysCard t={t} c={c} lang={lang} poll={poll} m={m} />
-          <p className="text-[14px] font-bold mb-5" style={{ color: c.sub }}>{t.pickName}</p>
+          <p className="text-body font-bold mb-5" style={{ color: c.sub }}>{t.pickName}</p>
           <div className="flex flex-col gap-5">
             {byRole.map(({ role, items }) => {
               const col = ROLE_COLORS[role] || '#9aa';
               return (
                 <div key={role}>
-                  <p className="text-[12px] font-black uppercase tracking-widest mb-2.5" style={{ color: dark ? col + 'cc' : shade(col) }}>{role}</p>
+                  <p className="text-mini font-black uppercase tracking-widest mb-2.5" style={{ color: dark ? col + 'cc' : shade(col) }}>{role}</p>
                   <div className="flex flex-wrap gap-2.5">
                     {items.map((mm) => {
                       const done = subs.some((s) => s.member_id === mm.id);
                       return (
                         <button key={mm.id} onClick={() => setMeId(mm.id)}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-full border font-black text-[14px] transition-all hover:scale-105 active:scale-95"
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-full border font-black text-body transition hover:scale-105 active:scale-95"
                           style={{ color: dark ? col : shade(col), borderColor: col + (done ? '66' : '38'), backgroundColor: col + (done ? '20' : '10') }}>
                           {mm.name}
-                          {done && <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ backgroundColor: col + '25' }}>✓</span>}
+                          {done && <span className="text-micro font-black px-1.5 py-0.5 rounded-full" style={{ backgroundColor: col + '25' }}>✓</span>}
                         </button>
                       );
                     })}
@@ -293,7 +293,7 @@ export default function AvailabilityView() {
                 </div>
               );
             })}
-            {members.length === 0 && <p className="text-[14px]" style={{ color: c.sub }}>{t.noneYet}</p>}
+            {members.length === 0 && <p className="text-body" style={{ color: c.sub }}>{t.noneYet}</p>}
           </div>
           <BestDays t={t} c={c} lang={lang} bestDays={bestDays} maxCount={maxCount} finals={finals} onPick={setSelectedDay} />
           {selectedDay !== null && (
@@ -311,15 +311,15 @@ export default function AvailabilityView() {
     <div className="min-h-screen font-ui" style={{ backgroundColor: c.bg, color: c.text }}>
       <div className="max-w-2xl mx-auto px-5 py-10 pb-28 anim-fade">
         <TopBar c={c} lang={lang} dark={dark} onTheme={toggleTheme} onLang={toggleLang}
-          left={<button onClick={() => { setMeId(null); setSelectedDay(null); }} className="text-[12px] hover:opacity-70 transition-opacity" style={{ color: c.sub }}>← {t.back}</button>} />
+          left={<button onClick={() => { setMeId(null); setSelectedDay(null); }} className="text-mini hover:opacity-70 transition-opacity" style={{ color: c.sub }}>← {t.back}</button>} />
         {dbError && (
           <div role="alert" className="mb-5 rounded-xl border px-4 py-3 flex items-start gap-3" style={{ borderColor: NO + '66', backgroundColor: NO + '14' }}>
-            <span className="text-[14px] leading-none mt-0.5" style={{ color: c.noText }}>⚠</span>
+            <span className="text-body leading-none mt-0.5" style={{ color: c.noText }}>⚠</span>
             <div className="flex-1">
-              <p className="text-[12px] font-black" style={{ color: c.noText }}>{t.saveFailed}</p>
-              <p className="text-[10px] mt-0.5" style={{ color: c.sub }}>{dbError}</p>
+              <p className="text-mini font-black" style={{ color: c.noText }}>{t.saveFailed}</p>
+              <p className="text-micro mt-0.5" style={{ color: c.sub }}>{dbError}</p>
             </div>
-            <button onClick={() => setDbError(null)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-[12px] hover:opacity-70" style={{ color: c.sub }}>✕</button>
+            <button onClick={() => setDbError(null)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-mini hover:opacity-70" style={{ color: c.sub }}>✕</button>
           </div>
         )}
         <Header t={t} c={c} poll={poll} y={y} m={m} done={submittedCount} total={members.length} />
@@ -327,8 +327,8 @@ export default function AvailabilityView() {
 
         <div className="flex items-center gap-2 mb-4">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: roleCol }} />
-          <p className="text-[16px] font-black" style={{ color: dark ? roleCol : shade(roleCol) }}>{me?.name}</p>
-          <span className="text-[12px]" style={{ color: c.sub }}>{me?.role}</span>
+          <p className="text-lead font-black" style={{ color: dark ? roleCol : shade(roleCol) }}>{me?.name}</p>
+          <span className="text-mini" style={{ color: c.sub }}>{me?.role}</span>
         </div>
 
         {poll.is_open ? (
@@ -339,11 +339,11 @@ export default function AvailabilityView() {
               <Legend c={c} color={NO} label={t.unavailable} />
               <Legend c={c} color={null} label={t.noAnswer} />
             </div>
-            <p className="text-[12px] mb-3.5" style={{ color: c.sub }}>{t.guide}</p>
+            <p className="text-mini mb-3.5" style={{ color: c.sub }}>{t.guide}</p>
 
             {/* 빠른 선택 */}
             <div className="flex items-center gap-1.5 mb-3.5 flex-wrap">
-              <span className="text-[10px] font-black uppercase tracking-widest mr-0.5" style={{ color: c.sub }}>{t.quickPick}</span>
+              <span className="text-micro font-black uppercase tracking-widest mr-0.5" style={{ color: c.sub }}>{t.quickPick}</span>
               <Quick color={YES} onClick={() => bulkSet(weekendDays, 'available')}>{t.quickWeekend}</Quick>
               <Quick color={YES} onClick={() => bulkSet(weekdayDays, 'available')}>{t.quickWeekday}</Quick>
               <Quick color={YES} onClick={() => bulkSet(openDays, 'available')}>{t.quickAll}</Quick>
@@ -352,13 +352,13 @@ export default function AvailabilityView() {
             </div>
           </>
         ) : (
-          <p className="text-[12px] mb-3" style={{ color: c.sub }}>{t.closed}</p>
+          <p className="text-mini mb-3" style={{ color: c.sub }}>{t.closed}</p>
         )}
 
         {/* 달력 */}
         <div className="rounded-2xl border p-4 sm:p-5 mb-5" style={{ backgroundColor: c.card, borderColor: c.line }}>
           <div className="grid grid-cols-7 gap-1.5 mb-2">
-            {t.weekdays.map((w, i) => <div key={i} className="text-center text-[12px] font-black" style={{ color: i === 0 || i === 6 ? c.sub : c.faint }}>{w}</div>)}
+            {t.weekdays.map((w, i) => <div key={i} className="text-center text-mini font-black" style={{ color: i === 0 || i === 6 ? c.sub : c.faint }}>{w}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-1.5" style={{ touchAction: poll.is_open ? 'none' : 'auto' }}
             onPointerDown={(e) => { if (poll.is_open) startPaint(e.clientX, e.clientY); }}
@@ -386,30 +386,30 @@ export default function AvailabilityView() {
                   }}
                   onContextMenu={(e) => { e.preventDefault(); setSelectedDay(selectedDay === d ? null : d); }}
                   className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center select-none transition-[transform,background-color] duration-150
-                    ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''}
+                    ${isFinal ? 'ring-2 ring-brand-cast' : ''}
                     ${!isBlocked && poll.is_open ? 'cursor-pointer active:scale-90' : 'cursor-default'}`}
                   style={{
                     backgroundColor: bg, borderColor: border,
                     backgroundImage: isBlocked ? `repeating-linear-gradient(45deg, ${c.hatch} 0 4px, transparent 4px 8px)` : undefined,
                   }}
                   title={isBlocked ? t.blocked : undefined}>
-                  <span className={`text-[14px] font-black pointer-events-none ${isBlocked ? 'line-through' : ''}`}
+                  <span className={`text-body font-black pointer-events-none ${isBlocked ? 'line-through' : ''}`}
                     style={{ color: isBlocked ? c.faint : st === 'available' ? c.yesText : st === 'unavailable' ? c.noText : c.text }}>{d}</span>
-                  {!isBlocked && !st && n > 0 && <span className="text-[10px] font-black pointer-events-none" style={{ color: c.sub }}>{n}</span>}
-                  {isFinal && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#E3B24A] pointer-events-none" />}
+                  {!isBlocked && !st && n > 0 && <span className="text-micro font-black pointer-events-none" style={{ color: c.sub }}>{n}</span>}
+                  {isFinal && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-brand-cast pointer-events-none" />}
                 </button>
               );
             })}
           </div>
-          <div aria-live="polite" className="flex items-center gap-3 mt-3.5 text-[12px] font-bold flex-wrap">
+          <div aria-live="polite" className="flex items-center gap-3 mt-3.5 text-mini font-bold flex-wrap">
             <span style={{ color: YES }}>{t.available} {myYes.length}</span>
             <span style={{ color: NO }}>{t.unavailable} {myNo.length}</span>
             <span style={{ color: unanswered > 0 ? c.faint : '#3F9B8B' }}>{unanswered > 0 ? t.left(unanswered) : t.allPicked}</span>
           </div>
           {/* 진행 막대 */}
           <div className="mt-2 h-1.5 rounded-full overflow-hidden flex" style={{ backgroundColor: c.track }}>
-            <div className="h-full transition-all duration-300" style={{ width: `${(myYes.length / Math.max(1, openDays.length)) * 100}%`, backgroundColor: YES }} />
-            <div className="h-full transition-all duration-300" style={{ width: `${(myNo.length / Math.max(1, openDays.length)) * 100}%`, backgroundColor: NO }} />
+            <div className="h-full transition duration-300" style={{ width: `${(myYes.length / Math.max(1, openDays.length)) * 100}%`, backgroundColor: YES }} />
+            <div className="h-full transition duration-300" style={{ width: `${(myNo.length / Math.max(1, openDays.length)) * 100}%`, backgroundColor: NO }} />
           </div>
         </div>
 
@@ -425,14 +425,14 @@ export default function AvailabilityView() {
           <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center gap-3">
             {iSubmitted ? (
               <>
-                <span className="flex-1 text-[14px] font-black text-[#8FD4C8] flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#5FA39A]" />{t.submitted}</span>
-                <button onClick={toggleSubmit} className="text-[12px] font-black px-5 py-2.5 rounded-full border transition-all" style={{ borderColor: c.line, color: c.sub }}>{t.reopen}</button>
+                <span className="flex-1 text-body font-black text-[#8FD4C8] flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#5FA39A]" />{t.submitted}</span>
+                <button onClick={toggleSubmit} className="text-mini font-black px-5 py-2.5 rounded-full border transition" style={{ borderColor: c.line, color: c.sub }}>{t.reopen}</button>
               </>
             ) : (
               <>
-                <span className="text-[12px] font-bold shrink-0 hidden sm:block" style={{ color: c.faint }}>{myYes.length + myNo.length}/{openDays.length}</span>
+                <span className="text-mini font-bold shrink-0 hidden sm:block" style={{ color: c.faint }}>{myYes.length + myNo.length}/{openDays.length}</span>
                 <button onClick={() => setReviewing(true)} disabled={myYes.length + myNo.length === 0}
-                  className="flex-1 py-3 rounded-full font-black text-[14px] transition-all disabled:opacity-30 active:scale-[0.98]"
+                  className="flex-1 py-3 rounded-full font-black text-body transition disabled:opacity-30 active:scale-[0.98]"
                   style={{ backgroundColor: YES, color: c.yesText }}>
                   {t.submit}
                 </button>
@@ -445,11 +445,11 @@ export default function AvailabilityView() {
       {/* 제출 전 확인 */}
       {reviewing && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 anim-fade" onClick={() => setReviewing(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md border rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
-            <h3 className="font-black text-[20px] mb-1" style={{ color: c.text }}>{t.reviewTitle}</h3>
-            <p className="text-[12px] mb-5" style={{ color: c.sub }}>{me?.name} · {poll.title || `${y}.${String(m).padStart(2, '0')}`}</p>
+          <div role="dialog" aria-modal="true" tabIndex={-1} onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md border rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
+            <h3 className="font-black text-sub mb-1" style={{ color: c.text }}>{t.reviewTitle}</h3>
+            <p className="text-mini mb-5" style={{ color: c.sub }}>{me?.name} · {poll.title || `${y}.${String(m).padStart(2, '0')}`}</p>
             {myYes.length + myNo.length === 0 ? (
-              <p className="text-[14px] mb-5" style={{ color: c.faint }}>{t.reviewNone}</p>
+              <p className="text-body mb-5" style={{ color: c.faint }}>{t.reviewNone}</p>
             ) : (
               <div className="flex flex-col gap-3.5 mb-5 max-h-[45vh] overflow-y-auto">
                 <DayChips label={t.available} days={myYes} color={YES} lang={lang} />
@@ -457,9 +457,9 @@ export default function AvailabilityView() {
               </div>
             )}
             <div className="flex gap-2.5">
-              <button onClick={() => setReviewing(false)} className="flex-1 py-3 rounded-xl border font-bold text-[14px] transition-all" style={{ borderColor: c.line, color: c.sub }}>{t.reviewMore}</button>
+              <button onClick={() => setReviewing(false)} className="flex-1 py-3 rounded-xl border font-bold text-body transition" style={{ borderColor: c.line, color: c.sub }}>{t.reviewMore}</button>
               <button onClick={async () => { await toggleSubmit(); setReviewing(false); }} disabled={myYes.length + myNo.length === 0}
-                className="flex-1 py-3 rounded-xl font-black text-[14px] transition-all disabled:opacity-30" style={{ backgroundColor: YES, color: c.yesText }}>{t.reviewSubmit}</button>
+                className="flex-1 py-3 rounded-xl font-black text-body transition disabled:opacity-30" style={{ backgroundColor: YES, color: c.yesText }}>{t.reviewSubmit}</button>
             </div>
           </div>
         </div>
@@ -477,7 +477,7 @@ function shade(hex: string) {
 }
 
 function Screen({ children, c }: { children: React.ReactNode; c: Tok }) {
-  return <div className="min-h-screen flex items-center justify-center text-[14px] font-ui" style={{ backgroundColor: c.bg, color: c.faint }}>{children}</div>;
+  return <div className="min-h-screen flex items-center justify-center text-body font-ui" style={{ backgroundColor: c.bg, color: c.faint }}>{children}</div>;
 }
 
 function TopBar({ c, lang, dark, onTheme, onLang, left }: any) {
@@ -486,8 +486,8 @@ function TopBar({ c, lang, dark, onTheme, onLang, left }: any) {
     <div className="flex items-center justify-between mb-5">
       <div>{left}</div>
       <div className="flex items-center gap-1.5">
-        <button onClick={onTheme} title={dark ? 'Light' : 'Dark'} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} className="px-3 py-1.5 rounded-full border text-[12px] transition-all hover:opacity-70" style={btn}>{dark ? '☀' : '◑'}</button>
-        <button onClick={onLang} aria-label={lang === 'ko' ? 'Switch to English' : '한국어로 전환'} className="px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all hover:opacity-70" style={btn}>{lang === 'ko' ? 'EN' : 'KO'}</button>
+        <button onClick={onTheme} title={dark ? 'Light' : 'Dark'} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} className="px-3 py-1.5 rounded-full border text-mini transition hover:opacity-70" style={btn}>{dark ? '☀' : '◑'}</button>
+        <button onClick={onLang} aria-label={lang === 'ko' ? 'Switch to English' : '한국어로 전환'} className="px-3 py-1.5 rounded-full border text-micro font-bold uppercase tracking-widest transition hover:opacity-70" style={btn}>{lang === 'ko' ? 'EN' : 'KO'}</button>
       </div>
     </div>
   );
@@ -495,7 +495,7 @@ function TopBar({ c, lang, dark, onTheme, onLang, left }: any) {
 
 function Legend({ color, label, c }: { color: string | null; label: string; c: Tok }) {
   return (
-    <span className="flex items-center gap-1.5 text-[12px] font-bold" style={{ color: c.sub }}>
+    <span className="flex items-center gap-1.5 text-mini font-bold" style={{ color: c.sub }}>
       <span className="w-3 h-3 rounded-[5px] border" style={{ backgroundColor: color ?? 'transparent', borderColor: color ?? c.line }} />{label}
     </span>
   );
@@ -503,7 +503,7 @@ function Legend({ color, label, c }: { color: string | null; label: string; c: T
 
 function Quick({ color, onClick, children }: any) {
   return (
-    <button onClick={onClick} className="text-[12px] font-black px-3 py-1.5 rounded-full border transition-all hover:brightness-110 active:scale-95"
+    <button onClick={onClick} className="text-mini font-black px-3 py-1.5 rounded-full border transition hover:brightness-110 active:scale-95"
       style={{ color, borderColor: color + '55', backgroundColor: color + '14' }}>{children}</button>
   );
 }
@@ -512,9 +512,9 @@ function DayChips({ label, days, color, lang }: any) {
   if (!days.length) return null;
   return (
     <div>
-      <p className="text-[12px] font-black uppercase tracking-widest mb-1.5" style={{ color }}>{label} {days.length}</p>
+      <p className="text-mini font-black uppercase tracking-widest mb-1.5" style={{ color }}>{label} {days.length}</p>
       <div className="flex flex-wrap gap-1.5">
-        {days.map((d: number) => <span key={d} className="px-2.5 py-1 rounded-full text-[12px] font-black border" style={{ color, borderColor: color + '55', backgroundColor: color + '18' }}>{d}{lang === 'ko' ? '일' : ''}</span>)}
+        {days.map((d: number) => <span key={d} className="px-2.5 py-1 rounded-full text-mini font-black border" style={{ color, borderColor: color + '55', backgroundColor: color + '18' }}>{d}{lang === 'ko' ? '일' : ''}</span>)}
       </div>
     </div>
   );
@@ -524,14 +524,14 @@ function Header({ t, c, poll, y, m, done, total }: any) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   return (
     <div className="mb-7">
-      <p className="font-mono-num text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: c.goldText }}>{t.availability}</p>
-      <h1 className="font-display text-[26px] leading-tight" style={{ color: c.text }}>{poll.title || `${y}. ${String(m).padStart(2, '0')}`}</h1>
+      <p className="font-mono-num text-micro font-semibold uppercase tracking-widest mb-1.5" style={{ color: c.goldText }}>{t.availability}</p>
+      <h1 className="font-display text-title leading-tight" style={{ color: c.text }}>{poll.title || `${y}. ${String(m).padStart(2, '0')}`}</h1>
       <div className="flex items-center gap-2.5 mt-2">
-        <p className="text-[12px]" style={{ color: c.sub }}>{y}. {String(m).padStart(2, '0')}{poll.is_open ? '' : ` · ${t.closed}`}</p>
+        <p className="text-mini" style={{ color: c.sub }}>{y}. {String(m).padStart(2, '0')}{poll.is_open ? '' : ` · ${t.closed}`}</p>
         <div className="flex-1 h-1 rounded-full overflow-hidden max-w-[120px]" style={{ backgroundColor: c.track }}>
-          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: GOLD }} />
+          <div className="h-full rounded-full transition duration-500" style={{ width: `${pct}%`, backgroundColor: GOLD }} />
         </div>
-        <p className="text-[12px] font-black" style={{ color: c.faint }}>{t.progress(done, total)}</p>
+        <p className="text-mini font-black" style={{ color: c.faint }}>{t.progress(done, total)}</p>
       </div>
     </div>
   );
@@ -548,14 +548,14 @@ function FinalDaysCard({ t, c, lang, poll, m }: any) {
   const title = poll.title || `${yy}. ${String(mm).padStart(2, '0')}`;
   return (
     <div className="rounded-2xl border p-5 mb-7" style={{ borderColor: GOLD + '59', backgroundColor: GOLD + '14' }}>
-      <p className="text-[12px] font-black uppercase tracking-widest mb-3" style={{ color: c.goldText }}>{t.confirmedTitle}</p>
+      <p className="text-mini font-black uppercase tracking-widest mb-3" style={{ color: c.goldText }}>{t.confirmedTitle}</p>
       <div className="flex flex-wrap gap-2 mb-3.5">
         {finals.map((d: number) => (
-          <span key={d} className="px-3.5 py-1.5 rounded-full text-[14px] font-black border" style={{ color: c.goldText, borderColor: GOLD + '80', backgroundColor: GOLD + '26' }}>{fmt(d)}</span>
+          <span key={d} className="px-3.5 py-1.5 rounded-full text-body font-black border" style={{ color: c.goldText, borderColor: GOLD + '80', backgroundColor: GOLD + '26' }}>{fmt(d)}</span>
         ))}
       </div>
       <button onClick={() => downloadIcs(title, buildDaysIcs(title, poll.month, finals, poll.id))}
-        className="text-[12px] font-black px-4 py-2 rounded-full border transition-all hover:brightness-110" style={{ color: c.goldText, borderColor: GOLD + '66' }}>{t.saveIcs}</button>
+        className="text-mini font-black px-4 py-2 rounded-full border transition hover:brightness-110" style={{ color: c.goldText, borderColor: GOLD + '66' }}>{t.saveIcs}</button>
     </div>
   );
 }
@@ -564,7 +564,7 @@ function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
   const chip = (mm: any, ok: boolean) => {
     const col = ROLE_COLORS[mm.role] || '#8a8a8a';
     return (
-      <span key={mm.id} className={`px-3 py-1 rounded-full text-[12px] font-bold border ${ok ? '' : 'line-through opacity-80'}`}
+      <span key={mm.id} className={`px-3 py-1 rounded-full text-mini font-bold border ${ok ? '' : 'line-through opacity-80'}`}
         style={ok
           ? { color: dark ? col : shade(col), borderColor: col + '66', backgroundColor: col + '1f' }
           : { color: c.noText, borderColor: NO + '4d', backgroundColor: NO + '14' }}>{mm.name}</span>
@@ -578,14 +578,14 @@ function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
   return (
     <div className="rounded-2xl border p-5 mb-2 anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[14px] font-black" style={{ color: c.text }}>{t.onDay(day)} · <span style={{ color: YES }}>{t.available} {yes.length}</span> · <span style={{ color: c.noText }}>{t.unavailable} {no.length}</span></p>
-        <button onClick={onClose} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-[12px] hover:opacity-70" style={{ color: c.sub }}>✕</button>
+        <p className="text-body font-black" style={{ color: c.text }}>{t.onDay(day)} · <span style={{ color: YES }}>{t.available} {yes.length}</span> · <span style={{ color: c.noText }}>{t.unavailable} {no.length}</span></p>
+        <button onClick={onClose} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-mini hover:opacity-70" style={{ color: c.sub }}>✕</button>
       </div>
-      {yes.length + no.length === 0 ? <span className="text-[12px]" style={{ color: c.sub }}>{t.noneYet}</span> : (
+      {yes.length + no.length === 0 ? <span className="text-mini" style={{ color: c.sub }}>{t.noneYet}</span> : (
         <div className="flex flex-col gap-3">
           {roleGroups.map(({ role, a, b }) => (
             <div key={role} className="flex flex-col gap-1.5">
-              <p className="font-mono-num text-[10px] font-semibold uppercase tracking-widest" style={{ color: dark ? (ROLE_COLORS[role] || '#8a8a8a') + 'cc' : shade(ROLE_COLORS[role] || '#8a8a8a') }}>
+              <p className="font-mono-num text-micro font-semibold uppercase tracking-widest" style={{ color: dark ? (ROLE_COLORS[role] || '#8a8a8a') + 'cc' : shade(ROLE_COLORS[role] || '#8a8a8a') }}>
                 {role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span style={{ color: c.faint }}>{a.length + b.length}</span>
               </p>
               <div className="flex flex-wrap gap-2">
@@ -604,17 +604,17 @@ function BestDays({ t, c, lang, bestDays, maxCount, finals, onPick }: any) {
   const isFinal = (d: number) => (finals || []).includes(d);
   return (
     <div className="rounded-2xl border p-5 mt-6" style={{ backgroundColor: c.card, borderColor: c.line }}>
-      <p className="text-[12px] font-black uppercase tracking-widest mb-4" style={{ color: c.sub }}>{t.bestDays}</p>
-      {bestDays.length === 0 ? <p className="text-[12px]" style={{ color: c.sub }}>{t.noneYet}</p> : (
+      <p className="text-mini font-black uppercase tracking-widest mb-4" style={{ color: c.sub }}>{t.bestDays}</p>
+      {bestDays.length === 0 ? <p className="text-mini" style={{ color: c.sub }}>{t.noneYet}</p> : (
         <div className="space-y-2.5">
           {bestDays.map(({ d, c: cnt, no }: any) => (
             <button key={d} onClick={() => onPick(d)} className="w-full flex items-center gap-3 group">
-              <span className="text-[14px] font-black w-10 text-left" style={{ color: isFinal(d) ? c.goldText : c.text }}>{d}{lang === 'ko' ? '일' : ''}</span>
+              <span className="text-body font-black w-10 text-left" style={{ color: isFinal(d) ? c.goldText : c.text }}>{d}{lang === 'ko' ? '일' : ''}</span>
               <div className="flex-1 h-2.5 rounded-full overflow-hidden flex" style={{ backgroundColor: c.track }}>
-                <div className="h-full transition-all duration-300" style={{ width: `${(cnt / maxCount) * 100}%`, backgroundColor: YES }} />
-                <div className="h-full transition-all duration-300" style={{ width: `${(no / maxCount) * 100}%`, backgroundColor: NO + '99' }} />
+                <div className="h-full transition duration-300" style={{ width: `${(cnt / maxCount) * 100}%`, backgroundColor: YES }} />
+                <div className="h-full transition duration-300" style={{ width: `${(no / maxCount) * 100}%`, backgroundColor: NO + '99' }} />
               </div>
-              <span className="text-[12px] font-black w-14 text-right">
+              <span className="text-mini font-black w-14 text-right">
                 <span style={{ color: YES }}>{cnt}</span>{no ? <span style={{ color: c.noText }}> −{no}</span> : ''}
               </span>
               {isFinal(d) && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: GOLD }} />}

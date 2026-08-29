@@ -45,8 +45,8 @@ export default function CardPage() {
   };
 
   const D = theme === 'dark';
-  const bg = D ? 'bg-[#141414]' : 'bg-[#E6E6EC]';
-  const card = D ? 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]';
+  const bg = D ? 'bg-surface-1' : 'bg-[#E6E6EC]';
+  const card = D ? 'bg-surface-2 border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]';
   const tx = D ? 'text-white' : 'text-[#111]';
   const dm = D ? 'text-zinc-500' : 'text-zinc-500';
   const dv = D ? 'border-white/[0.07]' : 'border-black/[0.07]';
@@ -54,7 +54,7 @@ export default function CardPage() {
 
   if (loading) return (
     <div className={`min-h-screen ${bg} flex items-center justify-center`}>
-      <div className="w-6 h-6 border-2 border-[#7C5AE8] border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-brand-lead border-t-transparent rounded-full animate-spin" />
     </div>
   );
   if (!profile) return (
@@ -75,34 +75,34 @@ export default function CardPage() {
       <style dangerouslySetInnerHTML={{ __html: `@media print{.no-print{display:none!important;}body{background:#fff!important;}#comp-card{box-shadow:none!important;border-color:#eee!important;}}` }} />
       <main className={`min-h-screen ${bg} font-ui p-5 flex flex-col items-center justify-center`}>
         {/* 상단 고정 뒤로가기 */}
-        <button onClick={goBack} className={`no-print fixed top-4 left-4 z-50 w-10 h-10 rounded-full border flex items-center justify-center text-[16px] shadow-lg ${D ? 'bg-[#1a1a1a] border-white/10 text-white' : 'bg-white border-black/[0.08] text-[#111]'}`}>←</button>
+        <button type="button" onClick={goBack} aria-label="뒤로 가기" className={`no-print fixed top-4 left-4 z-50 w-10 h-10 rounded-full border flex items-center justify-center text-lead shadow-lg ${D ? 'bg-[#1a1a1a] border-white/10 text-white' : 'bg-white border-black/[0.08] text-[#111]'}`}><span aria-hidden="true">←</span></button>
         {/* 컴카드 */}
         <div id="comp-card" className={`w-full max-w-sm border rounded-3xl overflow-hidden shadow-2xl ${card}`}>
           {/* 헤더 배너 */}
-          <div className={`h-24 relative ${isHost ? 'bg-gradient-to-br from-amber-500/40 to-orange-400/20' : 'bg-gradient-to-br from-[#7C5AE8]/40 to-purple-500/20'}`}>
+          <div className={`h-24 relative ${isHost ? 'bg-gradient-to-br from-amber-500/40 to-orange-400/20' : 'bg-gradient-to-br from-brand-lead/40 to-purple-500/20'}`}>
             <div className="absolute bottom-[-36px] left-6">
               <div className="rounded-2xl overflow-hidden border-2 border-white/20 bg-black/30 flex items-center justify-center shadow-xl" style={{ width: 72, height: 72 }}>
                 {showPhoto
                   ? <img src={photoSrc} alt={displayName} referrerPolicy="no-referrer" onError={() => setImgError(true)} className="w-full h-full object-cover" />
-                  : <span className={`text-3xl font-black ${isHost ? 'text-amber-400' : 'text-[#7C5AE8]'}`}>{displayName[0].toUpperCase()}</span>}
+                  : <span className={`text-display font-black ${isHost ? 'text-amber-400' : 'text-brand-lead-text'}`}>{displayName[0].toUpperCase()}</span>}
               </div>
             </div>
             {isHost && (
-              <span className="absolute top-3 right-4 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black">HOST</span>
+              <span className="absolute top-3 right-4 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-micro font-black">HOST</span>
             )}
           </div>
 
           <div className="px-6 pt-12 pb-6">
-            <h1 className={`font-black text-[26px] leading-tight ${tx}`}>{displayName}</h1>
+            <h1 className={`font-black text-title leading-tight ${tx}`}>{displayName}</h1>
             {profile.name && profile.name !== profile.artist_name && (
-              <p className={`text-[13px] mt-0.5 ${dm}`}>{profile.name}</p>
+              <p className={`text-body mt-0.5 ${dm}`}>{profile.name}</p>
             )}
 
             {/* 역할 뱃지 */}
             {(profile.roles || []).length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-2.5">
                 {profile.roles.map((r: string) => (
-                  <span key={r} className={`text-[11px] font-black px-2.5 py-1 rounded-full border ${isHost ? 'border-amber-500/30 bg-amber-500/10 text-amber-400' : 'border-[#7C5AE8]/30 bg-[#7C5AE8]/10 text-[#7C5AE8]'}`}>
+                  <span key={r} className={`text-mini font-black px-2.5 py-1 rounded-full border ${isHost ? 'border-amber-500/30 bg-amber-500/10 text-amber-400' : 'border-brand-lead/30 bg-brand-lead/10 text-brand-lead-text'}`}>
                     {ROLE_LABELS[r] || r}
                   </span>
                 ))}
@@ -119,16 +119,16 @@ export default function CardPage() {
               )}
               {profile.instagram && (
                 <div className="flex items-center gap-3">
-                  <span className={`text-[10px] font-black uppercase tracking-widest w-14 ${dm}`}>{t('인스타', 'IG')}</span>
-                  <a href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noopener noreferrer" className="text-[12px] text-[#7C5AE8] hover:underline">@{profile.instagram}</a>
+                  <span className={`text-micro font-black uppercase tracking-widest w-14 ${dm}`}>{t('인스타', 'IG')}</span>
+                  <a href={`https://instagram.com/${profile.instagram}`} target="_blank" rel="noopener noreferrer" className="text-mini text-brand-lead-text hover:underline">@{profile.instagram}</a>
                 </div>
               )}
               {(profile.genres || []).length > 0 && (
                 <div className="flex items-start gap-3">
-                  <span className={`text-[10px] font-black uppercase tracking-widest w-14 shrink-0 mt-0.5 ${dm}`}>{t('장르', 'Genres')}</span>
+                  <span className={`text-micro font-black uppercase tracking-widest w-14 shrink-0 mt-0.5 ${dm}`}>{t('장르', 'Genres')}</span>
                   <div className="flex flex-wrap gap-1">
                     {profile.genres.slice(0, 5).map((g: string) => (
-                      <span key={g} className={`text-[11px] font-bold px-2 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-300' : 'bg-black/[0.05] text-zinc-600'}`}>
+                      <span key={g} className={`text-mini font-bold px-2 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-300' : 'bg-black/[0.05] text-zinc-600'}`}>
                         {g.startsWith('ETC:') ? g.slice(4) : g}
                       </span>
                     ))}
@@ -140,7 +140,7 @@ export default function CardPage() {
             {/* Bio */}
             {profile.bio && (
               <div className={`mt-4 pt-4 border-t ${dv}`}>
-                <p className={`text-[12px] leading-relaxed whitespace-pre-line ${dm}`}>{profile.bio}</p>
+                <p className={`text-mini leading-relaxed whitespace-pre-line ${dm}`}>{profile.bio}</p>
               </div>
             )}
 
@@ -150,7 +150,7 @@ export default function CardPage() {
                 {Object.entries(profile.links as Record<string, string>).filter(([, v]) => v).map(([k, v]) => {
                   const label: Record<string, string> = { spotify: 'Spotify', youtube: 'YouTube', soundcloud: 'SoundCloud', x: 'X', tiktok: 'TikTok', website: 'Web' };
                   const href = v.startsWith('http') ? v : `https://${v}`;
-                  return <a key={k} href={href} target="_blank" rel="noopener noreferrer" className={`text-[11px] font-black px-2.5 py-1 rounded-full border transition-all ${D ? 'border-white/10 bg-white/5 text-zinc-300 hover:text-white' : 'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>{label[k] || k} →</a>;
+                  return <a key={k} href={href} target="_blank" rel="noopener noreferrer" className={`text-mini font-black px-2.5 py-1 rounded-full border transition ${D ? 'border-white/10 bg-white/5 text-zinc-300 hover:text-white' : 'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>{label[k] || k} →</a>;
                 })}
               </div>
             )}
@@ -158,17 +158,17 @@ export default function CardPage() {
             {/* Released Works */}
             {works.length > 0 && (
               <div className={`mt-4 pt-4 border-t ${dv}`}>
-                <p className={`text-[11px] font-black uppercase tracking-widest mb-2.5 ${dm}`}>💿 Released Works</p>
+                <p className={`text-mini font-black uppercase tracking-widest mb-2.5 ${dm}`}>💿 Released Works</p>
                 <div className="flex flex-col gap-1.5">
                   {works.slice(0, 5).map((w, i) => (
                     <a key={i} href={w.link} target="_blank" rel="noopener noreferrer"
-                      className={`flex items-center gap-2.5 p-2.5 rounded-xl transition-all ${D ? 'bg-white/[0.02] hover:bg-white/5' : 'bg-black/[0.02] hover:bg-black/[0.05]'}`}>
-                      <span className="text-[13px]">🎶</span>
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl transition ${D ? 'bg-white/[0.02] hover:bg-white/5' : 'bg-black/[0.02] hover:bg-black/[0.05]'}`}>
+                      <span className="text-body">🎶</span>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[12px] font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
-                        <p className={`text-[11px] ${dm}`}>{w.artist_name}</p>
+                        <p className={`text-mini font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
+                        <p className={`text-mini ${dm}`}>{w.artist_name}</p>
                       </div>
-                      <span className="text-[#7C5AE8] text-[12px]">→</span>
+                      <span className="text-brand-lead-text text-mini">→</span>
                     </a>
                   ))}
                 </div>
@@ -177,8 +177,8 @@ export default function CardPage() {
 
             {/* 푸터 */}
             <div className={`mt-5 pt-3 border-t ${dv} flex items-center justify-between`}>
-              <span className={`text-[9px] font-black tracking-[0.25em] ${D ? 'text-zinc-700' : 'text-zinc-300'}`}>LEAD by NEN</span>
-              <span className={`text-[9px] ${dm}`}>lead-by-nen.vercel.app</span>
+              <span className={`text-micro font-black tracking-[0.25em] ${D ? 'text-zinc-700' : 'text-zinc-300'}`}>LEAD by NEN</span>
+              <span className={`text-micro ${dm}`}>lead-by-nen.vercel.app</span>
             </div>
           </div>
         </div>
@@ -186,11 +186,11 @@ export default function CardPage() {
         {/* 액션 버튼 */}
         <div className="no-print flex gap-3 mt-4 w-full max-w-sm">
           <button onClick={() => window.print()}
-            className="flex-1 py-3 rounded-xl bg-[#7C5AE8] text-white font-semibold text-[13px] hover:opacity-90 transition-all">
+            className="flex-1 py-3 rounded-xl bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition">
             📄 {t('PDF 저장', 'Save PDF')}
           </button>
           <button onClick={goBack}
-            className={`px-5 py-3 rounded-xl border font-bold text-[13px] transition-all ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+            className={`px-5 py-3 rounded-xl border font-bold text-body transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
             ← {t('뒤로', 'Back')}
           </button>
         </div>
@@ -202,8 +202,8 @@ export default function CardPage() {
 function Row({ label, value, D }: { label: string; value: string; D: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <span className={`text-[10px] font-black uppercase tracking-widest w-14 ${D ? 'text-zinc-600' : 'text-zinc-400'}`}>{label}</span>
-      <span className={`text-[12px] ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{value}</span>
+      <span className={`text-micro font-black uppercase tracking-widest w-14 ${D ? 'text-zinc-600' : 'text-zinc-400'}`}>{label}</span>
+      <span className={`text-mini ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{value}</span>
     </div>
   );
 }

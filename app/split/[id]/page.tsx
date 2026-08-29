@@ -12,7 +12,7 @@ import { useTheme, ThemeToggle } from '@/lib/theme';
 function ProSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
     <select value={value || ''} disabled={disabled} onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#7C5AE8] disabled:opacity-60">
+      className="w-full rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white focus:outline-none focus:border-brand-lead disabled:opacity-60">
       <option value="">PRO…</option>
       {PRO_GROUPS.map((g) => (
         <optgroup key={g.region} label={g.region}>
@@ -271,7 +271,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     const proTxt = (c: string | null) => c ? (PRO_LABEL[c] ?? c) : '—';
     const info = (label: string, val: string | null | undefined) => `<div class="kv"><span>${label}</span><b>${esc(val) || '—'}</b></div>`;
     const sigCell = (r: Contributor) => r.signed
-      ? (r.signature_data ? `<img class="sig" src="${r.signature_data}"/>` : `<span class="sub">✓ ${esc(r.signature_name) || 'signed'}</span>`)
+      ? (r.signature_data ? `<img loading="lazy" decoding="async" class="sig" alt="서명" src="${r.signature_data}"/>` : `<span class="sub">✓ ${esc(r.signature_name) || 'signed'}</span>`)
         + `<br><span class="sub">${esc((r.signed_at ?? '').slice(0, 10))}</span>`
       : `<span class="sub">${t('미서명', 'unsigned')}</span>`;
     const sections = CATEGORIES.map((cat) => {
@@ -338,10 +338,10 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     w.document.open(); w.document.write(agreementHtml(true)); w.document.close();
   }
 
-  const field = 'w-full rounded-md bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/25 focus:outline-none focus:border-[#7C5AE8]';
-  const hfield = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#7C5AE8]';
+  const field = 'w-full rounded-md bg-white/5 border border-white/10 px-2.5 py-1.5 text-mini text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
+  const hfield = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
 
-  if (loading || !sheet) return <div className={`min-h-[100dvh] flex items-center justify-center ${D ? 'bg-[#0a0a0a] text-white/40' : 'bg-[#f6f6f7] text-black/40'}`}>…</div>;
+  if (loading || !sheet) return <div className={`min-h-[100dvh] flex items-center justify-center ${D ? 'bg-surface-0 text-white/55' : 'bg-[#f6f6f7] text-black/40'}`}>…</div>;
 
   const locked = !!sheet.locked;
   const editable = isOwner && !locked;         // owner may edit only while unlocked
@@ -349,7 +349,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const needMySign = myUnsigned.length > 0 && !locked;
 
   return (
-    <div className={`min-h-[100dvh] ${D ? 'bg-[#0a0a0a] text-white' : 'split-light bg-[#f6f6f7] text-[#1a1a1a]'}`}>
+    <div className={`min-h-[100dvh] ${D ? 'bg-surface-0 text-white' : 'split-light bg-[#f6f6f7] text-[#1a1a1a]'}`}>
       {!D && <style dangerouslySetInnerHTML={{ __html: `
         .split-light .text-white{color:#1a1a1a}
         .split-light .text-white\\/55{color:rgb(0 0 0/.6)}
@@ -371,37 +371,37 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         .split-light .hover\\:bg-white\\/\\[0\\.02\\]:hover{background-color:rgb(0 0 0/.03)}
         .split-light .placeholder\\:text-white\\/25::placeholder{color:rgb(0 0 0/.3)}
       ` }} />}
-      {toast && <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#7C5AE8] text-white text-sm shadow-lg">{toast}</div>}
+      {toast && <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-brand-lead text-white text-body shadow-lg">{toast}</div>}
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8">
         {/* header bar */}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
-          <button onClick={() => router.push('/split')} className="text-sm text-white/40 hover:text-white transition-colors">← {t('목록', 'List')}</button>
-          <h1 className="text-lg font-bold truncate">{sheet.song_title || t('새 스플릿시트', 'New split sheet')}</h1>
-          <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/45">v{sheet.version ?? 1}</span>
+          <button onClick={() => router.push('/split')} className="text-body text-white/55 hover:text-white transition-colors">← {t('목록', 'List')}</button>
+          <h1 className="text-sub font-bold truncate">{sheet.song_title || t('새 스플릿시트', 'New split sheet')}</h1>
+          <span className="text-micro px-2 py-0.5 rounded-full border border-white/15 text-white/45">v{sheet.version ?? 1}</span>
           {locked
-            ? <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400">🔒 {t('확정됨', 'Locked')}</span>
-            : <span className="text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30 text-amber-400/90">{t('초안', 'Draft')}</span>}
-          {!isOwner && <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/50">{t('참여', 'Shared')}</span>}
+            ? <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400">🔒 {t('확정됨', 'Locked')}</span>
+            : <span className="text-micro px-2 py-0.5 rounded-full border border-amber-500/30 text-amber-400/90">{t('초안', 'Draft')}</span>}
+          {!isOwner && <span className="text-micro px-2 py-0.5 rounded-full border border-white/15 text-white/50">{t('참여', 'Shared')}</span>}
           <div className="ml-auto flex items-center gap-2">
             <LangToggle />
-            <ThemeToggle className="w-8 h-8 rounded-lg border border-white/15 hover:bg-white/5 flex items-center justify-center text-[13px] transition-all" />
-            <button onClick={exportBundle} title={t('합의서+음원+무결성해시(zip)', 'Agreement + audio + integrity hash (zip)')} className="text-sm px-3 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">{t('증빙 번들', 'Evidence')}</button>
-            <button onClick={exportPdf} className="text-sm px-3 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">⎙ PDF</button>
+            <ThemeToggle className="w-8 h-8 rounded-lg border border-white/15 hover:bg-white/5 flex items-center justify-center text-body transition" />
+            <button onClick={exportBundle} title={t('합의서+음원+무결성해시(zip)', 'Agreement + audio + integrity hash (zip)')} className="text-body px-3 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">{t('증빙 번들', 'Evidence')}</button>
+            <button onClick={exportPdf} className="text-body px-3 py-2 rounded-xl border border-white/15 hover:bg-white/5 transition-colors">⎙ PDF</button>
           </div>
         </div>
 
         {/* all-signed notification for the owner */}
         {isOwner && !locked && allSigned && (
           <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.08]">
-            <span className="text-sm">✓ {t('전원 서명 완료!', 'Everyone has signed!')} {sharesOk ? t('지금 확정(잠금)할 수 있어요.', 'You can finalize (lock) now.') : t('지분 100%를 맞춘 뒤 확정하세요.', 'Fix shares to 100% to finalize.')}</span>
-            {sharesOk && <button onClick={lockSheet} className="ml-auto text-sm px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-medium transition-colors">{t('확정', 'Finalize')}</button>}
+            <span className="text-body">✓ {t('전원 서명 완료!', 'Everyone has signed!')} {sharesOk ? t('지금 확정(잠금)할 수 있어요.', 'You can finalize (lock) now.') : t('지분 100%를 맞춘 뒤 확정하세요.', 'Fix shares to 100% to finalize.')}</span>
+            {sharesOk && <button onClick={lockSheet} className="ml-auto text-body px-4 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-medium transition-colors">{t('확정', 'Finalize')}</button>}
           </div>
         )}
 
         {/* owner finalize controls */}
         {isOwner && (
-          <div className="flex items-center gap-2 mb-5 flex-wrap text-xs">
-            <span className="text-white/40">{t('서명', 'Signed')} {rows.filter((r) => r.signed).length}/{rows.length}</span>
+          <div className="flex items-center gap-2 mb-5 flex-wrap text-mini">
+            <span className="text-white/55">{t('서명', 'Signed')} {rows.filter((r) => r.signed).length}/{rows.length}</span>
             {!locked ? (
               <>
                 <button onClick={requestSignatures} className="px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 transition-colors">{t('기여자에게 서명 요청', 'Request signatures')}</button>
@@ -419,15 +419,15 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
         {/* contributor sign prompt */}
         {needMySign && (
-          <div className="flex items-center gap-3 mb-5 px-4 py-3 rounded-xl border border-[#7C5AE8]/30 bg-[#7C5AE8]/[0.08]">
-            <span className="text-sm">{sheet.signature_requested_at ? t('서명 요청이 왔어요.', 'You were asked to sign.') : t('내 지분을 확인하고', 'Review your splits —')} {t(`${myUnsigned.length}건 서명이 필요해요.`, `${myUnsigned.length} signature(s) needed.`)}</span>
-            <button onClick={() => setSignRow(myUnsigned[0])} className="ml-auto text-sm px-4 py-1.5 rounded-lg bg-[#7C5AE8] hover:bg-[#A48BF0] transition-colors">{t('지금 서명', 'Sign now')}</button>
+          <div className="flex items-center gap-3 mb-5 px-4 py-3 rounded-xl border border-brand-lead/30 bg-brand-lead/[0.08]">
+            <span className="text-body">{sheet.signature_requested_at ? t('서명 요청이 왔어요.', 'You were asked to sign.') : t('내 지분을 확인하고', 'Review your splits —')} {t(`${myUnsigned.length}건 서명이 필요해요.`, `${myUnsigned.length} signature(s) needed.`)}</span>
+            <button onClick={() => setSignRow(myUnsigned[0])} className="ml-auto text-body px-4 py-1.5 rounded-lg bg-brand-lead hover:bg-[#A48BF0] transition-colors">{t('지금 서명', 'Sign now')}</button>
           </div>
         )}
 
         {/* song header fields */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 mb-6">
-          <div className="text-[11px] uppercase tracking-widest text-white/30 mb-3">{t('곡 정보', 'Song info')}</div>
+          <div className="text-mini uppercase tracking-widest text-white/55 mb-3">{t('곡 정보', 'Song info')}</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {([
               ['song_title', t('곡 제목', 'Title')], ['aka', t('AKA (부제)', 'AKA')], ['artist_name', t('아티스트', 'Artist')],
@@ -435,7 +435,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
               ['iswc', t('ISWC (작품 표준코드)', 'ISWC (work code)')], ['isrc', t('ISRC (음원코드)', 'ISRC (recording code)')],
             ] as [keyof SplitSheet, string][]).map(([k, label]) => (
               <div key={k}>
-                <label className="block text-[11px] text-white/40 mb-1">{label}</label>
+                <label className="block text-mini text-white/55 mb-1">{label}</label>
                 <input value={(sheet[k] as string) ?? ''} disabled={!editable}
                   onChange={(e) => setSheetLocal(k, e.target.value as SplitSheet[typeof k])}
                   onBlur={() => commitSheet(k)} className={hfield} />
@@ -443,7 +443,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-3 mt-3">
-            <label className="flex items-center gap-2 text-xs text-white/60">
+            <label className="flex items-center gap-2 text-mini text-white/60">
               <input type="checkbox" checked={!!sheet.contains_sample} disabled={!editable}
                 onChange={(e) => { setSheetLocal('contains_sample', e.target.checked); if (editable) supabase.from('split_sheets').update({ contains_sample: e.target.checked }).eq('id', sheet.id); }} />
               {t('샘플/인터폴레이션 포함', 'Contains a sample / interpolation')}
@@ -458,26 +458,26 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           {/* attached audio — ties the agreed splits to the actual work (evidence) */}
           <div className="mt-4 pt-4 border-t border-white/5">
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-[11px] uppercase tracking-widest text-white/30">{t('음원', 'Audio')}</span>
+              <span className="text-mini uppercase tracking-widest text-white/55">{t('음원', 'Audio')}</span>
               {sheet.audio_path ? (
                 <>
                   {audioUrl && <audio src={audioUrl} controls className="h-9 max-w-full" style={{ minWidth: 220 }} />}
-                  <span className="text-xs text-white/50 truncate max-w-[220px]">{sheet.audio_name}</span>
-                  {audioUrl && <a href={audioUrl} download={sheet.audio_name ?? 'audio'} className="text-xs text-white/50 hover:text-white underline">{t('다운로드', 'Download')}</a>}
+                  <span className="text-mini text-white/50 truncate max-w-[220px]">{sheet.audio_name}</span>
+                  {audioUrl && <a href={audioUrl} download={sheet.audio_name ?? 'audio'} className="text-mini text-white/50 hover:text-white underline">{t('다운로드', 'Download')}</a>}
                   {editable && (
-                    <label className="text-xs px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 cursor-pointer transition-colors">
+                    <label className="text-mini px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 cursor-pointer transition-colors">
                       {audioUploading ? '…' : t('교체', 'Replace')}
                       <input type="file" accept="audio/*" onChange={(e) => uploadAudio(e.target.files?.[0])} className="hidden" />
                     </label>
                   )}
-                  {editable && <button onClick={removeAudio} className="text-xs text-white/25 hover:text-red-400 transition-colors">{t('삭제', 'Remove')}</button>}
+                  {editable && <button onClick={removeAudio} className="text-mini text-white/55 hover:text-red-400 transition-colors">{t('삭제', 'Remove')}</button>}
                 </>
               ) : editable ? (
-                <label className="text-xs px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 cursor-pointer transition-colors">
+                <label className="text-mini px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/5 cursor-pointer transition-colors">
                   {audioUploading ? t('업로드 중…', 'Uploading…') : t('+ 음원 첨부 (데모/마스터)', '+ Attach audio (demo/master)')}
                   <input type="file" accept="audio/*" onChange={(e) => uploadAudio(e.target.files?.[0])} className="hidden" />
                 </label>
-              ) : <span className="text-xs text-white/30">{t('첨부된 음원 없음', 'No audio attached')}</span>}
+              ) : <span className="text-mini text-white/55">{t('첨부된 음원 없음', 'No audio attached')}</span>}
             </div>
           </div>
         </div>
@@ -488,21 +488,21 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
             const catRows = rows.filter((r) => r.category === cat.key);
             const total = categoryTotal(rows, cat.key);
             return (
-              <div key={cat.key} className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+              <div key={cat.key} className="cv-row rounded-2xl border border-white/10 bg-white/[0.02] p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-sm font-bold">{lang === 'en' ? cat.en : cat.label} <span className="text-white/30 text-xs font-normal">{lang === 'en' ? cat.label : cat.en}</span></h3>
+                  <h3 className="text-body font-bold">{lang === 'en' ? cat.en : cat.label} <span className="text-white/55 text-mini font-normal">{lang === 'en' ? cat.label : cat.en}</span></h3>
                   {catRows.length > 0 && (
-                    <span className={`text-xs ${total === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>{t('합계', 'Total')} {total}%{total === 100 ? ' ✓' : t(' (100%여야 함)', ' (must be 100%)')}</span>
+                    <span className={`text-mini ${total === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>{t('합계', 'Total')} {total}%{total === 100 ? ' ✓' : t(' (100%여야 함)', ' (must be 100%)')}</span>
                   )}
                 </div>
 
                 <div className="flex flex-col gap-2.5">
-                  {catRows.length === 0 && <p className="text-xs text-white/25">{t('아직 없음 — 아래에서 추가', 'None yet — add below')}</p>}
+                  {catRows.length === 0 && <p className="text-mini text-white/55">{t('아직 없음 — 아래에서 추가', 'None yet — add below')}</p>}
                   {catRows.map((r) => {
                     const mine = r.user_id === me;
                     const rowEditable = (isOwner || mine) && !locked;
                     return (
-                      <div key={r.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+                      <div key={r.id} className="cv-row rounded-xl border border-white/10 bg-white/[0.02] p-3">
                         <div className="flex items-center gap-2 flex-wrap">
                           <input value={r.legal_name ?? ''} disabled={!rowEditable} placeholder={t('법적 이름', 'Legal name')}
                             onChange={(e) => setRowLocal(r.id, { legal_name: e.target.value })} onBlur={(e) => commitRow(r.id, { legal_name: e.target.value })}
@@ -514,25 +514,25 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                             <input type="number" min={0} max={100} value={Number(r.share) || 0} disabled={!editable}
                               onChange={(e) => setRowLocal(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
                               onBlur={(e) => commitRow(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
-                              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-xs text-white text-center focus:outline-none focus:border-[#7C5AE8] disabled:opacity-60" />
-                            <span className="text-[11px] text-white/30">%</span>
+                              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white text-center focus:outline-none focus:border-brand-lead disabled:opacity-60" />
+                            <span className="text-mini text-white/55">%</span>
                           </div>
-                          {r.user_id && <span className="text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400/80">{t('연동', 'Linked')}</span>}
+                          {r.user_id && <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400/80">{t('연동', 'Linked')}</span>}
                           {r.signed ? (
-                            <span className="text-xs px-2.5 py-1 rounded-lg border border-emerald-500/40 text-emerald-400 flex items-center gap-1">
+                            <span className="text-mini px-2.5 py-1 rounded-lg border border-emerald-500/40 text-emerald-400 flex items-center gap-1">
                               ✓ {r.signature_name || t('서명됨', 'Signed')}
-                              {mine && !locked && <button onClick={() => unsign(r)} className="text-white/30 hover:text-red-400 ml-0.5" title={t('서명 취소', 'Unsign')}>×</button>}
+                              {mine && !locked && <button onClick={() => unsign(r)} className="text-white/55 hover:text-red-400 ml-0.5" title={t('서명 취소', 'Unsign')}>×</button>}
                             </span>
                           ) : (
                             <button onClick={() => setSignRow(r)} disabled={!mine || locked}
-                              className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${mine ? 'border-white/15 text-white/60 hover:bg-white/5' : 'border-white/10 text-white/25'}`}
+                              className={`text-mini px-2.5 py-1 rounded-lg border transition-colors ${mine ? 'border-white/15 text-white/60 hover:bg-white/5' : 'border-white/10 text-white/55'}`}
                               title={mine ? t('서명', 'Sign') : t('연동된 본인만 서명 가능', 'Only the linked person can sign')}>{t('서명', 'Sign')}</button>
                           )}
-                          {isOwner && !r.signed && !locked && <button onClick={() => copySignLink(r)} title={t('외부 서명 링크 복사 (계정 없이 서명 가능)', 'Copy external signing link (no account needed)')} className="text-xs text-white/35 hover:text-[#7C5AE8] transition-colors px-1 ml-auto">🔗 {t('서명 링크', 'Sign link')}</button>}
-                          {editable && <button onClick={() => deleteRow(r.id)} className={`text-xs text-white/25 hover:text-red-400 transition-colors px-1 ${isOwner && !r.signed && !locked ? '' : 'ml-auto'}`}>{t('삭제', 'Delete')}</button>}
+                          {isOwner && !r.signed && !locked && <button onClick={() => copySignLink(r)} title={t('외부 서명 링크 복사 (계정 없이 서명 가능)', 'Copy external signing link (no account needed)')} className="text-mini text-white/55 hover:text-brand-lead-text transition-colors px-1 ml-auto">🔗 {t('서명 링크', 'Sign link')}</button>}
+                          {editable && <button onClick={() => deleteRow(r.id)} className={`text-mini text-white/55 hover:text-red-400 transition-colors px-1 ${isOwner && !r.signed && !locked ? '' : 'ml-auto'}`}>{t('삭제', 'Delete')}</button>}
                         </div>
                         <details className="mt-2">
-                          <summary className="text-[11px] text-white/35 cursor-pointer select-none">{t('상세 — 협회·IPI·퍼블리셔·연락처', 'Details — society · IPI · publisher · contact')}</summary>
+                          <summary className="text-mini text-white/55 cursor-pointer select-none">{t('상세 — 협회·IPI·퍼블리셔·연락처', 'Details — society · IPI · publisher · contact')}</summary>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
                             <ProSelect value={r.pro ?? ''} disabled={!rowEditable} onChange={(v) => commitRow(r.id, { pro: v })} />
                             <input value={r.ipi ?? ''} disabled={!rowEditable} placeholder="IPI/CAE"
@@ -555,7 +555,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                       onKeyDown={(e) => { if (e.key === 'Enter') addByEmail(cat.key); }}
                       className={`${hfield} max-w-[300px]`} />
                     <button onClick={() => addByEmail(cat.key)} disabled={adding}
-                      className="text-sm px-4 py-2 rounded-xl bg-[#7C5AE8] hover:bg-[#A48BF0] disabled:opacity-50 font-medium transition-colors">
+                      className="text-body px-4 py-2 rounded-xl bg-brand-lead hover:bg-[#A48BF0] disabled:opacity-50 font-medium transition-colors">
                       {adding ? '…' : t(`+ ${cat.label} 추가`, `+ Add ${cat.en.toLowerCase()}`)}
                     </button>
                   </div>
@@ -567,7 +567,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
         {/* notes */}
         <div className="mt-6">
-          <label className="block text-[11px] text-white/40 mb-1">{t('비고 (Notes)', 'Notes')}</label>
+          <label className="block text-mini text-white/55 mb-1">{t('비고 (Notes)', 'Notes')}</label>
           <textarea value={sheet.notes ?? ''} disabled={!editable} rows={2}
             onChange={(e) => setSheetLocal('notes', e.target.value)} onBlur={() => commitSheet('notes')}
             className={`${hfield} resize-none`} placeholder={t('추가 합의사항, 마스터 지분(별도) 등', 'Extra terms, master-side splits (separate), etc.')} />
@@ -619,26 +619,26 @@ function SignatureModal({ row, catLabel, t, onClose, onSubmit }: {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161616] p-5" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-base font-bold mb-1">{t('전자 서명', 'Electronic signature')}</h3>
-        <p className="text-xs text-white/45 mb-4">{catLabel} · {row.stage_name || row.legal_name || t('기여자', 'contributor')} · {Number(row.share) || 0}% — {t('아래 지분에 동의하고 서명합니다.', 'sign to agree to the split above.')}</p>
-        <label className="block text-[11px] text-white/40 mb-1">{t('서명자 법적 이름', 'Signer legal name')}</label>
+      <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161616] p-5" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-lead font-bold mb-1">{t('전자 서명', 'Electronic signature')}</h3>
+        <p className="text-mini text-white/45 mb-4">{catLabel} · {row.stage_name || row.legal_name || t('기여자', 'contributor')} · {Number(row.share) || 0}% — {t('아래 지분에 동의하고 서명합니다.', 'sign to agree to the split above.')}</p>
+        <label className="block text-mini text-white/55 mb-1">{t('서명자 법적 이름', 'Signer legal name')}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('이름', 'Name')}
-          className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#7C5AE8] mb-3" />
-        <label className="block text-[11px] text-white/40 mb-1">{t('서명 (손으로 그리기 · 선택)', 'Signature (draw · optional)')}</label>
+          className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead mb-3" />
+        <label className="block text-mini text-white/55 mb-1">{t('서명 (손으로 그리기 · 선택)', 'Signature (draw · optional)')}</label>
         <div className="rounded-lg bg-white overflow-hidden mb-1">
           <canvas ref={canvasRef} width={400} height={140} className="w-full touch-none"
             onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up} />
         </div>
-        <button onClick={clear} className="text-[11px] text-white/40 hover:text-white mb-3">{t('지우기', 'Clear')}</button>
-        <label className="flex items-start gap-2 text-xs text-white/70 mb-4">
+        <button onClick={clear} className="text-mini text-white/55 hover:text-white mb-3">{t('지우기', 'Clear')}</button>
+        <label className="flex items-start gap-2 text-mini text-white/70 mb-4">
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5" />
           <span>{t('위 지분이 정확하며 이에 동의함을 확인합니다. 서명 시각·문서 해시(SHA-256)가 함께 기록됩니다.', 'I confirm the split above is accurate and I agree. The time and a document hash (SHA-256) are recorded.')}</span>
         </label>
         <div className="flex gap-2">
           <button onClick={submit} disabled={!name.trim() || !agree}
-            className="flex-1 text-sm px-4 py-2.5 rounded-xl bg-[#7C5AE8] hover:bg-[#A48BF0] disabled:opacity-40 font-medium transition-colors">{t('서명 완료', 'Sign')}</button>
-          <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-white/15 text-sm hover:bg-white/5 transition-colors">{t('취소', 'Cancel')}</button>
+            className="flex-1 text-body px-4 py-2.5 rounded-xl bg-brand-lead hover:bg-[#A48BF0] disabled:opacity-40 font-medium transition-colors">{t('서명 완료', 'Sign')}</button>
+          <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-white/15 text-body hover:bg-white/5 transition-colors">{t('취소', 'Cancel')}</button>
         </div>
       </div>
     </div>

@@ -53,7 +53,7 @@ export function LangToggle({ className }: { className?: string }) {
   return (
     <button onClick={() => setLang(lang === 'ko' ? 'en' : 'ko')}
       title={lang === 'ko' ? 'Switch to English' : '한국어로 전환'}
-      className={className ?? 'px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-[11px] font-semibold hover:text-white transition-all'}>
+      className={className ?? 'px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-mini font-semibold hover:text-white transition'}>
       {lang === 'ko' ? 'EN' : '한국어'}
     </button>
   );

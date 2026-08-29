@@ -1,4 +1,5 @@
 'use client';
+import { pressable } from '@/lib/a11y';
 
 // 📁 app/artists/page.tsx
 
@@ -214,33 +215,32 @@ export default function ArtistsPage() {
 
   const filtered = sortedFiltered;
 
-  if (!user) return <div className="min-h-screen bg-[#141414] flex items-center justify-center"><div className="text-zinc-600 text-[11px] font-black tracking-widest">Loading...</div></div>;
+  if (!user) return <div className="min-h-screen bg-surface-1 flex items-center justify-center"><div className="text-zinc-600 text-mini font-black tracking-widest">Loading...</div></div>;
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `}`}} />
-      <main className="min-h-screen bg-[#141414] text-white p-5 lg:p-8 font-ui relative overflow-hidden">
+      <main className="min-h-screen bg-surface-1 text-white p-5 lg:p-8 font-ui relative overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[520px] h-[520px] rounded-full pointer-events-none opacity-[0.07]" style={{background:'#E3B24A',filter:'blur(200px)'}} />
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-8">
-          <h1 className="font-display text-4xl text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
-          <span className="text-zinc-500 text-[11px] font-normal tracking-[0.2em]">by NEN</span>
+          <h1 className="font-display text-display text-brand-cast-text uppercase tracking-tighter">CAST</h1>
+          <span className="text-zinc-500 text-mini font-normal tracking-[0.2em]">by NEN</span>
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto">
           {/* 탑 바 */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8 border-b border-white/10 pb-6">
             <div className="flex items-center gap-3">
-              <button onClick={() => router.push('/roster/dashboard')} className="text-zinc-500 hover:text-white text-[11px] font-bold transition-colors">← {t('대시보드', 'Dashboard')}</button>
+              <button onClick={() => router.push('/roster/dashboard')} className="text-zinc-500 hover:text-white text-mini font-bold transition-colors">← {t('대시보드', 'Dashboard')}</button>
               <span className="text-zinc-700">|</span>
-              <h2 className="text-white font-black text-[20px]">Artists</h2>
-              <span className="text-zinc-600 text-[12px]">{artists.length}{t('명', '')}</span>
+              <h2 className="text-white font-black text-sub">Artists</h2>
+              <span className="text-zinc-600 text-mini">{artists.length}{t('명', '')}</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              <LangToggle className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-[11px] font-bold hover:text-white transition-all" />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('이름 검색...', 'Search name...')} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[12px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white w-36" />
-              <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[12px] outline-none text-zinc-300">
+              <LangToggle className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-mini font-bold hover:text-white transition" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('이름 검색...', 'Search name...')} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-mini outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white w-36" />
+              <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-mini outline-none text-zinc-300">
                 <option value="" className="bg-zinc-900">{t('전체 역할', 'All roles')}</option>
                 {ROLES.map(r => <option key={r} value={r} className="bg-zinc-900">{r}</option>)}
               </select>
@@ -248,20 +248,20 @@ export default function ArtistsPage() {
               <div className="flex gap-1">
                 {([['role', 'Role'], ['name', 'Name'], ['recent', 'Recent'], ['gender', 'Gender']] as const).map(([val, label]) => (
                   <button key={val} onClick={() => setSortBy(val)}
-                    className={`px-3 py-2 rounded-xl text-[11px] font-bold border transition-all ${sortBy === val ? 'border-[#E3B24A]/50 bg-[#E3B24A]/20 text-[#E3B24A]' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}>
+                    className={`px-3 py-2 rounded-xl text-mini font-bold border transition ${sortBy === val ? 'border-brand-cast/50 bg-brand-cast/20 text-brand-cast-text' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}>
                     {label}
                   </button>
                 ))}
               </div>
-              <button onClick={openCreate} className="bg-[#E3B24A] text-white px-5 py-2 rounded-xl font-semibold text-[11px] hover:opacity-90 transition-all">+ {t('추가', 'Add')}</button>
+              <button onClick={openCreate} className="bg-brand-cast text-white px-5 py-2 rounded-xl font-semibold text-mini hover:opacity-90 transition">+ {t('추가', 'Add')}</button>
             </div>
           </div>
 
           {/* Role별 그룹 */}
           {filtered.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-zinc-700 text-[13px]">{t('아티스트가 없어요', 'No artists yet')}</p>
-              <button onClick={openCreate} className="mt-4 text-[#E3B24A] text-[12px] font-bold hover:underline">+ {t('첫 아티스트 추가', 'Add your first artist')}</button>
+              <p className="text-zinc-700 text-body">{t('아티스트가 없어요', 'No artists yet')}</p>
+              <button onClick={openCreate} className="mt-4 text-brand-cast-text text-mini font-bold hover:underline">+ {t('첫 아티스트 추가', 'Add your first artist')}</button>
             </div>
           ) : (
             <div className="flex flex-col gap-10">
@@ -271,8 +271,8 @@ export default function ArtistsPage() {
                   {role && (
                     <div className="flex items-center gap-3 mb-4">
                       <div className="h-[1px] w-4" style={{ backgroundColor: ROLE_COLORS[role] + '60' }} />
-                      <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: ROLE_COLORS[role] }}>{role}</span>
-                      <span className="text-zinc-700 text-[11px]">{roleArtists.length}</span>
+                      <span className="text-mini font-black uppercase tracking-widest" style={{ color: ROLE_COLORS[role] }}>{role}</span>
+                      <span className="text-zinc-700 text-mini">{roleArtists.length}</span>
                       <div className="h-[1px] flex-1" style={{ backgroundColor: ROLE_COLORS[role] + '20' }} />
                     </div>
                   )}
@@ -283,27 +283,27 @@ export default function ArtistsPage() {
                       <div
                         key={artist.id}
                         id={`card-${artist.id}`}
-                        className="bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden shadow-xl cursor-pointer hover:border-white/15 transition-all group"
-                        onClick={() => setViewingArtist(artist)}
+                        className="bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden shadow-xl cursor-pointer hover:border-white/15 transition group"
+                        {...pressable(() => setViewingArtist(artist))}
                       >
                         {/* 사진 */}
                         <div className="relative h-24 bg-white/5 overflow-hidden">
                           {artist.photo_url ? (
-                            <img src={artist.photo_url} alt={artist.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" crossOrigin="anonymous" />
+                            <img loading="lazy" decoding="async" src={artist.photo_url} alt={artist.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" crossOrigin="anonymous" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-3xl opacity-20">👤</span>
+                              <span className="text-display opacity-20">👤</span>
                             </div>
                           )}
                           <div className="absolute top-2 left-2">
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest" style={{ backgroundColor: (ROLE_COLORS[artist.role] || '#6B7280') + '30', color: ROLE_COLORS[artist.role] || '#6B7280', border: `1px solid ${(ROLE_COLORS[artist.role] || '#6B7280')}50` }}>
+                            <span className="px-2 py-0.5 rounded-full text-micro font-black uppercase tracking-widest" style={{ backgroundColor: (ROLE_COLORS[artist.role] || '#6B7280') + '30', color: ROLE_COLORS[artist.role] || '#6B7280', border: `1px solid ${(ROLE_COLORS[artist.role] || '#6B7280')}50` }}>
                               {artist.role}
                             </span>
                           </div>
                           {/* 로스터 추가 버튼 */}
                           <button
                             onClick={(e) => { e.stopPropagation(); setAddToRosterArtist(artist); setRosterRole(ROSTER_ROLES.includes(artist.role) ? artist.role : 'Producer'); }}
-                            className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white text-[9px] font-black flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all hover:bg-[#E3B24A]/60 hover:border-[#E3B24A]/50"
+                            className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white text-micro font-black flex items-center gap-1 opacity-0 group-hover:opacity-100 transition hover:bg-brand-cast/60 hover:border-brand-cast/50"
                           >
                             + {t('로스터', 'Roster')}
                           </button>
@@ -313,18 +313,18 @@ export default function ArtistsPage() {
                         <div className="p-3">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <h3 className="text-white font-black text-[13px] truncate">{artist.name}</h3>
+                              <h3 className="text-white font-black text-body truncate">{artist.name}</h3>
                               <div className="flex items-center gap-1 mt-0.5">
-                                {artist.nationality && <span className="text-zinc-500 text-[9px]">{artist.nationality}</span>}
+                                {artist.nationality && <span className="text-zinc-500 text-micro">{artist.nationality}</span>}
                                 <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: artist.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={artist.gender === 'female' ? 'F' : 'M'} />
                               </div>
                             </div>
                           </div>
-                          {artist.bio && <p className="text-zinc-600 text-[9px] leading-relaxed line-clamp-1 mb-1">{artist.bio}</p>}
+                          {artist.bio && <p className="text-zinc-600 text-micro leading-relaxed line-clamp-1 mb-1">{artist.bio}</p>}
                           {artist.links?.length > 0 && (
                             <div className="flex gap-1.5">
                               {artist.links.slice(0, 4).map((link: string, i: number) => (
-                                <a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[11px] hover:scale-110 transition-transform">{getLinkIcon(link)}</a>
+                                <a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-mini hover:scale-110 transition-transform">{getLinkIcon(link)}</a>
                               ))}
                             </div>
                           )}
@@ -342,25 +342,25 @@ export default function ArtistsPage() {
       {/* 아티스트 상세 모달 */}
       {viewingArtist && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={() => setViewingArtist(null)}>
-          <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-md bg-surface-0 border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="relative h-56 bg-white/5">
               {viewingArtist.photo_url ? (
-                <img src={viewingArtist.photo_url} alt={viewingArtist.name} className="w-full h-full object-cover" />
+                <img loading="lazy" decoding="async" src={viewingArtist.photo_url} alt={viewingArtist.name} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><span className="text-6xl opacity-20">👤</span></div>
+                <div className="w-full h-full flex items-center justify-center"><span className="text-display opacity-20">👤</span></div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-5">
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest" style={{ backgroundColor: (ROLE_COLORS[viewingArtist.role] || '#6B7280') + '30', color: ROLE_COLORS[viewingArtist.role] || '#6B7280', border: `1px solid ${(ROLE_COLORS[viewingArtist.role] || '#6B7280')}50` }}>{viewingArtist.role}</span>
+                <span className="px-2 py-0.5 rounded-full text-micro font-black uppercase tracking-widest" style={{ backgroundColor: (ROLE_COLORS[viewingArtist.role] || '#6B7280') + '30', color: ROLE_COLORS[viewingArtist.role] || '#6B7280', border: `1px solid ${(ROLE_COLORS[viewingArtist.role] || '#6B7280')}50` }}>{viewingArtist.role}</span>
               </div>
             </div>
 
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-white font-black text-[22px]">{viewingArtist.name}</h2>
+                  <h2 className="text-white font-black text-title">{viewingArtist.name}</h2>
                   <div className="flex items-center gap-2 mt-1">
-                    {viewingArtist.nationality && <span className="text-zinc-500 text-[12px]">🌏 {viewingArtist.nationality}</span>}
+                    {viewingArtist.nationality && <span className="text-zinc-500 text-mini">🌏 {viewingArtist.nationality}</span>}
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: viewingArtist.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={viewingArtist.gender === 'female' ? 'F' : 'M'} />
                   </div>
                 </div>
@@ -368,26 +368,26 @@ export default function ArtistsPage() {
 
               {viewingArtist.bio && (
                 <div className="mb-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-1">Bio</p>
-                  <p className="text-zinc-300 text-[13px] leading-relaxed">{viewingArtist.bio}</p>
+                  <p className="text-micro font-black uppercase tracking-widest text-zinc-600 mb-1">Bio</p>
+                  <p className="text-zinc-300 text-body leading-relaxed">{viewingArtist.bio}</p>
                 </div>
               )}
 
               {viewingArtist.email && (
                 <div className="mb-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-1">Contact</p>
-                  <a href={`mailto:${viewingArtist.email}`} className="text-zinc-300 text-[13px] hover:text-white transition-colors">{viewingArtist.email}</a>
+                  <p className="text-micro font-black uppercase tracking-widest text-zinc-600 mb-1">Contact</p>
+                  <a href={`mailto:${viewingArtist.email}`} className="text-zinc-300 text-body hover:text-white transition-colors">{viewingArtist.email}</a>
                 </div>
               )}
 
               {viewingArtist.links?.length > 0 && (
                 <div className="mb-5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-2">Links</p>
+                  <p className="text-micro font-black uppercase tracking-widest text-zinc-600 mb-2">Links</p>
                   <div className="flex flex-col gap-1.5">
                     {viewingArtist.links.map((link: string, i: number) => (
-                      <a key={i} href={link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                        <span className="text-[13px]">{getLinkIcon(link)}</span>
-                        <span className="text-zinc-300 text-[11px] truncate">{link.replace('https://', '').split('/').slice(0, 2).join('/')}</span>
+                      <a key={i} href={link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                        <span className="text-body">{getLinkIcon(link)}</span>
+                        <span className="text-zinc-300 text-mini truncate">{link.replace('https://', '').split('/').slice(0, 2).join('/')}</span>
                       </a>
                     ))}
                   </div>
@@ -395,12 +395,12 @@ export default function ArtistsPage() {
               )}
 
               <div className="flex gap-2">
-                <button onClick={() => { setViewingArtist(null); openEdit(viewingArtist); }} className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-[12px] hover:bg-white/10 transition-all">{t('수정', 'Edit')}</button>
+                <button onClick={() => { setViewingArtist(null); openEdit(viewingArtist); }} className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-mini hover:bg-white/10 transition">{t('수정', 'Edit')}</button>
                 <button
                   onClick={() => { setViewingArtist(null); setAddToRosterArtist(viewingArtist); setRosterRole(ROSTER_ROLES.includes(viewingArtist.role) ? viewingArtist.role : 'Producer'); }}
-                  className="flex-1 py-2.5 rounded-xl bg-[#E3B24A]/20 border border-[#E3B24A]/30 text-[#E3B24A] font-bold text-[12px] hover:bg-[#E3B24A]/30 transition-all">+ {t('로스터', 'Roster')}</button>
-                <button onClick={() => { if (confirm(t(`"${viewingArtist.name}"을 삭제할까요?`, `Delete "${viewingArtist.name}"?`))) deleteArtist(viewingArtist.id); }} className="py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-[12px] hover:bg-red-500/20 transition-all">{t('삭제', 'Delete')}</button>
-                <button onClick={() => setViewingArtist(null)} className="py-2.5 px-4 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">{t('닫기', 'Close')}</button>
+                  className="flex-1 py-2.5 rounded-xl bg-brand-cast/20 border border-brand-cast/30 text-brand-cast-text font-bold text-mini hover:bg-brand-cast/30 transition">+ {t('로스터', 'Roster')}</button>
+                <button onClick={() => { if (confirm(t(`"${viewingArtist.name}"을 삭제할까요?`, `Delete "${viewingArtist.name}"?`))) deleteArtist(viewingArtist.id); }} className="py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-mini hover:bg-red-500/20 transition">{t('삭제', 'Delete')}</button>
+                <button onClick={() => setViewingArtist(null)} className="py-2.5 px-4 rounded-xl border border-white/10 text-zinc-500 font-bold text-mini hover:text-white transition">{t('닫기', 'Close')}</button>
               </div>
             </div>
           </div>
@@ -410,21 +410,21 @@ export default function ArtistsPage() {
       {/* 로스터 추가 모달 */}
       {addToRosterArtist && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={() => setAddToRosterArtist(null)}>
-          <div className="w-full max-w-sm bg-[#111] border border-white/10 rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h2 className="text-white font-black text-[16px] mb-1">{addToRosterArtist.name}</h2>
-            <p className="text-zinc-500 text-[12px] mb-5">{t('로스터에 추가할 프로젝트를 선택하세요', 'Pick a roster to add to')}</p>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-sm bg-[#111] border border-white/10 rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h2 className="text-white font-black text-lead mb-1">{addToRosterArtist.name}</h2>
+            <p className="text-zinc-500 text-mini mb-5">{t('로스터에 추가할 프로젝트를 선택하세요', 'Pick a roster to add to')}</p>
 
             <div className="flex flex-col gap-3 mb-5">
               {/* 프로젝트 선택 */}
               <div>
-                <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">{t('프로젝트', 'Project')}</label>
+                <label className="text-zinc-500 text-micro font-black uppercase tracking-widest mb-1.5 block">{t('프로젝트', 'Project')}</label>
                 {projects.length === 0 ? (
-                  <p className="text-zinc-600 text-[12px]">{t('로스터가 없어요. 대시보드에서 먼저 만들어주세요.', 'No rosters yet. Create one in the dashboard first.')}</p>
+                  <p className="text-zinc-600 text-mini">{t('로스터가 없어요. 대시보드에서 먼저 만들어주세요.', 'No rosters yet. Create one in the dashboard first.')}</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {projects.map(p => (
                       <button key={p} onClick={() => setSelectedProject(p)}
-                        className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${selectedProject === p ? 'border-[#E3B24A]/50 bg-[#E3B24A]/20 text-[#E3B24A]' : 'border-white/10 bg-white/5 text-zinc-400 hover:text-white'}`}>
+                        className={`px-3 py-1.5 rounded-full text-mini font-bold border transition ${selectedProject === p ? 'border-brand-cast/50 bg-brand-cast/20 text-brand-cast-text' : 'border-white/10 bg-white/5 text-zinc-400 hover:text-white'}`}>
                         {p}
                       </button>
                     ))}
@@ -435,8 +435,8 @@ export default function ArtistsPage() {
               {/* Role 선택 (아티스트 role이 로스터 role이 아닌 경우) */}
               {!ROSTER_ROLES.includes(addToRosterArtist.role) && (
                 <div>
-                  <label className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1.5 block">{t('로스터 역할', 'Roster role')}</label>
-                  <select value={rosterRole} onChange={e => setRosterRole(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[13px] outline-none text-zinc-300">
+                  <label className="text-zinc-500 text-micro font-black uppercase tracking-widest mb-1.5 block">{t('로스터 역할', 'Roster role')}</label>
+                  <select value={rosterRole} onChange={e => setRosterRole(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-body outline-none text-zinc-300">
                     {ROSTER_ROLES.map(r => <option key={r} value={r} className="bg-zinc-900">{r}</option>)}
                   </select>
                 </div>
@@ -444,8 +444,8 @@ export default function ArtistsPage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setAddToRosterArtist(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">{t('취소', 'Cancel')}</button>
-              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-xl bg-[#E3B24A] text-white font-semibold text-[12px] hover:opacity-90 transition-all disabled:opacity-40">{t('추가', 'Add')}</button>
+              <button onClick={() => setAddToRosterArtist(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-mini hover:text-white transition">{t('취소', 'Cancel')}</button>
+              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-xl bg-brand-cast text-white font-semibold text-mini hover:opacity-90 transition disabled:opacity-40">{t('추가', 'Add')}</button>
             </div>
           </div>
         </div>
@@ -456,48 +456,48 @@ export default function ArtistsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto">
           <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl shadow-2xl my-4">
             <div className="p-6">
-              <h2 className="text-white font-black text-[16px] mb-5">{editingArtist ? t('아티스트 수정', 'Edit artist') : t('아티스트 추가', 'Add artist')}</h2>
+              <h2 className="text-white font-black text-lead mb-5">{editingArtist ? t('아티스트 수정', 'Edit artist') : t('아티스트 추가', 'Add artist')}</h2>
 
               <div className="mb-5 flex flex-col items-center">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/5 border border-white/10 mb-3 flex items-center justify-center cursor-pointer hover:border-white/30 transition-all" onClick={() => fileInputRef.current?.click()}>
-                  {form.photo_url ? <img src={form.photo_url} alt="preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <span className="text-3xl opacity-30">📷</span>}
+                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/5 border border-white/10 mb-3 flex items-center justify-center cursor-pointer hover:border-white/30 transition" {...pressable(() => fileInputRef.current?.click())}>
+                  {form.photo_url ? <img loading="lazy" decoding="async" src={form.photo_url} alt="preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <span className="text-display opacity-30">📷</span>}
                 </div>
-                <button onClick={() => fileInputRef.current?.click()} className="text-zinc-500 text-[11px] font-bold hover:text-white transition-colors">{uploading ? t('업로드 중...', 'Uploading…') : t('사진 선택', 'Choose photo')}</button>
+                <button onClick={() => fileInputRef.current?.click()} className="text-zinc-500 text-mini font-bold hover:text-white transition-colors">{uploading ? t('업로드 중...', 'Uploading…') : t('사진 선택', 'Choose photo')}</button>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); }} />
               </div>
 
               <div className="flex flex-col gap-3">
-                <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder={t('이름 *', 'Name *')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
+                <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder={t('이름 *', 'Name *')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-body outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white" />
 
                 <div className="grid grid-cols-2 gap-3">
-                  <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none text-zinc-300">
+                  <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-body outline-none text-zinc-300">
                     {ROLES.map(r => <option key={r} value={r} className="bg-zinc-900">{r}</option>)}
                   </select>
-                  <select value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none text-zinc-300">
+                  <select value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-body outline-none text-zinc-300">
                     <option value="male" className="bg-zinc-900">Male</option>
                     <option value="female" className="bg-zinc-900">Female</option>
                   </select>
                 </div>
 
-                <input value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))} placeholder={t('국적 (예: Korean, Japanese)', 'Nationality (e.g. Korean, Japanese)')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
-                <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} placeholder={t('이력/소개', 'Bio')} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white resize-none" />
-                <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder={t('이메일 연락처', 'Contact email')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[13px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
+                <input value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))} placeholder={t('국적 (예: Korean, Japanese)', 'Nationality (e.g. Korean, Japanese)')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-body outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white" />
+                <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} placeholder={t('이력/소개', 'Bio')} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-body outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white resize-none" />
+                <input type="email" autoComplete="off" spellCheck={false} value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder={t('이메일 연락처', 'Contact email')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-body outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white" />
 
                 <div>
-                  <label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-2 block">{t('링크', 'Links')}</label>
+                  <label className="text-zinc-500 text-micro font-bold uppercase tracking-widest mb-2 block">{t('링크', 'Links')}</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {QUICK_LINKS.map(({ label, prefix }) => (
-                      <button key={prefix} onClick={() => setNewLink(prefix)} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-[10px] font-bold hover:text-white hover:bg-white/10 transition-all">{label}</button>
+                      <button key={prefix} onClick={() => setNewLink(prefix)} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-micro font-bold hover:text-white hover:bg-white/10 transition">{label}</button>
                     ))}
                   </div>
                   <div className="flex gap-2 mb-2">
-                    <input value={newLink} onChange={e => setNewLink(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} placeholder="https://..." className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[12px] outline-none focus:border-white/30 transition-all placeholder:text-zinc-600 text-white" />
-                    <button onClick={() => { if (newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} className="px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white font-black text-[11px] hover:bg-white/20 transition-all">{t('추가', 'Add')}</button>
+                    <input value={newLink} onChange={e => setNewLink(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} placeholder="https://..." className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-mini outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white" />
+                    <button onClick={() => { if (newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} className="px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white font-black text-mini hover:bg-white/20 transition">{t('추가', 'Add')}</button>
                   </div>
                   {form.links.map((link, i) => (
                     <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 mb-1">
-                      <span className="text-[11px]">{getLinkIcon(link)}</span>
-                      <span className="text-zinc-400 text-[11px] truncate flex-1">{link}</span>
+                      <span className="text-mini">{getLinkIcon(link)}</span>
+                      <span className="text-zinc-400 text-mini truncate flex-1">{link}</span>
                       <button onClick={() => setForm(p => ({ ...p, links: p.links.filter((_, idx) => idx !== i) }))} className="text-zinc-600 hover:text-red-500">×</button>
                     </div>
                   ))}
@@ -505,8 +505,8 @@ export default function ArtistsPage() {
               </div>
 
               <div className="flex gap-3 mt-5">
-                <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-[12px] hover:text-white transition-all">{t('취소', 'Cancel')}</button>
-                <button onClick={saveArtist} className="flex-1 py-3 rounded-xl bg-[#E3B24A] text-white font-semibold text-[12px] hover:opacity-90 transition-all">{t('저장', 'Save')}</button>
+                <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-mini hover:text-white transition">{t('취소', 'Cancel')}</button>
+                <button onClick={saveArtist} className="flex-1 py-3 rounded-xl bg-brand-cast text-white font-semibold text-mini hover:opacity-90 transition">{t('저장', 'Save')}</button>
               </div>
             </div>
           </div>
@@ -514,7 +514,7 @@ export default function ArtistsPage() {
       )}
 
       {showToast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-ui">{toastMsg}</div>
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl font-ui">{toastMsg}</div>
       )}
     </>
   );

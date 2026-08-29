@@ -1,15 +1,30 @@
 @import "tailwindcss";
 
+/* ── 색 토큰 ──────────────────────────────────────────────────────────────
+   hex를 화면에 직접 박지 말고 여기(또는 lib/brand.ts)를 거친다.
+   제품색은 배경용 base / 그 위 글자색 on / 다크배경 텍스트용 on-dark 3종으로 나뉜다.
+   이유는 lib/brand.ts 주석 참고 — 골드·틸 위 흰 글씨는 대비 2 미만이라 실패한다. */
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --brand-lead: #7c5ae8;
+  --brand-lead-on-dark: #a78bfa;   /* #0a0a0a 위 대비 7.3 */
+  --brand-lead-hover: #6a48d6;
+  --brand-cast: #e3b24a;
+  --brand-split: #2fb6a3;
+
+  /* 텍스트로 쓸 때의 제품색 — 테마마다 다르다.
+     라이트 배경에서 원색을 그대로 쓰면 대비가 무너진다(골드 1.9, 틸 2.5, 보라 3.6).
+     아래 두 블록이 테마별로 갈라 주므로 화면 코드는 text-brand-*-text 하나만 쓰면 된다.
+     측정: 라이트 5.0~6.0 / 다크 7.3~10.1. */
+  --brand-lead-text: #6a48d6;
+  --brand-cast-text: #8a6a18;
+  --brand-split-text: #1e7a6d;
+
+  --surface-0: #0a0a0a;
+  --surface-1: #141416;
+  --surface-2: #1e1e1e;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -18,6 +33,44 @@
     --foreground: #ededed;
   }
 }
+
+/* 앱의 실제 테마는 localStorage(lead_theme) → <html data-theme>가 정한다 */
+html[data-theme="dark"] {
+  --brand-lead-text: #a78bfa;
+  --brand-cast-text: #e3b24a;
+  --brand-split-text: #2fb6a3;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-brand-lead: var(--brand-lead);
+  --color-brand-lead-on-dark: var(--brand-lead-on-dark);
+  --color-brand-cast: var(--brand-cast);
+  --color-brand-split: var(--brand-split);
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-brand-lead-text: var(--brand-lead-text);
+  --color-brand-cast-text: var(--brand-cast-text);
+  --color-brand-split-text: var(--brand-split-text);
+
+  /* ── 타입 스케일 (7단계, 이것 말고는 쓰지 않는다) ──
+     text-micro … text-display 로 쓴다. 임의 px(text-[13px])을 새로 만들지 말 것.
+     display는 clamp — 워드마크가 좁은 화면에서 잘리던 문제의 근본 수정이다. */
+  --text-micro: 10px;
+  --text-mini: 12px;
+  --text-body: 14px;
+  --text-lead: 16px;
+  --text-sub: 18px;
+  --text-title: 24px;
+}
+
+/* display·hero는 clamp라 @theme 변수로는 안 들어간다(값 안의 쉼표를 파서가 끊는다).
+   유틸리티로 직접 정의한다 — 워드마크가 좁은 화면에서 잘리던 문제의 근본 수정. */
+@utility text-display { font-size: clamp(1.75rem, 7vw, 2.5rem); }
+@utility text-hero    { font-size: clamp(2.5rem, 9vw, 4.5rem); }
 
 body {
   background: var(--background);
@@ -52,12 +105,28 @@ body {
   font-feature-settings: "tnum" 1;
 }
 
+/* 숫자 비교·정렬이 걸린 표/카운터용 */
+.tabular { font-variant-numeric: tabular-nums; }
+
 /* ── 프리미엄 글로벌 레이어 ── */
 html { scroll-behavior: smooth; }
 
+/* 앱은 다크 우선 — 네이티브 스크롤바·select·입력창이 테마와 따로 놀지 않게 한다.
+   라이트로 바꾼 사용자는 lib/theme.tsx가 <html data-theme="light">를 찍어 덮어쓴다. */
+html { color-scheme: dark; }
+html[data-theme="light"] { color-scheme: light; }
+
 * { -webkit-tap-highlight-color: transparent; }
 
-/* 부드러운 상호작용 (전역, 가벼움) */
+/* 더블탭 확대 지연 제거 */
+button, a, [role="button"], input, select, textarea, label { touch-action: manipulation; }
+
+/* 노치·홈인디케이터 안전영역 */
+.safe-b { padding-bottom: env(safe-area-inset-bottom); }
+.safe-t { padding-top: env(safe-area-inset-top); }
+.safe-x { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+
+/* 부드러운 상호작용 (전역, 가벼움) — transition: all 은 쓰지 않는다 */
 button, a, input, textarea, select, [role="button"] {
   transition: background-color .18s ease, border-color .18s ease, color .18s ease,
               box-shadow .18s ease, transform .18s ease, opacity .18s ease;
@@ -111,6 +180,7 @@ audio { border-radius: 10px; }
 
 /* 모션 줄이기 설정 존중 — 배경 오브(orb-pulse) 같은 무한 애니메이션까지 정지 */
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   *, *::before, *::after {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
@@ -122,3 +192,15 @@ audio { border-radius: 10px; }
 /* 모달/시트 안에서 스크롤이 뒤 페이지로 새지 않게 */
 .overscroll-contain-y { overscroll-behavior-y: contain; }
 [class*="fixed inset-0"] > * { overscroll-behavior: contain; }
+
+/* 긴 리스트 행 — 화면 밖은 브라우저가 렌더를 건너뛴다.
+   react-window 같은 의존성 없이 얻는 가상화 이득의 대부분. 스크롤바 길이·Ctrl+F·
+   앵커 이동이 전부 그대로 동작한다는 게 JS 가상화 대비 이점.
+   ponytail: content-visibility. 행이 수천 개로 늘고도 느리면 그때 진짜 가상화. */
+.cv-row { content-visibility: auto; contain-intrinsic-size: auto 84px; }
+
+/* 스크린리더 전용 — 시각적으로 숨기되 접근성 트리에는 남긴다 */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
+}

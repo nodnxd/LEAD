@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import EscapeToClose from "@/components/EscapeToClose";
 
 // 폰트는 next/font 대신 Google Fonts 링크 한 줄로.
 // next/font는 이 한글 폰트들의 korean 서브셋을 안 받아와서 한글이 시스템 폰트로 떨어짐.
@@ -44,14 +45,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="h-full antialiased">
+    <html lang="ko" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* 아이콘 웹폰트도 외부 오리진 — 연결을 미리 열어둔다 */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="" />
         <link rel="stylesheet" href={FONTS} />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
+        {/* 페인트 전에 테마를 확정한다 — 안 그러면 라이트 사용자에게 다크가 한 번 번쩍인다.
+            globals.css의 color-scheme이 이 속성을 보고 네이티브 스크롤바·입력창을 맞춘다.
+            next/script의 beforeInteractive는 이 자리에서 SSR HTML에 인라인되지 않아(플라이트
+            페이로드로만 나감) 플래시를 못 막는다 — 서버 컴포넌트의 생 <script>여야 한다. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{document.documentElement.dataset.theme=localStorage.getItem('lead_theme')==='light'?'light':'dark'}catch(e){document.documentElement.dataset.theme='dark'}`,
+          }}
+        />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <EscapeToClose />
+        {children}
+      </body>
     </html>
   );
 }

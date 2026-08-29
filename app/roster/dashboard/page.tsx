@@ -1,4 +1,7 @@
 'use client';
+import { fmtDate } from '@/lib/format';
+import Link from 'next/link';
+import { pressable } from '@/lib/a11y';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
@@ -178,8 +181,8 @@ type Theme = 'dark' | 'light';
 const Modal = ({ title, message, children, theme }: any) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui">
     <div className={`w-full max-w-sm mx-4 border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
-      {title && <h2 className={`font-black text-[16px] mb-2 ${theme === 'light' ? 'text-black' : 'text-white'}`}>{title}</h2>}
-      {message && <p className={`text-[14px] mb-5 leading-relaxed whitespace-pre-line ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>{message}</p>}
+      {title && <h2 className={`font-black text-lead mb-2 ${theme === 'light' ? 'text-black' : 'text-white'}`}>{title}</h2>}
+      {message && <p className={`text-body mb-5 leading-relaxed whitespace-pre-line ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>{message}</p>}
       {children}
     </div>
   </div>
@@ -1487,7 +1490,7 @@ export default function Dashboard() {
     track(3); x.font = sans('600', 14); x.fillStyle = '#5A5A5E';
     x.fillText('everplayground@gmail.com', PAD, H - PAD - 12);
     x.textAlign = 'right'; x.fillStyle = '#E3B24A';
-    x.fillText(new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US'), W - PAD, H - PAD - 12);
+    x.fillText(fmtDate(Date.now()), W - PAD, H - PAD - 12);
     x.textAlign = 'left'; track(0);
     return cv;
   };
@@ -1518,8 +1521,8 @@ export default function Dashboard() {
   }
 
   // ── 스타일 ──────────────────────────────────────────
-  const bg = theme === 'light' ? 'bg-[#f5f5f5]' : 'bg-[#141414]';
-  const cardBg = theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]';
+  const bg = theme === 'light' ? 'bg-[#f5f5f5]' : 'bg-surface-1';
+  const cardBg = theme === 'light' ? 'bg-white border-black/10' : 'bg-surface-2 border-[rgba(255,255,255,0.08)]';
   const textMain = theme === 'light' ? 'text-black' : 'text-white';
   const textSub = theme === 'light' ? 'text-zinc-500' : 'text-zinc-400';
   const inputBg = theme === 'light' ? 'bg-black/5 border-black/10' : 'bg-white/5 border-white/10';
@@ -1527,9 +1530,9 @@ export default function Dashboard() {
 
   const getRoleCardStyle = (r: string, excluded: boolean) => {
     if (excluded) return theme === 'light' ? "border border-black/5 bg-black/[0.02] grayscale opacity-50" : "border border-white/5 bg-white/[0.01] grayscale opacity-60 backdrop-blur-sm";
-    const base = "border-l-[3px] backdrop-blur-md transition-all duration-150 ";
+    const base = "border-l-[3px] backdrop-blur-md transition duration-150 ";
     switch(r) {
-      case 'Producer': return base + "border-l-[#E3B24A] bg-gradient-to-r from-[#E3B24A]/[0.10] to-transparent hover:from-[#E3B24A]/[0.18]";
+      case 'Producer': return base + "border-l-brand-cast bg-gradient-to-r from-brand-cast/[0.10] to-transparent hover:from-brand-cast/[0.18]";
       case 'Topliner': return base + "border-l-[#5FA39A] bg-gradient-to-r from-[#5FA39A]/[0.10] to-transparent hover:from-[#5FA39A]/[0.18]";
       case 'Engineer': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent hover:from-[#C98BA0]/[0.18]";
       case 'A&R': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent hover:from-[#C98BA0]/[0.18]";
@@ -1538,9 +1541,9 @@ export default function Dashboard() {
   };
 
   const getAttendanceBadge = (attendance: string | null) => {
-    if (attendance === 'attending') return <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#77B18E]/20 text-[#77B18E] border border-[#77B18E]/30 shrink-0">{t.attending}</span>;
-    if (attendance === 'absent') return <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#9A8F8A]/20 text-[#9A8F8A] border border-[#9A8F8A]/30 shrink-0">{t.absent}</span>;
-    return votingOpen ? <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/10 shrink-0">{t.noResponse}</span> : null;
+    if (attendance === 'attending') return <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-[#77B18E]/20 text-[#77B18E] border border-[#77B18E]/30 shrink-0">{t.attending}</span>;
+    if (attendance === 'absent') return <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-[#9A8F8A]/20 text-[#9A8F8A] border border-[#9A8F8A]/30 shrink-0">{t.absent}</span>;
+    return votingOpen ? <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/10 shrink-0">{t.noResponse}</span> : null;
   };
 
   const getLinkIcon = (url: string) => {
@@ -1553,12 +1556,14 @@ export default function Dashboard() {
 
   const otherTeams = teams.filter(t => t !== 'Unassigned');
   const WD = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const fmtDate = (iso: string) => {
+  // 'YYYY-MM-DD' → '8/29(금)' 짧은 요일 라벨. 공용 fmtDate(ISO 타임스탬프용)와는 다른 물건이라
+  // 이름을 갈라둔다 — 예전엔 둘 다 fmtDate라 서로를 가렸다.
+  const fmtDayLabel = (iso: string) => {
     const [y, mo, dd] = iso.split('-').map(Number);
     const w = WD[new Date(y, mo - 1, dd).getDay()];
     return lang === 'ko' ? `${mo}/${dd}(${w})` : `${mo}/${dd} ${w}`;
   };
-  const getDayLabel = (d: number) => (dayDates[d] ? fmtDate(dayDates[d]) : (dayNames[d] || `Day ${d}`));
+  const getDayLabel = (d: number) => (dayDates[d] ? fmtDayLabel(dayDates[d]) : (dayNames[d] || `Day ${d}`));
 
   // ── 그 Day 날짜에 "불가능"이라 답한 멤버 판별 (가능일 투표 ↔ 배치 연결) ──
   const dayOfMonthFor = (day: number): number | null => {
@@ -1592,7 +1597,7 @@ export default function Dashboard() {
 
   if (!user) return (
     <div className={`min-h-screen ${bg} flex items-center justify-center`}>
-      <div className="text-zinc-400 text-[12px] font-black tracking-widest uppercase">{t.loading}</div>
+      <div className="text-zinc-400 text-mini font-black tracking-widest uppercase">{t.loading}</div>
     </div>
   );
 
@@ -1604,10 +1609,10 @@ export default function Dashboard() {
 
           {/* 헤더 */}
           <ProductHeader product="cast" dark={theme === 'dark'} className="mb-8" right={<>
-            <button onClick={toggleLang} className={`h-8 px-2.5 rounded-lg font-bold text-[12px] border transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
-            <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg font-bold text-[14px] border flex items-center justify-center transition-all ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
-            <a href="/mypage" className={`px-3 py-1.5 rounded-lg border text-[10px] font-normal transition-all ${btnBg}`}>MY</a>
-            <button onClick={() => showConfirm(t.logout, lang === 'ko' ? '로그아웃 할까요?' : 'Sign out?', async () => { await supabase.auth.signOut(); router.push('/'); })} className={`px-3 py-1.5 rounded-lg border text-[10px] font-normal transition-all ${btnBg}`}>{t.logout}</button>
+            <button onClick={toggleLang} className={`h-8 px-2.5 rounded-lg font-bold text-mini border transition ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
+            <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg font-bold text-body border flex items-center justify-center transition ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
+            <Link href="/mypage" className={`px-3 py-1.5 rounded-lg border text-micro font-normal transition ${btnBg}`}>MY</Link>
+            <button onClick={() => showConfirm(t.logout, lang === 'ko' ? '로그아웃 할까요?' : 'Sign out?', async () => { await supabase.auth.signOut(); router.push('/'); })} className={`px-3 py-1.5 rounded-lg border text-micro font-normal transition ${btnBg}`}>{t.logout}</button>
           </>} />
 
           <DragDropContext onDragEnd={onDragEnd}>
@@ -1619,22 +1624,22 @@ export default function Dashboard() {
                     <Draggable key={p} draggableId={`proj-${p}`} index={index}>
                       {(provided) => (
                         <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
-                          className={`flex items-center rounded-full border transition-all overflow-hidden ${currentProject === p ? 'border-[#E3B24A]/50 bg-gradient-to-r from-[#E3B24A]/30 to-[#EFCF8E]/10 shadow-[0_0_20px_rgba(224,167,60,0.3)]' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
-                          <button onClick={() => setCurrentProject(p)} className={`px-4 py-1.5 font-bold text-[12px] tracking-widest uppercase transition-all ${currentProject === p ? textMain : textSub}`}>{p}</button>
+                          className={`flex items-center rounded-full border transition overflow-hidden ${currentProject === p ? 'border-brand-cast/50 bg-gradient-to-r from-brand-cast/30 to-[#EFCF8E]/10 shadow-[0_0_20px_rgba(224,167,60,0.3)]' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
+                          <button onClick={() => setCurrentProject(p)} className={`px-4 py-1.5 font-bold text-mini tracking-widest uppercase transition ${currentProject === p ? textMain : textSub}`}>{p}</button>
                           <button onClick={() => showConfirm(t.rosterDelete, t.rosterDeleteMsg(p), () => {
                             supabase.from('profiles').delete().eq('project', p).eq('user_id', user.id).then(async () => {
                               await supabase.from('roster_assignments').delete().eq('project', p).eq('user_id', user.id);
                               const next = projects.filter(proj => proj !== p); setProjects(next); await saveProjectOrder(user.id, next);
                               if (currentProject === p) setCurrentProject(next[0] || ''); setConfirmModal(null);
                             });
-                          })} className="pr-3 text-zinc-400 hover:text-red-500 text-[14px]">×</button>
+                          })} className="pr-3 text-zinc-400 hover:text-red-500 text-body">×</button>
                         </div>
                       )}
                     </Draggable>
                   ))}
                   {provided.placeholder}
                   <button onClick={() => showPrompt(t.newRoster, t.rosterNamePlaceholder, '', async (n) => { if (n) { const next = [...projects, n]; setProjects(next); await saveProjectOrder(user.id, next); setCurrentProject(n); } setPromptModal(null); })}
-                    className={`px-3 py-1.5 rounded-full font-bold text-[12px] border border-dashed hover:text-[#E3B24A] transition-all ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>+</button>
+                    className={`px-3 py-1.5 rounded-full font-bold text-mini border border-dashed hover:text-brand-cast-text transition ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>+</button>
                 </div>
               )}
             </Droppable>
@@ -1644,12 +1649,12 @@ export default function Dashboard() {
               {/* 1줄 */}
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <p className={`text-[16px] font-bold ${textSub}`}>{currentProject}</p>
+                  <p className={`text-lead font-bold ${textSub}`}>{currentProject}</p>
                   {votingOpen && (
                     <div className="flex items-center gap-2 ml-2">
-                      <span className="text-[10px] font-bold text-[#77B18E]">{t.attending} {attendingCount}</span>
-                      <span className="text-[10px] font-bold text-[#9A8F8A]">{t.absent} {absentCount}</span>
-                      <span className={`text-[10px] font-bold ${textSub}`}>{t.noResponse} {noResponseCount}</span>
+                      <span className="text-micro font-bold text-[#77B18E]">{t.attending} {attendingCount}</span>
+                      <span className="text-micro font-bold text-[#9A8F8A]">{t.absent} {absentCount}</span>
+                      <span className={`text-micro font-bold ${textSub}`}>{t.noResponse} {noResponseCount}</span>
                     </div>
                   )}
                 </div>
@@ -1660,39 +1665,39 @@ export default function Dashboard() {
                       onCompositionEnd={() => { isComposing.current = false; }}
                       onKeyDown={e => { if (e.key === 'Enter' && !isComposing.current) handleJoin(); }}
                       placeholder={t.namePlaceholder}
-                      className={`bg-transparent px-3 text-[12px] outline-none w-28 ${textMain}`} />
-                    <select value={role} onChange={e => setRole(e.target.value)} className={`bg-transparent text-[12px] font-bold outline-none px-1 ${textMain}`}>
+                      className={`bg-transparent px-3 text-mini outline-none w-28 ${textMain}`} />
+                    <select value={role} onChange={e => setRole(e.target.value)} className={`bg-transparent text-mini font-bold outline-none px-1 ${textMain}`}>
                       {ROLES.map(r => <option key={r} className={theme === 'light' ? 'bg-white' : 'bg-zinc-900'}>{r}</option>)}
                     </select>
-                    <select value={gender} onChange={e => setGender(e.target.value)} className={`bg-transparent text-[12px] font-bold outline-none px-1 ${textMain}`}>
+                    <select value={gender} onChange={e => setGender(e.target.value)} className={`bg-transparent text-mini font-bold outline-none px-1 ${textMain}`}>
                       <option value="male" className={theme === 'light' ? 'bg-white' : 'bg-zinc-900'}>M</option>
                       <option value="female" className={theme === 'light' ? 'bg-white' : 'bg-zinc-900'}>F</option>
                     </select>
-                    <button type="button" onClick={handleJoin} className={`px-3 py-1 rounded-md font-bold text-[12px] ${theme === 'light' ? 'bg-black text-white' : 'bg-white text-black'}`}>{t.join}</button>
+                    <button type="button" onClick={handleJoin} className={`px-3 py-1 rounded-md font-bold text-mini ${theme === 'light' ? 'bg-black text-white' : 'bg-white text-black'}`}>{t.join}</button>
                   </div>
                 </div>
               </div>
               {/* 2줄 — 자주 쓰는 것만 밖에, 나머지는 더보기 안에 */}
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <button onClick={addStudio} title={t.studioHint}
-                  className={`px-3.5 py-1.5 rounded-xl border font-bold text-[12px] transition-all text-[#E3B24A] ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
+                  className={`px-3.5 py-1.5 rounded-xl border font-bold text-mini transition text-brand-cast-text ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
                 {(votingOpen || availPoll) && (
                   <button onClick={() => votingOpen
                     ? showConfirm(t.voteClose, t.closeVoteConfirm, async () => { await closeVoting(); setConfirmModal(null); })
                     : (setAvailSelDay(null), setShowAvailModal(true))}
-                    className="px-4 py-1.5 rounded-xl font-bold text-[12px] transition-all border bg-[#E3B24A]/20 border-[#E3B24A]/40 text-[#EFCF8E] hover:bg-[#E3B24A]/30 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#E3B24A] animate-pulse" />
+                    className="px-4 py-1.5 rounded-xl font-bold text-mini transition border bg-brand-cast/20 border-brand-cast/40 text-[#EFCF8E] hover:bg-brand-cast/30 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-cast animate-pulse" />
                     {votingOpen ? t.voteClose : `${t.availOpen} ${t.availLive}`}
                   </button>
                 )}
-                <button onClick={copyShareLink} className={`px-4 py-1.5 rounded-xl border font-normal text-[12px] transition-all ${btnBg}`}>{t.share}</button>
+                <button onClick={copyShareLink} className={`px-4 py-1.5 rounded-xl border font-normal text-mini transition ${btnBg}`}>{t.share}</button>
                 <button onClick={() => setRandomModal(true)}
-                  className="bg-[#E3B24A] text-white px-5 py-1.5 rounded-xl font-normal text-[12px] hover:opacity-90 transition-all uppercase tracking-tighter">{t.random}</button>
+                  className="bg-brand-cast text-white px-5 py-1.5 rounded-xl font-normal text-mini hover:opacity-90 transition uppercase tracking-tighter">{t.random}</button>
 
                 {/* 더보기 */}
                 <div className="relative">
                   <button onClick={() => setMenuOpen(v => !v)} title={t.more}
-                    aria-label={t.more} aria-expanded={menuOpen} className={`px-3.5 py-1.5 rounded-xl border font-black text-[14px] leading-none transition-all ${menuOpen ? 'border-[#E3B24A]/50 text-[#E3B24A] bg-[#E3B24A]/10' : btnBg}`}>⋯</button>
+                    aria-label={t.more} aria-expanded={menuOpen} className={`px-3.5 py-1.5 rounded-xl border font-black text-body leading-none transition ${menuOpen ? 'border-brand-cast/50 text-brand-cast-text bg-brand-cast/10' : btnBg}`}>⋯</button>
                   {menuOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
@@ -1713,9 +1718,9 @@ export default function Dashboard() {
                           ? <div key={i} className={`h-px my-1 ${theme === 'light' ? 'bg-black/8' : 'bg-white/8'}`} />
                           : (
                             <button key={i} onClick={() => { setMenuOpen(false); (fn as () => void)(); }}
-                              className={`w-full text-left px-4 py-2.5 text-[12px] font-bold transition-all flex items-center justify-between gap-2
-                                ${active ? 'text-[#E3B24A]' : textMain} ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/5'}`}>
-                              {label}{active && <span className="w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
+                              className={`w-full text-left px-4 py-2.5 text-mini font-bold transition flex items-center justify-between gap-2
+                                ${active ? 'text-brand-cast-text' : textMain} ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/5'}`}>
+                              {label}{active && <span className="w-1.5 h-1.5 rounded-full bg-brand-cast" />}
                             </button>
                           ))}
                       </div>
@@ -1745,12 +1750,12 @@ export default function Dashboard() {
                     return (
                       <div key={i} className="flex items-center gap-1 shrink-0">
                         <button onClick={st.go}
-                          className={`flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full border text-[12px] font-bold transition-all
-                            ${isCur ? 'border-[#E3B24A]/60 bg-[#E3B24A]/12 text-[#E3B24A]'
+                          className={`flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full border text-mini font-bold transition
+                            ${isCur ? 'border-brand-cast/60 bg-brand-cast/12 text-brand-cast-text'
                               : st.done ? (theme === 'light' ? 'border-black/10 bg-black/[0.03] text-zinc-400' : 'border-white/10 bg-white/[0.03] text-zinc-400')
                               : (theme === 'light' ? 'border-black/8 text-zinc-400' : 'border-white/8 text-zinc-400')}`}>
-                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black shrink-0
-                            ${st.done ? 'bg-[#E3B24A] text-black' : isCur ? 'border border-[#E3B24A] text-[#E3B24A]' : theme === 'light' ? 'border border-black/15' : 'border border-white/15'}`}>
+                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-micro font-black shrink-0
+                            ${st.done ? 'bg-brand-cast text-black' : isCur ? 'border border-brand-cast text-brand-cast-text' : theme === 'light' ? 'border border-black/15' : 'border border-white/15'}`}>
                             {st.done ? '✓' : i + 1}
                           </span>
                           {st.label}
@@ -1767,48 +1772,48 @@ export default function Dashboard() {
             {/* Day 탭 */}
             <div className="relative z-10 flex items-center gap-2 mb-6">
               {days.map(d => (
-                <div key={d} className={`flex items-center rounded-full border overflow-hidden transition-all ${currentDay === d ? 'border-[#E3B24A]/50 bg-gradient-to-r from-[#E3B24A]/20 to-transparent' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
+                <div key={d} className={`flex items-center rounded-full border overflow-hidden transition ${currentDay === d ? 'border-brand-cast/50 bg-gradient-to-r from-brand-cast/20 to-transparent' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
                   {editingDayName === d ? (
                     <input autoFocus value={dayNameInput} onChange={e => setDayNameInput(e.target.value)}
                       onBlur={() => saveDayName(d, dayNameInput || `Day ${d}`)}
                       onKeyDown={e => { if (e.key === 'Enter') saveDayName(d, dayNameInput || `Day ${d}`); if (e.key === 'Escape') setEditingDayName(null); }}
-                      className="bg-transparent px-3 py-1.5 text-[12px] font-bold outline-none text-[#E3B24A] w-24" />
+                      className="bg-transparent px-3 py-1.5 text-mini font-bold outline-none text-brand-cast-text w-24" />
                   ) : (
                     <button onClick={() => setCurrentDay(d)} title={t.dayRenameHint}
                       onDoubleClick={() => { setEditingDayName(d); setDayNameInput(dayNames[d] || `Day ${d}`); }}
                       onContextMenu={(e) => { e.preventDefault(); setEditingDayName(d); setDayNameInput(dayNames[d] || `Day ${d}`); }}
-                      className={`px-4 py-1.5 font-bold text-[12px] transition-all ${currentDay === d ? 'text-[#E3B24A]' : textSub}`}>{getDayLabel(d)}</button>
+                      className={`px-4 py-1.5 font-bold text-mini transition ${currentDay === d ? 'text-brand-cast-text' : textSub}`}>{getDayLabel(d)}</button>
                   )}
-                  <label title={t.daySetDate} className={`relative px-1.5 cursor-pointer text-[12px] transition-all ${dayDates[d] ? 'text-[#E3B24A]' : 'text-zinc-400 hover:text-[#E3B24A]'}`}>
+                  <label title={t.daySetDate} className={`relative px-1.5 cursor-pointer text-mini transition ${dayDates[d] ? 'text-brand-cast-text' : 'text-zinc-400 hover:text-brand-cast-text'}`}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
                     <input type="date" aria-label={t.daySetDate} value={dayDates[d] || ''} onChange={e => saveDayDate(d, e.target.value)}
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
                   </label>
-                  {days.length > 1 && <button onClick={() => showConfirm(t.dayDelete(getDayLabel(d)), t.dayDeleteMsg(getDayLabel(d)), () => { removeDay(d); setConfirmModal(null); })} aria-label={t.dayDelete(getDayLabel(d))} className="pr-3 text-zinc-500 hover:text-red-500 text-[12px]">×</button>}
+                  {days.length > 1 && <button onClick={() => showConfirm(t.dayDelete(getDayLabel(d)), t.dayDeleteMsg(getDayLabel(d)), () => { removeDay(d); setConfirmModal(null); })} aria-label={t.dayDelete(getDayLabel(d))} className="pr-3 text-zinc-500 hover:text-red-500 text-mini">×</button>}
                 </div>
               ))}
-              <button onClick={addDay} className={`px-3 py-1.5 rounded-full font-bold text-[12px] border border-dashed hover:text-[#E3B24A] transition-all ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>{t.addDay}</button>
+              <button onClick={addDay} className={`px-3 py-1.5 rounded-full font-bold text-mini border border-dashed hover:text-brand-cast-text transition ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>{t.addDay}</button>
             </div>
 
             {/* 공지사항 */}
             {showNoticeBoard && (
               <div className={`relative z-10 mb-8 rounded-2xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-white/[0.03] border-white/10'}`}>
                 <div className="flex items-center justify-between mb-5">
-                  <p className={`font-black text-[16px] ${textMain}`}>📋 {t.noticeTitle}</p>
-                  <button onClick={() => { setNoticeTitle(''); setNoticeContent(''); setNoticeIsGlobal(false); setEditingNoticeId(null); setShowNoticeModal(true); }} className={`px-4 py-2 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.noticeAdd}</button>
+                  <p className={`font-black text-lead ${textMain}`}>📋 {t.noticeTitle}</p>
+                  <button onClick={() => { setNoticeTitle(''); setNoticeContent(''); setNoticeIsGlobal(false); setEditingNoticeId(null); setShowNoticeModal(true); }} className={`px-4 py-2 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.noticeAdd}</button>
                 </div>
-                {notices.length === 0 ? <p className={`text-[12px] ${textSub}`}>{t.noNotice}</p> : (
+                {notices.length === 0 ? <p className={`text-mini ${textSub}`}>{t.noNotice}</p> : (
                   <div className="flex flex-col gap-3">
                     {notices.map(n => (
-                      <div key={n.id} className={`flex items-start justify-between p-4 rounded-2xl border ${theme === 'light' ? 'border-black/10 bg-black/[0.02]' : 'border-white/10 bg-white/[0.02]'}`}>
+                      <div key={n.id} className={`cv-row flex items-start justify-between p-4 rounded-2xl border ${theme === 'light' ? 'border-black/10 bg-black/[0.02]' : 'border-white/10 bg-white/[0.02]'}`}>
                         <div className="flex-1">
-                          <p className={`font-bold text-[14px] mb-1 ${textMain}`}>{n.title}</p>
-                          {n.content && <p className={`text-[12px] leading-relaxed whitespace-pre-line ${textSub}`}>{n.content}</p>}
-                          <p className="text-zinc-400 text-[10px] mt-2">{new Date(n.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</p>
+                          <p className={`font-bold text-body mb-1 ${textMain}`}>{n.title}</p>
+                          {n.content && <p className={`text-mini leading-relaxed whitespace-pre-line ${textSub}`}>{n.content}</p>}
+                          <p className="text-zinc-400 text-micro mt-2">{fmtDate(n.created_at)}</p>
                         </div>
                         <div className="flex gap-2 ml-4 shrink-0">
-                          <button onClick={() => { setNoticeTitle(n.title); setNoticeContent(n.content || ''); setNoticeIsGlobal(n.is_global || false); setEditingNoticeId(n.id); setShowNoticeModal(true); }} className={`text-[12px] font-bold ${textSub}`}>{t.edit}</button>
-                          <button onClick={() => showConfirm(t.noticeDelete, t.noticeDeleteMsg(n.title), () => { supabase.from('notices').delete().eq('id', n.id).then(() => { fetchNotices(user); setConfirmModal(null); }); })} className="text-zinc-400 hover:text-red-500 text-[12px] font-bold">{t.delete}</button>
+                          <button onClick={() => { setNoticeTitle(n.title); setNoticeContent(n.content || ''); setNoticeIsGlobal(n.is_global || false); setEditingNoticeId(n.id); setShowNoticeModal(true); }} className={`text-mini font-bold ${textSub}`}>{t.edit}</button>
+                          <button onClick={() => showConfirm(t.noticeDelete, t.noticeDeleteMsg(n.title), () => { supabase.from('notices').delete().eq('id', n.id).then(() => { fetchNotices(user); setConfirmModal(null); }); })} className="text-zinc-400 hover:text-red-500 text-mini font-bold">{t.delete}</button>
                         </div>
                       </div>
                     ))}
@@ -1821,23 +1826,23 @@ export default function Dashboard() {
             {showSessionBoard && (
               <div className={`relative z-10 mb-8 rounded-2xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-white/[0.03] border-white/10'}`}>
                 <div className="flex items-center justify-between mb-5">
-                  <p className={`font-black text-[16px] ${textMain}`}>🗂 {t.history}</p>
-                  <button onClick={() => setShowSessionModal(true)} className={`px-4 py-2 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.saveSession}</button>
+                  <p className={`font-black text-lead ${textMain}`}>🗂 {t.history}</p>
+                  <button onClick={() => setShowSessionModal(true)} className={`px-4 py-2 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.saveSession}</button>
                 </div>
-                {Object.keys(sessionsByCamp).length === 0 ? <p className={`text-[12px] ${textSub}`}>{t.noSession}</p> : (
+                {Object.keys(sessionsByCamp).length === 0 ? <p className={`text-mini ${textSub}`}>{t.noSession}</p> : (
                   <div className="flex flex-col gap-4">
                     {Object.entries(sessionsByCamp).map(([campName, campSessions]: any) => (
                       <div key={campName}>
-                        <p className={`text-[12px] font-black uppercase tracking-widest mb-2 ${textSub}`}>{campName}</p>
+                        <p className={`text-mini font-black uppercase tracking-widest mb-2 ${textSub}`}>{campName}</p>
                         <div className="flex flex-col gap-2">
                           {campSessions.sort((a: any, b: any) => a.day_number - b.day_number).map((s: any) => (
                             <div key={s.id} className={`rounded-2xl border overflow-hidden ${theme === 'light' ? 'border-black/10 bg-black/[0.02]' : 'border-white/10 bg-white/[0.02]'}`}>
-                              <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setExpandedSession(expandedSession === s.id ? null : s.id)}>
-                                <div className="flex items-center gap-3"><span className="text-[#E3B24A] font-black text-[14px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
+                              <div className="flex items-center justify-between p-4 cursor-pointer" {...pressable(() => setExpandedSession(expandedSession === s.id ? null : s.id))}>
+                                <div className="flex items-center gap-3"><span className="text-brand-cast-text font-black text-body">Day {s.day_number}</span>{s.memo && <span className={`text-mini truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                                 <div className="flex items-center gap-3">
-                                  <span className="text-zinc-400 text-[10px]">{new Date(s.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</span>
-                                  <button onClick={(e) => { e.stopPropagation(); showConfirm(t.sessionDelete, t.sessionDeleteMsg(s.day_number), () => { supabase.from('sessions').delete().eq('id', s.id).then(() => { fetchSessions(user); setConfirmModal(null); }); }); }} aria-label={t.sessionDelete} className="text-zinc-500 hover:text-red-500 text-[12px]">×</button>
-                                  <span className="text-zinc-400 text-[10px]">{expandedSession === s.id ? '▲' : '▼'}</span>
+                                  <span className="text-zinc-400 text-micro">{fmtDate(s.created_at)}</span>
+                                  <button onClick={(e) => { e.stopPropagation(); showConfirm(t.sessionDelete, t.sessionDeleteMsg(s.day_number), () => { supabase.from('sessions').delete().eq('id', s.id).then(() => { fetchSessions(user); setConfirmModal(null); }); }); }} aria-label={t.sessionDelete} className="text-zinc-500 hover:text-red-500 text-mini">×</button>
+                                  <span className="text-zinc-400 text-micro">{expandedSession === s.id ? '▲' : '▼'}</span>
                                 </div>
                               </div>
                               {expandedSession === s.id && s.roster && (
@@ -1860,11 +1865,11 @@ export default function Dashboard() {
                                       setConfirmModal(null);
                                       showToastMsg(lang === 'ko' ? '✅ 로스터를 불러왔어요!' : '✅ Roster loaded!');
                                     });
-                                  }} className="mb-3 px-3 py-1.5 rounded-lg bg-[#E3B24A]/20 text-[#E3B24A] text-[12px] font-bold border border-[#E3B24A]/30 hover:bg-[#E3B24A]/30 transition-all">
+                                  }} className="mb-3 px-3 py-1.5 rounded-lg bg-brand-cast/20 text-brand-cast-text text-mini font-bold border border-brand-cast/30 hover:bg-brand-cast/30 transition">
                                     {lang === 'ko' ? '⬆ 현재 로스터로 불러오기' : '⬆ Load to Current Roster'}
                                   </button>
                                   <div className="flex flex-wrap gap-4">
-                                    {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-[10px] font-black uppercase tracking-widest mb-2 border-l-2 border-[#E3B24A] pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-[12px] font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-400 text-[10px] uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
+                                    {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-micro font-black uppercase tracking-widest mb-2 border-l-2 border-brand-cast pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-mini font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-400 text-micro uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
                                   </div>
                                 </div>
                               )}
@@ -1882,16 +1887,16 @@ export default function Dashboard() {
             {showArtistPanel && (
               <div className={`relative z-10 mb-6 rounded-2xl border backdrop-blur-md p-4 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-white/[0.03] border-white/10'}`}>
                 <div className="flex items-center justify-between mb-3">
-                  <p className={`font-black text-[14px] ${textMain}`}>🎤 Artists</p>
+                  <p className={`font-black text-body ${textMain}`}>🎤 Artists</p>
                   <div className="flex items-center gap-2">
                     <input value={artistSearch} onChange={e => setArtistSearch(e.target.value)}
                       placeholder={lang === 'ko' ? '검색…' : 'Search…'}
-                      className={`px-3 py-1.5 rounded-lg text-[12px] outline-none border w-32 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
-                    <button onClick={() => setShowArtistPanel(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-zinc-400 hover:text-red-400 text-[16px]">×</button>
+                      className={`px-3 py-1.5 rounded-lg text-mini outline-none border w-32 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                    <button onClick={() => setShowArtistPanel(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-zinc-400 hover:text-red-400 text-lead">×</button>
                   </div>
                 </div>
                 {artistList.length === 0 ? (
-                  <p className={`text-[12px] ${textSub}`}>{lang === 'ko' ? '아티스트가 없어요.' : 'No artists.'}</p>
+                  <p className={`text-mini ${textSub}`}>{lang === 'ko' ? '아티스트가 없어요.' : 'No artists.'}</p>
                 ) : (
                   <div className="flex flex-col gap-4">
                     {ROLES.map(r => {
@@ -1901,17 +1906,17 @@ export default function Dashboard() {
                       if (group.length === 0) return null;
                       return (
                         <div key={r}>
-                          <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: ROLE_COLORS[r] + '99' }}>{r}</p>
+                          <p className="text-micro font-black uppercase tracking-widest mb-2" style={{ color: ROLE_COLORS[r] + '99' }}>{r}</p>
                           <div className="flex flex-wrap gap-2">
                             {group.map(artist => {
                               const inRoster = members.some(m => m.project === currentProject && m.name === artist.name);
                               return (
                                 <button key={artist.id} onClick={() => !inRoster && addArtistToRoster(artist)} disabled={inRoster}
-                                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-left transition-all ${inRoster ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:scale-[1.02] ' + (theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10')}`}>
+                                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-left transition ${inRoster ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:scale-[1.02] ' + (theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10')}`}>
                                   {artist.photo_url && <img src={artist.photo_url} alt="" width={24} height={24} loading="lazy" className="w-6 h-6 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />}
-                                  <span className={`text-[12px] font-bold ${textMain}`}>{artist.name}</span>
-                                  <span className={`text-[10px] ${textSub}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
-                                  {inRoster ? <span className="text-[10px] text-zinc-400 font-black">✓</span> : <span className="text-[10px] text-[#E3B24A] font-black">+</span>}
+                                  <span className={`text-mini font-bold ${textMain}`}>{artist.name}</span>
+                                  <span className={`text-micro ${textSub}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
+                                  {inRoster ? <span className="text-micro text-zinc-400 font-black">✓</span> : <span className="text-micro text-brand-cast-text font-black">+</span>}
                                 </button>
                               );
                             })}
@@ -1928,18 +1933,18 @@ export default function Dashboard() {
             {(attendingCount + absentCount) > 0 && (
               <div className={`relative z-10 mb-6 rounded-2xl border p-4 ${cardBg}`}>
                 <div className="flex items-center justify-between mb-3">
-                  <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${textSub}`}>{lang === 'ko' ? '출석 현황' : 'Attendance'}</p>
+                  <p className={`text-micro font-bold uppercase tracking-[0.2em] ${textSub}`}>{lang === 'ko' ? '출석 현황' : 'Attendance'}</p>
                   <button onClick={() => showConfirm(lang === 'ko' ? '출석 초기화' : 'Reset attendance', lang === 'ko' ? '모든 참석/불참 응답을 초기화할까요?' : 'Reset all attendance responses?', async () => { await resetAttendance(); setConfirmModal(null); })}
-                    className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all ${btnBg}`}>{lang === 'ko' ? '초기화' : 'Reset'}</button>
+                    className={`text-micro font-bold px-2.5 py-1 rounded-lg border transition ${btnBg}`}>{lang === 'ko' ? '초기화' : 'Reset'}</button>
                 </div>
                 <div className="flex flex-wrap gap-x-7 gap-y-3">
                   {([['attending', attendingMembers, '#77B18E', t.attending], ['absent', absentMembers, '#9A8F8A', t.absent]] as const)
                     .filter(([, list]) => list.length > 0)
                     .map(([key, list, color, label]) => (
                     <div key={key} className="flex items-center gap-2.5 flex-wrap">
-                      <p className="text-[10px] font-black uppercase tracking-widest shrink-0" style={{ color: color + '99' }}>{label} {list.length}</p>
+                      <p className="text-micro font-black uppercase tracking-widest shrink-0" style={{ color: color + '99' }}>{label} {list.length}</p>
                       {list.map((m: any) => (
-                        <span key={m.id} className="flex items-center gap-1.5 text-[12px] font-semibold px-2 py-1 rounded-lg" style={{ backgroundColor: color + '14', color: color }}>
+                        <span key={m.id} className="flex items-center gap-1.5 text-mini font-semibold px-2 py-1 rounded-lg" style={{ backgroundColor: color + '14', color: color }}>
                           <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} />
                           {m.name}
                         </span>
@@ -1952,12 +1957,12 @@ export default function Dashboard() {
 
             {/* 로스터 풀 */}
             <div className="relative z-10 mb-10">
-              <h2 className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-3 ${textSub}`}>{t.rosterPool}</h2>
+              <h2 className={`text-micro font-bold uppercase tracking-[0.2em] mb-3 ${textSub}`}>{t.rosterPool}</h2>
               <div className="flex items-center gap-3 mb-2">
                 <span className="w-16 shrink-0" />
                 <div className="flex-1 grid grid-cols-2 gap-3">
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2" style={{ color: '#7E97C9AA' }}>{lang === 'ko' ? '남자' : 'Male'}</span>
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2" style={{ color: '#DB8FA9AA' }}>{lang === 'ko' ? '여자' : 'Female'}</span>
+                  <span className="text-micro font-black uppercase tracking-widest px-2" style={{ color: '#7E97C9AA' }}>{lang === 'ko' ? '남자' : 'Male'}</span>
+                  <span className="text-micro font-black uppercase tracking-widest px-2" style={{ color: '#DB8FA9AA' }}>{lang === 'ko' ? '여자' : 'Female'}</span>
                 </div>
               </div>
               <Droppable droppableId="pool-roles" type="ROLEROW">
@@ -1970,7 +1975,7 @@ export default function Dashboard() {
                     <Draggable key={r} draggableId={`poolrole-${r}`} index={ridx}>
                     {(rp) => (
                     <div ref={rp.innerRef} {...rp.draggableProps} className="flex items-start gap-3">
-                      <span {...rp.dragHandleProps} className="text-[10px] font-black uppercase tracking-widest shrink-0 w-16 mt-3 cursor-grab active:cursor-grabbing" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
+                      <span {...rp.dragHandleProps} className="text-micro font-black uppercase tracking-widest shrink-0 w-16 mt-3 cursor-grab active:cursor-grabbing" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
                       <div className="flex-1 grid grid-cols-2 gap-3">
                         {(['male', 'female'] as const).map(g => {
                           const colMembers = poolMembers.filter(m => (m.gender === 'female' ? 'female' : 'male') === g);
@@ -1988,17 +1993,17 @@ export default function Dashboard() {
                                       >
                                         <div className="flex items-center gap-1.5 overflow-hidden flex-1 pl-1">
                                           {editingId === String(m.id) ? (
-                                            <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-[14px] font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
+                                            <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-body font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                           ) : (
-                                            <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[14px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
+                                            <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-body font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                               {m.name}
                                               {getAttendanceBadge(m.attendance)}
-                                              {isBusyOn(m.id) && <span className="text-[10px] font-black px-1 py-0.5 rounded shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22' }}>{t.busy}</span>}
-                                              {m.links?.length > 0 && <span className="text-[10px] text-zinc-500">🔗</span>}
+                                              {isBusyOn(m.id) && <span className="text-micro font-black px-1 py-0.5 rounded shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22' }}>{t.busy}</span>}
+                                              {m.links?.length > 0 && <span className="text-micro text-zinc-500">🔗</span>}
                                             </span>
                                           )}
                                         </div>
-                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="text-zinc-400 hover:text-red-500 text-[16px] px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="text-zinc-400 hover:text-red-500 text-lead px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                                       </div>
                                     </PortalDraggable>
                                   ))}
@@ -2035,7 +2040,7 @@ export default function Dashboard() {
                         {(provided) => (
                           <div ref={provided.innerRef} {...provided.draggableProps} data-studio-card className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
                             <div className={`group/studio border rounded-2xl p-6 min-h-[320px] shadow-lg flex flex-col ${cardBg}`}>
-                              <div {...provided.dragHandleProps} className="flex justify-between items-start mb-4 px-1 border-l-4 border-[#E3B24A] pl-4 cursor-grab">
+                              <div {...provided.dragHandleProps} className="flex justify-between items-start mb-4 px-1 border-l-4 border-brand-cast pl-4 cursor-grab">
                                 <div className="flex flex-col gap-1.5 flex-1">
                                   {editingTeam === tName ? (
                                     <input autoFocus value={teamEditValue} onChange={e => setTeamEditValue(e.target.value)}
@@ -2050,14 +2055,14 @@ export default function Dashboard() {
                                         } else setEditingTeam(null);
                                       }}
                                       onKeyDown={e => e.key === 'Enter' && setEditingTeam(null)}
-                                      className={`bg-transparent border-b outline-none text-[14px] font-black uppercase w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
+                                      className={`bg-transparent border-b outline-none text-body font-black uppercase w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                   ) : (
-                                    <h2 onClick={() => { setEditingTeam(tName); setTeamEditValue(tName); }} className={`text-[14px] font-black uppercase cursor-pointer hover:opacity-80 ${textMain}`}>{tName}</h2>
+                                    <h2 onClick={() => { setEditingTeam(tName); setTeamEditValue(tName); }} className={`text-body font-black uppercase cursor-pointer hover:opacity-80 ${textMain}`}>{tName}</h2>
                                   )}
                                   {countEntries.length > 0 && (
                                     <div className="flex flex-wrap gap-1.5">
                                       {countEntries.map(r => (
-                                        <span key={r} className="text-[10px] font-black px-2 py-0.5 rounded-full border"
+                                        <span key={r} className="text-micro font-black px-2 py-0.5 rounded-full border"
                                           style={{ color: ROLE_COLORS[r], borderColor: ROLE_COLORS[r] + '66', backgroundColor: ROLE_COLORS[r] + '22' }}>
                                           {r.slice(0, 3)} {counts[r]}
                                         </span>
@@ -2071,7 +2076,7 @@ export default function Dashboard() {
                                   const next = teams.filter(t => t !== tName); setTeams(next);
                                   await saveTeamOrder(user.id, currentProject, currentDay, next);
                                   fetchAssignments(user); setConfirmModal(null);
-                                })} aria-label={t.studioDelete} className="text-zinc-400 hover:text-red-500 text-[20px] shrink-0 ml-2 opacity-0 group-hover/studio:opacity-100 transition-opacity">×</button>
+                                })} aria-label={t.studioDelete} className="text-zinc-400 hover:text-red-500 text-sub shrink-0 ml-2 opacity-0 group-hover/studio:opacity-100 transition-opacity">×</button>
                               </div>
                               <Droppable droppableId={tName} type="MEMBER">
                                 {(provided) => (
@@ -2081,27 +2086,27 @@ export default function Dashboard() {
                                         <div
                                           onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                           onDoubleClick={() => setLinkModal(m)}
-                                          className={`group flex justify-between items-center p-4 rounded-2xl shadow-xl transition-all cursor-pointer ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'ring-1 ring-[#E0575F]/50' : ''}`}
+                                          className={`group flex justify-between items-center p-4 rounded-2xl shadow-xl transition cursor-pointer ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'ring-1 ring-[#E0575F]/50' : ''}`}
                                         >
                                           <div className="flex items-center gap-2 overflow-hidden flex-1 pl-1">
                                             {editingId === String(m.id) ? (
-                                              <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-[14px] font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
+                                              <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-body font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                             ) : (
                                               <div className="flex flex-col overflow-hidden">
-                                                <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[16px] font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
+                                                <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-lead font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                                   <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={m.gender === 'female' ? 'F' : 'M'} />
                                                   {m.name}
                                                   {getAttendanceBadge(m.attendance)}
-                                                  {isBusyOn(m.id) && <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22', border: '1px solid #E0575F55' }}>{t.busy}</span>}
-                                                  {m.links?.length > 0 && <span className="text-[10px] text-zinc-500">🔗</span>}
+                                                  {isBusyOn(m.id) && <span className="text-micro font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22', border: '1px solid #E0575F55' }}>{t.busy}</span>}
+                                                  {m.links?.length > 0 && <span className="text-micro text-zinc-500">🔗</span>}
                                                 </span>
-                                                <button onClick={(e) => { e.stopPropagation(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }} className="text-[10px] font-bold uppercase tracking-widest mt-1 text-left text-zinc-400 hover:text-white transition-colors">
+                                                <button onClick={(e) => { e.stopPropagation(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }} className="text-micro font-bold uppercase tracking-widest mt-1 text-left text-zinc-400 hover:text-white transition-colors">
                                                   {m.role}
                                                 </button>
                                               </div>
                                             )}
                                           </div>
-                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} aria-label={t.memberDelete} className="text-zinc-400 hover:text-red-500 text-[16px] px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} aria-label={t.memberDelete} className="text-zinc-400 hover:text-red-500 text-lead px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                                         </div>
                                       </PortalDraggable>
                                     ))}
@@ -2122,7 +2127,7 @@ export default function Dashboard() {
           </DragDropContext>
 
           <div className="relative z-10 mt-8 pb-8 text-center">
-            <p className={`text-[12px] font-medium ${textSub}`}>{t.contact}</p>
+            <p className={`text-mini font-medium ${textSub}`}>{t.contact}</p>
           </div>
         </main>
       </div>
@@ -2132,14 +2137,14 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-ui">
           <div className={`w-full max-w-sm mx-4 border rounded-2xl p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <div className="text-center mb-6">
-              <h1 className="font-display text-4xl text-[#E3B24A] uppercase tracking-tighter mb-2">CAST</h1>
-              <p className={`text-[14px] ${textSub}`}>{t.firstRosterTitle}</p>
+              <h1 className="font-display text-display text-brand-cast-text uppercase tracking-tighter mb-2">CAST</h1>
+              <p className={`text-body ${textSub}`}>{t.firstRosterTitle}</p>
             </div>
             <input autoFocus value={firstRosterName} onChange={e => setFirstRosterName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createFirstRoster()}
               placeholder={t.firstRosterPlaceholder}
-              className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#E3B24A]/50 transition-all mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+              className={`w-full border rounded-xl px-4 py-3 text-body outline-none focus:border-brand-cast/50 transition mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
             <button onClick={createFirstRoster} disabled={!firstRosterName.trim()}
-              className="w-full py-3 rounded-xl bg-[#E3B24A] text-white font-semibold text-[14px] uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-40">{t.start}</button>
+              className="w-full py-3 rounded-xl bg-brand-cast text-white font-semibold text-body uppercase tracking-widest hover:opacity-90 transition disabled:opacity-40">{t.start}</button>
           </div>
         </div>
       )}
@@ -2148,29 +2153,29 @@ export default function Dashboard() {
       {linkModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui">
           <div className={`w-full max-w-sm mx-4 border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
-            <h2 className={`font-black text-[16px] mb-1 ${textMain}`}>{linkModal.name}</h2>
-            <p className={`text-[12px] mb-4 ${textSub}`}>{t.linkAdd}</p>
+            <h2 className={`font-black text-lead mb-1 ${textMain}`}>{linkModal.name}</h2>
+            <p className={`text-mini mb-4 ${textSub}`}>{t.linkAdd}</p>
             <div className="flex flex-wrap gap-2 mb-4">
-              {QUICK_LINKS.map(({ label, prefix }) => (<button key={prefix} onClick={() => setNewLink(prefix)} className={`px-3 py-1.5 rounded-lg border text-[12px] font-bold transition-all ${btnBg}`}>{label}</button>))}
+              {QUICK_LINKS.map(({ label, prefix }) => (<button key={prefix} onClick={() => setNewLink(prefix)} className={`px-3 py-1.5 rounded-lg border text-mini font-bold transition ${btnBg}`}>{label}</button>))}
             </div>
             <div className="flex gap-2 mb-4">
               <input value={newLink} onChange={e => setNewLink(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && newLink.trim()) { const l = [...(linkModal.links || []), newLink.trim()]; setLinkModal({ ...linkModal, links: l }); saveMemberLinks(linkModal.id, l); setNewLink(''); }}}
-                placeholder={t.linkPlaceholder} className={`flex-1 border rounded-xl px-4 py-2.5 text-[12px] outline-none transition-all ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                placeholder={t.linkPlaceholder} className={`flex-1 border rounded-xl px-4 py-2.5 text-mini outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} />
               <button onClick={() => { if (!newLink.trim()) return; const l = [...(linkModal.links || []), newLink.trim()]; setLinkModal({ ...linkModal, links: l }); saveMemberLinks(linkModal.id, l); setNewLink(''); }}
-                className={`px-4 py-2.5 rounded-xl border font-black text-[12px] transition-all ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.add}</button>
+                className={`px-4 py-2.5 rounded-xl border font-black text-mini transition ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.add}</button>
             </div>
             <div className="flex flex-col gap-2 mb-4">
               {(linkModal.links || []).map((link: string, i: number) => (
                 <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme === 'light' ? 'bg-black/5 border-black/10' : 'bg-white/5 border-white/10'}`}>
-                  <span className="text-[12px]">{getLinkIcon(link)}</span>
-                  <a href={link} target="_blank" rel="noopener noreferrer" className={`text-[12px] truncate flex-1 ${textSub}`}>{link}</a>
+                  <span className="text-mini">{getLinkIcon(link)}</span>
+                  <a href={link} target="_blank" rel="noopener noreferrer" className={`text-mini truncate flex-1 ${textSub}`}>{link}</a>
                   <button onClick={() => { const l = (linkModal.links || []).filter((_: string, idx: number) => idx !== i); setLinkModal({ ...linkModal, links: l }); saveMemberLinks(linkModal.id, l); }} aria-label={t.delete} className="text-zinc-400 hover:text-red-500 shrink-0">×</button>
                 </div>
               ))}
-              {(linkModal.links || []).length === 0 && <p className="text-zinc-500 text-[12px]">{t.noLink}</p>}
+              {(linkModal.links || []).length === 0 && <p className="text-zinc-500 text-mini">{t.noLink}</p>}
             </div>
-            <button onClick={() => { setLinkModal(null); setNewLink(''); }} className={`w-full py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.close}</button>
+            <button onClick={() => { setLinkModal(null); setNewLink(''); }} className={`w-full py-3 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.close}</button>
           </div>
         </div>
       )}
@@ -2179,13 +2184,13 @@ export default function Dashboard() {
       {showSessionModal && (
         <Modal title={t.sessionSave} theme={theme}>
           <div className="flex flex-col gap-3 mb-5">
-            <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.campName}</label><input value={sessionCampName} onChange={e => setSessionCampName(e.target.value)} placeholder={t.campPlaceholder} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none transition-all ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
-            <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.day}</label><input type="number" value={sessionDayNumber} onChange={e => setSessionDayNumber(e.target.value)} min="1" className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none transition-all ${inputBg} ${textMain}`} /></div>
-            <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.memo}</label><input value={sessionMemo} onChange={e => setSessionMemo(e.target.value)} placeholder={t.memoPlaceholder} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none transition-all ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.campName}</label><input value={sessionCampName} onChange={e => setSessionCampName(e.target.value)} placeholder={t.campPlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.day}</label><input type="number" value={sessionDayNumber} onChange={e => setSessionDayNumber(e.target.value)} min="1" className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain}`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.memo}</label><input value={sessionMemo} onChange={e => setSessionMemo(e.target.value)} placeholder={t.memoPlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setShowSessionModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
-            <button onClick={saveSession} className={`flex-1 py-3 rounded-xl border font-black text-[12px] transition-all ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.save}</button>
+            <button onClick={() => setShowSessionModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
+            <button onClick={saveSession} className={`flex-1 py-3 rounded-xl border font-black text-mini transition ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.save}</button>
           </div>
         </Modal>
       )}
@@ -2194,12 +2199,12 @@ export default function Dashboard() {
       {showNoticeModal && (
         <Modal title={editingNoticeId ? t.noticeEdit : t.noticeAddTitle} theme={theme}>
           <div className="flex flex-col gap-3 mb-5">
-            <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeTitleLabel}</label><input value={noticeTitle} onChange={e => setNoticeTitle(e.target.value)} placeholder={t.noticeTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none transition-all ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
-            <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeContentLabel}</label><textarea value={noticeContent} onChange={e => setNoticeContent(e.target.value)} placeholder={t.noticeContentPlaceholder} rows={4} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none transition-all resize-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeTitleLabel}</label><input value={noticeTitle} onChange={e => setNoticeTitle(e.target.value)} placeholder={t.noticeTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeContentLabel}</label><textarea value={noticeContent} onChange={e => setNoticeContent(e.target.value)} placeholder={t.noticeContentPlaceholder} rows={4} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition resize-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setShowNoticeModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
-            <button onClick={saveNotice} className={`flex-1 py-3 rounded-xl border font-black text-[12px] transition-all ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.save}</button>
+            <button onClick={() => setShowNoticeModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
+            <button onClick={saveNotice} className={`flex-1 py-3 rounded-xl border font-black text-mini transition ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.save}</button>
           </div>
         </Modal>
       )}
@@ -2208,12 +2213,12 @@ export default function Dashboard() {
       {showVotingModal && (
         <Modal title={t.voteOpenTitle} theme={theme}>
           <div className="flex flex-col gap-3 mb-5">
-            <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.voteTitleLabel}</label><input value={votingTitle} onChange={e => setVotingTitle(e.target.value)} placeholder={t.voteTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none transition-all ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
-            <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.memo}</label><textarea value={votingMemo} onChange={e => setVotingMemo(e.target.value)} placeholder={t.voteMemoPlaceholder} rows={3} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none transition-all resize-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.voteTitleLabel}</label><input value={votingTitle} onChange={e => setVotingTitle(e.target.value)} placeholder={t.voteTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.memo}</label><textarea value={votingMemo} onChange={e => setVotingMemo(e.target.value)} placeholder={t.voteMemoPlaceholder} rows={3} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition resize-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setShowVotingModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
-            <button onClick={openVoting} className="flex-1 py-3 rounded-xl bg-[#E3B24A]/20 border border-[#E3B24A]/40 text-[#EFCF8E] font-black text-[12px] hover:bg-[#E3B24A]/30 transition-all">{t.voteStart}</button>
+            <button onClick={() => setShowVotingModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
+            <button onClick={openVoting} className="flex-1 py-3 rounded-xl bg-brand-cast/20 border border-brand-cast/40 text-[#EFCF8E] font-black text-mini hover:bg-brand-cast/30 transition">{t.voteStart}</button>
           </div>
         </Modal>
       )}
@@ -2232,30 +2237,30 @@ export default function Dashboard() {
         const mostAvail = availPoll ? proj.map(m => ({ m, c: availPicks.filter(p => p.member_id === m.id && p.status === 'available').length })).filter(x => x.c > 0).sort((a, b) => b.c - a.c).slice(0, 5) : [];
         const bar = (label: string, n: number, tot: number, col: string) => (
           <div className="flex items-center gap-2.5">
-            <span className={`text-[12px] font-bold w-16 shrink-0 ${textSub}`}>{label}</span>
+            <span className={`text-mini font-bold w-16 shrink-0 ${textSub}`}>{label}</span>
             <div className={`flex-1 h-5 rounded-md overflow-hidden ${theme === 'light' ? 'bg-black/8' : 'bg-white/8'}`}><div className="h-full rounded-md" style={{ width: `${tot ? (n / tot) * 100 : 0}%`, backgroundColor: col }} /></div>
-            <span className={`text-[12px] font-black w-8 text-right ${textMain}`}>{n}</span>
+            <span className={`text-mini font-black w-8 text-right ${textMain}`}>{n}</span>
           </div>
         );
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => setShowStats(false)}>
-            <div onClick={e => e.stopPropagation()} className={`w-full max-w-md max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-2xl p-7 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+            <div role="dialog" aria-modal="true" tabIndex={-1} onClick={e => e.stopPropagation()} className={`w-full max-w-md max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-2xl p-7 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
-                <h2 className={`font-black text-[16px] ${textMain}`}>{t.statsTitle} <span className={`text-[12px] font-normal ${textSub}`}>{currentProject}</span></h2>
-                <button onClick={() => setShowStats(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className={`text-[14px] ${textSub} hover:opacity-70`}>✕</button>
+                <h2 className={`font-black text-lead ${textMain}`}>{t.statsTitle} <span className={`text-mini font-normal ${textSub}`}>{currentProject}</span></h2>
+                <button onClick={() => setShowStats(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className={`text-body ${textSub} hover:opacity-70`}>✕</button>
               </div>
               <div className="flex flex-col gap-5">
                 <div className="flex gap-3">
-                  <div className={`flex-1 rounded-xl border p-4 ${inputBg}`}><p className={`text-[26px] font-black ${textMain}`}>{total}</p><p className={`text-[12px] ${textSub}`}>{t.statsMembers}</p></div>
-                  <div className={`flex-1 rounded-xl border p-4 ${inputBg}`}><p className={`text-[26px] font-black text-[#77B18E]`}>{att.attending}</p><p className={`text-[12px] ${textSub}`}>{t.attending}</p></div>
-                  {(male > 0 || female > 0) && <div className={`flex-1 rounded-xl border p-4 ${inputBg}`}><p className={`text-[16px] font-black ${textMain}`}>{t.statsMale}{male} · {t.statsFemale}{female}</p><p className={`text-[12px] ${textSub}`}>{t.statsGender}</p></div>}
+                  <div className={`flex-1 rounded-xl border p-4 ${inputBg}`}><p className={`text-title font-black ${textMain}`}>{total}</p><p className={`text-mini ${textSub}`}>{t.statsMembers}</p></div>
+                  <div className={`flex-1 rounded-xl border p-4 ${inputBg}`}><p className={`text-title font-black text-[#77B18E]`}>{att.attending}</p><p className={`text-mini ${textSub}`}>{t.attending}</p></div>
+                  {(male > 0 || female > 0) && <div className={`flex-1 rounded-xl border p-4 ${inputBg}`}><p className={`text-lead font-black ${textMain}`}>{t.statsMale}{male} · {t.statsFemale}{female}</p><p className={`text-mini ${textSub}`}>{t.statsGender}</p></div>}
                 </div>
                 <div>
-                  <p className={`text-[12px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.statsRoles}</p>
+                  <p className={`text-mini font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.statsRoles}</p>
                   <div className="flex flex-col gap-2">{byRole.map(({ r, n }) => bar(r, n, total, ROLE_COLORS[r] || '#888'))}</div>
                 </div>
                 <div>
-                  <p className={`text-[12px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.statsAttend}</p>
+                  <p className={`text-mini font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.statsAttend}</p>
                   <div className="flex flex-col gap-2">
                     {bar(t.attending, att.attending, total, '#77B18E')}
                     {bar(t.absent, att.absent, total, '#9A8F8A')}
@@ -2263,12 +2268,12 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div>
-                  <p className={`text-[12px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.statsAvail}</p>
-                  {!availPoll ? <p className={`text-[14px] ${textSub}`}>{t.statsAvailNone}</p> : (
+                  <p className={`text-mini font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.statsAvail}</p>
+                  {!availPoll ? <p className={`text-body ${textSub}`}>{t.statsAvailNone}</p> : (
                     <>
                       {bar(t.availSubmitted, submitted, availTotal, '#E3B24A')}
                       {mostAvail.length > 0 && <>
-                        <p className={`text-[12px] font-black mt-3 mb-2 ${textSub}`}>{t.statsMost}</p>
+                        <p className={`text-mini font-black mt-3 mb-2 ${textSub}`}>{t.statsMost}</p>
                         <div className="flex flex-col gap-2">{mostAvail.map(({ m, c }) => bar(m.name, c, mostAvail[0].c, ROLE_COLORS[m.role] || '#E3B24A'))}</div>
                       </>}
                     </>
@@ -2305,25 +2310,25 @@ export default function Dashboard() {
         const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => { setShowAvailModal(false); setAvailSelMember(null); }}>
-            <div onClick={e => e.stopPropagation()} className={`w-full ${availPoll ? 'max-w-4xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-2xl p-7 sm:p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+            <div role="dialog" aria-modal="true" tabIndex={-1} onClick={e => e.stopPropagation()} className={`w-full ${availPoll ? 'max-w-4xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-2xl p-7 sm:p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
-                <h2 className={`font-black text-[16px] ${textMain}`}>{t.availOpenTitle}</h2>
-                <button onClick={() => setShowAvailModal(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className={`text-[14px] ${textSub} hover:opacity-70`}>✕</button>
+                <h2 className={`font-black text-lead ${textMain}`}>{t.availOpenTitle}</h2>
+                <button onClick={() => setShowAvailModal(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className={`text-body ${textSub} hover:opacity-70`}>✕</button>
               </div>
 
               {!availPoll ? (
                 <div className="flex flex-col gap-3">
-                  <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.availMonth}</label>
-                    <input type="month" value={availMonth} onChange={e => setAvailMonth(e.target.value)} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none ${inputBg} ${textMain}`} /></div>
-                  <div><label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.availTitleLabel}</label>
-                    <input value={availTitle} onChange={e => setAvailTitle(e.target.value)} placeholder={t.availTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
-                  <button onClick={openAvailPoll} className="mt-1 py-3 rounded-xl bg-[#E3B24A]/20 border border-[#E3B24A]/40 text-[#EFCF8E] font-black text-[12px] hover:bg-[#E3B24A]/30 transition-all">{t.availStart}</button>
+                  <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.availMonth}</label>
+                    <input type="month" value={availMonth} onChange={e => setAvailMonth(e.target.value)} className={`w-full border rounded-xl px-4 py-3 text-body outline-none ${inputBg} ${textMain}`} /></div>
+                  <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.availTitleLabel}</label>
+                    <input value={availTitle} onChange={e => setAvailTitle(e.target.value)} placeholder={t.availTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+                  <button onClick={openAvailPoll} className="mt-1 py-3 rounded-xl bg-brand-cast/20 border border-brand-cast/40 text-[#EFCF8E] font-black text-mini hover:bg-brand-cast/30 transition">{t.availStart}</button>
                 </div>
               ) : (
                 <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between gap-2">
-                    <p className={`text-[16px] font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-[12px] font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availSubmitted} {availSubs.filter(s => projIds.has(s.member_id)).length}/{proj.length}</span></p>
-                    <button onClick={copyAvailShareLink} className={`shrink-0 text-[12px] font-bold px-3.5 py-1.5 rounded-full border transition-all ${btnBg}`}>{t.availCopyAll}</button>
+                    <p className={`text-lead font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-mini font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availSubmitted} {availSubs.filter(s => projIds.has(s.member_id)).length}/{proj.length}</span></p>
+                    <button onClick={copyAvailShareLink} className={`shrink-0 text-mini font-bold px-3.5 py-1.5 rounded-full border transition ${btnBg}`}>{t.availCopyAll}</button>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-6 items-start">
@@ -2332,18 +2337,18 @@ export default function Dashboard() {
                       {/* 히트맵 달력 */}
                       <div>
                         <div className="flex items-center justify-between mb-2 gap-2">
-                          <p className={`text-[12px] ${availBlockMode ? 'text-[#C98BA0]' : textSub}`}>{availBlockMode ? t.availBlockHint : ''}</p>
+                          <p className={`text-mini ${availBlockMode ? 'text-[#C98BA0]' : textSub}`}>{availBlockMode ? t.availBlockHint : ''}</p>
                           <button onClick={() => { setAvailBlockMode(v => !v); setAvailSelDay(null); }}
-                            className={`shrink-0 text-[12px] font-black px-3.5 py-1 rounded-full border transition-all ${availBlockMode ? 'bg-[#C98BA0]/25 border-[#C98BA0]/50 text-[#E3B8C6]' : `${btnBg}`}`}>
+                            className={`shrink-0 text-mini font-black px-3.5 py-1 rounded-full border transition ${availBlockMode ? 'bg-[#C98BA0]/25 border-[#C98BA0]/50 text-[#E3B8C6]' : `${btnBg}`}`}>
                             {availBlockMode ? t.availBlockDone : t.availBlockMode}</button>
                         </div>
                         {selMember && (
                           <div className="flex items-center justify-between gap-2 mb-2 px-3 py-2 rounded-lg border border-[#5FA39A]/40 bg-[#5FA39A]/10">
-                            <p className="text-[12px] font-black text-[#8FD4C8]">{selMember.name} · {t.availPossible} {selMemberDays.filter((p: any) => p.status === 'available').length} · {t.availNo} {selMemberDays.filter((p: any) => p.status === 'unavailable').length}{selMemberDays.length === 0 ? ` · ${t.availWaiting}` : ''}</p>
-                            <button onClick={() => setAvailSelMember(null)} aria-label={lang === 'ko' ? '선택 해제' : 'Clear selection'} className="shrink-0 text-[12px] font-black text-[#8FD4C8] hover:opacity-70">✕</button>
+                            <p className="text-mini font-black text-[#8FD4C8]">{selMember.name} · {t.availPossible} {selMemberDays.filter((p: any) => p.status === 'available').length} · {t.availNo} {selMemberDays.filter((p: any) => p.status === 'unavailable').length}{selMemberDays.length === 0 ? ` · ${t.availWaiting}` : ''}</p>
+                            <button onClick={() => setAvailSelMember(null)} aria-label={lang === 'ko' ? '선택 해제' : 'Clear selection'} className="shrink-0 text-mini font-black text-[#8FD4C8] hover:opacity-70">✕</button>
                           </div>
                         )}
-                        <div className="grid grid-cols-7 gap-1.5 mb-1.5">{wd.map((w, i) => <div key={i} className={`text-center text-[10px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}</div>
+                        <div className="grid grid-cols-7 gap-1.5 mb-1.5">{wd.map((w, i) => <div key={i} className={`text-center text-micro font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}</div>
                         <div className="grid grid-cols-7 gap-1.5">
                           {cells.map((d, i) => {
                             if (d === null) return <div key={`e${i}`} />;
@@ -2352,14 +2357,14 @@ export default function Dashboard() {
                             const dimByMember = !!availSelMember && !mst && !isBlocked;
                             return (
                               <button key={d} onClick={() => availBlockMode ? toggleBlockedDay(d) : setAvailSelDay(sel ? null : d)}
-                                className={`relative aspect-square rounded-lg border flex flex-col items-center justify-center transition-all hover:scale-[1.05]
-                                  ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''} ${sel ? (theme === 'light' ? 'outline outline-1 outline-black/40' : 'outline outline-1 outline-white/50') : ''}
+                                className={`relative aspect-square rounded-lg border flex flex-col items-center justify-center transition hover:scale-[1.05]
+                                  ${isFinal ? 'ring-2 ring-brand-cast' : ''} ${sel ? (theme === 'light' ? 'outline outline-1 outline-black/40' : 'outline outline-1 outline-white/50') : ''}
                                   ${mst === 'available' ? 'ring-2 ring-[#4C8DF6]' : mst === 'unavailable' ? 'ring-2 ring-[#E0575F]' : ''}
                                   ${isBlocked ? 'border-[#C98BA0]/50' : theme === 'light' ? 'border-black/8' : 'border-white/8'} ${dimByMember ? 'opacity-35' : ''}`}
                                 style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.18)' : c > 0 ? `rgba(76,141,246,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
-                                <span className={`text-[14px] font-bold ${isBlocked ? 'text-[#C98BA0] line-through' : textMain}`}>{d}</span>
-                                {!isBlocked && c > 0 && <span className={`text-[10px] font-black ${textSub}`}>{c}</span>}
-                                {isFinal && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
+                                <span className={`text-body font-bold ${isBlocked ? 'text-[#C98BA0] line-through' : textMain}`}>{d}</span>
+                                {!isBlocked && c > 0 && <span className={`text-micro font-black ${textSub}`}>{c}</span>}
+                                {isFinal && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-brand-cast" />}
                               </button>
                             );
                           })}
@@ -2370,9 +2375,9 @@ export default function Dashboard() {
                       {availSelDay !== null && (
                         <div className={`rounded-xl border p-4 ${inputBg}`}>
                           <div className="flex items-center justify-between mb-2 gap-2">
-                            <p className={`text-[14px] font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPossible} {countOn(availSelDay)} · {t.availNo} {noOn(availSelDay)}</p>
+                            <p className={`text-body font-black ${textMain}`}>{availSelDay}{lang === 'ko' ? '일' : ''} · {t.availPossible} {countOn(availSelDay)} · {t.availNo} {noOn(availSelDay)}</p>
                             <button onClick={() => toggleFinalDay(availSelDay)}
-                              className={`shrink-0 text-[12px] font-black px-3.5 py-1 rounded-full border transition-all ${finals.includes(availSelDay) ? 'bg-[#E3B24A]/25 border-[#E3B24A]/50 text-[#EFCF8E]' : 'border-[#E3B24A]/40 text-[#E3B24A] hover:bg-[#E3B24A]/15'}`}>
+                              className={`shrink-0 text-mini font-black px-3.5 py-1 rounded-full border transition ${finals.includes(availSelDay) ? 'bg-brand-cast/25 border-brand-cast/50 text-[#EFCF8E]' : 'border-brand-cast/40 text-brand-cast-text hover:bg-brand-cast/15'}`}>
                               {finals.includes(availSelDay) ? t.availConfirmRemove : t.availConfirmAdd}</button>
                           </div>
                           {(() => {
@@ -2382,15 +2387,15 @@ export default function Dashboard() {
                             const rest = proj.filter(m => !inDay.has(m.id));
                             const addChips = rest.length > 0 && (
                               <div className={`mt-2.5 pt-2.5 border-t ${theme === 'light' ? 'border-black/8' : 'border-white/8'}`}>
-                                <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 ${textSub}`}>{t.availDayAdd}</p>
+                                <p className={`text-micro font-black uppercase tracking-widest mb-1.5 ${textSub}`}>{t.availDayAdd}</p>
                                 <div className="flex flex-wrap gap-1.5">
                                   {rest.map(m => (
-                                    <button key={m.id} onClick={() => addDayPick(m.id, availSelDay)} title={t.availDayAddTip} className="px-3 py-1 rounded-full text-[12px] font-bold border border-dashed transition-all opacity-50 hover:opacity-100" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55' }}>+ {m.name}</button>
+                                    <button key={m.id} onClick={() => addDayPick(m.id, availSelDay)} title={t.availDayAddTip} className="px-3 py-1 rounded-full text-mini font-bold border border-dashed transition opacity-50 hover:opacity-100" style={{ color: ROLE_COLORS[m.role] || '#aaa', borderColor: (ROLE_COLORS[m.role] || '#aaa') + '55' }}>+ {m.name}</button>
                                   ))}
                                 </div>
                               </div>
                             );
-                            if (avail.length + maybe.length === 0) return <><span className={`text-[12px] ${textSub}`}>{t.availNoResp}</span>{addChips}</>;
+                            if (avail.length + maybe.length === 0) return <><span className={`text-mini ${textSub}`}>{t.availNoResp}</span>{addChips}</>;
                             const roleGroups = [...ROLES, '__etc'].map(role => {
                               const a = avail.filter(m => role === '__etc' ? !ROLES.includes(m.role) : m.role === role);
                               const mb = maybe.filter(m => role === '__etc' ? !ROLES.includes(m.role) : m.role === role);
@@ -2402,10 +2407,10 @@ export default function Dashboard() {
                                   const col = ROLE_COLORS[role] || '#9aa';
                                   return (
                                     <div key={role} className="flex flex-col gap-1.5">
-                                      <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: col + 'cc' }}>{role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span className={textSub}>{a.length + mb.length}</span></p>
+                                      <p className="text-micro font-black uppercase tracking-widest" style={{ color: col + 'cc' }}>{role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span className={textSub}>{a.length + mb.length}</span></p>
                                       <div className="flex flex-wrap gap-1.5">
-                                        {a.map(m => <button key={m.id} onClick={() => removeDayPick(m.id, availSelDay)} title={t.availDayKick} className="group px-3 py-1 rounded-full text-[12px] font-bold border transition-all hover:opacity-80" style={{ color: col, borderColor: col + '55', backgroundColor: col + '18' }}>{m.name} <span className="opacity-40 group-hover:opacity-100">✕</span></button>)}
-                                        {mb.map(m => <button key={m.id} onClick={() => removeDayPick(m.id, availSelDay)} title={t.availDayKick} className="group px-3 py-1 rounded-full text-[12px] font-bold border transition-all hover:opacity-80 line-through" style={{ color: '#E0575F', borderColor: '#E0575F66', backgroundColor: '#E0575F14' }}>{m.name} <span className="opacity-40 group-hover:opacity-100 no-underline">✕</span></button>)}
+                                        {a.map(m => <button key={m.id} onClick={() => removeDayPick(m.id, availSelDay)} title={t.availDayKick} className="group px-3 py-1 rounded-full text-mini font-bold border transition hover:opacity-80" style={{ color: col, borderColor: col + '55', backgroundColor: col + '18' }}>{m.name} <span className="opacity-40 group-hover:opacity-100">✕</span></button>)}
+                                        {mb.map(m => <button key={m.id} onClick={() => removeDayPick(m.id, availSelDay)} title={t.availDayKick} className="group px-3 py-1 rounded-full text-mini font-bold border transition hover:opacity-80 line-through" style={{ color: '#E0575F', borderColor: '#E0575F66', backgroundColor: '#E0575F14' }}>{m.name} <span className="opacity-40 group-hover:opacity-100 no-underline">✕</span></button>)}
                                       </div>
                                     </div>
                                   );
@@ -2419,13 +2424,13 @@ export default function Dashboard() {
 
                       {/* 베스트 데이 */}
                       <div>
-                        <p className={`text-[12px] font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availBest}</p>
-                        {best.length === 0 ? <p className={`text-[14px] ${textSub}`}>{t.availNoResp}</p> : (
+                        <p className={`text-mini font-black uppercase tracking-widest mb-2.5 ${textSub}`}>{t.availBest}</p>
+                        {best.length === 0 ? <p className={`text-body ${textSub}`}>{t.availNoResp}</p> : (
                           <div className="space-y-2">{best.map(({ d, c, mb }) => {
                             const availRoles = new Set(membersOnDay(d, 'available').map(mm => mm.role));
                             return (
                             <button key={d} onClick={() => setAvailSelDay(d)} className="w-full flex items-center gap-2.5">
-                              <span className={`text-[14px] font-black w-10 text-left ${finals.includes(d) ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
+                              <span className={`text-body font-black w-10 text-left ${finals.includes(d) ? 'text-[#EFCF8E]' : textMain}`}>{d}{lang === 'ko' ? '일' : ''}</span>
                               <div className={`flex-1 h-2.5 rounded-full overflow-hidden flex ${theme === 'light' ? 'bg-black/10' : 'bg-white/10'}`}>
                                 <div className="h-full bg-[#4C8DF6]" style={{ width: `${(c / maxCount) * 100}%` }} />
                                 <div className="h-full bg-[#E0575F]/60" style={{ width: `${(mb / maxCount) * 100}%` }} />
@@ -2433,7 +2438,7 @@ export default function Dashboard() {
                               <span className="flex items-center gap-0.5 shrink-0" title={t.availRoleCover}>
                                 {ROLES.map(r => { const on = availRoles.has(r); return <span key={r} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: on ? (ROLE_COLORS[r] || '#aaa') : (theme === 'light' ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)') }} />; })}
                               </span>
-                              <span className={`text-[12px] font-black w-11 text-right ${textSub}`}>{c}{mb ? <span className="text-[#E0575F]"> -{mb}</span> : ''}</span>
+                              <span className={`text-mini font-black w-11 text-right ${textSub}`}>{c}{mb ? <span className="text-[#E0575F]"> -{mb}</span> : ''}</span>
                             </button>
                             );
                           })}</div>
@@ -2442,19 +2447,19 @@ export default function Dashboard() {
 
                       {/* 확정일 → 일정 */}
                       {finals.length > 0 && (
-                        <div className="rounded-xl border p-4 border-[#E3B24A]/35 bg-[#E3B24A]/8">
-                          <p className="text-[12px] font-black uppercase tracking-widest mb-2.5 text-[#EFCF8E]">{t.availFinalTitle}</p>
+                        <div className="rounded-xl border p-4 border-brand-cast/35 bg-brand-cast/8">
+                          <p className="text-mini font-black uppercase tracking-widest mb-2.5 text-[#EFCF8E]">{t.availFinalTitle}</p>
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             {finals.slice().sort((a, b) => a - b).map(d => (
-                              <button key={d} onClick={() => setAvailSelDay(d)} className="px-3 py-1 rounded-full text-[12px] font-black border border-[#E3B24A]/50 bg-[#E3B24A]/15 text-[#EFCF8E] hover:bg-[#E3B24A]/25 transition-all">{fmtAvailDay(d)}</button>
+                              <button key={d} onClick={() => setAvailSelDay(d)} className="px-3 py-1 rounded-full text-mini font-black border border-brand-cast/50 bg-brand-cast/15 text-[#EFCF8E] hover:bg-brand-cast/25 transition">{fmtAvailDay(d)}</button>
                             ))}
                           </div>
                           <div className="flex gap-2 mb-2">
-                            <button onClick={downloadAvailIcs} className={`flex-1 py-2 rounded-lg border font-bold text-[12px] transition-all ${btnBg}`}>{t.availIcs}</button>
-                            <button onClick={copyAvailAnnounce} className={`flex-1 py-2 rounded-lg border font-bold text-[12px] transition-all ${btnBg}`}>{t.availAnnounce}</button>
+                            <button onClick={downloadAvailIcs} className={`flex-1 py-2 rounded-lg border font-bold text-mini transition ${btnBg}`}>{t.availIcs}</button>
+                            <button onClick={copyAvailAnnounce} className={`flex-1 py-2 rounded-lg border font-bold text-mini transition ${btnBg}`}>{t.availAnnounce}</button>
                           </div>
-                          <button onClick={createSessionsFromFinals} className="w-full py-2 rounded-lg border border-[#E3B24A]/40 bg-[#E3B24A]/15 text-[#EFCF8E] font-black text-[12px] hover:bg-[#E3B24A]/25 transition-all">{t.availMakeSessions}</button>
-                          <button onClick={applyFinalsToDays} className={`w-full mt-2 py-2 rounded-lg border font-bold text-[12px] transition-all ${btnBg}`}>{t.availToDays}</button>
+                          <button onClick={createSessionsFromFinals} className="w-full py-2 rounded-lg border border-brand-cast/40 bg-brand-cast/15 text-[#EFCF8E] font-black text-mini hover:bg-brand-cast/25 transition">{t.availMakeSessions}</button>
+                          <button onClick={applyFinalsToDays} className={`w-full mt-2 py-2 rounded-lg border font-bold text-mini transition ${btnBg}`}>{t.availToDays}</button>
                         </div>
                       )}
                     </div>
@@ -2462,10 +2467,10 @@ export default function Dashboard() {
                     {/* 우: 제출 현황 (어드민) */}
                     <div className={`md:border-l md:pl-6 ${theme === 'light' ? 'md:border-black/10' : 'md:border-white/8'}`}>
                       <div className="flex items-center justify-between mb-2.5 gap-2">
-                        <p className={`text-[12px] font-black uppercase tracking-widest ${textSub}`}>{t.availSubmitStatus} · {availSubs.filter(s => projIds.has(s.member_id)).length}/{proj.length}</p>
+                        <p className={`text-mini font-black uppercase tracking-widest ${textSub}`}>{t.availSubmitStatus} · {availSubs.filter(s => projIds.has(s.member_id)).length}/{proj.length}</p>
                         {proj.some(m => !isSubmitted(m)) && (
                           <button onClick={() => copyAvailReminder(proj.filter(m => !isSubmitted(m)).map(m => m.name))}
-                            className={`shrink-0 text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${btnBg}`}>{t.availRemindAll}</button>
+                            className={`shrink-0 text-micro font-black px-2.5 py-1 rounded-full border transition ${btnBg}`}>{t.availRemindAll}</button>
                         )}
                       </div>
                       <div className="space-y-1.5">
@@ -2475,27 +2480,27 @@ export default function Dashboard() {
                           const mcnt = availPicks.filter(p => p.member_id === m.id && p.status === 'unavailable').length;
                           const selected = availSelMember === m.id;
                           return (
-                            <div key={m.id} onClick={() => setAvailSelMember(selected ? null : m.id)}
+                            <div key={m.id} {...pressable(() => setAvailSelMember(selected ? null : m.id))}
                               title={t.availMemberPick}
-                              className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg cursor-pointer transition-all ${selected ? 'border border-[#5FA39A]/50 bg-[#5FA39A]/12' : `border border-transparent ${inputBg} hover:border-[#5FA39A]/30`}`}>
-                              <span className={`text-[14px] font-bold ${selected ? 'text-[#8FD4C8]' : textMain}`}>{m.name} <span className={`text-[12px] font-normal ${textSub}`}>{m.role}</span></span>
+                              className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg cursor-pointer transition ${selected ? 'border border-[#5FA39A]/50 bg-[#5FA39A]/12' : `border border-transparent ${inputBg} hover:border-[#5FA39A]/30`}`}>
+                              <span className={`text-body font-bold ${selected ? 'text-[#8FD4C8]' : textMain}`}>{m.name} <span className={`text-mini font-normal ${textSub}`}>{m.role}</span></span>
                               <div className="flex items-center gap-2.5">
-                                <span className={`text-[12px] font-black ${textSub}`}><span className="text-[#7FB0FF]">{cnt}</span>{mcnt ? <> · <span className="text-[#E0575F]">{mcnt}</span></> : ''}</span>
-                                {!done && <button onClick={(e) => { e.stopPropagation(); copyAvailReminder([m.name]); }} className={`text-[10px] font-black px-2 py-0.5 rounded-full border transition-all ${btnBg}`}>{t.availRemind}</button>}
-                                <span className={`text-[12px] font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
-                                <button onClick={(e) => { e.stopPropagation(); toggleAvailExclude(m.id); }} title={t.availKick} aria-label={t.availKick} className={`text-[12px] font-black px-1.5 py-0.5 rounded-full transition-all ${textSub} hover:text-[#C98BA0]`}>✕</button>
+                                <span className={`text-mini font-black ${textSub}`}><span className="text-[#7FB0FF]">{cnt}</span>{mcnt ? <> · <span className="text-[#E0575F]">{mcnt}</span></> : ''}</span>
+                                {!done && <button onClick={(e) => { e.stopPropagation(); copyAvailReminder([m.name]); }} className={`text-micro font-black px-2 py-0.5 rounded-full border transition ${btnBg}`}>{t.availRemind}</button>}
+                                <span className={`text-mini font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
+                                <button onClick={(e) => { e.stopPropagation(); toggleAvailExclude(m.id); }} title={t.availKick} aria-label={t.availKick} className={`text-mini font-black px-1.5 py-0.5 rounded-full transition ${textSub} hover:text-[#C98BA0]`}>✕</button>
                               </div>
                             </div>
                           );
                         })}
-                        {proj.length === 0 && <p className={`text-[14px] ${textSub}`}>{t.availNoResp}</p>}
+                        {proj.length === 0 && <p className={`text-body ${textSub}`}>{t.availNoResp}</p>}
                         {kickedMembers.length > 0 && (
                           <div className="pt-2">
-                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 text-[#C98BA0]/80`}>{t.availKicked}</p>
+                            <p className={`text-micro font-black uppercase tracking-widest mb-1.5 text-[#C98BA0]/80`}>{t.availKicked}</p>
                             {kickedMembers.map(m => (
                               <div key={m.id} className={`flex items-center justify-between px-3.5 py-2 rounded-lg opacity-60 ${inputBg}`}>
-                                <span className={`text-[14px] font-bold line-through ${textSub}`}>{m.name} <span className="text-[12px] font-normal">{m.role}</span></span>
-                                <button onClick={() => toggleAvailExclude(m.id)} className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border transition-all ${btnBg}`}>{t.availRestoreM}</button>
+                                <span className={`text-body font-bold line-through ${textSub}`}>{m.name} <span className="text-mini font-normal">{m.role}</span></span>
+                                <button onClick={() => toggleAvailExclude(m.id)} className={`text-micro font-black px-2.5 py-0.5 rounded-full border transition ${btnBg}`}>{t.availRestoreM}</button>
                               </div>
                             ))}
                           </div>
@@ -2505,7 +2510,7 @@ export default function Dashboard() {
                   </div>
 
                   <button onClick={() => showConfirm(t.availClose, t.availCloseConfirm, async () => { await closeAvailPoll(); setConfirmModal(null); })}
-                    className={`py-3 rounded-xl border font-bold text-[14px] transition-all ${theme === 'light' ? 'border-black/15 text-zinc-400 hover:bg-black/5' : 'border-white/15 text-zinc-400 hover:bg-white/5'}`}>{t.availClose}</button>
+                    className={`py-3 rounded-xl border font-bold text-body transition ${theme === 'light' ? 'border-black/15 text-zinc-400 hover:bg-black/5' : 'border-white/15 text-zinc-400 hover:bg-white/5'}`}>{t.availClose}</button>
                 </div>
               )}
             </div>
@@ -2517,8 +2522,8 @@ export default function Dashboard() {
       {confirmModal && (
         <Modal title={confirmModal.title} message={confirmModal.message} theme={theme}>
           <div className="flex gap-3 mt-2">
-            <button onClick={() => setConfirmModal(null)} className={`flex-1 py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
-            <button onClick={confirmModal.onOk} className={`flex-1 py-3 rounded-xl border font-black text-[12px] transition-all ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.confirm}</button>
+            <button onClick={() => setConfirmModal(null)} className={`flex-1 py-3 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
+            <button onClick={confirmModal.onOk} className={`flex-1 py-3 rounded-xl border font-black text-mini transition ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.confirm}</button>
           </div>
         </Modal>
       )}
@@ -2526,10 +2531,10 @@ export default function Dashboard() {
       {/* Prompt 모달 */}
       {promptModal && (
         <Modal title={promptModal.title} theme={theme}>
-          <input autoFocus value={promptValue} onChange={e => setPromptValue(e.target.value)} placeholder={promptModal.placeholder} onKeyDown={e => e.key === 'Enter' && promptModal.onOk(promptValue)} className={`w-full border rounded-xl px-4 py-3 text-[14px] outline-none transition-all mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+          <input autoFocus value={promptValue} onChange={e => setPromptValue(e.target.value)} placeholder={promptModal.placeholder} onKeyDown={e => e.key === 'Enter' && promptModal.onOk(promptValue)} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
           <div className="flex gap-3">
-            <button onClick={() => setPromptModal(null)} className={`flex-1 py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
-            <button onClick={() => promptModal.onOk(promptValue)} className={`flex-1 py-3 rounded-xl border font-black text-[12px] transition-all ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.confirm}</button>
+            <button onClick={() => setPromptModal(null)} className={`flex-1 py-3 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
+            <button onClick={() => promptModal.onOk(promptValue)} className={`flex-1 py-3 rounded-xl border font-black text-mini transition ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.confirm}</button>
           </div>
         </Modal>
       )}
@@ -2540,14 +2545,14 @@ export default function Dashboard() {
           <div className="fixed inset-0 z-40" onClick={() => setRoleDropdown(null)} />
           <div className={`fixed z-50 border rounded-xl shadow-lg overflow-hidden font-ui ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} style={{ top: roleDropdown.y, left: roleDropdown.x }}>
             {ROLES.map(r => (
-              <button key={r} onClick={() => updateMemberRole(roleDropdown.id, r)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`} style={{ color: ROLE_COLORS[r] }}>{r}</button>
+              <button key={r} onClick={() => updateMemberRole(roleDropdown.id, r)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-mini font-bold transition text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`} style={{ color: ROLE_COLORS[r] }}>{r}</button>
             ))}
             <div className={`border-t ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`} />
-            <button onClick={() => toggleExcludeMember(roleDropdown.id, roleDropdown.excluded)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${roleDropdown.excluded ? 'text-[#EFCF8E]' : 'text-zinc-500'}`}>
+            <button onClick={() => toggleExcludeMember(roleDropdown.id, roleDropdown.excluded)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-mini font-bold transition text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${roleDropdown.excluded ? 'text-[#EFCF8E]' : 'text-zinc-500'}`}>
               {roleDropdown.excluded ? t.include : t.exclude}
             </button>
             <button onClick={() => { const pid = roleDropdown.id; setRoleDropdown(null); showPrompt(t.inviteTitle, 'email@example.com', '', async (v) => { const em = (v || '').trim().toLowerCase(); if (!em.includes('@')) return; await supabase.from('invites').insert({ host_id: user.id, product: 'cast', email: em, project: currentProject, profile_id: pid }); setPromptModal(null); showToastMsg(t.inviteSent); }); }}
-              className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left text-[#E3B24A] ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`}>
+              className={`flex items-center gap-2 w-full px-4 py-2.5 text-mini font-bold transition text-left text-brand-cast-text ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`}>
               {t.inviteAccount}
             </button>
           </div>
@@ -2557,15 +2562,15 @@ export default function Dashboard() {
       {/* 내보내기 모달 — 2단계 */}
       {randomModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => setRandomModal(false)}>
-          <div onClick={e => e.stopPropagation()} className={`w-full max-w-sm border rounded-2xl p-6 shadow-lg anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#141414] border-white/10'}`}>
-            <h2 className={`font-black text-[16px] mb-1 ${textMain}`}>{t.randomTitle}</h2>
-            <p className={`text-[12px] mb-5 ${textSub}`}>{getDayLabel(currentDay)}{!dayDates[currentDay] && ` · ${t.randomNoDate}`}</p>
+          <div role="dialog" aria-modal="true" tabIndex={-1} onClick={e => e.stopPropagation()} className={`w-full max-w-sm border rounded-2xl p-6 shadow-lg anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-surface-1 border-white/10'}`}>
+            <h2 className={`font-black text-lead mb-1 ${textMain}`}>{t.randomTitle}</h2>
+            <p className={`text-mini mb-5 ${textSub}`}>{getDayLabel(currentDay)}{!dayDates[currentDay] && ` · ${t.randomNoDate}`}</p>
 
-            <label className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.teamCount}</label>
+            <label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.teamCount}</label>
             <div className="flex items-center gap-1.5 mb-5">
               {['2', '3', '4', '5', '6'].map(n => (
                 <button key={n} onClick={() => setRandTeams(n)}
-                  className={`flex-1 py-2 rounded-lg border font-black text-[14px] transition-all ${randTeams === n ? 'bg-[#E3B24A]/20 border-[#E3B24A]/50 text-[#E3B24A]' : btnBg}`}>{n}</button>
+                  className={`flex-1 py-2 rounded-lg border font-black text-body transition ${randTeams === n ? 'bg-brand-cast/20 border-brand-cast/50 text-brand-cast-text' : btnBg}`}>{n}</button>
               ))}
             </div>
 
@@ -2576,23 +2581,23 @@ export default function Dashboard() {
                 [randMix, setRandMix, t.randomMix, t.randomMixSub, true],
               ] as const).map(([on, set, label, sub, enabled], i) => (
                 <button key={i} disabled={!enabled} onClick={() => (set as any)(!on)}
-                  className={`flex items-start gap-3 px-3.5 py-3 rounded-xl border text-left transition-all disabled:opacity-35 ${on && enabled ? 'border-[#E3B24A]/40 bg-[#E3B24A]/10' : theme === 'light' ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-white/[0.03]'}`}>
-                  <span className={`mt-0.5 w-4 h-4 rounded-[5px] border flex items-center justify-center text-[10px] font-black shrink-0 ${on && enabled ? 'bg-[#E3B24A] border-[#E3B24A] text-black' : theme === 'light' ? 'border-black/20' : 'border-white/20'}`}>{on && enabled ? '✓' : ''}</span>
+                  className={`flex items-start gap-3 px-3.5 py-3 rounded-xl border text-left transition disabled:opacity-35 ${on && enabled ? 'border-brand-cast/40 bg-brand-cast/10' : theme === 'light' ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-white/[0.03]'}`}>
+                  <span className={`mt-0.5 w-4 h-4 rounded-[5px] border flex items-center justify-center text-micro font-black shrink-0 ${on && enabled ? 'bg-brand-cast border-brand-cast text-black' : theme === 'light' ? 'border-black/20' : 'border-white/20'}`}>{on && enabled ? '✓' : ''}</span>
                   <span>
-                    <span className={`block text-[12px] font-bold ${textMain}`}>{label}</span>
-                    <span className={`block text-[10px] ${textSub}`}>{sub}</span>
+                    <span className={`block text-mini font-bold ${textMain}`}>{label}</span>
+                    <span className={`block text-micro ${textSub}`}>{sub}</span>
                   </span>
                 </button>
               ))}
             </div>
 
             <div className="flex gap-2">
-              <button onClick={() => setRandomModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
+              <button onClick={() => setRandomModal(false)} className={`flex-1 py-3 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
               <button onClick={async () => {
                 const n = parseInt(randTeams);
                 setRandomModal(false);
                 if (n > 0) await generateRandomRoster(n, { avoidRepeats: randAvoid, mixGender: randMix, skipBusy: randSkipBusy && !!dayDates[currentDay] })();
-              }} className="flex-1 py-3 rounded-xl bg-[#E3B24A] text-black font-black text-[12px] hover:opacity-90 transition-all">{t.randomRun}</button>
+              }} className="flex-1 py-3 rounded-xl bg-brand-cast text-black font-black text-mini hover:opacity-90 transition">{t.randomRun}</button>
             </div>
           </div>
         </div>
@@ -2600,56 +2605,56 @@ export default function Dashboard() {
 
       {showExportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui" onClick={() => setShowExportModal(false)}>
-          <div className={`w-full max-w-xs border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-xs border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} onClick={e => e.stopPropagation()}>
             {exportStep === 'type' ? (
               <>
-                <h2 className={`font-black text-[16px] mb-4 ${textMain}`}>📤 {lang === 'ko' ? '내보내기' : 'Export'}</h2>
+                <h2 className={`font-black text-lead mb-4 ${textMain}`}>📤 {lang === 'ko' ? '내보내기' : 'Export'}</h2>
                 <div className="flex flex-col gap-2">
                   <button onClick={() => { exportAsText(); setShowExportModal(false); }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[14px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-[20px]">📋</span>
-                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '텍스트 복사' : 'Copy Text'}</p><p className={`text-[12px] font-normal ${textSub}`}>{lang === 'ko' ? '현재 Day 클립보드 복사' : 'Copy current day'}</p></div>
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
+                    <span className="text-sub">📋</span>
+                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '텍스트 복사' : 'Copy Text'}</p><p className={`text-mini font-normal ${textSub}`}>{lang === 'ko' ? '현재 Day 클립보드 복사' : 'Copy current day'}</p></div>
                   </button>
                   <button onClick={() => { exportCallSheet('9:16'); setShowExportModal(false); }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[14px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-[20px]">📱</span>
-                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '콜시트 · 세로' : 'Call sheet · Story'}</p><p className={`text-[12px] font-normal ${textSub}`}>1080×1920 · {lang === 'ko' ? '스토리/카톡용' : 'for stories'}</p></div>
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
+                    <span className="text-sub">📱</span>
+                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '콜시트 · 세로' : 'Call sheet · Story'}</p><p className={`text-mini font-normal ${textSub}`}>1080×1920 · {lang === 'ko' ? '스토리/카톡용' : 'for stories'}</p></div>
                   </button>
                   <button onClick={() => { exportCallSheet('1:1'); setShowExportModal(false); }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[14px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-[20px]">⬛</span>
-                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '콜시트 · 정사각' : 'Call sheet · Square'}</p><p className={`text-[12px] font-normal ${textSub}`}>1080×1080 · {lang === 'ko' ? '피드/DM용' : 'for feed'}</p></div>
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
+                    <span className="text-sub">⬛</span>
+                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '콜시트 · 정사각' : 'Call sheet · Square'}</p><p className={`text-mini font-normal ${textSub}`}>1080×1080 · {lang === 'ko' ? '피드/DM용' : 'for feed'}</p></div>
                   </button>
                   <button onClick={() => { setExportType('jpeg'); setExportStep('scope'); }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[14px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-[20px]">📸</span>
-                    <div className="text-left"><p className="font-black">JPEG</p><p className={`text-[12px] font-normal ${textSub}`}>{lang === 'ko' ? '이미지로 저장' : 'Save as image'}</p></div>
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
+                    <span className="text-sub">📸</span>
+                    <div className="text-left"><p className="font-black">JPEG</p><p className={`text-mini font-normal ${textSub}`}>{lang === 'ko' ? '이미지로 저장' : 'Save as image'}</p></div>
                   </button>
                   <button onClick={() => { setExportType('pdf'); setExportStep('scope'); }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[14px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-[20px]">📄</span>
-                    <div className="text-left"><p className="font-black">PDF</p><p className={`text-[12px] font-normal ${textSub}`}>{lang === 'ko' ? '링크 포함' : 'With links'}</p></div>
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
+                    <span className="text-sub">📄</span>
+                    <div className="text-left"><p className="font-black">PDF</p><p className={`text-mini font-normal ${textSub}`}>{lang === 'ko' ? '링크 포함' : 'With links'}</p></div>
                   </button>
                 </div>
-                <button onClick={() => setShowExportModal(false)} className={`w-full mt-3 py-2.5 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
+                <button onClick={() => setShowExportModal(false)} className={`w-full mt-3 py-2.5 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
               </>
             ) : (
               <>
-                <button onClick={() => setExportStep('type')} className={`text-[12px] font-bold mb-4 flex items-center gap-1 ${textSub}`}>← {lang === 'ko' ? '뒤로' : 'Back'}</button>
-                <h2 className={`font-black text-[16px] mb-4 ${textMain}`}>{exportType === 'pdf' ? '📄' : '📸'} {lang === 'ko' ? '범위 선택' : 'Select Scope'}</h2>
+                <button onClick={() => setExportStep('type')} className={`text-mini font-bold mb-4 flex items-center gap-1 ${textSub}`}>← {lang === 'ko' ? '뒤로' : 'Back'}</button>
+                <h2 className={`font-black text-lead mb-4 ${textMain}`}>{exportType === 'pdf' ? '📄' : '📸'} {lang === 'ko' ? '범위 선택' : 'Select Scope'}</h2>
                 <div className="flex flex-col gap-2">
                   <button onClick={() => { exportType === 'pdf' ? exportAsImage('pdf') : exportAsImage('jpeg'); setShowExportModal(false); }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[14px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-[20px]">📅</span>
-                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '현재 Day' : 'Current Day'}</p><p className={`text-[12px] font-normal ${textSub}`}>{dayNames[currentDay] || `Day ${currentDay}`}</p></div>
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
+                    <span className="text-sub">📅</span>
+                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '현재 Day' : 'Current Day'}</p><p className={`text-mini font-normal ${textSub}`}>{dayNames[currentDay] || `Day ${currentDay}`}</p></div>
                   </button>
                   <button onClick={() => { exportAllDays(exportType === 'pdf' ? 'pdf' : 'jpeg'); setShowExportModal(false); }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-[14px] transition-all hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-[20px]">🗓</span>
-                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '전체 Day' : 'All Days'}</p><p className={`text-[12px] font-normal ${textSub}`}>{lang === 'ko' ? `${days.length}개 Day 한 이미지로` : `${days.length} days in one image`}</p></div>
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
+                    <span className="text-sub">🗓</span>
+                    <div className="text-left"><p className="font-black">{lang === 'ko' ? '전체 Day' : 'All Days'}</p><p className={`text-mini font-normal ${textSub}`}>{lang === 'ko' ? `${days.length}개 Day 한 이미지로` : `${days.length} days in one image`}</p></div>
                   </button>
                 </div>
-                <button onClick={() => setShowExportModal(false)} className={`w-full mt-3 py-2.5 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.cancel}</button>
+                <button onClick={() => setShowExportModal(false)} className={`w-full mt-3 py-2.5 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
               </>
             )}
           </div>
@@ -2658,22 +2663,22 @@ export default function Dashboard() {
 
       {/* 토스트 */}
       {showToast && (
-        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 backdrop-blur-md border text-[12px] font-bold px-5 py-3 rounded-2xl shadow-lg font-ui ${theme === 'light' ? 'bg-black/80 border-black/20 text-white' : 'bg-white/10 border-white/20 text-white'}`}>{toastMsg}</div>
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 backdrop-blur-md border text-mini font-bold px-5 py-3 rounded-2xl shadow-lg font-ui ${theme === 'light' ? 'bg-black/80 border-black/20 text-white' : 'bg-white/10 border-white/20 text-white'}`}>{toastMsg}</div>
       )}
 
       {/* 줌 컨트롤 */}
       <div className="flex fixed bottom-6 left-6 z-50 flex-col items-center gap-1.5 select-none">
-        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#E3B24A]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div onMouseDown={onZoomMouseDown} onDoubleClick={() => setZoom(1)} title="드래그로 확대/축소 · 더블클릭 리셋"
-          className={`w-9 h-10 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[3px] transition-all hover:border-[#E3B24A]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.05] border-white/10'}`}>
+          className={`w-9 h-10 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[3px] transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.05] border-white/10'}`}>
           {[0, 1, 2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500" />)}
         </div>
-        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#E3B24A]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
-        <span className="text-[10px] font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
+        <span className="text-micro font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
       </div>
     </>
   );

@@ -59,11 +59,11 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
     if (ok) { setDone(true); load(); }
   }
 
-  const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[#7C5AE8]';
+  const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
 
-  if (loading) return <div className="min-h-[100dvh] bg-[#0a0a0a] flex items-center justify-center text-white/40">…</div>;
+  if (loading) return <div className="min-h-[100dvh] bg-surface-0 flex items-center justify-center text-white/55">…</div>;
   if (!data) return (
-    <div className="min-h-[100dvh] bg-[#0a0a0a] flex flex-col items-center justify-center gap-2 text-white px-6 text-center">
+    <div className="min-h-[100dvh] bg-surface-0 flex flex-col items-center justify-center gap-2 text-white px-6 text-center">
       <p className="text-white/70">{t('유효하지 않은 서명 링크예요.', 'This signing link is invalid.')}</p>
     </div>
   );
@@ -73,18 +73,18 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
   const catLabel = (k: string) => { const c = CATEGORIES.find((x) => x.key === k); return c ? (lang === 'en' ? c.en : c.label) : ''; };
 
   return (
-    <div className="min-h-[100dvh] bg-[#0a0a0a] text-white">
+    <div className="min-h-[100dvh] bg-surface-0 text-white">
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
-          <h1 className="text-lg font-bold">Split Sheet · {t('서명', 'Sign')}</h1>
-          <span className="text-[10px] px-2 py-0.5 rounded-full border border-white/15 text-white/45">v{sheet.version ?? 1}</span>
+          <h1 className="text-sub font-bold">Split Sheet · {t('서명', 'Sign')}</h1>
+          <span className="text-micro px-2 py-0.5 rounded-full border border-white/15 text-white/45">v{sheet.version ?? 1}</span>
           <div className="ml-auto"><LangToggle /></div>
         </div>
 
         {/* song summary */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 mb-5">
-          <p className="text-[18px] font-bold">{sheet.song_title || t('(제목 없음)', '(Untitled)')}</p>
-          <p className="text-sm text-white/45">{sheet.artist_name || t('아티스트 미정', 'Artist TBD')}{sheet.iswc ? ` · ISWC ${sheet.iswc}` : ''}{sheet.audio_name ? ` · ♪ ${sheet.audio_name}` : ''}</p>
+          <p className="text-sub font-bold">{sheet.song_title || t('(제목 없음)', '(Untitled)')}</p>
+          <p className="text-body text-white/45">{sheet.artist_name || t('아티스트 미정', 'Artist TBD')}{sheet.iswc ? ` · ISWC ${sheet.iswc}` : ''}{sheet.audio_name ? ` · ♪ ${sheet.audio_name}` : ''}</p>
         </div>
 
         {/* splits by category */}
@@ -94,18 +94,18 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
             if (rows.length === 0) return null;
             const total = categoryTotal(data.contributors, cat.key);
             return (
-              <div key={cat.key} className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+              <div key={cat.key} className="cv-row rounded-2xl border border-white/10 bg-white/[0.02] p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-sm font-bold">{catLabel(cat.key)}</h3>
-                  <span className={`text-xs ${total === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>{t('합계', 'Total')} {total}%</span>
+                  <h3 className="text-body font-bold">{catLabel(cat.key)}</h3>
+                  <span className={`text-mini ${total === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>{t('합계', 'Total')} {total}%</span>
                 </div>
                 {rows.map((r) => (
-                  <div key={r.id} className={`flex items-center gap-2 py-1.5 text-sm ${r.id === me.id ? 'text-white' : 'text-white/55'}`}>
+                  <div key={r.id} className={`flex items-center gap-2 py-1.5 text-body ${r.id === me.id ? 'text-white' : 'text-white/55'}`}>
                     <span className="font-medium">{r.legal_name || r.stage_name || '—'}</span>
-                    {r.id === me.id && <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-[#7C5AE8]/40 text-[#6fa0f0]">{t('나', 'You')}</span>}
-                    {r.pro && <span className="text-white/35 text-xs">{PRO_LABEL[r.pro] ?? r.pro}</span>}
+                    {r.id === me.id && <span className="text-micro px-1.5 py-0.5 rounded-full border border-brand-lead/40 text-[#6fa0f0]">{t('나', 'You')}</span>}
+                    {r.pro && <span className="text-white/55 text-mini">{PRO_LABEL[r.pro] ?? r.pro}</span>}
                     <span className="ml-auto tabular-nums">{Number(r.share) || 0}%</span>
-                    {r.signed && <span className="text-emerald-400 text-xs">✓</span>}
+                    {r.signed && <span className="text-emerald-400 text-mini">✓</span>}
                   </div>
                 ))}
               </div>
@@ -117,29 +117,29 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
         {done ? (
           <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.06] p-5 text-center">
             <p className="text-emerald-400 font-bold mb-1">✓ {t('서명 완료', 'Signed')}</p>
-            <p className="text-white/45 text-sm">{t('참여해주셔서 감사합니다. 이 창은 닫아도 돼요.', 'Thanks — you can close this window.')}</p>
+            <p className="text-white/45 text-body">{t('참여해주셔서 감사합니다. 이 창은 닫아도 돼요.', 'Thanks — you can close this window.')}</p>
           </div>
         ) : locked ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-center text-white/50 text-sm">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-center text-white/50 text-body">
             {t('이미 확정된 문서라 서명할 수 없어요.', 'This document is finalized and can no longer be signed.')}
           </div>
         ) : (
           <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
-            <p className="text-sm mb-1">{catLabel(me.category ?? '')} · <b>{Number(me.share) || 0}%</b></p>
-            <p className="text-xs text-white/45 mb-4">{t('위 지분에 동의하고 서명해주세요.', 'Sign to agree to your split above.')}</p>
-            <label className="block text-[11px] text-white/40 mb-1">{t('서명자 법적 이름', 'Signer legal name')}</label>
+            <p className="text-body mb-1">{catLabel(me.category ?? '')} · <b>{Number(me.share) || 0}%</b></p>
+            <p className="text-mini text-white/45 mb-4">{t('위 지분에 동의하고 서명해주세요.', 'Sign to agree to your split above.')}</p>
+            <label className="block text-mini text-white/55 mb-1">{t('서명자 법적 이름', 'Signer legal name')}</label>
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('이름', 'Name')} className={`${field} mb-3`} />
-            <label className="block text-[11px] text-white/40 mb-1">{t('서명 (손으로 그리기 · 선택)', 'Signature (draw · optional)')}</label>
+            <label className="block text-mini text-white/55 mb-1">{t('서명 (손으로 그리기 · 선택)', 'Signature (draw · optional)')}</label>
             <div className="rounded-lg bg-white overflow-hidden mb-1">
               <canvas ref={canvasRef} width={520} height={150} className="w-full touch-none" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up} />
             </div>
-            <button onClick={clear} className="text-[11px] text-white/40 hover:text-white mb-3">{t('지우기', 'Clear')}</button>
-            <label className="flex items-start gap-2 text-xs text-white/70 mb-4">
+            <button onClick={clear} className="text-mini text-white/55 hover:text-white mb-3">{t('지우기', 'Clear')}</button>
+            <label className="flex items-start gap-2 text-mini text-white/70 mb-4">
               <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5" />
               <span>{t('위 지분이 정확하며 이에 동의함을 확인합니다. 서명 시각·문서 해시(SHA-256)가 함께 기록됩니다.', 'I confirm the split above is accurate and I agree. The time and a document hash (SHA-256) are recorded.')}</span>
             </label>
             <button onClick={submit} disabled={!name.trim() || !agree || signing}
-              className="w-full text-sm px-4 py-3 rounded-xl bg-[#7C5AE8] hover:bg-[#A48BF0] disabled:opacity-40 font-medium transition-colors">
+              className="w-full text-body px-4 py-3 rounded-xl bg-brand-lead hover:bg-[#A48BF0] disabled:opacity-40 font-medium transition-colors">
               {signing ? '…' : t('서명 완료', 'Sign')}
             </button>
           </div>
