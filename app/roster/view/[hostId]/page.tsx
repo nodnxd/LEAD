@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useParams } from 'next/navigation';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
+import { onDbError } from '@/lib/dbErrors';
 import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
@@ -27,6 +28,7 @@ const TV = {
     portalHi: (n: string) => `${n}님, 반가워요`, portalDesc: '내 일정과 가능일 투표를 여기서 챙겨요',
     portalConfirmed: '확정 일정', portalIcs: '캘린더 저장 (.ics)', portalVote: '가능일 투표하기', portalNoConfirm: '아직 확정된 일정이 없어요',
     myStudio: '내 스튜디오', myMates: '함께', myStudioNone: '이 날은 아직 배치 전이에요',
+    saveFailed: '저장이 안 됐어요. 다시 눌러주세요.',
   },
   en: {
     attending: 'Attending', absent: 'Absent', noResponse: 'No Response',
@@ -38,6 +40,7 @@ const TV = {
     portalHi: (n: string) => `Welcome, ${n}`, portalDesc: 'Your schedule and availability poll, all here',
     portalConfirmed: 'Confirmed dates', portalIcs: 'Save calendar (.ics)', portalVote: 'Vote availability', portalNoConfirm: 'No confirmed dates yet',
     myStudio: 'My studio', myMates: 'With', myStudioNone: 'Not assigned for this day yet',
+    saveFailed: 'Could not save. Please tap again.',
   }
 };
 
@@ -69,6 +72,7 @@ export default function GuestView() {
   const [votingMemo, setVotingMemo] = useState('');
   const [selectedMemberId, setSelectedMemberId] = useState<any>(null);
   const [linkPopover, setLinkPopover] = useState<{ member: any; x: number; y: number } | null>(null);
+  const [dbError, setDbError] = useState<string | null>(null);
   const [me, setMe] = useState<any>(null); // 로그인한 멤버 본인(초대 연결됨)
   const [portalPoll, setPortalPoll] = useState<any>(null); // 최신 열린/최근 가능일 투표
 
@@ -91,6 +95,8 @@ export default function GuestView() {
     window.addEventListener('storage', sync);
     return () => { window.removeEventListener(LANG_EVENT, sync); window.removeEventListener('storage', sync); };
   }, []);
+
+  useEffect(() => onDbError(e => { if (e.write) setDbError(e.message); }), []);
 
   const toggleLang = () => { setLangValue(lang === 'ko' ? 'en' : 'ko'); };
   const toggleTheme = () => {
@@ -311,10 +317,10 @@ export default function GuestView() {
       }}
     >
       <div className="flex flex-col overflow-hidden pl-1">
-        <span className={`text-[15px] font-bold flex items-center gap-1.5 ${textMain}`}>
+        <span className={`text-[16px] font-bold flex items-center gap-1.5 ${textMain}`}>
           <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={m.gender === 'female' ? 'F' : 'M'} />
           {m.name}
-          {m.links?.length > 0 && <span className="text-[11px]">🔗</span>}
+          {m.links?.length > 0 && <span className="text-[12px]">🔗</span>}
         </span>
         <span className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${textSub}`}>{m.role}</span>
       </div>
@@ -345,7 +351,7 @@ export default function GuestView() {
               {(linkPopover.member.links || []).map((link: string, i: number) => (
                 <a key={i} href={link} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${theme === 'light' ? 'bg-black/5 hover:bg-black/10' : 'bg-white/5 hover:bg-white/10'}`}>
                   <span className="text-[14px]">{getLinkIcon(link)}</span>
-                  <span className={`text-[11px] truncate ${textSub}`}>{link.replace('https://', '').replace('http://', '').split('/').slice(0, 2).join('/')}</span>
+                  <span className={`text-[12px] truncate ${textSub}`}>{link.replace('https://', '').replace('http://', '').split('/').slice(0, 2).join('/')}</span>
                 </a>
               ))}
             </div>
@@ -367,9 +373,9 @@ export default function GuestView() {
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 </span>
                 <span className="text-[14px] font-bold tracking-tight text-[#a78bfa] shrink-0">room</span>
-                <span className={`text-[11px] truncate ${textSub}`}>{lang === 'ko' ? '가사와 데모를 한곳에서' : 'lyrics & demos in one place'}</span>
+                <span className={`text-[12px] truncate ${textSub}`}>{lang === 'ko' ? '가사와 데모를 한곳에서' : 'lyrics & demos in one place'}</span>
               </div>
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-[#a78bfa] whitespace-nowrap opacity-85 group-hover:opacity-100 transition-opacity shrink-0">
+              <span className="flex items-center gap-1 text-[12px] font-semibold text-[#a78bfa] whitespace-nowrap opacity-85 group-hover:opacity-100 transition-opacity shrink-0">
                 {lang === 'ko' ? '열어보기' : 'open'}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </span>
@@ -379,14 +385,14 @@ export default function GuestView() {
           {/* 헤더 */}
           <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-6">
             <h1 className="text-4xl font-semibold text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
-            <span className={`text-[11px] font-normal tracking-[0.2em] ${textSub}`}>by NEN</span>
+            <span className={`text-[12px] font-normal tracking-[0.2em] ${textSub}`}>by NEN</span>
           </div>
 
           {/* 서브 헤더 */}
           <header className={`relative z-10 mb-4 border-b pb-3 flex justify-between items-center ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`}>
             <p className={`text-[16px] font-bold ${textSub}`}>{currentProject}</p>
             <div className="flex items-center gap-2">
-              <button onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} className={`px-3 py-1.5 rounded-full border font-normal text-[11px] transition-all ${btnBg}`}>{theme === 'dark' ? '☀' : '◑'}</button>
+              <button onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} className={`px-3 py-1.5 rounded-full border font-normal text-[12px] transition-all ${btnBg}`}>{theme === 'dark' ? '☀' : '◑'}</button>
               <button onClick={toggleLang} aria-label={lang === 'ko' ? 'Switch to English' : '한국어로 전환'} className={`px-3 py-1.5 rounded-full border font-normal text-[10px] uppercase tracking-widest transition-all ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
               {sessions.length > 0 && (
                 <button onClick={() => setShowHistory(!showHistory)}
@@ -396,11 +402,22 @@ export default function GuestView() {
             </div>
           </header>
 
+          {dbError && (
+            <div role="alert" className="relative z-10 mb-4 rounded-xl border border-[#E0575F]/50 bg-[#E0575F]/10 px-4 py-3 flex items-start gap-3">
+              <span className="text-[14px] leading-none mt-0.5 text-[#E0575F]">⚠</span>
+              <div className="flex-1">
+                <p className="text-[12px] font-black text-[#E0575F]">{tv.saveFailed}</p>
+                <p className={`text-[10px] mt-0.5 ${textSub}`}>{dbError}</p>
+              </div>
+              <button onClick={() => setDbError(null)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className={`text-[12px] hover:opacity-70 ${textSub}`}>✕</button>
+            </div>
+          )}
+
           {/* 프로젝트 탭 */}
           <div className="relative z-10 flex items-center gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
             {projects.map(p => (
               <button key={p} onClick={() => setCurrentProject(p)}
-                className={`px-4 py-1.5 rounded-full font-normal text-[11px] tracking-widest uppercase border transition-all ${currentProject === p ? 'border-[#E3B24A]/50 bg-[#E3B24A]/20 text-[#E3B24A]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-400'}`}>{p}</button>
+                className={`px-4 py-1.5 rounded-full font-normal text-[12px] tracking-widest uppercase border transition-all ${currentProject === p ? 'border-[#E3B24A]/50 bg-[#E3B24A]/20 text-[#E3B24A]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-400'}`}>{p}</button>
             ))}
           </div>
 
@@ -409,7 +426,7 @@ export default function GuestView() {
             <div className="relative z-10 flex items-center gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
               {days.map(d => (
                 <button key={d} onClick={() => setCurrentDay(d)}
-                  className={`px-4 py-1.5 rounded-full font-normal text-[11px] transition-all border ${currentDay === d ? 'border-[#E3B24A]/40 bg-[#E3B24A]/10 text-[#E3B24A]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
+                  className={`px-4 py-1.5 rounded-full font-normal text-[12px] transition-all border ${currentDay === d ? 'border-[#E3B24A]/40 bg-[#E3B24A]/10 text-[#E3B24A]' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
               ))}
             </div>
           )}
@@ -425,7 +442,7 @@ export default function GuestView() {
                   <p className="text-[10px] font-black uppercase tracking-widest mb-2 text-[#E3B24A]">{tv.myStudio}</p>
                   {myTeam ? (
                     <>
-                      <p className={`font-black text-[22px] leading-tight ${textMain}`}>{myTeam.team}</p>
+                      <p className={`font-black text-[20px] leading-tight ${textMain}`}>{myTeam.team}</p>
                       <p className={`text-[12px] mt-1 ${textSub}`}>{getDayLabel(currentDay)}{currentProject ? ` · ${currentProject}` : ''}</p>
                       {myTeam.mates.length > 0 && (
                         <div className="mt-3">
@@ -440,7 +457,7 @@ export default function GuestView() {
                         </div>
                       )}
                     </>
-                  ) : <p className={`text-[13px] ${textSub}`}>{tv.myStudioNone}</p>}
+                  ) : <p className={`text-[14px] ${textSub}`}>{tv.myStudioNone}</p>}
                 </div>
                 {portalPoll && (portalPoll.final_days || []).length > 0 ? (
                   <div>
@@ -481,7 +498,7 @@ export default function GuestView() {
           {votingOpen && (
             <div className={`relative z-10 mb-8 rounded-2xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]'}`}>
               <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${textSub}`}>{tv.vote}</p>
-              <p className={`font-black text-[18px] mb-1 ${textMain}`}>{votingTitle || (lang === 'ko' ? '참여 여부 투표' : 'Attendance Vote')}</p>
+              <p className={`font-black text-[20px] mb-1 ${textMain}`}>{votingTitle || (lang === 'ko' ? '참여 여부 투표' : 'Attendance Vote')}</p>
               {votingMemo && <p className={`text-[12px] mb-6 leading-relaxed whitespace-pre-line ${textSub}`}>{votingMemo}</p>}
               {!votingMemo && <div className="mb-5" />}
               <div className="flex flex-col gap-5 mb-8">
@@ -497,7 +514,7 @@ export default function GuestView() {
                             <div key={m.id} className="flex flex-col items-start gap-1.5">
                               <button onClick={() => setSelectedMemberId(isSelected ? null : m.id)} style={{ minWidth: '110px' }}
                                 className={`flex items-center justify-between gap-2 px-4 py-2 rounded-full border transition-all w-full ${isSelected ? `${c.activeBg} ${c.activeBorder} scale-105` : `${c.bg} ${c.border} hover:scale-105`}`}>
-                                <span className={`font-black text-[13px] ${c.text} truncate`}>{m.name}</span>
+                                <span className={`font-black text-[14px] ${c.text} truncate`}>{m.name}</span>
                                 {getVoteIcon(m.attendance)}
                               </button>
                               {isSelected && (
@@ -548,12 +565,12 @@ export default function GuestView() {
                 {Object.keys(sessionsByCamp).length === 0 ? <p className={`text-[12px] ${textSub}`}>{tv.noSession}</p> :
                   Object.entries(sessionsByCamp).map(([campName, campSessions]: any) => (
                     <div key={campName}>
-                      <p className={`text-[11px] font-black uppercase tracking-widest mb-2 ${textSub}`}>{campName}</p>
+                      <p className={`text-[12px] font-black uppercase tracking-widest mb-2 ${textSub}`}>{campName}</p>
                       <div className="flex flex-col gap-2">
                         {campSessions.sort((a: any, b: any) => a.day_number - b.day_number).map((s: any) => (
                           <div key={s.id} className={`rounded-2xl border overflow-hidden ${theme === 'light' ? 'border-black/10 bg-black/[0.02]' : 'border-white/10 bg-white/[0.02]'}`}>
                             <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setExpandedSession(expandedSession === s.id ? null : s.id)}>
-                              <div className="flex items-center gap-3"><span className="text-[#E3B24A] font-black text-[13px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
+                              <div className="flex items-center gap-3"><span className="text-[#E3B24A] font-black text-[14px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                               <div className="flex items-center gap-3">
                                 <span className="text-zinc-400 text-[10px]">{new Date(s.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</span>
                                 {s.links?.length > 0 && <div className="flex gap-1">{s.links.map((link: string, i: number) => (<a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[12px]">{getLinkIcon(link)}</a>))}</div>}
@@ -594,7 +611,7 @@ export default function GuestView() {
           )}
 
           <div className="relative z-10 mt-8 pb-8 text-center">
-            <p className={`text-[11px] font-medium ${textSub}`}>Contact : everplayground@gmail.com</p>
+            <p className={`text-[12px] font-medium ${textSub}`}>Contact : everplayground@gmail.com</p>
           </div>
         </main>
       </div>
