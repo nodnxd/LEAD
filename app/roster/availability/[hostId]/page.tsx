@@ -525,7 +525,7 @@ function Header({ t, c, poll, y, m, done, total }: any) {
   return (
     <div className="mb-7">
       <p className="font-mono-num text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: c.goldText }}>{t.availability}</p>
-      <h1 className="font-display font-bold text-[26px] leading-tight" style={{ color: c.text }}>{poll.title || `${y}. ${String(m).padStart(2, '0')}`}</h1>
+      <h1 className="font-display text-[26px] leading-tight" style={{ color: c.text }}>{poll.title || `${y}. ${String(m).padStart(2, '0')}`}</h1>
       <div className="flex items-center gap-2.5 mt-2">
         <p className="text-[12px]" style={{ color: c.sub }}>{y}. {String(m).padStart(2, '0')}{poll.is_open ? '' : ` · ${t.closed}`}</p>
         <div className="flex-1 h-1 rounded-full overflow-hidden max-w-[120px]" style={{ backgroundColor: c.track }}>

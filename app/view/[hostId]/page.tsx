@@ -497,7 +497,7 @@ export default function GuestView(){
       <style dangerouslySetInnerHTML={{__html:`}`}}/>
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-ui relative overflow-hidden`}>
         <div className="w-full max-w-sm text-center">
-          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#7C5AE8]/25 bg-[#7C5AE8]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
+          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="font-display text-4xl text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#7C5AE8]/25 bg-[#7C5AE8]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           <div className={`border rounded-2xl p-8 ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
             <div className="text-4xl mb-4"><i className={icon} aria-hidden="true"></i></div>
             <h2 className={`font-black text-[18px] mb-2 ${D?'text-white':'text-[#111]'}`}>{title}</h2>
@@ -535,7 +535,7 @@ export default function GuestView(){
       <style dangerouslySetInnerHTML={{__html:`}`}}/>
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-ui relative overflow-hidden`}>
         <div className="w-full max-w-sm relative z-10">
-          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#7C5AE8]/25 bg-[#7C5AE8]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
+          <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="font-display text-4xl text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#7C5AE8]/25 bg-[#7C5AE8]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           {noProfile?(
             <div className={`border rounded-2xl p-8 text-center ${D?'bg-[#1e1e1e] border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
               <div className="text-4xl mb-4"><i className="ti ti-pencil" aria-hidden="true"></i></div>
@@ -578,7 +578,7 @@ export default function GuestView(){
       <style dangerouslySetInnerHTML={{__html:`}`}}/>
       <main className={`min-h-screen ${mainBg} p-5 lg:p-8 pb-24 sm:pb-5 font-ui relative`} style={{zoom: zoom*1.1}}>
         <div className="relative z-10 flex flex-col items-center mb-8">
-          <div className="flex items-baseline justify-center gap-2.5"><h1 className="text-4xl font-semibold text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
+          <div className="flex items-baseline justify-center gap-2.5"><h1 className="font-display text-4xl text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-[11px] font-bold tracking-[0.2em]`}>by NEN</span></div>
           {hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#7C5AE8]/25 bg-[#7C5AE8]/10"><span className={`text-[12px] font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}
         </div>
 

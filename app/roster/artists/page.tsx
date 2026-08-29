@@ -224,7 +224,7 @@ export default function ArtistsPage() {
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-8">
-          <h1 className="text-4xl font-semibold text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
+          <h1 className="font-display text-4xl text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
           <span className="text-zinc-500 text-[11px] font-normal tracking-[0.2em]">by NEN</span>
         </div>
 

@@ -221,7 +221,7 @@ export default function OnboardingPage() {
         <div className="absolute top-5 right-5 z-20"><LangToggle /></div>
         <div className="relative z-10 w-full max-w-lg">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-semibold text-[#7C5AE8] uppercase tracking-tighter mb-1">LEAD</h1>
+            <h1 className="font-display text-3xl text-[#7C5AE8] uppercase tracking-tighter mb-1">LEAD</h1>
             <p className={`text-[12px] font-bold ${dimText}`}>{t('프로필을 완성해주세요', 'Complete your profile')}</p>
           </div>
 

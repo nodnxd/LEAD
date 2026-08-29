@@ -61,7 +61,7 @@ export default function LandingPage() {
         {/* 로고 */}
         <div className="text-center mb-10">
           <div className="flex items-baseline justify-center gap-2.5">
-            <h1 className="text-6xl font-black text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
+            <h1 className="font-display text-6xl text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
             <span className="text-zinc-500 text-[11px] font-bold tracking-[0.2em]">by NEN</span>
           </div>
           <p className="text-[9px] font-bold tracking-[0.5em] uppercase mt-2" style={{ color: '#4a7fa5', opacity: 0.7 }}>Roster Manager</p>

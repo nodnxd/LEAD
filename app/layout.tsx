@@ -6,9 +6,10 @@ import "./globals.css";
 // css2 링크는 unicode-range로 쪼개져 있어 한글 파일은 실제로 한글이 나올 때만 내려옴.
 const FONTS =
   "https://fonts.googleapis.com/css2" +
-  "?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700" +
-  "&family=Noto+Serif+KR:wght@400;600;700" +
-  "&family=IBM+Plex+Mono:wght@400;500;600" +
+  "?family=Gothic+A1:wght@300;400;500;600;700;800;900" +   // 본문·컨트롤
+  "&family=Archivo+Black" +                                 // 디스플레이 라틴 (1 weight)
+  "&family=Black+Han+Sans" +                                // 디스플레이 한글 (1 weight)
+  "&family=IBM+Plex+Mono:wght@400;500;600" +                // 라벨·카운트
   "&display=swap";
 
 export const metadata: Metadata = {

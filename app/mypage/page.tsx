@@ -342,7 +342,7 @@ export default function MyPage() {
             {/* 헤더 */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-baseline gap-2.5">
-                <h1 className="text-2xl font-semibold text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1>
+                <h1 className="font-display text-2xl text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1>
                 <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>HOST PAGE</span>
               </div>
               <div className="flex items-center gap-2">
@@ -699,7 +699,7 @@ export default function MyPage() {
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-baseline gap-2.5">
-              <h1 className="text-2xl font-black text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1>
+              <h1 className="font-display text-2xl text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1>
               <span className={`text-[11px] font-bold tracking-[0.2em] ${dimText}`}>MY PAGE</span>
             </div>
             <div className="flex items-center gap-2">

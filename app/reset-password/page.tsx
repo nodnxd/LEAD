@@ -39,7 +39,7 @@ export default function ResetPasswordPage() {
         <div className="absolute top-5 right-5 z-20"><LangToggle /></div>
         <div className="w-full max-w-sm relative z-10">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-black text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1>
+            <h1 className="font-display text-4xl text-[#7C5AE8] uppercase tracking-tighter">LEAD</h1>
             <p className="text-zinc-600 text-[12px] mt-1">{t('비밀번호 재설정', 'Reset password')}</p>
           </div>
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">

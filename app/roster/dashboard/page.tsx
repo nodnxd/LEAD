@@ -1368,8 +1368,9 @@ export default function Dashboard() {
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const x = cv.getContext('2d')!;
-    const sans = (w: string, sz: number) => `${w} ${sz}px "IBM Plex Sans KR", -apple-system, "Apple SD Gothic Neo", sans-serif`;
-    const serif = (w: string, sz: number) => `${w} ${sz}px "Noto Serif KR", "Apple SD Gothic Neo", serif`;
+    const sans = (w: string, sz: number) => `${w} ${sz}px "Gothic A1", -apple-system, "Apple SD Gothic Neo", sans-serif`;
+    // 디스플레이는 굵기 400 하나뿐 — 라틴 Archivo Black, 한글 Black Han Sans
+    const serif = (_w: string, sz: number) => `400 ${sz}px "Archivo Black", "Black Han Sans", sans-serif`;
     const mono = (w: string, sz: number) => `${w} ${sz}px "IBM Plex Mono", ui-monospace, monospace`;
     const track = (px: number) => { try { (x as any).letterSpacing = `${px}px`; } catch { /* 미지원 브라우저는 무시 */ } };
     const rule = (y: number, alpha = 0.14) => { x.strokeStyle = `rgba(255,255,255,${alpha})`; x.lineWidth = 1; x.beginPath(); x.moveTo(PAD, y + 0.5); x.lineTo(W - PAD, y + 0.5); x.stroke(); };
@@ -2131,7 +2132,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-ui">
           <div className={`w-full max-w-sm mx-4 border rounded-2xl p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <div className="text-center mb-6">
-              <h1 className="text-4xl font-semibold text-[#E3B24A] uppercase tracking-tighter mb-2">CAST</h1>
+              <h1 className="font-display text-4xl text-[#E3B24A] uppercase tracking-tighter mb-2">CAST</h1>
               <p className={`text-[14px] ${textSub}`}>{t.firstRosterTitle}</p>
             </div>
             <input autoFocus value={firstRosterName} onChange={e => setFirstRosterName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createFirstRoster()}

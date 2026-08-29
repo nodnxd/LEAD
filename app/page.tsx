@@ -67,7 +67,7 @@ export default function LoginPage() {
           {/* 브랜드 — 세 제품 통합 (선택은 로그인 후 hub에서) */}
           <div className="mb-12">
             <div className="flex items-baseline gap-3 flex-wrap">
-              <h1 className="text-5xl font-black uppercase tracking-tighter leading-none">
+              <h1 className="font-display text-5xl uppercase tracking-tighter leading-none">
                 <span style={{ color: '#7C5AE8' }}>LEAD</span>
                 <span className="text-white/15"> · </span>
                 <span style={{ color: '#E3B24A' }}>CAST</span>

@@ -381,7 +381,7 @@ export default function GuestView() {
 
           {/* 헤더 */}
           <div className="relative z-10 flex items-baseline justify-center gap-2.5 mb-6">
-            <h1 className="text-4xl font-semibold text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
+            <h1 className="font-display text-4xl text-[#E3B24A] uppercase tracking-tighter">CAST</h1>
             <span className={`text-[12px] font-normal tracking-[0.2em] ${textSub}`}>by NEN</span>
           </div>
 
@@ -439,7 +439,7 @@ export default function GuestView() {
                   <p className="text-[10px] font-black uppercase tracking-widest mb-2 text-[#E3B24A]">{tv.myStudio}</p>
                   {myTeam ? (
                     <>
-                      <p className={`font-display font-bold text-[20px] leading-tight ${textMain}`}>{myTeam.team}</p>
+                      <p className={`font-display text-[20px] leading-tight ${textMain}`}>{myTeam.team}</p>
                       <p className={`text-[12px] mt-1 ${textSub}`}>{getDayLabel(currentDay)}{currentProject ? ` · ${currentProject}` : ''}</p>
                       {myTeam.mates.length > 0 && (
                         <div className="mt-3">
