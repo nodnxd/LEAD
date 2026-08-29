@@ -143,8 +143,12 @@ export default function HubPage() {
           {/* top bar */}
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-baseline gap-2.5">
-              <span className="font-display text-[15px] uppercase tracking-tighter">
-                <span style={{ color: '#7C5AE8' }}>LEAD</span><span className="text-white/15">·</span><span style={{ color: '#E3B24A' }}>CAST</span><span className="text-white/15">·</span><span style={{ color: '#2FB6A3' }}>SPLIT</span>
+              <span className="font-display text-[15px] uppercase tracking-tighter flex items-center gap-1.5">
+                <span style={{ color: '#7C5AE8' }}>LEAD</span>
+                <span aria-hidden="true" className="w-[3px] h-[3px] rounded-full bg-white/25 shrink-0" />
+                <span style={{ color: '#E3B24A' }}>CAST</span>
+                <span aria-hidden="true" className="w-[3px] h-[3px] rounded-full bg-white/25 shrink-0" />
+                <span style={{ color: '#2FB6A3' }}>SPLIT</span>
               </span>
               <span className="text-zinc-600 text-[10px] font-bold tracking-[0.2em]">by NEN</span>
             </div>

@@ -41,7 +41,7 @@ body {
 /* 디스플레이는 굵기가 400 하나뿐 — 라틴은 Archivo Black, 한글은 Black Han Sans가 받는다.
    font-bold 같은 걸 얹으면 브라우저가 가짜 볼드를 만들어 뭉개지므로 400으로 못박음. */
 .font-display {
-  font-family: "Archivo Black", "Black Han Sans", "Apple SD Gothic Neo", sans-serif;
+  font-family: "Archivo Black", "Black Han Sans", "Gothic A1", "Apple SD Gothic Neo", sans-serif;
   font-weight: 400 !important;
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.025em;
