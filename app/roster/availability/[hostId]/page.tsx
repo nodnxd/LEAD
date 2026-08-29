@@ -53,7 +53,7 @@ const TX = {
     noneYet: '아직 응답이 없어요', blocked: '차단된 날',
     weekdays: ['일', '월', '화', '수', '목', '금', '토'],
     confirmedTitle: '확정된 날', saveIcs: '캘린더 저장 (.ics)',
-    guide: '날짜를 누르면 파랑(가능) ↔ 빨강(불가능). 쭉 드래그하면 여러 날 한 번에.',
+    guide: '날짜를 누르면 파랑(가능) ↔ 빨강(불가능). 쭉 드래그하면 여러 날 한 번에. 우클릭하면 그 날 누가 되는지 보여요.',
     quickPick: '빠른 선택', quickWeekend: '주말 가능', quickWeekday: '평일 가능', quickAll: '전부 가능', quickNone: '전부 불가능', quickClear: '전부 지우기',
     reviewTitle: '이대로 제출할까요?', reviewSubmit: '제출하기', reviewMore: '더 고를래요', reviewNone: '아직 고른 날이 없어요',
     progress: (a: number, b: number) => `${a}/${b} 제출`,
@@ -69,7 +69,7 @@ const TX = {
     noneYet: 'No responses yet', blocked: 'Blocked',
     weekdays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
     confirmedTitle: 'Confirmed days', saveIcs: 'Save calendar (.ics)',
-    guide: 'Tap a day to flip blue (available) ↔ red (unavailable). Drag across days to set many.',
+    guide: 'Tap a day to flip blue (available) ↔ red (unavailable). Drag across days to set many. Right-click a day to see who’s in.',
     quickPick: 'Quick pick', quickWeekend: 'Weekends ok', quickWeekday: 'Weekdays ok', quickAll: 'All ok', quickNone: 'None ok', quickClear: 'Clear all',
     reviewTitle: 'Submit these?', reviewSubmit: 'Submit', reviewMore: 'Keep editing', reviewNone: 'No days picked yet',
     progress: (a: number, b: number) => `${a}/${b} submitted`,
@@ -360,7 +360,15 @@ export default function AvailabilityView() {
                 : st === 'unavailable' ? 'rgba(224,87,95,0.8)'
                 : c.line;
               return (
-                <div key={d} data-day={d}
+                <button key={d} type="button" data-day={d}
+                  disabled={isBlocked || !poll.is_open}
+                  aria-pressed={st === 'available'}
+                  aria-label={`${d}${lang === 'ko' ? '일' : ''} — ${isBlocked ? t.blocked : st === 'available' ? t.available : st === 'unavailable' ? t.unavailable : t.noAnswer}`}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    e.preventDefault();
+                    setDay(d, myStatus(d) === 'available' ? 'unavailable' : 'available');
+                  }}
                   onContextMenu={(e) => { e.preventDefault(); setSelectedDay(selectedDay === d ? null : d); }}
                   className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center select-none transition-[transform,background-color] duration-150
                     ${isFinal ? 'ring-2 ring-[#E3B24A]' : ''}
@@ -374,11 +382,11 @@ export default function AvailabilityView() {
                     style={{ color: isBlocked ? c.faint : st === 'available' ? c.yesText : st === 'unavailable' ? c.noText : c.text }}>{d}</span>
                   {!isBlocked && !st && n > 0 && <span className="text-[10px] font-black pointer-events-none" style={{ color: c.sub }}>{n}</span>}
                   {isFinal && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#E3B24A] pointer-events-none" />}
-                </div>
+                </button>
               );
             })}
           </div>
-          <div className="flex items-center gap-3 mt-3.5 text-[11px] font-bold flex-wrap">
+          <div aria-live="polite" className="flex items-center gap-3 mt-3.5 text-[11px] font-bold flex-wrap">
             <span style={{ color: YES }}>{t.available} {myYes.length}</span>
             <span style={{ color: NO }}>{t.unavailable} {myNo.length}</span>
             <span style={{ color: unanswered > 0 ? c.faint : '#3F9B8B' }}>{unanswered > 0 ? t.left(unanswered) : t.allPicked}</span>
@@ -463,8 +471,8 @@ function TopBar({ c, lang, dark, onTheme, onLang, left }: any) {
     <div className="flex items-center justify-between mb-5">
       <div>{left}</div>
       <div className="flex items-center gap-1.5">
-        <button onClick={onTheme} title={dark ? 'Light' : 'Dark'} className="px-3 py-1.5 rounded-full border text-[11px] transition-all hover:opacity-70" style={btn}>{dark ? '☀' : '◑'}</button>
-        <button onClick={onLang} className="px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all hover:opacity-70" style={btn}>{lang === 'ko' ? 'EN' : 'KO'}</button>
+        <button onClick={onTheme} title={dark ? 'Light' : 'Dark'} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} className="px-3 py-1.5 rounded-full border text-[11px] transition-all hover:opacity-70" style={btn}>{dark ? '☀' : '◑'}</button>
+        <button onClick={onLang} aria-label={lang === 'ko' ? 'Switch to English' : '한국어로 전환'} className="px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all hover:opacity-70" style={btn}>{lang === 'ko' ? 'EN' : 'KO'}</button>
       </div>
     </div>
   );
@@ -556,7 +564,7 @@ function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
     <div className="rounded-2xl border p-5 mb-2 anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
       <div className="flex items-center justify-between mb-3">
         <p className="text-[13px] font-black" style={{ color: c.text }}>{t.onDay(day)} · <span style={{ color: YES }}>{t.available} {yes.length}</span> · <span style={{ color: c.noText }}>{t.unavailable} {no.length}</span></p>
-        <button onClick={onClose} className="text-[11px] hover:opacity-70" style={{ color: c.sub }}>✕</button>
+        <button onClick={onClose} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-[11px] hover:opacity-70" style={{ color: c.sub }}>✕</button>
       </div>
       {yes.length + no.length === 0 ? <span className="text-[12px]" style={{ color: c.sub }}>{t.noneYet}</span> : (
         <div className="flex flex-col gap-3">

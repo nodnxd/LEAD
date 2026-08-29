@@ -55,7 +55,7 @@ const T = {
     attending: '참석', absent: '불참', noResponse: '미응답',
     exclude: '✕ 제외하기', include: '✓ 포함시키기',
     sessionDeleteMsg: (d: number) => `Day ${d} 삭제할까요?`, sessionDelete: '세션 삭제',
-    contact: 'Contact : everplayground@gmail.com', loading: 'Loading...',
+    contact: 'Contact : everplayground@gmail.com', loading: 'Loading…',
     alreadyInRoster: (n: string) => `${n} 이미 있어요!`,
     addedToRoster: (n: string, p: string) => `✅ ${n} → ${p}`,
     linkCopied: '🔗 링크가 복사됐어요!', closeVoteConfirm: '투표를 닫을까요?',
@@ -129,7 +129,7 @@ const T = {
     attending: 'Attending', absent: 'Absent', noResponse: 'No Response',
     exclude: '✕ Exclude', include: '✓ Include',
     sessionDeleteMsg: (d: number) => `Delete Day ${d}?`, sessionDelete: 'Delete Session',
-    contact: 'Contact : everplayground@gmail.com', loading: 'Loading...',
+    contact: 'Contact : everplayground@gmail.com', loading: 'Loading…',
     alreadyInRoster: (n: string) => `${n} already in roster!`,
     addedToRoster: (n: string, p: string) => `✅ ${n} → ${p}`,
     linkCopied: '🔗 Link copied!', closeVoteConfirm: 'Close the vote?',
@@ -176,7 +176,7 @@ type Theme = 'dark' | 'light';
 
 const Modal = ({ title, message, children, theme }: any) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard">
-    <div className={`w-full max-w-sm mx-4 border rounded-2xl p-6 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+    <div className={`w-full max-w-sm mx-4 border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
       {title && <h2 className={`font-black text-[16px] mb-2 ${theme === 'light' ? 'text-black' : 'text-white'}`}>{title}</h2>}
       {message && <p className={`text-[13px] mb-5 leading-relaxed whitespace-pre-line ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>{message}</p>}
       {children}
@@ -1013,7 +1013,7 @@ export default function Dashboard() {
   };
 
   const exportAsImage = async (format: 'jpeg' | 'pdf') => {
-    showToastMsg('📸 ' + (lang === 'ko' ? '생성 중...' : 'Generating...'));
+    showToastMsg('📸 ' + (lang === 'ko' ? '생성 중…' : 'Generating…'));
     try {
       const dayLabel = dayNames[currentDay] || `Day ${currentDay}`;
       const activeTeams = teams.filter(t => t !== 'Unassigned');
@@ -1085,7 +1085,7 @@ export default function Dashboard() {
 ;
 
   const exportAllDays = async (format: 'jpeg' | 'pdf' = 'jpeg') => {
-    showToastMsg('📸 ' + (lang === 'ko' ? '생성 중...' : 'Generating...'));
+    showToastMsg('📸 ' + (lang === 'ko' ? '생성 중…' : 'Generating…'));
     try {
       const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E3B24A', 'Topliner': '#5FA39A', 'Engineer': '#C98BA0', 'A&R': '#C98BA0' };
       const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
@@ -1513,7 +1513,7 @@ export default function Dashboard() {
   const textMain = theme === 'light' ? 'text-black' : 'text-white';
   const textSub = theme === 'light' ? 'text-zinc-500' : 'text-zinc-400';
   const inputBg = theme === 'light' ? 'bg-black/5 border-black/10' : 'bg-white/5 border-white/10';
-  const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-600 hover:bg-black/10' : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10';
+  const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-400 hover:bg-black/10' : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10';
 
   const getRoleCardStyle = (r: string, excluded: boolean) => {
     if (excluded) return theme === 'light' ? "border border-black/5 bg-black/[0.02] grayscale opacity-50" : "border border-white/5 bg-white/[0.01] grayscale opacity-60 backdrop-blur-sm";
@@ -1528,9 +1528,9 @@ export default function Dashboard() {
   };
 
   const getAttendanceBadge = (attendance: string | null) => {
-    if (attendance === 'attending') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#77B18E]/20 text-[#77B18E] border border-[#77B18E]/30 shrink-0">{t.attending}</span>;
-    if (attendance === 'absent') return <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#9A8F8A]/20 text-[#9A8F8A] border border-[#9A8F8A]/30 shrink-0">{t.absent}</span>;
-    return votingOpen ? <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-600 border border-white/10 shrink-0">{t.noResponse}</span> : null;
+    if (attendance === 'attending') return <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#77B18E]/20 text-[#77B18E] border border-[#77B18E]/30 shrink-0">{t.attending}</span>;
+    if (attendance === 'absent') return <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#9A8F8A]/20 text-[#9A8F8A] border border-[#9A8F8A]/30 shrink-0">{t.absent}</span>;
+    return votingOpen ? <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/10 shrink-0">{t.noResponse}</span> : null;
   };
 
   const getLinkIcon = (url: string) => {
@@ -1582,16 +1582,16 @@ export default function Dashboard() {
 
   if (!user) return (
     <div className={`min-h-screen ${bg} flex items-center justify-center`}>
-      <div className="text-zinc-600 text-[11px] font-black tracking-widest uppercase">{t.loading}</div>
+      <div className="text-zinc-400 text-[11px] font-black tracking-widest uppercase">{t.loading}</div>
     </div>
   );
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; } @keyframes orb-pulse{0%,100%{transform:scale(0.9);opacity:0.06;}50%{transform:scale(1.1);opacity:0.10;}}`}} />
+      <style dangerouslySetInnerHTML={{__html: `@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); .font-pretendard { font-family: 'Pretendard', sans-serif; }`}} />
       <div style={{ transform: `scale(${zoom * 1.1})`, transformOrigin: 'top left', width: `${100 / (zoom * 1.1)}%`, minHeight: `${100 / (zoom * 1.1)}vh` }}>
         <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-pretendard relative overflow-hidden transition-colors duration-150`}>
-          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background:'#E3B24A',filter:'blur(200px)',animation:'orb-pulse 4s ease-in-out infinite'}} />}
+          {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[520px] h-[520px] rounded-full pointer-events-none opacity-[0.07]" style={{background:'#E3B24A',filter:'blur(200px)'}} />}
 
           {/* 헤더 */}
           <ProductHeader product="cast" dark={theme === 'dark'} className="mb-8" right={<>
@@ -1618,7 +1618,7 @@ export default function Dashboard() {
                               const next = projects.filter(proj => proj !== p); setProjects(next); await saveProjectOrder(user.id, next);
                               if (currentProject === p) setCurrentProject(next[0] || ''); setConfirmModal(null);
                             });
-                          })} className="pr-3 text-zinc-600 hover:text-red-500 text-[14px]">×</button>
+                          })} className="pr-3 text-zinc-400 hover:text-red-500 text-[14px]">×</button>
                         </div>
                       )}
                     </Draggable>
@@ -1683,11 +1683,11 @@ export default function Dashboard() {
                 {/* 더보기 */}
                 <div className="relative">
                   <button onClick={() => setMenuOpen(v => !v)} title={t.more}
-                    className={`px-3.5 py-1.5 rounded-xl border font-black text-[13px] leading-none transition-all ${menuOpen ? 'border-[#E3B24A]/50 text-[#E3B24A] bg-[#E3B24A]/10' : btnBg}`}>⋯</button>
+                    aria-label={t.more} aria-expanded={menuOpen} className={`px-3.5 py-1.5 rounded-xl border font-black text-[13px] leading-none transition-all ${menuOpen ? 'border-[#E3B24A]/50 text-[#E3B24A] bg-[#E3B24A]/10' : btnBg}`}>⋯</button>
                   {menuOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                      <div className={`absolute right-0 top-full mt-2 z-50 w-52 max-h-[70vh] overflow-y-auto rounded-xl border shadow-2xl anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#171717] border-white/10'}`}>
+                      <div className={`absolute right-0 top-full mt-2 z-50 w-52 max-h-[70vh] overflow-y-auto rounded-xl border shadow-lg anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#171717] border-white/10'}`}>
                         {([
                           [t.availOpen, () => { setAvailSelDay(null); setShowAvailModal(true); }, !!availPoll],
                           [votingOpen ? t.voteClose : t.voteOpen, () => votingOpen
@@ -1738,9 +1738,9 @@ export default function Dashboard() {
                         <button onClick={st.go}
                           className={`flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full border text-[11px] font-bold transition-all
                             ${isCur ? 'border-[#E3B24A]/60 bg-[#E3B24A]/12 text-[#E3B24A]'
-                              : st.done ? (theme === 'light' ? 'border-black/10 bg-black/[0.03] text-zinc-600' : 'border-white/10 bg-white/[0.03] text-zinc-400')
-                              : (theme === 'light' ? 'border-black/8 text-zinc-400' : 'border-white/8 text-zinc-600')}`}>
-                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shrink-0
+                              : st.done ? (theme === 'light' ? 'border-black/10 bg-black/[0.03] text-zinc-400' : 'border-white/10 bg-white/[0.03] text-zinc-400')
+                              : (theme === 'light' ? 'border-black/8 text-zinc-400' : 'border-white/8 text-zinc-400')}`}>
+                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black shrink-0
                             ${st.done ? 'bg-[#E3B24A] text-black' : isCur ? 'border border-[#E3B24A] text-[#E3B24A]' : theme === 'light' ? 'border border-black/15' : 'border border-white/15'}`}>
                             {st.done ? '✓' : i + 1}
                           </span>
@@ -1770,12 +1770,12 @@ export default function Dashboard() {
                       onContextMenu={(e) => { e.preventDefault(); setEditingDayName(d); setDayNameInput(dayNames[d] || `Day ${d}`); }}
                       className={`px-4 py-1.5 font-bold text-[11px] transition-all ${currentDay === d ? 'text-[#E3B24A]' : textSub}`}>{getDayLabel(d)}</button>
                   )}
-                  <label title={t.daySetDate} className={`relative px-1.5 cursor-pointer text-[11px] transition-all ${dayDates[d] ? 'text-[#E3B24A]' : 'text-zinc-600 hover:text-[#E3B24A]'}`}>
+                  <label title={t.daySetDate} className={`relative px-1.5 cursor-pointer text-[11px] transition-all ${dayDates[d] ? 'text-[#E3B24A]' : 'text-zinc-400 hover:text-[#E3B24A]'}`}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
-                    <input type="date" value={dayDates[d] || ''} onChange={e => saveDayDate(d, e.target.value)}
+                    <input type="date" aria-label={t.daySetDate} value={dayDates[d] || ''} onChange={e => saveDayDate(d, e.target.value)}
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
                   </label>
-                  {days.length > 1 && <button onClick={() => showConfirm(t.dayDelete(getDayLabel(d)), t.dayDeleteMsg(getDayLabel(d)), () => { removeDay(d); setConfirmModal(null); })} className="pr-3 text-zinc-700 hover:text-red-500 text-[12px]">×</button>}
+                  {days.length > 1 && <button onClick={() => showConfirm(t.dayDelete(getDayLabel(d)), t.dayDeleteMsg(getDayLabel(d)), () => { removeDay(d); setConfirmModal(null); })} aria-label={t.dayDelete(getDayLabel(d))} className="pr-3 text-zinc-500 hover:text-red-500 text-[12px]">×</button>}
                 </div>
               ))}
               <button onClick={addDay} className={`px-3 py-1.5 rounded-full font-bold text-[12px] border border-dashed hover:text-[#E3B24A] transition-all ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>{t.addDay}</button>
@@ -1795,11 +1795,11 @@ export default function Dashboard() {
                         <div className="flex-1">
                           <p className={`font-bold text-[14px] mb-1 ${textMain}`}>{n.title}</p>
                           {n.content && <p className={`text-[12px] leading-relaxed whitespace-pre-line ${textSub}`}>{n.content}</p>}
-                          <p className="text-zinc-600 text-[10px] mt-2">{new Date(n.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</p>
+                          <p className="text-zinc-400 text-[10px] mt-2">{new Date(n.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</p>
                         </div>
                         <div className="flex gap-2 ml-4 shrink-0">
                           <button onClick={() => { setNoticeTitle(n.title); setNoticeContent(n.content || ''); setNoticeIsGlobal(n.is_global || false); setEditingNoticeId(n.id); setShowNoticeModal(true); }} className={`text-[11px] font-bold ${textSub}`}>{t.edit}</button>
-                          <button onClick={() => showConfirm(t.noticeDelete, t.noticeDeleteMsg(n.title), () => { supabase.from('notices').delete().eq('id', n.id).then(() => { fetchNotices(user); setConfirmModal(null); }); })} className="text-zinc-600 hover:text-red-500 text-[11px] font-bold">{t.delete}</button>
+                          <button onClick={() => showConfirm(t.noticeDelete, t.noticeDeleteMsg(n.title), () => { supabase.from('notices').delete().eq('id', n.id).then(() => { fetchNotices(user); setConfirmModal(null); }); })} className="text-zinc-400 hover:text-red-500 text-[11px] font-bold">{t.delete}</button>
                         </div>
                       </div>
                     ))}
@@ -1826,9 +1826,9 @@ export default function Dashboard() {
                               <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setExpandedSession(expandedSession === s.id ? null : s.id)}>
                                 <div className="flex items-center gap-3"><span className="text-[#E3B24A] font-black text-[13px]">Day {s.day_number}</span>{s.memo && <span className={`text-[12px] truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                                 <div className="flex items-center gap-3">
-                                  <span className="text-zinc-600 text-[10px]">{new Date(s.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</span>
-                                  <button onClick={(e) => { e.stopPropagation(); showConfirm(t.sessionDelete, t.sessionDeleteMsg(s.day_number), () => { supabase.from('sessions').delete().eq('id', s.id).then(() => { fetchSessions(user); setConfirmModal(null); }); }); }} className="text-zinc-700 hover:text-red-500 text-[11px]">×</button>
-                                  <span className="text-zinc-600 text-[10px]">{expandedSession === s.id ? '▲' : '▼'}</span>
+                                  <span className="text-zinc-400 text-[10px]">{new Date(s.created_at).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US')}</span>
+                                  <button onClick={(e) => { e.stopPropagation(); showConfirm(t.sessionDelete, t.sessionDeleteMsg(s.day_number), () => { supabase.from('sessions').delete().eq('id', s.id).then(() => { fetchSessions(user); setConfirmModal(null); }); }); }} aria-label={t.sessionDelete} className="text-zinc-500 hover:text-red-500 text-[11px]">×</button>
+                                  <span className="text-zinc-400 text-[10px]">{expandedSession === s.id ? '▲' : '▼'}</span>
                                 </div>
                               </div>
                               {expandedSession === s.id && s.roster && (
@@ -1855,7 +1855,7 @@ export default function Dashboard() {
                                     {lang === 'ko' ? '⬆ 현재 로스터로 불러오기' : '⬆ Load to Current Roster'}
                                   </button>
                                   <div className="flex flex-wrap gap-4">
-                                    {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-[10px] font-black uppercase tracking-widest mb-2 border-l-2 border-[#E3B24A] pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-[12px] font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-600 text-[9px] uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
+                                    {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-[10px] font-black uppercase tracking-widest mb-2 border-l-2 border-[#E3B24A] pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-[12px] font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-400 text-[10px] uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
                                   </div>
                                 </div>
                               )}
@@ -1876,9 +1876,9 @@ export default function Dashboard() {
                   <p className={`font-black text-[13px] ${textMain}`}>🎤 Artists</p>
                   <div className="flex items-center gap-2">
                     <input value={artistSearch} onChange={e => setArtistSearch(e.target.value)}
-                      placeholder={lang === 'ko' ? '검색...' : 'Search...'}
+                      placeholder={lang === 'ko' ? '검색…' : 'Search…'}
                       className={`px-3 py-1.5 rounded-lg text-[11px] outline-none border w-32 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
-                    <button onClick={() => setShowArtistPanel(false)} className="text-zinc-600 hover:text-red-400 text-[16px]">×</button>
+                    <button onClick={() => setShowArtistPanel(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-zinc-400 hover:text-red-400 text-[16px]">×</button>
                   </div>
                 </div>
                 {artistList.length === 0 ? (
@@ -1892,17 +1892,17 @@ export default function Dashboard() {
                       if (group.length === 0) return null;
                       return (
                         <div key={r}>
-                          <p className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: ROLE_COLORS[r] + '99' }}>{r}</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: ROLE_COLORS[r] + '99' }}>{r}</p>
                           <div className="flex flex-wrap gap-2">
                             {group.map(artist => {
                               const inRoster = members.some(m => m.project === currentProject && m.name === artist.name);
                               return (
                                 <button key={artist.id} onClick={() => !inRoster && addArtistToRoster(artist)} disabled={inRoster}
                                   className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-left transition-all ${inRoster ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:scale-[1.02] ' + (theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10')}`}>
-                                  {artist.photo_url && <img src={artist.photo_url} className="w-6 h-6 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />}
+                                  {artist.photo_url && <img src={artist.photo_url} alt="" width={24} height={24} loading="lazy" className="w-6 h-6 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />}
                                   <span className={`text-[12px] font-bold ${textMain}`}>{artist.name}</span>
-                                  <span className={`text-[9px] ${textSub}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
-                                  {inRoster ? <span className="text-[10px] text-zinc-600 font-black">✓</span> : <span className="text-[10px] text-[#E3B24A] font-black">+</span>}
+                                  <span className={`text-[10px] ${textSub}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
+                                  {inRoster ? <span className="text-[10px] text-zinc-400 font-black">✓</span> : <span className="text-[10px] text-[#E3B24A] font-black">+</span>}
                                 </button>
                               );
                             })}
@@ -1928,7 +1928,7 @@ export default function Dashboard() {
                     .filter(([, list]) => list.length > 0)
                     .map(([key, list, color, label]) => (
                     <div key={key} className="flex items-center gap-2.5 flex-wrap">
-                      <p className="text-[9px] font-black uppercase tracking-widest shrink-0" style={{ color: color + '99' }}>{label} {list.length}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest shrink-0" style={{ color: color + '99' }}>{label} {list.length}</p>
                       {list.map((m: any) => (
                         <span key={m.id} className="flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-lg" style={{ backgroundColor: color + '14', color: color }}>
                           <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} />
@@ -1947,8 +1947,8 @@ export default function Dashboard() {
               <div className="flex items-center gap-3 mb-2">
                 <span className="w-16 shrink-0" />
                 <div className="flex-1 grid grid-cols-2 gap-3">
-                  <span className="text-[9px] font-black uppercase tracking-widest px-2" style={{ color: '#7E97C9AA' }}>{lang === 'ko' ? '남자' : 'Male'}</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest px-2" style={{ color: '#DB8FA9AA' }}>{lang === 'ko' ? '여자' : 'Female'}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2" style={{ color: '#7E97C9AA' }}>{lang === 'ko' ? '남자' : 'Male'}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2" style={{ color: '#DB8FA9AA' }}>{lang === 'ko' ? '여자' : 'Female'}</span>
                 </div>
               </div>
               <Droppable droppableId="pool-roles" type="ROLEROW">
@@ -1961,7 +1961,7 @@ export default function Dashboard() {
                     <Draggable key={r} draggableId={`poolrole-${r}`} index={ridx}>
                     {(rp) => (
                     <div ref={rp.innerRef} {...rp.draggableProps} className="flex items-start gap-3">
-                      <span {...rp.dragHandleProps} className="text-[9px] font-black uppercase tracking-widest shrink-0 w-16 mt-3 cursor-grab active:cursor-grabbing" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
+                      <span {...rp.dragHandleProps} className="text-[10px] font-black uppercase tracking-widest shrink-0 w-16 mt-3 cursor-grab active:cursor-grabbing" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
                       <div className="flex-1 grid grid-cols-2 gap-3">
                         {(['male', 'female'] as const).map(g => {
                           const colMembers = poolMembers.filter(m => (m.gender === 'female' ? 'female' : 'male') === g);
@@ -1984,12 +1984,12 @@ export default function Dashboard() {
                                             <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-[13px] font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                               {m.name}
                                               {getAttendanceBadge(m.attendance)}
-                                              {isBusyOn(m.id) && <span className="text-[8px] font-black px-1 py-0.5 rounded shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22' }}>{t.busy}</span>}
-                                              {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
+                                              {isBusyOn(m.id) && <span className="text-[10px] font-black px-1 py-0.5 rounded shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22' }}>{t.busy}</span>}
+                                              {m.links?.length > 0 && <span className="text-[10px] text-zinc-500">🔗</span>}
                                             </span>
                                           )}
                                         </div>
-                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} className="text-zinc-600 hover:text-red-500 text-lg px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="text-zinc-400 hover:text-red-500 text-lg px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                                       </div>
                                     </PortalDraggable>
                                   ))}
@@ -2025,7 +2025,7 @@ export default function Dashboard() {
                       <Draggable key={tName} draggableId={`team-${tName}`} index={idx}>
                         {(provided) => (
                           <div ref={provided.innerRef} {...provided.draggableProps} data-studio-card className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
-                            <div className={`group/studio backdrop-blur-2xl border rounded-[2rem] p-6 min-h-[320px] shadow-2xl flex flex-col ${cardBg}`}>
+                            <div className={`group/studio border rounded-2xl p-6 min-h-[320px] shadow-lg flex flex-col ${cardBg}`}>
                               <div {...provided.dragHandleProps} className="flex justify-between items-start mb-4 px-1 border-l-4 border-[#E3B24A] pl-4 cursor-grab">
                                 <div className="flex flex-col gap-1.5 flex-1">
                                   {editingTeam === tName ? (
@@ -2062,7 +2062,7 @@ export default function Dashboard() {
                                   const next = teams.filter(t => t !== tName); setTeams(next);
                                   await saveTeamOrder(user.id, currentProject, currentDay, next);
                                   fetchAssignments(user); setConfirmModal(null);
-                                })} className="text-zinc-600 hover:text-red-500 text-xl shrink-0 ml-2 opacity-0 group-hover/studio:opacity-100 transition-opacity">×</button>
+                                })} aria-label={t.studioDelete} className="text-zinc-400 hover:text-red-500 text-xl shrink-0 ml-2 opacity-0 group-hover/studio:opacity-100 transition-opacity">×</button>
                               </div>
                               <Droppable droppableId={tName} type="MEMBER">
                                 {(provided) => (
@@ -2083,16 +2083,16 @@ export default function Dashboard() {
                                                   <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={m.gender === 'female' ? 'F' : 'M'} />
                                                   {m.name}
                                                   {getAttendanceBadge(m.attendance)}
-                                                  {isBusyOn(m.id) && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22', border: '1px solid #E0575F55' }}>{t.busy}</span>}
-                                                  {m.links?.length > 0 && <span className="text-[9px] text-zinc-500">🔗</span>}
+                                                  {isBusyOn(m.id) && <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22', border: '1px solid #E0575F55' }}>{t.busy}</span>}
+                                                  {m.links?.length > 0 && <span className="text-[10px] text-zinc-500">🔗</span>}
                                                 </span>
-                                                <button onClick={(e) => { e.stopPropagation(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }} className="text-[9px] font-bold uppercase tracking-widest mt-1 text-left text-zinc-400 hover:text-white transition-colors">
+                                                <button onClick={(e) => { e.stopPropagation(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }} className="text-[10px] font-bold uppercase tracking-widest mt-1 text-left text-zinc-400 hover:text-white transition-colors">
                                                   {m.role}
                                                 </button>
                                               </div>
                                             )}
                                           </div>
-                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} className="text-zinc-600 hover:text-red-500 text-lg px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} aria-label={t.memberDelete} className="text-zinc-400 hover:text-red-500 text-lg px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                                         </div>
                                       </PortalDraggable>
                                     ))}
@@ -2121,7 +2121,7 @@ export default function Dashboard() {
       {/* 첫 로스터 모달 */}
       {showFirstRosterModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm font-pretendard">
-          <div className={`w-full max-w-sm mx-4 border rounded-2xl p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+          <div className={`w-full max-w-sm mx-4 border rounded-2xl p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <div className="text-center mb-6">
               <h1 className="text-4xl font-semibold text-[#E3B24A] uppercase tracking-tighter mb-2">CAST</h1>
               <p className={`text-[13px] ${textSub}`}>{t.firstRosterTitle}</p>
@@ -2138,7 +2138,7 @@ export default function Dashboard() {
       {/* 링크 모달 */}
       {linkModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard">
-          <div className={`w-full max-w-sm mx-4 border rounded-2xl p-6 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+          <div className={`w-full max-w-sm mx-4 border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
             <h2 className={`font-black text-[16px] mb-1 ${textMain}`}>{linkModal.name}</h2>
             <p className={`text-[11px] mb-4 ${textSub}`}>{t.linkAdd}</p>
             <div className="flex flex-wrap gap-2 mb-4">
@@ -2156,10 +2156,10 @@ export default function Dashboard() {
                 <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme === 'light' ? 'bg-black/5 border-black/10' : 'bg-white/5 border-white/10'}`}>
                   <span className="text-[12px]">{getLinkIcon(link)}</span>
                   <a href={link} target="_blank" rel="noopener noreferrer" className={`text-[12px] truncate flex-1 ${textSub}`}>{link}</a>
-                  <button onClick={() => { const l = (linkModal.links || []).filter((_: string, idx: number) => idx !== i); setLinkModal({ ...linkModal, links: l }); saveMemberLinks(linkModal.id, l); }} className="text-zinc-600 hover:text-red-500 shrink-0">×</button>
+                  <button onClick={() => { const l = (linkModal.links || []).filter((_: string, idx: number) => idx !== i); setLinkModal({ ...linkModal, links: l }); saveMemberLinks(linkModal.id, l); }} aria-label={t.delete} className="text-zinc-400 hover:text-red-500 shrink-0">×</button>
                 </div>
               ))}
-              {(linkModal.links || []).length === 0 && <p className="text-zinc-700 text-[12px]">{t.noLink}</p>}
+              {(linkModal.links || []).length === 0 && <p className="text-zinc-500 text-[12px]">{t.noLink}</p>}
             </div>
             <button onClick={() => { setLinkModal(null); setNewLink(''); }} className={`w-full py-3 rounded-xl border font-bold text-[12px] transition-all ${btnBg}`}>{t.close}</button>
           </div>
@@ -2230,10 +2230,10 @@ export default function Dashboard() {
         );
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setShowStats(false)}>
-            <div onClick={e => e.stopPropagation()} className={`w-full max-w-md max-h-[92vh] overflow-y-auto border rounded-2xl p-7 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+            <div onClick={e => e.stopPropagation()} className={`w-full max-w-md max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-2xl p-7 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-[16px] ${textMain}`}>{t.statsTitle} <span className={`text-[12px] font-normal ${textSub}`}>{currentProject}</span></h2>
-                <button onClick={() => setShowStats(false)} className={`text-[13px] ${textSub} hover:opacity-70`}>✕</button>
+                <button onClick={() => setShowStats(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className={`text-[13px] ${textSub} hover:opacity-70`}>✕</button>
               </div>
               <div className="flex flex-col gap-5">
                 <div className="flex gap-3">
@@ -2296,10 +2296,10 @@ export default function Dashboard() {
         const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => { setShowAvailModal(false); setAvailSelMember(null); }}>
-            <div onClick={e => e.stopPropagation()} className={`w-full ${availPoll ? 'max-w-4xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto border rounded-2xl p-7 sm:p-8 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+            <div onClick={e => e.stopPropagation()} className={`w-full ${availPoll ? 'max-w-4xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-2xl p-7 sm:p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-[16px] ${textMain}`}>{t.availOpenTitle}</h2>
-                <button onClick={() => setShowAvailModal(false)} className={`text-[13px] ${textSub} hover:opacity-70`}>✕</button>
+                <button onClick={() => setShowAvailModal(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className={`text-[13px] ${textSub} hover:opacity-70`}>✕</button>
               </div>
 
               {!availPoll ? (
@@ -2331,7 +2331,7 @@ export default function Dashboard() {
                         {selMember && (
                           <div className="flex items-center justify-between gap-2 mb-2 px-3 py-2 rounded-lg border border-[#5FA39A]/40 bg-[#5FA39A]/10">
                             <p className="text-[12px] font-black text-[#8FD4C8]">{selMember.name} · {t.availPossible} {selMemberDays.filter((p: any) => p.status === 'available').length} · {t.availNo} {selMemberDays.filter((p: any) => p.status === 'unavailable').length}{selMemberDays.length === 0 ? ` · ${t.availWaiting}` : ''}</p>
-                            <button onClick={() => setAvailSelMember(null)} className="shrink-0 text-[11px] font-black text-[#8FD4C8] hover:opacity-70">✕</button>
+                            <button onClick={() => setAvailSelMember(null)} aria-label={lang === 'ko' ? '선택 해제' : 'Clear selection'} className="shrink-0 text-[11px] font-black text-[#8FD4C8] hover:opacity-70">✕</button>
                           </div>
                         )}
                         <div className="grid grid-cols-7 gap-1.5 mb-1.5">{wd.map((w, i) => <div key={i} className={`text-center text-[10px] font-black ${i === 0 ? 'text-[#C98BA0]' : i === 6 ? 'text-[#5FA39A]' : textSub}`}>{w}</div>)}</div>
@@ -2349,7 +2349,7 @@ export default function Dashboard() {
                                   ${isBlocked ? 'border-[#C98BA0]/50' : theme === 'light' ? 'border-black/8' : 'border-white/8'} ${dimByMember ? 'opacity-35' : ''}`}
                                 style={{ backgroundColor: isBlocked ? 'rgba(201,139,160,0.18)' : c > 0 ? `rgba(76,141,246,${(0.10 + (c / maxCount) * 0.55).toFixed(3)})` : 'transparent' }}>
                                 <span className={`text-[13px] font-bold ${isBlocked ? 'text-[#C98BA0] line-through' : textMain}`}>{d}</span>
-                                {!isBlocked && c > 0 && <span className={`text-[9px] font-black ${textSub}`}>{c}</span>}
+                                {!isBlocked && c > 0 && <span className={`text-[10px] font-black ${textSub}`}>{c}</span>}
                                 {isFinal && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#E3B24A]" />}
                               </button>
                             );
@@ -2474,7 +2474,7 @@ export default function Dashboard() {
                                 <span className={`text-[11px] font-black ${textSub}`}><span className="text-[#7FB0FF]">{cnt}</span>{mcnt ? <> · <span className="text-[#E0575F]">{mcnt}</span></> : ''}</span>
                                 {!done && <button onClick={(e) => { e.stopPropagation(); copyAvailReminder([m.name]); }} className={`text-[10px] font-black px-2 py-0.5 rounded-full border transition-all ${btnBg}`}>{t.availRemind}</button>}
                                 <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
-                                <button onClick={(e) => { e.stopPropagation(); toggleAvailExclude(m.id); }} title={t.availKick} className={`text-[11px] font-black px-1.5 py-0.5 rounded-full transition-all ${textSub} hover:text-[#C98BA0]`}>✕</button>
+                                <button onClick={(e) => { e.stopPropagation(); toggleAvailExclude(m.id); }} title={t.availKick} aria-label={t.availKick} className={`text-[11px] font-black px-1.5 py-0.5 rounded-full transition-all ${textSub} hover:text-[#C98BA0]`}>✕</button>
                               </div>
                             </div>
                           );
@@ -2496,7 +2496,7 @@ export default function Dashboard() {
                   </div>
 
                   <button onClick={() => showConfirm(t.availClose, t.availCloseConfirm, async () => { await closeAvailPoll(); setConfirmModal(null); })}
-                    className={`py-3 rounded-xl border font-bold text-[13px] transition-all ${theme === 'light' ? 'border-black/15 text-zinc-600 hover:bg-black/5' : 'border-white/15 text-zinc-400 hover:bg-white/5'}`}>{t.availClose}</button>
+                    className={`py-3 rounded-xl border font-bold text-[13px] transition-all ${theme === 'light' ? 'border-black/15 text-zinc-400 hover:bg-black/5' : 'border-white/15 text-zinc-400 hover:bg-white/5'}`}>{t.availClose}</button>
                 </div>
               )}
             </div>
@@ -2529,7 +2529,7 @@ export default function Dashboard() {
       {roleDropdown && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setRoleDropdown(null)} />
-          <div className={`fixed z-50 border rounded-xl shadow-2xl overflow-hidden font-pretendard ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} style={{ top: roleDropdown.y, left: roleDropdown.x }}>
+          <div className={`fixed z-50 border rounded-xl shadow-lg overflow-hidden font-pretendard ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} style={{ top: roleDropdown.y, left: roleDropdown.x }}>
             {ROLES.map(r => (
               <button key={r} onClick={() => updateMemberRole(roleDropdown.id, r)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-[12px] font-bold transition-all text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`} style={{ color: ROLE_COLORS[r] }}>{r}</button>
             ))}
@@ -2548,7 +2548,7 @@ export default function Dashboard() {
       {/* 내보내기 모달 — 2단계 */}
       {randomModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard p-4" onClick={() => setRandomModal(false)}>
-          <div onClick={e => e.stopPropagation()} className={`w-full max-w-sm border rounded-2xl p-6 shadow-2xl anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#141414] border-white/10'}`}>
+          <div onClick={e => e.stopPropagation()} className={`w-full max-w-sm border rounded-2xl p-6 shadow-lg anim-rise ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#141414] border-white/10'}`}>
             <h2 className={`font-black text-[15px] mb-1 ${textMain}`}>{t.randomTitle}</h2>
             <p className={`text-[11px] mb-5 ${textSub}`}>{getDayLabel(currentDay)}{!dayDates[currentDay] && ` · ${t.randomNoDate}`}</p>
 
@@ -2591,7 +2591,7 @@ export default function Dashboard() {
 
       {showExportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-pretendard" onClick={() => setShowExportModal(false)}>
-          <div className={`w-full max-w-xs border rounded-2xl p-6 shadow-2xl ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} onClick={e => e.stopPropagation()}>
+          <div className={`w-full max-w-xs border rounded-2xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} onClick={e => e.stopPropagation()}>
             {exportStep === 'type' ? (
               <>
                 <h2 className={`font-black text-[15px] mb-4 ${textMain}`}>📤 {lang === 'ko' ? '내보내기' : 'Export'}</h2>
@@ -2649,22 +2649,22 @@ export default function Dashboard() {
 
       {/* 토스트 */}
       {showToast && (
-        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 backdrop-blur-md border text-[12px] font-bold px-5 py-3 rounded-2xl shadow-2xl font-pretendard ${theme === 'light' ? 'bg-black/80 border-black/20 text-white' : 'bg-white/10 border-white/20 text-white'}`}>{toastMsg}</div>
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 backdrop-blur-md border text-[12px] font-bold px-5 py-3 rounded-2xl shadow-lg font-pretendard ${theme === 'light' ? 'bg-black/80 border-black/20 text-white' : 'bg-white/10 border-white/20 text-white'}`}>{toastMsg}</div>
       )}
 
       {/* 줌 컨트롤 */}
       <div className="flex fixed bottom-6 left-6 z-50 flex-col items-center gap-1.5 select-none">
-        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#E3B24A]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-600' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#E3B24A]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div onMouseDown={onZoomMouseDown} onDoubleClick={() => setZoom(1)} title="드래그로 확대/축소 · 더블클릭 리셋"
           className={`w-9 h-10 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[3px] transition-all hover:border-[#E3B24A]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.05] border-white/10'}`}>
           {[0, 1, 2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500" />)}
         </div>
-        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#E3B24A]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-600' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" className={`w-9 h-9 rounded-xl border backdrop-blur-md shadow-xl flex items-center justify-center transition-all hover:border-[#E3B24A]/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
-        <span className="text-[9px] font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
+        <span className="text-[10px] font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
       </div>
     </>
   );

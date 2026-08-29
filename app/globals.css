@@ -86,3 +86,17 @@ audio { border-radius: 10px; }
 .anim-rise { animation: riseIn .28s cubic-bezier(0.22, 1, 0.36, 1); }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .anim-fade { animation: fadeIn .2s ease; }
+
+/* 모션 줄이기 설정 존중 — 배경 오브(orb-pulse) 같은 무한 애니메이션까지 정지 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 모달/시트 안에서 스크롤이 뒤 페이지로 새지 않게 */
+.overscroll-contain-y { overscroll-behavior-y: contain; }
+[class*="fixed inset-0"] > * { overscroll-behavior: contain; }

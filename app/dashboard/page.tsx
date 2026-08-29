@@ -847,7 +847,7 @@ export default function GuestView(){
             <button onClick={()=>openLeadForm()} className="px-3.5 py-1.5 rounded-lg text-[12px] font-bold bg-[#6366F1] text-white hover:bg-[#4F46E5] transition-all whitespace-nowrap">+ {t('리드 추가','Add Lead')}</button>
           </div>
           )}
-          <div className={`grid grid-cols-5 gap-1 border rounded-xl p-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
+          <div className={`grid grid-cols-3 sm:grid-cols-6 gap-1 border rounded-xl p-1 ${D?'bg-white/5 border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
             <button onClick={()=>setView('calendar')} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='calendar'?'bg-[#6366F1] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-calendar text-[15px]" aria-hidden="true"></i>{t('달력','Calendar')}</button>
             <button onClick={()=>setView('list')} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='list'?'bg-[#6366F1] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-list text-[15px]" aria-hidden="true"></i>{t('목록','List')}</button>
             <button onClick={()=>{setView('pitches');fetchHostPitches();}} className={`px-2 py-2 rounded-lg text-[12px] font-medium text-center inline-flex items-center justify-center gap-1.5 transition-all ${view==='pitches'?'bg-[#6366F1] text-white':dimText+' hover:opacity-80'}`}><i className="ti ti-inbox text-[15px]" aria-hidden="true"></i>{t('수신 피칭','Pitches')}{hostPitches.length>0&&<span className="opacity-70">{hostPitches.length}</span>}</button>
