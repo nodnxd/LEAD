@@ -1528,17 +1528,23 @@ export default function Dashboard() {
   const inputBg = theme === 'light' ? 'bg-black/5 border-black/10' : 'bg-white/5 border-white/10';
   const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-400 hover:bg-black/10' : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10';
 
+  // 역할색은 왼쪽 레일 한 곳에서만 말한다.
+  // 예전엔 그라디언트 워시(0.10)가 칩 전체를 덮었는데, 셀 배경의 성별 틴트(0.05)와
+  // 같은 자리에서 겹쳐 둘 다 안 읽혔다. 표면은 중립으로 두고 색은 레일에만 준다.
   const getRoleCardStyle = (r: string, excluded: boolean) => {
-    if (excluded) return theme === 'light' ? "border border-black/5 bg-black/[0.02] grayscale opacity-50" : "border border-white/5 bg-white/[0.01] grayscale opacity-60 backdrop-blur-sm";
-    const base = "border-l-[3px] backdrop-blur-md transition duration-150 ";
-    switch(r) {
-      case 'Producer': return base + "border-l-brand-cast bg-gradient-to-r from-brand-cast/[0.10] to-transparent hover:from-brand-cast/[0.18]";
-      case 'Topliner': return base + "border-l-[#5FA39A] bg-gradient-to-r from-[#5FA39A]/[0.10] to-transparent hover:from-[#5FA39A]/[0.18]";
-      case 'Engineer': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent hover:from-[#C98BA0]/[0.18]";
-      case 'A&R': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent hover:from-[#C98BA0]/[0.18]";
-      default: return theme === 'light' ? "border-l-[3px] border-l-black/15 bg-black/[0.02]" : "border-l-[3px] border-l-white/15 bg-white/[0.02] backdrop-blur-md";
+    const light = theme === 'light';
+    if (excluded) {
+      return `border-l-[3px] ${light ? 'border-l-black/15 bg-black/[0.015]' : 'border-l-white/15 bg-white/[0.015]'} grayscale opacity-50`;
     }
+    const surface = light
+      ? 'bg-black/[0.035] hover:bg-black/[0.06]'
+      : 'bg-white/[0.045] hover:bg-white/[0.08]';
+    return `border-l-[3px] transition-colors duration-150 ${surface}`;
   };
+
+  // 레일 색은 인라인 — Tailwind는 런타임에 만든 색 클래스를 JIT하지 못한다
+  const roleRail = (r: string, excluded: boolean) =>
+    excluded ? undefined : { borderLeftColor: ROLE_COLORS[r] ?? (theme === 'light' ? '#00000026' : '#ffffff26') };
 
   const getAttendanceBadge = (attendance: string | null) => {
     if (attendance === 'attending') return <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-[#77B18E]/20 text-[#77B18E] border border-[#77B18E]/30 shrink-0">{t.attending}</span>;
@@ -1958,11 +1964,23 @@ export default function Dashboard() {
             {/* 로스터 풀 */}
             <div className="relative z-10 mb-10">
               <h2 className={`text-micro font-bold uppercase tracking-[0.2em] mb-3 ${textSub}`}>{t.rosterPool}</h2>
-              <div className="flex items-center gap-3 mb-2">
+              {/* 성별 헤더 — 배경 틴트 대신 mono 라벨 + 인원수 + 열 사이 헤어라인으로 나눈다.
+                  성비는 로스터 짤 때 바로 알아야 하는 값이라 칩을 세지 않게 숫자를 같이 둔다. */}
+              <div className="flex items-end gap-3 mb-2">
                 <span className="w-16 shrink-0" />
                 <div className="flex-1 grid grid-cols-2 gap-3">
-                  <span className="text-micro font-black uppercase tracking-widest px-2" style={{ color: '#7E97C9AA' }}>{lang === 'ko' ? '남자' : 'Male'}</span>
-                  <span className="text-micro font-black uppercase tracking-widest px-2" style={{ color: '#DB8FA9AA' }}>{lang === 'ko' ? '여자' : 'Female'}</span>
+                  {(['male', 'female'] as const).map((g, gi) => {
+                    const n = members.filter(m => m.project === currentProject && poolOrder.flat().includes(m.role)
+                      && !getAssignment(m.id) && (m.gender === 'female' ? 'female' : 'male') === g).length;
+                    return (
+                      <div key={g} className={`flex items-baseline gap-2 px-2 ${gi === 1 ? `pl-3 border-l ${theme === 'light' ? 'border-black/[0.10]' : 'border-white/[0.10]'}` : ''}`}>
+                        <span className={`font-mono-num text-micro uppercase tracking-[0.18em] ${textSub}`}>
+                          {g === 'male' ? (lang === 'ko' ? '남자' : 'Male') : (lang === 'ko' ? '여자' : 'Female')}
+                        </span>
+                        <span className={`font-mono-num text-micro tabular ${theme === 'light' ? 'text-black/35' : 'text-white/35'}`}>{n}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               <Droppable droppableId="pool-roles" type="ROLEROW">
@@ -1974,24 +1992,55 @@ export default function Dashboard() {
                   return (
                     <Draggable key={r} draggableId={`poolrole-${r}`} index={ridx}>
                     {(rp) => (
-                    <div ref={rp.innerRef} {...rp.draggableProps} className="flex items-start gap-3">
-                      <span {...rp.dragHandleProps} className="text-micro font-black uppercase tracking-widest shrink-0 w-16 mt-3 cursor-grab active:cursor-grabbing" style={{ color: ROLE_COLORS[r] + '99' }}>{roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}</span>
+                    <div ref={rp.innerRef} {...rp.draggableProps} className="flex items-stretch gap-3">
+                      {/* 역할 스파인 — 라벨의 왼쪽 보더가 행 높이만큼 뻗고, 같은 색이 그 행 칩들의
+                          레일로 반복된다. "이 행은 전부 Producer"를 글자 반복 없이 색으로 잇는다.
+                          예전엔 색에 '99'를 붙여 흐려놨는데 그래서 역할이 안 읽혔다 — 원색으로 쓴다. */}
+                      <span
+                        {...rp.dragHandleProps}
+                        className="font-mono-num text-micro uppercase tracking-[0.18em] shrink-0 w-16 pl-2 pt-1.5 border-l-2 cursor-grab active:cursor-grabbing select-none"
+                        style={{ color: ROLE_COLORS[r], borderLeftColor: ROLE_COLORS[r] }}
+                      >
+                        {roles.length > 1 ? 'Eng/A&R' : r.slice(0, 3)}
+                      </span>
                       <div className="flex-1 grid grid-cols-2 gap-3">
                         {(['male', 'female'] as const).map(g => {
                           const colMembers = poolMembers.filter(m => (m.gender === 'female' ? 'female' : 'male') === g);
                           return (
                             <Droppable key={g} droppableId={`pool_${r}__${g}`} direction="horizontal" type="MEMBER">
-                              {(provided) => (
-                                <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-wrap gap-2 pb-1 min-h-[52px] items-center content-start rounded-xl px-2 py-1.5" style={{ backgroundColor: g === 'male' ? 'rgba(126,151,201,0.05)' : 'rgba(219,143,169,0.05)' }}>
+                              {(provided, snapshot) => (
+                                // 셀 배경 틴트를 뺐다 — 성별은 위 헤더와 세로 헤어라인이 이미 말하고 있고,
+                                // 틴트가 칩의 역할색과 같은 자리에서 겹쳐 둘 다 흐려졌다.
+                                // 비어 있을 때만 점선으로 "여기 놓을 수 있다"를 말하고, 차면 상자를 지운다.
+                                <div
+                                  {...provided.droppableProps}
+                                  ref={provided.innerRef}
+                                  className={[
+                                    'flex flex-wrap gap-1.5 items-center content-start rounded-lg transition-colors',
+                                    g === 'female' ? `pl-3 border-l ${theme === 'light' ? 'border-black/[0.10]' : 'border-white/[0.10]'}` : 'pl-2',
+                                    'pr-2 py-1.5',
+                                    colMembers.length === 0 ? 'min-h-[30px]' : 'min-h-[42px]',
+                                    colMembers.length === 0 && !snapshot.isDraggingOver
+                                      ? `border border-dashed ${theme === 'light' ? 'border-black/[0.10]' : 'border-white/[0.12]'}`
+                                      : '',
+                                    snapshot.isDraggingOver
+                                      ? (theme === 'light' ? 'bg-black/[0.04]' : 'bg-white/[0.06]')
+                                      : '',
+                                  ].join(' ')}
+                                >
+                                  {/* 칩 폭 고정(160px)을 뺐다 — 'IRIS'와 'DAVIIDE'가 같은 자리를 먹어서
+                                      한 줄에 5개밖에 안 들어갔다. 이름 길이대로 줄이면 밀도가 배 가까이 오른다.
+                                      shadow-xl도 뺐다: 리스트 안의 칩은 떠 있는 물건이 아니다(끌 때만 뜬다). */}
                                   {colMembers.map((m, i) => (
                                     <PortalDraggable key={m.id} draggableId={String(m.id)} index={i}>
                                       <div
                                         onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                         onDoubleClick={() => setLinkModal(m)}
-                                        className={`group flex items-center justify-between p-2.5 rounded-xl w-[160px] h-[44px] shadow-xl cursor-pointer shrink-0 ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'opacity-45' : ''}`}
+                                        className={`group flex items-center gap-1 pl-2 pr-0.5 h-[32px] rounded-md cursor-pointer shrink-0 min-w-0 max-w-[190px] ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'opacity-45' : ''}`}
+                                        style={roleRail(m.role, m.excluded)}
                                         title={isBusyOn(m.id) ? `${getDayLabel(currentDay)} ${t.busy}` : undefined}
                                       >
-                                        <div className="flex items-center gap-1.5 overflow-hidden flex-1 pl-1">
+                                        <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
                                           {editingId === String(m.id) ? (
                                             <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-body font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                           ) : (
@@ -1999,11 +2048,11 @@ export default function Dashboard() {
                                               {m.name}
                                               {getAttendanceBadge(m.attendance)}
                                               {isBusyOn(m.id) && <span className="text-micro font-black px-1 py-0.5 rounded shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22' }}>{t.busy}</span>}
-                                              {m.links?.length > 0 && <span className="text-micro text-zinc-500">🔗</span>}
+                                              {m.links?.length > 0 && <i className="ti ti-link text-micro shrink-0 opacity-40" aria-hidden="true" />}
                                             </span>
                                           )}
                                         </div>
-                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="text-zinc-400 hover:text-red-500 text-lead px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="text-zinc-500 hover:text-red-400 text-body leading-none px-1 shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity">×</button>
                                       </div>
                                     </PortalDraggable>
                                   ))}
@@ -2086,7 +2135,8 @@ export default function Dashboard() {
                                         <div
                                           onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                           onDoubleClick={() => setLinkModal(m)}
-                                          className={`group flex justify-between items-center p-4 rounded-2xl shadow-xl transition cursor-pointer ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'ring-1 ring-[#E0575F]/50' : ''}`}
+                                          className={`group flex justify-between items-center p-4 rounded-2xl transition-colors cursor-pointer ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'ring-1 ring-[#E0575F]/50' : ''}`}
+                                          style={roleRail(m.role, m.excluded)}
                                         >
                                           <div className="flex items-center gap-2 overflow-hidden flex-1 pl-1">
                                             {editingId === String(m.id) ? (
@@ -2098,7 +2148,7 @@ export default function Dashboard() {
                                                   {m.name}
                                                   {getAttendanceBadge(m.attendance)}
                                                   {isBusyOn(m.id) && <span className="text-micro font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22', border: '1px solid #E0575F55' }}>{t.busy}</span>}
-                                                  {m.links?.length > 0 && <span className="text-micro text-zinc-500">🔗</span>}
+                                                  {m.links?.length > 0 && <i className="ti ti-link text-micro shrink-0 opacity-40" aria-hidden="true" />}
                                                 </span>
                                                 <button onClick={(e) => { e.stopPropagation(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }} className="text-micro font-bold uppercase tracking-widest mt-1 text-left text-zinc-400 hover:text-white transition-colors">
                                                   {m.role}
