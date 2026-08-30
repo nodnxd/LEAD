@@ -3,7 +3,7 @@ version: 1
 name: LEAD-CAST-SPLIT
 description: >
   Dark-first poster typography for a working music-industry tool. Archivo Black + Black Han Sans
-  carry every display line at a single weight; Gothic A1 runs the body; IBM Plex Mono runs numerals.
+  carry every display line at a single weight; Wanted Sans runs the body; IBM Plex Mono runs numerals.
   Three products share one shell and are told apart by one color each — purple LEAD, gold CAST,
   teal SPLIT — never by layout. Chrome stays flat and quiet: no gradients on controls, no drop
   shadows on chrome, surfaces separated by 1px hairlines and near-black steps instead.
@@ -38,11 +38,11 @@ colors:
 
 typography:
   display:
-    fontFamily: "Archivo Black, Black Han Sans, Gothic A1, sans-serif"
+    fontFamily: "Archivo Black, Black Han Sans, Wanted Sans Variable, sans-serif"
     fontWeight: 400        # 이 폰트들은 굵기가 400 하나뿐. font-bold를 얹으면 가짜 볼드로 뭉갠다.
     letterSpacing: -0.025em
   body:
-    fontFamily: "Gothic A1, -apple-system, Apple SD Gothic Neo, sans-serif"
+    fontFamily: "Wanted Sans Variable, -apple-system, Apple SD Gothic Neo, sans-serif"
     letterSpacing: -0.005em
   numeric:
     fontFamily: "IBM Plex Mono, ui-monospace, monospace"

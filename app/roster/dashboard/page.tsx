@@ -1371,7 +1371,7 @@ export default function Dashboard() {
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const x = cv.getContext('2d')!;
-    const sans = (w: string, sz: number) => `${w} ${sz}px "Gothic A1", -apple-system, "Apple SD Gothic Neo", sans-serif`;
+    const sans = (w: string, sz: number) => `${w} ${sz}px "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", sans-serif`;
     // 디스플레이는 굵기 400 하나뿐 — 라틴 Archivo Black, 한글 Black Han Sans
     const serif = (_w: string, sz: number) => `400 ${sz}px "Archivo Black", "Black Han Sans", sans-serif`;
     const mono = (w: string, sz: number) => `${w} ${sz}px "IBM Plex Mono", ui-monospace, monospace`;

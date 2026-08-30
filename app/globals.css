@@ -76,25 +76,25 @@ body {
   background: var(--background);
   color: var(--foreground);
   /* 예전엔 Arial이 박혀 있어서 .font-pretendard가 안 붙은 화면은 전부 Arial로 나왔음 */
-  font-family: "Gothic A1", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
 /* ── 타이포 역할 ──
-   ui       : 본문·컨트롤 (Gothic A1)
+   ui       : 본문·컨트롤 (Wanted Sans, 가변 400–1000)
    display  : 제목·큰 날짜·워드마크 (Archivo Black + Black Han Sans — 포스터 무게, 1 weight)
    mono-num : 라벨·시간·코드 (IBM Plex Mono)                                   */
 .font-ui {
-  font-family: "Gothic A1", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.005em;
 }
 /* 디스플레이는 굵기가 400 하나뿐 — 라틴은 Archivo Black, 한글은 Black Han Sans가 받는다.
    font-bold 같은 걸 얹으면 브라우저가 가짜 볼드를 만들어 뭉개지므로 400으로 못박음. */
 .font-display {
-  font-family: "Archivo Black", "Black Han Sans", "Gothic A1", "Apple SD Gothic Neo", sans-serif;
+  font-family: "Archivo Black", "Black Han Sans", "Wanted Sans Variable", "Apple SD Gothic Neo", sans-serif;
   font-weight: 400 !important;
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.025em;
