@@ -2020,9 +2020,9 @@ export default function Dashboard() {
                                     g === 'female' ? `pl-3 border-l ${theme === 'light' ? 'border-black/[0.10]' : 'border-white/[0.10]'}` : 'pl-2',
                                     'pr-2 py-1.5',
                                     colMembers.length === 0 ? 'min-h-[30px]' : 'min-h-[42px]',
-                                    colMembers.length === 0 && !snapshot.isDraggingOver
-                                      ? `border border-dashed ${theme === 'light' ? 'border-black/[0.10]' : 'border-white/[0.12]'}`
-                                      : '',
+                                    // 비어 있을 땐 아무것도 그리지 않는다 — 드롭 영역은 남고(min-h),
+                                    // 끌고 오는 동안에만 아래 isDraggingOver 표면으로 보인다.
+                                    '',
                                     snapshot.isDraggingOver
                                       ? (theme === 'light' ? 'bg-black/[0.04]' : 'bg-white/[0.06]')
                                       : '',
@@ -2036,15 +2036,15 @@ export default function Dashboard() {
                                       <div
                                         onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                         onDoubleClick={() => setLinkModal(m)}
-                                        className={`group flex items-center gap-1 pl-2 pr-0.5 h-[32px] rounded-md cursor-pointer shrink-0 min-w-0 max-w-[190px] ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'opacity-45' : ''}`}
+                                        className={`group relative flex items-center justify-center gap-1 px-3 h-[32px] rounded-md cursor-pointer shrink-0 min-w-0 max-w-[190px] ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'opacity-45' : ''}`}
                                         style={roleRail(m.role, m.excluded)}
                                         title={isBusyOn(m.id) ? `${getDayLabel(currentDay)} ${t.busy}` : undefined}
                                       >
-                                        <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
+                                        <div className="flex items-center justify-center gap-1.5 overflow-hidden min-w-0">
                                           {editingId === String(m.id) ? (
                                             <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-body font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                           ) : (
-                                            <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-body font-semibold flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
+                                            <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-body font-semibold italic flex items-center gap-1 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400' : textMain}`}>
                                               {m.name}
                                               {getAttendanceBadge(m.attendance)}
                                               {isBusyOn(m.id) && <span className="text-micro font-black px-1 py-0.5 rounded shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22' }}>{t.busy}</span>}
@@ -2052,7 +2052,7 @@ export default function Dashboard() {
                                             </span>
                                           )}
                                         </div>
-                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="text-zinc-500 hover:text-red-400 text-body leading-none px-1 shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity">×</button>
+                                        <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="absolute right-1 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-red-400 text-body leading-none px-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity">×</button>
                                       </div>
                                     </PortalDraggable>
                                   ))}
@@ -2089,8 +2089,8 @@ export default function Dashboard() {
                         {(provided) => (
                           <div ref={provided.innerRef} {...provided.draggableProps} data-studio-card className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
                             <div className={`group/studio border rounded-2xl p-6 min-h-[320px] shadow-lg flex flex-col ${cardBg}`}>
-                              <div {...provided.dragHandleProps} className="flex justify-between items-start mb-4 px-1 border-l-4 border-brand-cast pl-4 cursor-grab">
-                                <div className="flex flex-col gap-1.5 flex-1">
+                              <div {...provided.dragHandleProps} className="relative flex items-start mb-4 px-1 border-l-4 border-brand-cast pl-4 cursor-grab">
+                                <div className="flex flex-col items-center gap-1.5 flex-1">
                                   {editingTeam === tName ? (
                                     <input autoFocus value={teamEditValue} onChange={e => setTeamEditValue(e.target.value)}
                                       onBlur={() => {
@@ -2106,7 +2106,7 @@ export default function Dashboard() {
                                       onKeyDown={e => e.key === 'Enter' && setEditingTeam(null)}
                                       className={`bg-transparent border-b outline-none text-body font-black uppercase w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                   ) : (
-                                    <h2 onClick={() => { setEditingTeam(tName); setTeamEditValue(tName); }} className={`text-body font-black uppercase cursor-pointer hover:opacity-80 ${textMain}`}>{tName}</h2>
+                                    <h2 onClick={() => { setEditingTeam(tName); setTeamEditValue(tName); }} className={`text-body font-black uppercase italic text-center cursor-pointer hover:opacity-80 ${textMain}`}>{tName}</h2>
                                   )}
                                   {countEntries.length > 0 && (
                                     <div className="flex flex-wrap gap-1.5">
@@ -2125,7 +2125,7 @@ export default function Dashboard() {
                                   const next = teams.filter(t => t !== tName); setTeams(next);
                                   await saveTeamOrder(user.id, currentProject, currentDay, next);
                                   fetchAssignments(user); setConfirmModal(null);
-                                })} aria-label={t.studioDelete} className="text-zinc-400 hover:text-red-500 text-sub shrink-0 ml-2 opacity-0 group-hover/studio:opacity-100 transition-opacity">×</button>
+                                })} aria-label={t.studioDelete} className="absolute right-0 top-0 text-zinc-400 hover:text-red-500 text-sub opacity-0 group-hover/studio:opacity-100 transition-opacity">×</button>
                               </div>
                               <Droppable droppableId={tName} type="MEMBER">
                                 {(provided) => (
@@ -2135,15 +2135,15 @@ export default function Dashboard() {
                                         <div
                                           onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                           onDoubleClick={() => setLinkModal(m)}
-                                          className={`group flex justify-between items-center p-4 rounded-2xl transition-colors cursor-pointer ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'ring-1 ring-[#E0575F]/50' : ''}`}
+                                          className={`group relative flex justify-center items-center p-4 rounded-2xl transition-colors cursor-pointer ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'ring-1 ring-[#E0575F]/50' : ''}`}
                                           style={roleRail(m.role, m.excluded)}
                                         >
-                                          <div className="flex items-center gap-2 overflow-hidden flex-1 pl-1">
+                                          <div className="flex items-center justify-center gap-2 overflow-hidden flex-1 pl-1">
                                             {editingId === String(m.id) ? (
                                               <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-body font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                             ) : (
-                                              <div className="flex flex-col overflow-hidden">
-                                                <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-lead font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
+                                              <div className="flex flex-col items-center text-center overflow-hidden">
+                                                <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-lead font-bold italic flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
                                                   <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={m.gender === 'female' ? 'F' : 'M'} />
                                                   {m.name}
                                                   {getAttendanceBadge(m.attendance)}
@@ -2156,7 +2156,7 @@ export default function Dashboard() {
                                               </div>
                                             )}
                                           </div>
-                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} aria-label={t.memberDelete} className="text-zinc-400 hover:text-red-500 text-lead px-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} aria-label={t.memberDelete} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-red-500 text-lead px-1 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                                         </div>
                                       </PortalDraggable>
                                     ))}
