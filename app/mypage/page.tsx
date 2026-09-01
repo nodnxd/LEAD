@@ -223,7 +223,7 @@ export default function MyPage() {
     await supabase.from('host_profiles').upsert(data);
     setHostProfile(data);
     setHostEditing(false); setHostSaving(false); setHostPhotoFile(null);
-    showToast(t('✅ 저장됐어요!', '✅ Saved!'));
+    showToast(t('저장됨', 'Saved'));
   };
 
   // ── 멤버 폼 ──
@@ -257,7 +257,7 @@ export default function MyPage() {
     if (!demo.id) return;
     await supabase.from('demo_tracks').delete().eq('id', demo.id);
     setDemos(p => p.filter(d => d.id !== demo.id));
-    showToast(t('🗑 삭제됐어요', '🗑 Deleted'));
+    showToast(t('삭제됨', 'Deleted'));
   };
   const handleSave = async () => {
     if (!user || saving) return;
@@ -306,7 +306,7 @@ export default function MyPage() {
     }
     await fetchAll(user.id);
     setEditing(false); setSaving(false); setPhotoFile(null); setNewDemoFiles([]);
-    showToast(t('✅ 저장됐어요!', '✅ Saved!'));
+    showToast(t('저장됨', 'Saved'));
   };
 
   // ── 공통 스타일 ──
@@ -349,12 +349,12 @@ export default function MyPage() {
               <div className="flex items-center gap-2">
                 <button onClick={() => router.push('/dashboard')}
                   className="px-3 py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-mini font-bold hover:bg-amber-500/20 transition">
-                  📊 {t('대시보드', 'Dashboard')}
+                  <i className="ti ti-layout-dashboard" aria-hidden="true"></i> {t('대시보드', 'Dashboard')}
                 </button>
                 <LangToggle className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-mini font-bold hover:text-white transition" />
                 <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
                   className={`w-9 h-9 rounded-xl border flex items-center justify-center text-body ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
-                  {D ? '☀️' : '🌙'}
+                  {D ? <i className="ti ti-sun" aria-hidden="true"></i> : <i className="ti ti-moon" aria-hidden="true"></i>}
                 </button>
                 <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))}
                   className={`text-mini font-bold transition-colors ${D ? 'text-zinc-600 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>
@@ -369,7 +369,7 @@ export default function MyPage() {
                 <div className="w-16 h-16 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center overflow-hidden shrink-0">
                   {hostProfile?.photo_url
                     ? <img loading="lazy" decoding="async" src={hostProfile.photo_url} alt="" className="w-full h-full object-cover" />
-                    : <span className="text-title">🎛</span>}
+                    : <span className="text-title opacity-40"><i className="ti ti-adjustments" aria-hidden="true"></i></span>}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -381,7 +381,7 @@ export default function MyPage() {
                 </div>
                 <button onClick={openHostEdit}
                   className="shrink-0 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-mini font-bold hover:bg-amber-500/20 transition">
-                  ✏️ {t('수정', 'Edit')}
+                  <i className="ti ti-pencil" aria-hidden="true"></i> {t('수정', 'Edit')}
                 </button>
               </div>
               {(hostProfile?.roles?.length > 0 || hostProfile?.instagram || hostProfile?.bio) && (
@@ -397,14 +397,14 @@ export default function MyPage() {
                   )}
                   {hostProfile?.bio && <p className={`text-mini leading-relaxed ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{hostProfile.bio}</p>}
                   {hostProfile?.instagram && (
-                    <a href={`https://instagram.com/${hostProfile.instagram}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1 text-mini text-brand-lead-text hover:underline">📸 @{hostProfile.instagram}</a>
+                    <a href={`https://instagram.com/${hostProfile.instagram}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1 text-mini text-brand-lead-text hover:underline"><i className="ti ti-brand-instagram" aria-hidden="true"></i> @{hostProfile.instagram}</a>
                   )}
                 </div>
               )}
               <div className={`px-5 pb-4 flex gap-2`}>
                 <a href={`/card/${user?.id}`} target="_blank" rel="noopener noreferrer"
                   className="flex-1 py-2 text-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-mini font-black hover:bg-amber-500/20 transition">
-                  🪪 {t('내 컴카드 보기', 'View my comp card')}
+                  <i className="ti ti-id-badge" aria-hidden="true"></i> {t('내 컴카드 보기', 'View my comp card')}
                 </a>
               </div>
             </div>
@@ -427,7 +427,7 @@ export default function MyPage() {
             {/* 리드 목록 */}
             <div className={`border rounded-xl overflow-hidden mb-4 ${card}`}>
               <div className={`px-5 py-4 border-b ${divider}`}>
-                <p className={`font-black text-body ${D ? 'text-white' : 'text-[#111]'}`}>📋 {t('내 리드', 'My leads')}</p>
+                <p className={`font-black text-body ${D ? 'text-white' : 'text-[#111]'}`}><i className="ti ti-list" aria-hidden="true"></i> {t('내 리드', 'My leads')}</p>
                 <p className={`text-mini mt-0.5 ${dimText}`}>{t('총', 'Total')} {hostLeads.length} · {t('활성', 'Active')} {activeLeads.length}</p>
               </div>
               <div className="p-4 flex flex-col gap-2 max-h-64 overflow-y-auto">
@@ -446,7 +446,7 @@ export default function MyPage() {
                         <div className="flex items-center gap-2 shrink-0">
                           {pCount > 0 && (
                             <span className={`text-micro font-black px-2 py-0.5 rounded-full ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>
-                              🎵 {pCount}
+                              <i className="ti ti-music" aria-hidden="true"></i> {pCount}
                             </span>
                           )}
                           {dday && (
@@ -469,7 +469,7 @@ export default function MyPage() {
                     className={`flex-1 py-3.5 text-mini font-black transition ${hostTab === tab
                       ? D ? 'text-white border-b-2 border-brand-lead' : 'text-[#111] border-b-2 border-brand-lead'
                       : dimText}`}>
-                    {tab === 'pitches' ? `📨 ${t('수신 피칭', 'Pitches')} (${hostPitches.length})` : `👥 ${t('멤버', 'Members')} (${hostMembers.length})`}
+                    {tab === 'pitches' ? <><i className="ti ti-inbox" aria-hidden="true"></i> {t('수신 피칭', 'Pitches')} ({hostPitches.length})</> : <><i className="ti ti-users" aria-hidden="true"></i> {t('멤버', 'Members')} ({hostMembers.length})</>}
                   </button>
                 ))}
               </div>
@@ -523,7 +523,7 @@ export default function MyPage() {
                             </div>
                             {files.length > 0 && (
                               <span className={`text-micro font-black px-2 py-0.5 rounded-full shrink-0 ml-2 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>
-                                🎵 {files.length}
+                                <i className="ti ti-music" aria-hidden="true"></i> {files.length}
                               </span>
                             )}
                           </div>
@@ -537,7 +537,7 @@ export default function MyPage() {
                                 return (
                                 <div key={f.id} className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.04]'}`}>
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-mini">🎵</span>
+                                    <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
                                     <span className={`flex-1 min-w-0 text-mini truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
                                     {vLabel && <span className="text-micro font-black px-1.5 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text">{vLabel}</span>}
                                     {f.bpm > 0 && <span className={`text-micro font-black ${dimText}`}>{f.bpm}BPM</span>}
@@ -599,7 +599,7 @@ export default function MyPage() {
 
           {hostEditing && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={() => setHostEditing(false)}>
-              <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+              <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-xl shadow-lg my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
                 <div className="p-6 max-h-[85vh] overflow-y-auto">
                   <div className="flex items-center justify-between mb-5">
                     <h2 className={`font-black text-sub ${D ? 'text-white' : 'text-[#111]'}`}>{t('호스트 프로필 수정', 'Edit host profile')}</h2>
@@ -610,7 +610,7 @@ export default function MyPage() {
                     <div className="flex items-center gap-4">
                       <button onClick={() => hostPhotoRef.current?.click()} className="relative group">
                         <div className="w-16 h-16 rounded-xl overflow-hidden bg-amber-500/10 border-2 border-dashed border-amber-500/30 flex items-center justify-center">
-                          {hostPhotoPreview ? <img loading="lazy" decoding="async" src={hostPhotoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-sub">📷</span>}
+                          {hostPhotoPreview ? <img loading="lazy" decoding="async" src={hostPhotoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-sub opacity-40"><i className="ti ti-camera" aria-hidden="true"></i></span>}
                         </div>
                         <div className="absolute inset-0 rounded-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <span className="text-white text-micro font-bold">{t('변경', 'Change')}</span>
@@ -682,7 +682,7 @@ export default function MyPage() {
           )}
 
           {toast && (
-            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-2xl font-ui">{toast}</div>
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-lg font-ui">{toast}</div>
           )}
         </main>
       </>
@@ -710,7 +710,7 @@ export default function MyPage() {
               <LangToggle className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-mini font-bold hover:text-white transition" />
               <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
                 className={`w-9 h-9 rounded-xl border flex items-center justify-center text-body ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
-                {D ? '☀️' : '🌙'}
+                {D ? <i className="ti ti-sun" aria-hidden="true"></i> : <i className="ti ti-moon" aria-hidden="true"></i>}
               </button>
               <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))}
                 className={`text-mini font-bold transition-colors ${D ? 'text-zinc-600 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>
@@ -752,11 +752,11 @@ export default function MyPage() {
                 <div className="flex flex-col gap-1.5 shrink-0">
                   <button onClick={openEdit}
                     className="px-3 py-2 rounded-xl bg-brand-lead/10 border border-brand-lead/20 text-brand-lead-text text-mini font-bold hover:bg-brand-lead/20 transition">
-                    ✏️ {t('수정', 'Edit')}
+                    <i className="ti ti-pencil" aria-hidden="true"></i> {t('수정', 'Edit')}
                   </button>
                   <a href={`/card/${user?.id}`} target="_blank" rel="noopener noreferrer"
                     className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 text-mini font-bold hover:text-white transition text-center">
-                    🪪 {t('컴카드', 'Card')}
+                    <i className="ti ti-id-badge" aria-hidden="true"></i> {t('컴카드', 'Card')}
                   </a>
                 </div>
               </div>
@@ -792,7 +792,7 @@ export default function MyPage() {
                 <div className="flex flex-col gap-2">
                   {demos.map(d => (
                     <div key={d.id} className={`cv-row flex items-center gap-3 p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
-                      <span className="text-body">🎵</span>
+                      <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
                       <span className={`flex-1 text-mini font-bold truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{d.file_name}</span>
                       <button onClick={async () => {
                         const path = d.file_url.split('/member-demos/')[1];
@@ -814,7 +814,7 @@ export default function MyPage() {
                 </div>
               ) : <p className={`text-mini ${dimText}`}>{t('등록된 데모곡이 없어요', 'No demos yet')}</p>}
               {member?.demo_link && (
-                <a href={member.demo_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-mini text-brand-lead-text hover:underline">🔗 {t('추가 데모 링크', 'More demos')}</a>
+                <a href={member.demo_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-mini text-brand-lead-text hover:underline"><i className="ti ti-link" aria-hidden="true"></i> {t('추가 데모 링크', 'More demos')}</a>
               )}
             </div>
 
@@ -826,7 +826,7 @@ export default function MyPage() {
                     <a key={i} href={w.link} target="_blank" rel="noopener noreferrer"
                       className={`flex items-center gap-3 p-3 rounded-xl border transition hover:border-brand-lead/30 ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                       <div className="w-8 h-8 rounded-lg bg-brand-lead/10 border border-brand-lead/20 flex items-center justify-center shrink-0">
-                        <span className="text-mini">🎶</span>
+                        <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-mini font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
@@ -844,7 +844,7 @@ export default function MyPage() {
           {myPitches.length > 0 && (
             <div className={`border rounded-xl overflow-hidden mt-5 ${card}`}>
               <div className={`p-5 border-b ${divider}`}>
-                <p className={`font-black text-body ${D ? 'text-white' : 'text-[#111]'}`}>📨 {t('내가 피칭한 곡', 'My pitches')}</p>
+                <p className={`font-black text-body ${D ? 'text-white' : 'text-[#111]'}`}><i className="ti ti-send" aria-hidden="true"></i> {t('내가 피칭한 곡', 'My pitches')}</p>
                 <p className={`text-mini mt-0.5 ${dimText}`}>{t('총', 'Total')} {myPitches.length}</p>
               </div>
               <div className="p-5 flex flex-col gap-3">
@@ -863,7 +863,7 @@ export default function MyPage() {
                           </p>
                         </div>
                         {files.length > 0 && (
-                          <span className={`text-micro font-black px-2 py-0.5 rounded-full shrink-0 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>🎵 {files.length}</span>
+                          <span className={`text-micro font-black px-2 py-0.5 rounded-full shrink-0 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>
                         )}
                       </div>
                       {p.message && <p className={`text-mini leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>}
@@ -874,7 +874,7 @@ export default function MyPage() {
                             return (
                             <div key={f.id} className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.03]'}`}>
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-mini">🎵</span>
+                                <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
                                 <span className={`flex-1 min-w-0 text-mini truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
                                 {vLabel && <span className="text-micro font-black px-1.5 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text">{vLabel}</span>}
                                 {f.bpm > 0 && <span className={`text-micro font-black ${dimText}`}>{f.bpm}BPM</span>}
@@ -898,7 +898,7 @@ export default function MyPage() {
         {/* 수정 모달 */}
         {editing && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={() => setEditing(false)}>
-            <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+            <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-xl shadow-lg my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
               <div className="p-6 max-h-[85vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className={`font-black text-sub ${D ? 'text-white' : 'text-[#111]'}`}>{t('프로필 수정', 'Edit profile')}</h2>
@@ -909,7 +909,7 @@ export default function MyPage() {
                   <div className="flex items-center gap-4">
                     <button onClick={() => photoRef.current?.click()} className="relative group">
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-brand-lead/10 border-2 border-dashed border-brand-lead/30 flex items-center justify-center">
-                        {photoPreview ? <img loading="lazy" decoding="async" src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-sub">📷</span>}
+                        {photoPreview ? <img loading="lazy" decoding="async" src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-sub opacity-40"><i className="ti ti-camera" aria-hidden="true"></i></span>}
                       </div>
                       <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-micro font-bold">{t('변경', 'Change')}</span>
@@ -979,7 +979,7 @@ export default function MyPage() {
                       <div className="flex flex-col gap-1.5 mb-2">
                         {demos.map(d => (
                           <div key={d.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
-                            <span className="text-body">🎵</span>
+                            <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
                             <span className={`flex-1 text-mini truncate ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.file_name}</span>
                             <button onClick={() => deleteDemo(d)} className="text-red-400/60 hover:text-red-400 text-mini font-bold">{t('삭제', 'Delete')}</button>
                           </div>
@@ -1000,7 +1000,7 @@ export default function MyPage() {
                       <div className="flex flex-col gap-1 mt-2">
                         {newDemoFiles.map((f, i) => (
                           <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-lead/5 border border-brand-lead/20">
-                            <span className="text-mini">🎵</span>
+                            <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
                             <span className="flex-1 text-mini text-brand-lead-text truncate">{f.name}</span>
                             <button onClick={() => setNewDemoFiles(p => p.filter((_, idx) => idx !== i))} className="text-red-400/60 text-micro">✕</button>
                           </div>
@@ -1009,7 +1009,7 @@ export default function MyPage() {
                     )}
                     <div className="mt-2">
                       <label className={labelCls}>{t('추가 데모 링크', 'More demos link')}</label>
-                      <input value={demoLink} onChange={e => setDemoLink(e.target.value)} placeholder="https://..." className={`w-full border rounded-xl px-3 py-2.5 text-body outline-none transition ${inputCls}`} />
+                      <input value={demoLink} onChange={e => setDemoLink(e.target.value)} placeholder="https://" className={`w-full border rounded-xl px-3 py-2.5 text-body outline-none transition ${inputCls}`} />
                     </div>
                   </div>
 
@@ -1082,7 +1082,7 @@ export default function MyPage() {
         )}
 
         {toast && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-2xl font-ui">{toast}</div>
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-lg font-ui">{toast}</div>
         )}
       </main>
     </>

@@ -8,6 +8,7 @@ import { useParams } from 'next/navigation';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 import { onDbError } from '@/lib/dbErrors';
 import { buildDaysIcs, downloadIcs } from '@/lib/ics';
+import { getLinkIcon, linkName } from '@/lib/links';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -263,13 +264,6 @@ export default function GuestView() {
     }
   };
 
-  const getLinkIcon = (url: string) => {
-    if (url.includes('instagram')) return '📸';
-    if (url.includes('soundcloud')) return '🎵';
-    if (url.includes('spotify')) return '🎧';
-    if (url.includes('youtube')) return '▶️';
-    return '🔗';
-  };
 
   const getVoteIcon = (attendance: string | null) => {
     if (attendance === 'attending') return <span className="text-[#77B18E] shrink-0"><CheckIcon /></span>;
@@ -323,7 +317,7 @@ export default function GuestView() {
         <span className={`text-lead font-bold flex items-center gap-1.5 ${textMain}`}>
           <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={m.gender === 'female' ? 'F' : 'M'} />
           {m.name}
-          {m.links?.length > 0 && <span className="text-mini">🔗</span>}
+          {m.links?.length > 0 && <span className="text-mini"><i className="ti ti-link" aria-hidden="true"></i></span>}
         </span>
         <span className={`text-micro font-bold uppercase tracking-widest mt-1 ${textSub}`}>{m.role}</span>
       </div>
@@ -404,7 +398,7 @@ export default function GuestView() {
 
           {dbError && (
             <div role="alert" className="relative z-10 mb-4 rounded-xl border border-[#E0575F]/50 bg-[#E0575F]/10 px-4 py-3 flex items-start gap-3">
-              <span className="text-body leading-none mt-0.5 text-[#E0575F]">⚠</span>
+              <span className="text-body leading-none mt-0.5 text-[#E0575F]"><i className="ti ti-alert-triangle" aria-hidden="true"></i></span>
               <div className="flex-1">
                 <p className="text-mini font-black text-[#E0575F]">{tv.saveFailed}</p>
                 <p className={`text-micro mt-0.5 ${textSub}`}>{dbError}</p>
@@ -573,7 +567,7 @@ export default function GuestView() {
                               <div className="flex items-center gap-3"><span className="text-brand-cast-text font-black text-body">Day {s.day_number}</span>{s.memo && <span className={`text-mini truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                               <div className="flex items-center gap-3">
                                 <span className="text-zinc-400 text-micro">{fmtDate(s.created_at)}</span>
-                                {s.links?.length > 0 && <div className="flex gap-1">{s.links.map((link: string, i: number) => (<a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-mini">{getLinkIcon(link)}</a>))}</div>}
+                                {s.links?.length > 0 && <div className="flex gap-1">{s.links.map((link: string, i: number) => (<a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} aria-label={linkName(link)} className="text-mini">{getLinkIcon(link)}</a>))}</div>}
                                 <span className="text-zinc-400 text-micro">{expandedSession === s.id ? '▲' : '▼'}</span>
                               </div>
                             </div>

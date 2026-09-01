@@ -218,7 +218,7 @@ export default function OnboardingPage() {
 
   return (
     <>
-      {errToast && <div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-xl shadow-2xl max-w-[90vw] text-center">{errToast}</div>}
+      {errToast && <div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-xl shadow-lg max-w-[90vw] text-center">{errToast}</div>}
       <main className={`min-h-screen ${bg} font-ui flex flex-col items-center justify-center p-5 relative overflow-hidden`}>
 
         <div className="absolute top-5 right-5 z-20"><LangToggle /></div>
@@ -248,7 +248,7 @@ export default function OnboardingPage() {
             })}
           </div>
 
-          <div className={`border rounded-xl p-6 shadow-2xl ${card}`}>
+          <div className={`border rounded-xl p-6 shadow-lg ${card}`}>
 
             {/* STEP 1 */}
             {step === 1 && (
@@ -260,7 +260,7 @@ export default function OnboardingPage() {
                 <div className="flex flex-col items-center gap-3">
                   <button onClick={() => photoRef.current?.click()} className="relative group">
                     <div className={`w-24 h-24 rounded-full border-2 border-dashed overflow-hidden flex items-center justify-center transition ${D ? 'border-white/20 bg-white/[0.03] hover:border-brand-lead/50' : 'border-black/20 bg-black/[0.03] hover:border-brand-lead/50'}`}>
-                      {photoPreview ? <img loading="lazy" decoding="async" src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-display">📷</span>}
+                      {photoPreview ? <img loading="lazy" decoding="async" src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-display opacity-30"><i className="ti ti-camera" aria-hidden="true"></i></span>}
                     </div>
                     <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <span className="text-white text-micro font-bold">{t('변경', 'Change')}</span>
@@ -361,7 +361,7 @@ export default function OnboardingPage() {
                     <div className="flex flex-col gap-2 mb-3">
                       {demoFiles.map(df => (
                         <div key={df.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${D ? 'bg-white/[0.03] border-white/[0.07]' : 'bg-black/[0.02] border-black/[0.07]'}`}>
-                          <span className="text-lead">🎵</span>
+                          <span className="text-lead"><i className="ti ti-music" aria-hidden="true"></i></span>
                           <div className="flex-1 min-w-0">
                             <p className={`text-mini font-bold truncate ${D ? 'text-white' : 'text-[#111]'}`}>{df.file.name}</p>
                             <p className={`text-mini ${dimText}`}>{(df.file.size / 1024 / 1024).toFixed(1)}MB</p>
@@ -380,7 +380,7 @@ export default function OnboardingPage() {
                 </div>
                 <div>
                   <label className={`text-micro font-black uppercase tracking-widest block mb-1.5 ${labelCls}`}>{t('추가 데모 링크', 'More demos link')} <span className="font-normal normal-case">({t('Disco, SoundCloud 등', 'Disco, SoundCloud…')})</span></label>
-                  <input value={demoLink} onChange={e => setDemoLink(e.target.value)} placeholder="https://..." className={`w-full border rounded-xl px-3 py-2.5 text-body outline-none transition ${inputCls}`} />
+                  <input value={demoLink} onChange={e => setDemoLink(e.target.value)} placeholder="https://" className={`w-full border rounded-xl px-3 py-2.5 text-body outline-none transition ${inputCls}`} />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -399,7 +399,7 @@ export default function OnboardingPage() {
                             <input value={w.song_title} onChange={e => updateWork(i, { song_title: e.target.value })} placeholder={t('곡명', 'Song title')} className={`w-full border rounded-lg px-3 py-2 text-mini outline-none transition ${inputCls}`} />
                             <input value={w.artist_name} onChange={e => updateWork(i, { artist_name: e.target.value })} placeholder={t('아티스트명', 'Artist')} className={`w-full border rounded-lg px-3 py-2 text-mini outline-none transition ${inputCls}`} />
                           </div>
-                          <input value={w.link} onChange={e => updateWork(i, { link: e.target.value })} placeholder={t('링크 (유튜브, 멜론, 스포티파이...)', 'Link (YouTube, Melon, Spotify…)')} className={`w-full border rounded-lg px-3 py-2 text-mini outline-none transition ${inputCls}`} />
+                          <input value={w.link} onChange={e => updateWork(i, { link: e.target.value })} placeholder={t('링크 (유튜브, 멜론, 스포티파이 등)', 'Link (YouTube, Melon, Spotify…)')} className={`w-full border rounded-lg px-3 py-2 text-mini outline-none transition ${inputCls}`} />
                         </div>
                       </div>
                     ))}
@@ -421,7 +421,7 @@ export default function OnboardingPage() {
               <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className={`flex-1 py-3.5 rounded-xl font-black text-body transition ${canNext() ? 'bg-brand-lead text-white hover:opacity-90' : D ? 'bg-white/5 text-zinc-700 cursor-not-allowed' : 'bg-black/5 text-zinc-400 cursor-not-allowed'}`}>{t('다음', 'Next')} →</button>
             ) : (
               <button onClick={handleFinish} disabled={saving} className="flex-1 py-3.5 rounded-xl bg-brand-lead text-white font-semibold text-body transition hover:opacity-90 disabled:opacity-50">
-                {saving ? t('저장 중...', 'Saving…') : t('완료 🎉', 'Done 🎉')}
+                {saving ? t('저장 중…', 'Saving…') : t('완료', 'Done')}
               </button>
             )}
           </div>

@@ -77,7 +77,7 @@ export default function CardPage() {
         {/* 상단 고정 뒤로가기 */}
         <button type="button" onClick={goBack} aria-label="뒤로 가기" className={`no-print fixed top-4 left-4 z-50 w-10 h-10 rounded-full border flex items-center justify-center text-lead shadow-lg ${D ? 'bg-[#1a1a1a] border-white/10 text-white' : 'bg-white border-black/[0.08] text-[#111]'}`}><span aria-hidden="true">←</span></button>
         {/* 컴카드 */}
-        <div id="comp-card" className={`w-full max-w-sm border rounded-xl overflow-hidden shadow-2xl ${card}`}>
+        <div id="comp-card" className={`w-full max-w-sm border rounded-xl overflow-hidden shadow-lg ${card}`}>
           {/* 헤더 배너 */}
           <div className={`h-24 relative ${isHost ? 'bg-gradient-to-br from-amber-500/40 to-orange-400/20' : 'bg-gradient-to-br from-brand-lead/40 to-purple-500/20'}`}>
             <div className="absolute bottom-[-36px] left-6">
@@ -158,12 +158,12 @@ export default function CardPage() {
             {/* Released Works */}
             {works.length > 0 && (
               <div className={`mt-4 pt-4 border-t ${dv}`}>
-                <p className={`text-mini font-black uppercase tracking-widest mb-2.5 ${dm}`}>💿 Released Works</p>
+                <p className={`text-mini font-black uppercase tracking-widest mb-2.5 ${dm}`}><i className="ti ti-vinyl" aria-hidden="true"></i> Released Works</p>
                 <div className="flex flex-col gap-1.5">
                   {works.slice(0, 5).map((w, i) => (
                     <a key={i} href={w.link} target="_blank" rel="noopener noreferrer"
                       className={`flex items-center gap-2.5 p-2.5 rounded-xl transition ${D ? 'bg-white/[0.02] hover:bg-white/5' : 'bg-black/[0.02] hover:bg-black/[0.05]'}`}>
-                      <span className="text-body">🎶</span>
+                      <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
                       <div className="flex-1 min-w-0">
                         <p className={`text-mini font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
                         <p className={`text-mini ${dm}`}>{w.artist_name}</p>
@@ -187,7 +187,7 @@ export default function CardPage() {
         <div className="no-print flex gap-3 mt-4 w-full max-w-sm">
           <button onClick={() => window.print()}
             className="flex-1 py-3 rounded-xl bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition">
-            📄 {t('PDF 저장', 'Save PDF')}
+            <i className="ti ti-file-type-pdf" aria-hidden="true"></i> {t('PDF 저장', 'Save PDF')}
           </button>
           <button onClick={goBack}
             className={`px-5 py-3 rounded-xl border font-bold text-body transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>

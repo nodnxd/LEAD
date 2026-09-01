@@ -298,7 +298,7 @@ export default function MyPage() {
                   )}
                 </div>
                 <button onClick={openEdit} className="shrink-0 px-3 py-2 rounded-xl bg-brand-lead/10 border border-brand-lead/20 text-brand-lead-text text-mini font-bold hover:bg-brand-lead/20 transition">
-                  ✏️ {t('수정', 'Edit')}
+                  <i className="ti ti-pencil" aria-hidden="true"></i> {t('수정', 'Edit')}
                 </button>
               </div>
             </div>
@@ -420,7 +420,7 @@ export default function MyPage() {
         {/* 수정 모달 */}
         {editing && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={() => setEditing(false)}>
-            <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-xl shadow-2xl my-4 ${D ? 'bg-surface-2 border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+            <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-xl shadow-lg my-4 ${D ? 'bg-surface-2 border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
               <div className="p-6 max-h-[85vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className={`font-black text-sub ${D ? 'text-white' : 'text-[#111]'}`}>{t('프로필 수정', 'Edit profile')}</h2>
@@ -432,7 +432,7 @@ export default function MyPage() {
                   <div className="flex items-center gap-4">
                     <button onClick={() => photoRef.current?.click()} className="relative group">
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-brand-lead/10 border-2 border-dashed border-brand-lead/30 flex items-center justify-center">
-                        {photoPreview ? <img loading="lazy" decoding="async" src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-sub">📷</span>}
+                        {photoPreview ? <img loading="lazy" decoding="async" src={photoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-sub opacity-40"><i className="ti ti-camera" aria-hidden="true"></i></span>}
                       </div>
                       <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-micro font-bold">{t('변경', 'Change')}</span>
@@ -519,7 +519,7 @@ export default function MyPage() {
                         ))}
                       </div>
                     )}
-                    <div className="mt-2"><label className={labelCls}>{t('추가 데모 링크', 'More demos link')}</label><input value={demoLink} onChange={e => setDemoLink(e.target.value)} placeholder="https://..." className={`w-full border rounded-xl px-3 py-2.5 text-body outline-none transition ${inputCls}`} /></div>
+                    <div className="mt-2"><label className={labelCls}>{t('추가 데모 링크', 'More demos link')}</label><input value={demoLink} onChange={e => setDemoLink(e.target.value)} placeholder="https://" className={`w-full border rounded-xl px-3 py-2.5 text-body outline-none transition ${inputCls}`} /></div>
                   </div>
 
                   {/* 컷난 작업물 */}
@@ -558,7 +558,7 @@ export default function MyPage() {
         )}
 
         {toast && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-2xl font-ui">{toast}</div>
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-lg font-ui">{toast}</div>
         )}
       </main>
     </>

@@ -382,7 +382,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           <h1 className="text-sub font-bold truncate">{sheet.song_title || t('새 스플릿시트', 'New split sheet')}</h1>
           <span className="text-micro px-2 py-0.5 rounded-full border border-white/15 text-white/45">v{sheet.version ?? 1}</span>
           {locked
-            ? <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400">🔒 {t('확정됨', 'Locked')}</span>
+            ? <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-400"><i className="ti ti-lock" aria-hidden="true"></i> {t('확정됨', 'Locked')}</span>
             : <span className="text-micro px-2 py-0.5 rounded-full border border-amber-500/30 text-amber-400/90">{t('초안', 'Draft')}</span>}
           {!isOwner && <span className="text-micro px-2 py-0.5 rounded-full border border-white/15 text-white/50">{t('참여', 'Shared')}</span>}
           <div className="ml-auto flex items-center gap-2">
@@ -531,7 +531,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                               className={`text-mini px-2.5 py-1 rounded-lg border transition-colors ${mine ? 'border-white/15 text-white/60 hover:bg-white/5' : 'border-white/10 text-white/55'}`}
                               title={mine ? t('서명', 'Sign') : t('연동된 본인만 서명 가능', 'Only the linked person can sign')}>{t('서명', 'Sign')}</button>
                           )}
-                          {isOwner && !r.signed && !locked && <button onClick={() => copySignLink(r)} title={t('외부 서명 링크 복사 (계정 없이 서명 가능)', 'Copy external signing link (no account needed)')} className="text-mini text-white/55 hover:text-brand-lead-text transition-colors px-1 ml-auto">🔗 {t('서명 링크', 'Sign link')}</button>}
+                          {isOwner && !r.signed && !locked && <button onClick={() => copySignLink(r)} title={t('외부 서명 링크 복사 (계정 없이 서명 가능)', 'Copy external signing link (no account needed)')} className="text-mini text-white/55 hover:text-brand-lead-text transition-colors px-1 ml-auto"><i className="ti ti-link" aria-hidden="true"></i> {t('서명 링크', 'Sign link')}</button>}
                           {editable && <button onClick={() => deleteRow(r.id)} className={`text-mini text-white/55 hover:text-red-400 transition-colors px-1 ${isOwner && !r.signed && !locked ? '' : 'ml-auto'}`}>{t('삭제', 'Delete')}</button>}
                         </div>
                         <details className="mt-2">

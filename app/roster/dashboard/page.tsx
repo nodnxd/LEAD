@@ -12,6 +12,7 @@ import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 import { onDbError } from '@/lib/dbErrors';
 import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 import ProductHeader from '@/components/ProductHeader';
+import { QUICK_LINKS, getLinkIcon } from '@/lib/links';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -61,15 +62,15 @@ const T = {
     sessionDeleteMsg: (d: number) => `Day ${d} 삭제할까요?`, sessionDelete: '세션 삭제',
     contact: 'Contact : everplayground@gmail.com', loading: 'Loading…',
     alreadyInRoster: (n: string) => `${n} 이미 있어요!`,
-    addedToRoster: (n: string, p: string) => `✅ ${n} → ${p}`,
-    linkCopied: '🔗 링크가 복사됐어요!', closeVoteConfirm: '투표를 닫을까요?',
+    addedToRoster: (n: string, p: string) => `${n} → ${p}`,
+    linkCopied: '링크 복사됨', closeVoteConfirm: '투표를 닫을까요?',
     availOpen: '가능일', availOpenTitle: '가능일 투표 열기', availMonth: '대상 월',
     availTitleLabel: '제목 (선택)', availTitlePlaceholder: '예: 8월 세션 가능일', availStart: '투표 열기',
     availClose: '가능일 닫기', availCloseConfirm: '가능일 투표를 닫을까요?',
     availStats: '날짜별 가능 인원', availBest: '가장 많이 되는 날', availConfirm: '이 날로 확정',
     availConfirmed: '확정됨', availUnset: '확정 해제', availCodes: '멤버 접근 코드',
     availCopyLink: '개인 링크', availCopyAll: '공유 링크 복사', availNoResp: '아직 응답이 없어요',
-    codeCopied: '📋 복사됐어요', availPeople: (n: number) => `${n}명`,
+    codeCopied: '복사됨', availPeople: (n: number) => `${n}명`,
     availSubmitStatus: '제출 현황', availSubmitted: '제출', availWaiting: '미제출',
     availPossible: '가능', availNo: '불가능',
     availConfirmAdd: '확정에 추가', availConfirmRemove: '확정에서 빼기',
@@ -135,15 +136,15 @@ const T = {
     sessionDeleteMsg: (d: number) => `Delete Day ${d}?`, sessionDelete: 'Delete Session',
     contact: 'Contact : everplayground@gmail.com', loading: 'Loading…',
     alreadyInRoster: (n: string) => `${n} already in roster!`,
-    addedToRoster: (n: string, p: string) => `✅ ${n} → ${p}`,
-    linkCopied: '🔗 Link copied!', closeVoteConfirm: 'Close the vote?',
+    addedToRoster: (n: string, p: string) => `${n} → ${p}`,
+    linkCopied: 'Link copied', closeVoteConfirm: 'Close the vote?',
     availOpen: 'Dates', availOpenTitle: 'Open Availability Poll', availMonth: 'Target month',
     availTitleLabel: 'Title (optional)', availTitlePlaceholder: 'e.g. August session dates', availStart: 'Open Poll',
     availClose: 'Close Dates', availCloseConfirm: 'Close the availability poll?',
     availStats: 'Available by day', availBest: 'Best days', availConfirm: 'Confirm this day',
     availConfirmed: 'Confirmed', availUnset: 'Unset', availCodes: 'Member access codes',
     availCopyLink: 'Personal link', availCopyAll: 'Copy share link', availNoResp: 'No responses yet',
-    codeCopied: '📋 Copied', availPeople: (n: number) => `${n}`,
+    codeCopied: 'Copied', availPeople: (n: number) => `${n}`,
     availSubmitStatus: 'Submissions', availSubmitted: 'Submitted', availWaiting: 'Waiting',
     availPossible: 'Available', availNo: 'Unavailable',
     availConfirmAdd: 'Add to confirmed', availConfirmRemove: 'Remove from confirmed',
@@ -208,12 +209,6 @@ const PortalDraggable = ({ children, draggableId, index }: any) => {
   );
 };
 
-const QUICK_LINKS = [
-  { label: '📸 Instagram', prefix: 'https://instagram.com/' },
-  { label: '🎵 SoundCloud', prefix: 'https://soundcloud.com/' },
-  { label: '🎧 Spotify', prefix: 'https://open.spotify.com/artist/' },
-  { label: '▶️ YouTube', prefix: 'https://youtube.com/@' },
-];
 
 export default function Dashboard() {
   const router = useRouter();
@@ -335,7 +330,7 @@ export default function Dashboard() {
   // 저장 실패를 눈에 보이게 (예전엔 전부 무음이라 안 저장돼도 성공처럼 보였음)
   useEffect(() => onDbError(e => {
     if (!e.write) return;
-    showToastMsg((lang === 'ko' ? '⚠️ 저장 실패 — ' : '⚠️ Save failed — ') + e.message);
+    showToastMsg((lang === 'ko' ? '저장 실패 — ' : 'Save failed — ') + e.message);
   }), [lang]);
 
   // Esc = 열려 있는 것 닫기
@@ -1018,12 +1013,12 @@ export default function Dashboard() {
 
   const exportAsText = () => {
     navigator.clipboard.writeText(getRosterText());
-    showToastMsg('📋 ' + (lang === 'ko' ? '텍스트 복사됐어요!' : 'Copied!'));
+    showToastMsg((lang === 'ko' ? '텍스트 복사됨' : 'Copied'));
     setShowExportModal(false);
   };
 
   const exportAsImage = async (format: 'jpeg' | 'pdf') => {
-    showToastMsg('📸 ' + (lang === 'ko' ? '생성 중…' : 'Generating…'));
+    showToastMsg((lang === 'ko' ? '생성 중…' : 'Generating…'));
     try {
       const dayLabel = dayNames[currentDay] || `Day ${currentDay}`;
       const activeTeams = teams.filter(t => t !== 'Unassigned');
@@ -1034,7 +1029,7 @@ export default function Dashboard() {
         link.download = `${currentProject}_${dayLabel}_roster.jpg`;
         link.href = canvas.toDataURL('image/jpeg', 0.95);
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        showToastMsg('📸 ' + (lang === 'ko' ? 'JPEG 저장됐어요!' : 'JPEG saved!'));
+        showToastMsg((lang === 'ko' ? 'JPEG 저장됨' : 'JPEG saved'));
       } else {
         const { jsPDF } = await import('jspdf');
         const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width / 2, canvas.height / 2] });
@@ -1087,15 +1082,15 @@ export default function Dashboard() {
           y += 8;
         });
         pdf.save(`${currentProject}_${dayLabel}_roster.pdf`);
-        showToastMsg('📄 ' + (lang === 'ko' ? 'PDF 저장됐어요!' : 'PDF saved!'));
+        showToastMsg((lang === 'ko' ? 'PDF 저장됨' : 'PDF saved'));
       }
-    } catch (err) { console.error(err); showToastMsg('❌ ' + (lang === 'ko' ? '실패했어요' : 'Failed')); }
+    } catch (err) { console.error(err); showToastMsg((lang === 'ko' ? '실패' : 'Failed')); }
   };
 
 ;
 
   const exportAllDays = async (format: 'jpeg' | 'pdf' = 'jpeg') => {
-    showToastMsg('📸 ' + (lang === 'ko' ? '생성 중…' : 'Generating…'));
+    showToastMsg((lang === 'ko' ? '생성 중…' : 'Generating…'));
     try {
       const ROLE_COLORS_MAP: Record<string, string> = { 'Producer': '#E3B24A', 'Topliner': '#5FA39A', 'Engineer': '#C98BA0', 'A&R': '#C98BA0' };
       const ROLE_SHORT: Record<string, string> = { 'Producer': 'Pro', 'Topliner': 'Top', 'Engineer': 'Eng', 'A&R': 'A&R' };
@@ -1232,7 +1227,7 @@ export default function Dashboard() {
         link.download = `${currentProject}_ALL_roster.jpg`;
         link.href = canvas.toDataURL('image/jpeg', 0.95);
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        showToastMsg('📸 ' + (lang === 'ko' ? '전체 Day JPEG 저장됐어요!' : 'All Days JPEG saved!'));
+        showToastMsg((lang === 'ko' ? '전체 Day JPEG 저장됨' : 'All Days JPEG saved'));
       } else {
         const { jsPDF } = await import('jspdf');
         const pw = canvas.width / 2; const ph = canvas.height / 2;
@@ -1264,9 +1259,9 @@ export default function Dashboard() {
           });
         });
         pdf.save(`${currentProject}_ALL_roster.pdf`);
-        showToastMsg('📄 ' + (lang === 'ko' ? '전체 Day PDF 저장됐어요!' : 'All Days PDF saved!'));
+        showToastMsg((lang === 'ko' ? '전체 Day PDF 저장됨' : 'All Days PDF saved'));
       }
-    } catch (err) { console.error(err); showToastMsg('❌ ' + (lang === 'ko' ? '실패했어요' : 'Failed')); }
+    } catch (err) { console.error(err); showToastMsg((lang === 'ko' ? '실패' : 'Failed')); }
   };;
 
   const buildRosterCanvas = (teamData: any[], dayLabel: string) => {
@@ -1503,7 +1498,7 @@ export default function Dashboard() {
     link.download = `${currentProject}_${dayDates[currentDay] || getDayLabel(currentDay)}_callsheet_${ratio.replace(':', 'x')}.jpg`;
     link.href = cv.toDataURL('image/jpeg', 0.94);
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    showToastMsg('📸 ' + (lang === 'ko' ? '콜시트 저장됐어요!' : 'Call sheet saved!'));
+    showToastMsg((lang === 'ko' ? '콜시트 저장됨' : 'Call sheet saved'));
   };
 
   function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -1552,13 +1547,6 @@ export default function Dashboard() {
     return votingOpen ? <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/10 shrink-0">{t.noResponse}</span> : null;
   };
 
-  const getLinkIcon = (url: string) => {
-    if (url.includes('instagram')) return '📸';
-    if (url.includes('soundcloud')) return '🎵';
-    if (url.includes('spotify')) return '🎧';
-    if (url.includes('youtube')) return '▶️';
-    return '🔗';
-  };
 
   const otherTeams = teams.filter(t => t !== 'Unassigned');
   const WD = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1616,7 +1604,7 @@ export default function Dashboard() {
           {/* 헤더 */}
           <ProductHeader product="cast" dark={theme === 'dark'} className="mb-8" right={<>
             <button onClick={toggleLang} className={`h-8 px-2.5 rounded-lg font-bold text-mini border transition ${btnBg}`}>{lang === 'ko' ? 'EN' : 'KO'}</button>
-            <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg font-bold text-body border flex items-center justify-center transition ${btnBg}`}>{theme === 'dark' ? '☀️' : '🌙'}</button>
+            <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg font-bold text-body border flex items-center justify-center transition ${btnBg}`} aria-label={lang === 'ko' ? '테마 전환' : 'Toggle theme'}>{theme === 'dark' ? <i className="ti ti-sun" aria-hidden="true"></i> : <i className="ti ti-moon" aria-hidden="true"></i>}</button>
             <Link href="/mypage" className={`px-3 py-1.5 rounded-lg border text-micro font-normal transition ${btnBg}`}>MY</Link>
             <button onClick={() => showConfirm(t.logout, lang === 'ko' ? '로그아웃 할까요?' : 'Sign out?', async () => { await supabase.auth.signOut(); router.push('/'); })} className={`px-3 py-1.5 rounded-lg border text-micro font-normal transition ${btnBg}`}>{t.logout}</button>
           </>} />
@@ -1805,7 +1793,7 @@ export default function Dashboard() {
             {showNoticeBoard && (
               <div className={`relative z-10 mb-8 rounded-xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-white/[0.03] border-white/10'}`}>
                 <div className="flex items-center justify-between mb-5">
-                  <p className={`font-black text-lead ${textMain}`}>📋 {t.noticeTitle}</p>
+                  <p className={`font-black text-lead ${textMain}`}><i className="ti ti-speakerphone" aria-hidden="true"></i> {t.noticeTitle}</p>
                   <button onClick={() => { setNoticeTitle(''); setNoticeContent(''); setNoticeIsGlobal(false); setEditingNoticeId(null); setShowNoticeModal(true); }} className={`px-4 py-2 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.noticeAdd}</button>
                 </div>
                 {notices.length === 0 ? <p className={`text-mini ${textSub}`}>{t.noNotice}</p> : (
@@ -1832,7 +1820,7 @@ export default function Dashboard() {
             {showSessionBoard && (
               <div className={`relative z-10 mb-8 rounded-xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-white/[0.03] border-white/10'}`}>
                 <div className="flex items-center justify-between mb-5">
-                  <p className={`font-black text-lead ${textMain}`}>🗂 {t.history}</p>
+                  <p className={`font-black text-lead ${textMain}`}><i className="ti ti-history" aria-hidden="true"></i> {t.history}</p>
                   <button onClick={() => setShowSessionModal(true)} className={`px-4 py-2 rounded-xl border font-bold text-mini transition ${btnBg}`}>{t.saveSession}</button>
                 </div>
                 {Object.keys(sessionsByCamp).length === 0 ? <p className={`text-mini ${textSub}`}>{t.noSession}</p> : (
@@ -1869,7 +1857,7 @@ export default function Dashboard() {
                                       await saveTeamOrder(user.id, currentProject, currentDay, newTeams);
                                       await fetchAssignments(user);
                                       setConfirmModal(null);
-                                      showToastMsg(lang === 'ko' ? '✅ 로스터를 불러왔어요!' : '✅ Roster loaded!');
+                                      showToastMsg(lang === 'ko' ? '로스터 불러옴' : 'Roster loaded');
                                     });
                                   }} className="mb-3 px-3 py-1.5 rounded-lg bg-brand-cast/20 text-brand-cast-text text-mini font-bold border border-brand-cast/30 hover:bg-brand-cast/30 transition">
                                     {lang === 'ko' ? '⬆ 현재 로스터로 불러오기' : '⬆ Load to Current Roster'}
@@ -1893,10 +1881,10 @@ export default function Dashboard() {
             {showArtistPanel && (
               <div className={`relative z-10 mb-6 rounded-xl border backdrop-blur-md p-4 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-white/[0.03] border-white/10'}`}>
                 <div className="flex items-center justify-between mb-3">
-                  <p className={`font-black text-body ${textMain}`}>🎤 Artists</p>
+                  <p className={`font-black text-body ${textMain}`}><i className="ti ti-microphone" aria-hidden="true"></i> Artists</p>
                   <div className="flex items-center gap-2">
                     <input value={artistSearch} onChange={e => setArtistSearch(e.target.value)}
-                      placeholder={lang === 'ko' ? '검색…' : 'Search…'}
+                      placeholder={lang === 'ko' ? '검색' : 'Search'}
                       className={`px-3 py-1.5 rounded-lg text-mini outline-none border w-32 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
                     <button onClick={() => setShowArtistPanel(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-zinc-400 hover:text-red-400 text-lead">×</button>
                   </div>
@@ -2658,16 +2646,16 @@ export default function Dashboard() {
           <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-xs border rounded-xl p-6 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} onClick={e => e.stopPropagation()}>
             {exportStep === 'type' ? (
               <>
-                <h2 className={`font-black text-lead mb-4 ${textMain}`}>📤 {lang === 'ko' ? '내보내기' : 'Export'}</h2>
+                <h2 className={`font-black text-lead mb-4 ${textMain}`}><i className="ti ti-upload" aria-hidden="true"></i> {lang === 'ko' ? '내보내기' : 'Export'}</h2>
                 <div className="flex flex-col gap-2">
                   <button onClick={() => { exportAsText(); setShowExportModal(false); }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-sub">📋</span>
+                    <span className="text-sub"><i className="ti ti-clipboard" aria-hidden="true"></i></span>
                     <div className="text-left"><p className="font-black">{lang === 'ko' ? '텍스트 복사' : 'Copy Text'}</p><p className={`text-mini font-normal ${textSub}`}>{lang === 'ko' ? '현재 Day 클립보드 복사' : 'Copy current day'}</p></div>
                   </button>
                   <button onClick={() => { exportCallSheet('9:16'); setShowExportModal(false); }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-sub">📱</span>
+                    <span className="text-sub"><i className="ti ti-device-mobile" aria-hidden="true"></i></span>
                     <div className="text-left"><p className="font-black">{lang === 'ko' ? '콜시트 · 세로' : 'Call sheet · Story'}</p><p className={`text-mini font-normal ${textSub}`}>1080×1920 · {lang === 'ko' ? '스토리/카톡용' : 'for stories'}</p></div>
                   </button>
                   <button onClick={() => { exportCallSheet('1:1'); setShowExportModal(false); }}
@@ -2677,12 +2665,12 @@ export default function Dashboard() {
                   </button>
                   <button onClick={() => { setExportType('jpeg'); setExportStep('scope'); }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-sub">📸</span>
+                    <span className="text-sub"><i className="ti ti-photo" aria-hidden="true"></i></span>
                     <div className="text-left"><p className="font-black">JPEG</p><p className={`text-mini font-normal ${textSub}`}>{lang === 'ko' ? '이미지로 저장' : 'Save as image'}</p></div>
                   </button>
                   <button onClick={() => { setExportType('pdf'); setExportStep('scope'); }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-sub">📄</span>
+                    <span className="text-sub"><i className="ti ti-file-type-pdf" aria-hidden="true"></i></span>
                     <div className="text-left"><p className="font-black">PDF</p><p className={`text-mini font-normal ${textSub}`}>{lang === 'ko' ? '링크 포함' : 'With links'}</p></div>
                   </button>
                 </div>
@@ -2691,16 +2679,16 @@ export default function Dashboard() {
             ) : (
               <>
                 <button onClick={() => setExportStep('type')} className={`text-mini font-bold mb-4 flex items-center gap-1 ${textSub}`}>← {lang === 'ko' ? '뒤로' : 'Back'}</button>
-                <h2 className={`font-black text-lead mb-4 ${textMain}`}>{exportType === 'pdf' ? '📄' : '📸'} {lang === 'ko' ? '범위 선택' : 'Select Scope'}</h2>
+                <h2 className={`font-black text-lead mb-4 ${textMain}`}>{exportType === 'pdf' ? <i className="ti ti-file-type-pdf" aria-hidden="true"></i> : <i className="ti ti-photo" aria-hidden="true"></i>} {lang === 'ko' ? '범위 선택' : 'Select Scope'}</h2>
                 <div className="flex flex-col gap-2">
                   <button onClick={() => { exportType === 'pdf' ? exportAsImage('pdf') : exportAsImage('jpeg'); setShowExportModal(false); }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-sub">📅</span>
+                    <span className="text-sub"><i className="ti ti-calendar" aria-hidden="true"></i></span>
                     <div className="text-left"><p className="font-black">{lang === 'ko' ? '현재 Day' : 'Current Day'}</p><p className={`text-mini font-normal ${textSub}`}>{dayNames[currentDay] || `Day ${currentDay}`}</p></div>
                   </button>
                   <button onClick={() => { exportAllDays(exportType === 'pdf' ? 'pdf' : 'jpeg'); setShowExportModal(false); }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-body transition hover:opacity-80 ${theme === 'light' ? 'bg-black/5 border-black/10 text-black' : 'bg-white/5 border-white/10 text-white'}`}>
-                    <span className="text-sub">🗓</span>
+                    <span className="text-sub"><i className="ti ti-calendar-month" aria-hidden="true"></i></span>
                     <div className="text-left"><p className="font-black">{lang === 'ko' ? '전체 Day' : 'All Days'}</p><p className={`text-mini font-normal ${textSub}`}>{lang === 'ko' ? `${days.length}개 Day 한 이미지로` : `${days.length} days in one image`}</p></div>
                   </button>
                 </div>

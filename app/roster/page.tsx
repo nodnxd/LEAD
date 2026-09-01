@@ -69,7 +69,7 @@ export default function LandingPage() {
 
         {signupDone ? (
           <div className="bg-white/[0.03] border border-white/10 rounded-xl p-8 text-center">
-            <p className="text-display mb-3">📧</p>
+            <p className="text-display mb-3 opacity-40"><i className="ti ti-mail" aria-hidden="true"></i></p>
             <p className="text-white font-bold mb-2">이메일을 확인해주세요</p>
             <p className="text-zinc-500 text-mini leading-relaxed">가입 확인 메일을 보냈어요.<br />확인 후 로그인하세요.</p>
             <button onClick={() => { setSignupDone(false); setAuthMode('login'); }} className="mt-6 text-brand-cast-text text-mini font-bold hover:underline">로그인 →</button>

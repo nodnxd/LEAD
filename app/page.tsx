@@ -104,8 +104,7 @@ export default function LoginPage() {
           <p className="mb-6 text-mini uppercase tracking-[0.3em] text-white/55" translate="no">by NEN</p>
           <Wordmark />
           <p className="mt-8 max-w-sm text-body leading-relaxed text-white/55">
-            {t('하나의 계정으로 세 도구를 씁니다. 로그인하면 골라 들어가요.',
-               'One account, three tools. Sign in and pick where to go.')}
+            {t('하나의 계정으로 세 도구를 씁니다.', 'One account, three tools.')}
           </p>
         </header>
 
@@ -116,7 +115,7 @@ export default function LoginPage() {
 
           {confirmSent ? (
             <div>
-              <div className="text-display mb-3" aria-hidden="true">📩</div>
+              <div className="text-display mb-3 opacity-40"><i className="ti ti-mail" aria-hidden="true"></i></div>
               <p className="font-display text-title mb-2">{t('인증 메일을 보냈어요', 'Confirmation email sent')}</p>
               <p className="text-body leading-relaxed text-white/55">
                 {email}<br />
@@ -127,7 +126,7 @@ export default function LoginPage() {
           ) : forgotMode ? (
             resetSent ? (
               <div>
-                <div className="text-display mb-3" aria-hidden="true">📩</div>
+                <div className="text-display mb-3 opacity-40"><i className="ti ti-mail" aria-hidden="true"></i></div>
                 <p className="font-display text-title mb-2">{t('재설정 메일을 보냈어요', 'Reset email sent')}</p>
                 <p className="text-body leading-relaxed text-white/55">
                   {t(`${email}로`, 'We sent a reset link to')}<br />
@@ -144,7 +143,7 @@ export default function LoginPage() {
                     id="reset-email" name="email" ref={emailRef}
                     type="email" autoComplete="email" inputMode="email" spellCheck={false}
                     value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder={t('you@example.com…', 'you@example.com…')}
+                    placeholder={t('you@example.com', 'you@example.com')}
                     aria-describedby={error ? 'reset-error' : undefined}
                     className={inputCls}
                   />
@@ -179,7 +178,7 @@ export default function LoginPage() {
                   id="email" name="email" ref={emailRef}
                   type="email" autoComplete="email" inputMode="email" spellCheck={false}
                   value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder={t('you@example.com…', 'you@example.com…')}
+                  placeholder={t('you@example.com', 'you@example.com')}
                   aria-describedby={error ? 'login-error' : undefined}
                   className={inputCls}
                 />
@@ -191,7 +190,7 @@ export default function LoginPage() {
                   id="password" name="password" ref={passwordRef}
                   type="password" autoComplete={isSignUp ? 'new-password' : 'current-password'} spellCheck={false}
                   value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder={t('8자 이상…', 'At least 8 characters…')}
+                  placeholder={t('8자 이상', 'At least 8 characters')}
                   aria-describedby={error ? 'login-error' : undefined}
                   className={inputCls}
                 />

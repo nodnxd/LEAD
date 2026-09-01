@@ -152,14 +152,14 @@ export default function SplitIndex() {
                 <div><label className={lbl}>{t('활동명', 'Stage name')}</label>
                   <input value={profile.stage_name ?? ''} onChange={(e) => up('stage_name', e.target.value)} className={field} /></div>
                 <div><label className={lbl}>{t('저작권협회 (PRO/CMO)', 'Society (PRO/CMO)')}</label>
-                  <ProSelect value={profile.pro ?? ''} onChange={(v) => up('pro', v)} className={field} placeholder={t('저작권협회 선택…', 'Select society…')} /></div>
+                  <ProSelect value={profile.pro ?? ''} onChange={(v) => up('pro', v)} className={field} placeholder={t('저작권협회 선택', 'Select society')} /></div>
                 <div><label className={lbl}>{t('IPI / CAE 번호', 'IPI / CAE number')}</label>
                   <input value={profile.ipi ?? ''} onChange={(e) => up('ipi', e.target.value)} className={field} placeholder={t('예: 00123456789', 'e.g. 00123456789')} /></div>
                 <div><label className={lbl}>{t('퍼블리셔', 'Publisher')}</label>
                   <input value={profile.publisher_name ?? ''} onChange={(e) => up('publisher_name', e.target.value)} className={field} placeholder={t('없으면 비워두기', 'Leave blank if none')} /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={lbl}>{t('퍼블리셔 PRO', 'Publisher PRO')}</label>
-                    <ProSelect value={profile.publisher_pro ?? ''} onChange={(v) => up('publisher_pro', v)} className={field} placeholder={t('선택…', 'Select…')} /></div>
+                    <ProSelect value={profile.publisher_pro ?? ''} onChange={(v) => up('publisher_pro', v)} className={field} placeholder={t('선택', 'Select')} /></div>
                   <div><label className={lbl}>{t('퍼블리셔 IPI', 'Publisher IPI')}</label>
                     <input value={profile.publisher_ipi ?? ''} onChange={(e) => up('publisher_ipi', e.target.value)} className={field} /></div>
                 </div>
@@ -199,7 +199,7 @@ export default function SplitIndex() {
                 {needSign.has(s.id) && <span className="ml-auto text-micro px-2 py-0.5 rounded-full border border-brand-lead/40 text-[#6fa0f0]">{t('✍ 서명 필요', '✍ Sign')}</span>}
                 {ready.has(s.id) && <span className={`${needSign.has(s.id) ? '' : 'ml-auto'} text-micro px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-500`}>{t('✓ 확정 가능', '✓ Ready')}</span>}
                 {s.owner_id !== me && <span className={`${needSign.has(s.id) || ready.has(s.id) ? '' : 'ml-auto'} text-micro px-2 py-0.5 rounded-full border ${D ? 'border-white/15 text-white/50' : 'border-black/15 text-black/50'}`}>{t('참여', 'Shared')}</span>}
-                {s.locked && <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-500">🔒</span>}
+                {s.locked && <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-500"><i className="ti ti-lock" aria-hidden="true"></i></span>}
                 <span className={`text-mini ${faint}`}>{s.work_date ?? ''}</span>
               </button>
             ))}

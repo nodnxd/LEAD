@@ -817,7 +817,7 @@ export default function GuestView(){
         <div className="relative z-10 mb-8">
           <ProductHeader product="lead" dark={D} className="mb-3" right={<>
             <button onClick={()=>{setLangValue(globalEn?'ko':'en');}} className={`h-8 px-2.5 rounded-lg border flex items-center justify-center text-mini font-bold transition ${globalEn?'bg-brand-lead border-brand-lead text-white':D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{globalEn?'EN':'KO'}</button>
-            <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-body transition ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`}>{D?'☀️':'🌙'}</button>
+            <button onClick={toggleTheme} className={`w-8 h-8 rounded-lg border flex items-center justify-center text-body transition ${D?'bg-white/5 border-white/10 hover:bg-white/10':'bg-black/[0.04] border-black/[0.08] hover:bg-black/[0.08]'}`} aria-label={t('테마 전환','Toggle theme')}>{D?<i className="ti ti-sun" aria-hidden="true"></i>:<i className="ti ti-moon" aria-hidden="true"></i>}</button>
             <Link href="/mypage" className={`px-3 py-1.5 rounded-full border text-micro font-normal transition ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</Link>
             <button onClick={()=>{supabase.auth.signOut().then(()=>{window.location.href='/';});}} className={`px-3 py-1.5 rounded-full border text-micro font-normal transition whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-red-400':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-red-500'}`}>{t('로그아웃','Sign out')}</button>
           </>} />
@@ -830,7 +830,7 @@ export default function GuestView(){
           ):(
             <button onClick={()=>{setCompanyDraft(hostCompany);setEditingCompany(true);}} className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-brand-lead/25 bg-brand-lead/10 hover:bg-brand-lead/20 transition group">
               <span className={`text-mini font-black ${hostCompany?(D?'text-zinc-200':'text-zinc-700'):dimText}`}>{hostCompany||t('회사/팀 이름 추가','Add company/team name')}</span>
-              <span className="text-micro opacity-0 group-hover:opacity-60 transition-opacity">✏️</span>
+              <span className="text-micro opacity-0 group-hover:opacity-60 transition-opacity"><i className="ti ti-pencil" aria-hidden="true"></i></span>
             </button>
           )}
         </div>
@@ -870,9 +870,9 @@ export default function GuestView(){
               <div className="relative" ref={wsPickerRef}>
                 <button onClick={()=>setShowWsPicker(s=>!s)} className={`px-3 py-1.5 rounded-full border text-micro font-normal transition whitespace-nowrap ${D?'border-brand-lead/30 bg-brand-lead/10 text-[#A5B4FC]':'border-brand-lead/25 bg-brand-lead/5 text-[#6A48D6]'}`}>{workspaces.find(w=>w.id===hostId)?.name||t('워크스페이스','Workspace')} ▾</button>
                 {showWsPicker&&(
-                  <div className={`anim-rise absolute left-0 mt-2 w-60 z-[80] rounded-xl border shadow-2xl overflow-hidden ${D?'bg-surface-1 border-white/10':'bg-white border-black/[0.08]'}`}>
+                  <div className={`anim-rise absolute left-0 mt-2 w-60 z-[80] rounded-xl border shadow-lg overflow-hidden ${D?'bg-surface-1 border-white/10':'bg-white border-black/[0.08]'}`}>
                     <p className={`text-micro font-black uppercase tracking-widest px-4 pt-3 pb-1 ${dimText}`}>{t('내 워크스페이스','My workspaces')}</p>
-                    {workspaces.map(w=>(<button key={w.id} onClick={()=>switchWorkspace(w.id)} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-body font-bold transition-colors ${w.id===hostId?'text-brand-lead-text':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}><span>🏢</span><span className="flex-1 truncate">{w.name}</span>{w.isOwner&&<span className={`text-micro ${dimText}`}>{t('소유','owner')}</span>}{w.id===hostId&&<span className="text-mini">✓</span>}</button>))}
+                    {workspaces.map(w=>(<button key={w.id} onClick={()=>switchWorkspace(w.id)} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-body font-bold transition-colors ${w.id===hostId?'text-brand-lead-text':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}><span><i className="ti ti-building" aria-hidden="true"></i></span><span className="flex-1 truncate">{w.name}</span>{w.isOwner&&<span className={`text-micro ${dimText}`}>{t('소유','owner')}</span>}{w.id===hostId&&<span className="text-mini">✓</span>}</button>))}
                     {workspaces.length===1&&<p className={`text-mini px-4 py-2.5 border-t ${dividerCls} ${dimText}`}>{t('다른 회사에 관리자로 초대받으면 여기에 함께 떠요.','Workspaces you are invited to manage appear here too.')}</p>}
                   </div>
                 )}
@@ -1307,7 +1307,7 @@ export default function GuestView(){
                       {memberRank.length===0?<p className={`text-body ${dimText}`}>{t('아직 데이터가 없어요','No data yet')}</p>:<div className="flex flex-col gap-2.5">{memberRank.map(x=>bar(x.name,x.n,maxMember,`${x.n}`,'bg-emerald-500'))}</div>}
                     </div>
                     <div className={`p-5 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.07]':'bg-black/[0.02] border-black/[0.08]'}`}>
-                      <p className={`text-lead font-black mb-4 ${D?'text-white':'text-[#111]'}`}>🎼 {t('장르 분포','Genre Distribution')}</p>
+                      <p className={`text-lead font-black mb-4 ${D?'text-white':'text-[#111]'}`}><i className="ti ti-chart-pie" aria-hidden="true"></i> {t('장르 분포','Genre Distribution')}</p>
                       {genreRank.length===0?<p className={`text-body ${dimText}`}>{t('아직 데이터가 없어요','No data yet')}</p>:<div className="flex flex-col gap-2.5">{genreRank.map(x=>bar(x.g,x.n,genreRank[0].n,`${Math.round((x.n/totalGenre)*100)}%`,'bg-amber-500'))}</div>}
                     </div>
                   </div>
@@ -1334,7 +1334,7 @@ export default function GuestView(){
 
       {viewingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4">
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full ${viewExpanded?'max-w-5xl':'max-w-lg'} border rounded-[2rem] shadow-2xl transition ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full ${viewExpanded?'max-w-5xl':'max-w-lg'} border rounded-[2rem] shadow-lg transition ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
             <div className={`p-6 ${viewExpanded?'max-h-[90vh]':'max-h-[85vh]'} overflow-y-auto`}>
               <div className={viewExpanded&&viewingLead.content?'grid grid-cols-[0.85fr_1.25fr] gap-6 items-start mb-5':''}>
               <div>
@@ -1363,7 +1363,7 @@ export default function GuestView(){
               )}
               </div>
               <div className="flex gap-2">
-                <button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-body hover:bg-amber-500/20 transition">✏️ 수정</button>
+                <button onClick={()=>{openLeadForm(viewingLead);setViewingLead(null);}} className="flex-1 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-black text-body hover:bg-amber-500/20 transition"><i className="ti ti-pencil" aria-hidden="true"></i> 수정</button>
                 <button onClick={()=>{if(confirm('이 리드를 삭제할까요?')){deleteLead(viewingLead.id);setViewingLead(null);}}} className="py-3 px-4 rounded-xl border border-red-500/20 text-red-400 text-body hover:bg-red-500/10 transition"><i className="ti ti-trash" aria-hidden="true"></i></button>
                 <button onClick={()=>setViewingLead(null)} className="py-3 px-5 rounded-xl border border-white/10 text-zinc-500 font-bold text-body hover:text-white transition">닫기</button>
               </div>
@@ -1374,11 +1374,11 @@ export default function GuestView(){
 
       {pitchingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={()=>{if(!pitchLoading){setPitchingLead(null);setPitchSent(false);}}}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-[2rem] shadow-2xl my-4 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-[2rem] shadow-lg my-4 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="p-6">
               {pitchSent?(
                 <div className="text-center py-10">
-                  <div className="text-display mb-4">🎉</div>
+                  <div className="text-display mb-4 text-brand-lead-text"><i className="ti ti-circle-check" aria-hidden="true"></i></div>
                   <h2 className={`font-black text-sub mb-2 ${D?'text-white':'text-[#111]'}`}>피칭 완료!</h2>
                   <p className={`text-body ${dimText}`}><span className={`font-bold ${D?'text-white':'text-[#111]'}`}>{pitchingLead.artist}</span> — {pitchingLead.title}</p>
                   <p className={`text-mini mt-1 ${dimText}`}>{pitchForm.artist_name}{pitchFiles.length>0&&` · 파일 ${pitchFiles.length}개`}</p>
@@ -1422,7 +1422,7 @@ export default function GuestView(){
       {/* 내 피칭 모달 */}
       {showMyPitches&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={()=>setShowMyPitches(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-xl shadow-2xl ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-xl shadow-lg ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="max-h-[85vh] flex flex-col">
               <div className={`flex items-center justify-between p-5 border-b ${D?'border-white/10':'border-black/[0.08]'}`}>
                 <div>
@@ -1487,10 +1487,10 @@ export default function GuestView(){
 
       {showHostGrants&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={()=>setShowHostGrants(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-xl shadow-lg max-h-[90vh] flex flex-col ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
               <div>
-                <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}>🛡️ {t('호스트 권한','Host Access')}</h2>
+                <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}><i className="ti ti-shield" aria-hidden="true"></i> {t('호스트 권한','Host Access')}</h2>
                 <p className={`text-mini mt-0.5 ${dimText}`}>{t('회사를 운영할 수 있는 사람(호스트)을 지정해요','Grant who can operate companies as a host')}</p>
               </div>
               <button onClick={()=>setShowHostGrants(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
@@ -1509,7 +1509,7 @@ export default function GuestView(){
                 <div className="flex flex-col gap-2">
                   {hostGrants.map(g=>(
                     <div key={g.id} className={`cv-row flex items-center gap-3 p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
-                      <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center text-lead shrink-0">🏢</div>
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center text-lead shrink-0"><i className="ti ti-building" aria-hidden="true"></i></div>
                       <div className="flex-1 min-w-0"><p className={`font-bold text-body truncate ${D?'text-white':'text-[#111]'}`}>{g.email}</p></div>
                       <button onClick={()=>revokeHost(g.id)} className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-mini font-black hover:bg-red-500/20 transition">{t('해제','Revoke')}</button>
                     </div>
@@ -1523,7 +1523,7 @@ export default function GuestView(){
 
       {showWsAdmins&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={()=>setShowWsAdmins(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-xl shadow-lg max-h-[90vh] flex flex-col ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
               <div>
                 <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}><i className="ti ti-user" aria-hidden="true"></i> {t('워크스페이스 관리자','Workspace Admins')}</h2>
@@ -1539,7 +1539,7 @@ export default function GuestView(){
                   <button onClick={inviteAdmin} disabled={!wsInviteEmail.trim()} className="px-4 py-2.5 rounded-xl bg-brand-lead text-white font-semibold text-body disabled:opacity-40">{t('초대','Invite')}</button>
                 </div>
                 {wsInviteMsg&&<p className={`text-mini mt-2 ${wsInviteMsg.includes('초대했')?'text-emerald-400':'text-red-400'}`}>{wsInviteMsg}</p>}
-                <p className={`text-mini mt-2 ${dimText}`}>{t('초대받은 사람이 호스트로 로그인하면, 헤더의 🏢 워크스페이스 전환에서 이 회사를 선택해 관리할 수 있어요.','The invitee logs in as a host and picks this workspace from the 🏢 switcher.')}</p>
+                <p className={`text-mini mt-2 ${dimText}`}>{t('초대받은 사람이 호스트로 로그인하면, 헤더의 워크스페이스 전환에서 이 회사를 선택해 관리할 수 있어요.','The invitee logs in as a host and picks this workspace from the switcher.')}</p>
               </div>
               {wsAdmins.length===0?<p className={`text-body text-center py-4 ${dimText}`}>{t('아직 추가 관리자가 없어요','No co-admins yet')}</p>:(
                 <div className="flex flex-col gap-2">
@@ -1562,10 +1562,10 @@ export default function GuestView(){
 
       {showHostApprovals&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={()=>setShowHostApprovals(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-xl shadow-lg max-h-[90vh] flex flex-col ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
               <div>
-                <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}>🛡️ {t('호스트 가입 승인','Host Approvals')}</h2>
+                <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}><i className="ti ti-shield" aria-hidden="true"></i> {t('호스트 가입 승인','Host Approvals')}</h2>
                 <p className={`text-mini mt-0.5 ${dimText}`}>{t('새로 가입한 호스트를 승인/거절해요','Approve or reject new host signups')}</p>
               </div>
               <button onClick={()=>setShowHostApprovals(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
@@ -1573,7 +1573,7 @@ export default function GuestView(){
             <div className="overflow-y-auto p-5 flex flex-col gap-2">
               {pendingHosts.length===0?<p className={`text-body text-center py-8 ${dimText}`}>{t('대기 중인 가입 요청이 없어요','No pending requests')}</p>:pendingHosts.map(h=>(
                 <div key={h.host_id} className={`cv-row flex items-center gap-3 p-3 rounded-xl border ${D?'bg-white/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center text-lead shrink-0">🏢</div>
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center text-lead shrink-0"><i className="ti ti-building" aria-hidden="true"></i></div>
                   <div className="flex-1 min-w-0">
                     <p className={`font-bold text-body truncate ${D?'text-white':'text-[#111]'}`}>{h.email||h.host_id}</p>
                     <p className={`text-mini ${dimText}`}>{h.created_at?fmtDate(h.created_at, {month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</p>
@@ -1589,7 +1589,7 @@ export default function GuestView(){
 
       {newFolderOpen&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={()=>setNewFolderOpen(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-sm border rounded-t-[2rem] sm:rounded-xl shadow-2xl p-6 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-sm border rounded-t-[2rem] sm:rounded-xl shadow-lg p-6 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-1"><span className="text-lead"><i className="ti ti-folder-plus" aria-hidden="true"></i></span><p className={`font-black text-lead ${D?'text-white':'text-[#111]'}`}>{t('새 폴더','New folder')}</p></div>
             <p className={`text-mini mb-4 ${dimText}`}>{t('파일을 정리할 폴더를 만들어요','Create a folder to organize files')}</p>
             <input autoFocus value={addFolderInput} onChange={e=>setAddFolderInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&addFolderInput.trim()){addFolder(addFolderInput.trim());setNewFolderOpen(false);}}} placeholder={t('폴더 이름','Folder name')} className={`w-full border rounded-xl px-3 py-2.5 text-body outline-none transition mb-4 ${inputCls}`}/>
@@ -1604,7 +1604,7 @@ export default function GuestView(){
       <datalist id="bulk-tag-list">{allFileTags().map(tg=><option key={tg} value={tg}/>)}</datalist>
       {fileAction&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={()=>setFileAction(null)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-md border rounded-t-[2rem] sm:rounded-xl shadow-2xl p-6 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-md border rounded-t-[2rem] sm:rounded-xl shadow-lg p-6 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-1"><span className="text-lead"><i className="ti ti-music" aria-hidden="true"></i></span><p className={`font-black text-lead truncate ${D?'text-white':'text-[#111]'}`}>{fileAction.file_name||'audio.mp3'}</p></div>
             {(fileAction._artist||fileAction.vocal_gender)&&<p className={`text-mini mb-2 ${dimText}`}>{fileAction._artist||''}{fileAction._artist&&fileAction.vocal_gender?'  ·  ':''}{fileAction.vocal_gender==='male'?t('남성','Male'):fileAction.vocal_gender==='female'?t('여성','Female'):fileAction.vocal_gender==='both'?t('혼성','Mixed'):''}</p>}
             <button onClick={()=>downloadFile(fileAction)} className="w-full mb-4 py-2.5 rounded-xl bg-brand-lead text-white font-bold text-body hover:opacity-90 transition inline-flex items-center justify-center gap-1.5"><i className="ti ti-download" aria-hidden="true"></i>{t('원본 파일명으로 다운로드','Download with original name')}</button>
@@ -1642,7 +1642,7 @@ export default function GuestView(){
 
       {showDemoMgr&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={()=>setShowDemoMgr(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-xl shadow-2xl max-h-[90vh] flex flex-col ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-xl shadow-lg max-h-[90vh] flex flex-col ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
               <div>
                 <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}><i className="ti ti-microphone" aria-hidden="true"></i> {t('데모 수급','Demo Drives')}</h2>
@@ -1690,11 +1690,11 @@ export default function GuestView(){
 
       {showMembers&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={()=>setShowMembers(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-xl shadow-2xl ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-xl shadow-lg ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="max-h-[85vh] flex flex-col">
               <div className={`flex items-center justify-between p-5 border-b ${D?'border-white/10':'border-black/[0.08]'}`}>
                 <div>
-                  <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}>👥 멤버 관리</h2>
+                  <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}><i className="ti ti-users" aria-hidden="true"></i> 멤버 관리</h2>
                   <p className={`text-mini mt-0.5 ${dimText}`}>승인된 멤버 {memberList.filter(m=>m.status==='approved'||m.status==='admin').length}명 · 대기 {memberList.filter(m=>m.status==='pending').length}명</p>
                 </div>
                 <button onClick={()=>setShowMembers(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>✕</button>
@@ -1794,7 +1794,7 @@ export default function GuestView(){
 
       {showLeadForm&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-y-auto font-ui">
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full ${leadFormExpanded?'max-w-5xl':'max-w-lg'} border rounded-xl shadow-2xl my-4 transition ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full ${leadFormExpanded?'max-w-5xl':'max-w-lg'} border rounded-xl shadow-lg my-4 transition ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`p-6 ${leadFormExpanded?'max-h-[90vh]':'max-h-[85vh]'} overflow-y-auto`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}>{editingLead?'리드 수정':'리드 추가'}</h2>
@@ -1846,7 +1846,7 @@ export default function GuestView(){
 
       {showAnnModal&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-y-auto font-ui" onClick={()=>setShowAnnModal(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-xl shadow-2xl my-4 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-xl shadow-lg my-4 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="p-6">
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}>{editingAnnId?t('공지 수정','Edit Notice'):t('공지 추가','Add Notice')}</h2>
@@ -1866,7 +1866,7 @@ export default function GuestView(){
       )}
 
       {pitchToast&&(
-        <button onClick={()=>{setView('pitches');fetchHostPitches();setPitchToast(null);}} className="fixed top-5 right-5 z-[60] flex items-center gap-3 px-5 py-4 rounded-xl border border-brand-lead/40 bg-[#0E1530] shadow-2xl shadow-brand-lead/20 animate-[slideIn_0.3s_ease] text-left max-w-[340px] hover:scale-[1.02] transition-transform">
+        <button onClick={()=>{setView('pitches');fetchHostPitches();setPitchToast(null);}} className="fixed top-5 right-5 z-[60] flex items-center gap-3 px-5 py-4 rounded-xl border border-brand-lead/40 bg-[#0E1530] shadow-lg shadow-brand-lead/20 animate-[slideIn_0.3s_ease] text-left max-w-[340px] hover:scale-[1.02] transition-transform">
           <div className="w-10 h-10 rounded-full bg-brand-lead/20 flex items-center justify-center text-sub shrink-0"><i className="ti ti-inbox" aria-hidden="true"></i></div>
           <div className="min-w-0">
             <p className="text-white font-black text-body">{t('새 피칭 도착!','New pitch!')}</p>
@@ -1875,9 +1875,9 @@ export default function GuestView(){
           </div>
         </button>
       )}
-      {errToast&&<div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-xl shadow-2xl max-w-[90vw] text-center">{errToast}</div>}
+      {errToast&&<div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-xl shadow-lg max-w-[90vw] text-center">{errToast}</div>}
       {shareToast&&(
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-5 py-3 rounded-full bg-brand-lead text-white text-body font-black shadow-2xl shadow-brand-lead/30 animate-[slideIn_0.25s_ease]">
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-5 py-3 rounded-full bg-brand-lead text-white text-body font-black shadow-lg shadow-brand-lead/30 animate-[slideIn_0.25s_ease]">
           <i className="ti ti-check" aria-hidden="true"></i> {t('공유 링크가 복사됐어요','Share link copied')}
         </div>
       )}

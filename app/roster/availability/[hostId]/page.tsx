@@ -314,7 +314,7 @@ export default function AvailabilityView() {
           left={<button onClick={() => { setMeId(null); setSelectedDay(null); }} className="text-mini hover:opacity-70 transition-opacity" style={{ color: c.sub }}>← {t.back}</button>} />
         {dbError && (
           <div role="alert" className="mb-5 rounded-xl border px-4 py-3 flex items-start gap-3" style={{ borderColor: NO + '66', backgroundColor: NO + '14' }}>
-            <span className="text-body leading-none mt-0.5" style={{ color: c.noText }}>⚠</span>
+            <span className="text-body leading-none mt-0.5" style={{ color: c.noText }}><i className="ti ti-alert-triangle" aria-hidden="true"></i></span>
             <div className="flex-1">
               <p className="text-mini font-black" style={{ color: c.noText }}>{t.saveFailed}</p>
               <p className="text-micro mt-0.5" style={{ color: c.sub }}>{dbError}</p>
@@ -445,7 +445,7 @@ export default function AvailabilityView() {
       {/* 제출 전 확인 */}
       {reviewing && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 anim-fade" onClick={() => setReviewing(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md border rounded-t-[2rem] sm:rounded-[2rem] p-6 shadow-2xl anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md border rounded-t-[2rem] sm:rounded-[2rem] p-6 shadow-lg anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
             <h3 className="font-black text-sub mb-1" style={{ color: c.text }}>{t.reviewTitle}</h3>
             <p className="text-mini mb-5" style={{ color: c.sub }}>{me?.name} · {poll.title || `${y}.${String(m).padStart(2, '0')}`}</p>
             {myYes.length + myNo.length === 0 ? (

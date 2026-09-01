@@ -178,14 +178,14 @@ export default function HubPage() {
             <div className="grid gap-2.5">
               {member.map(c => (
                 <button key={c.id} onClick={() => enterMember(c.id)} {...hubCard('#7C5AE8')}>
-                  <div {...hubIcon('#7C5AE8')}>🎤</div>
+                  <div {...hubIcon('#7C5AE8')}><i className="ti ti-microphone" aria-hidden="true"></i></div>
                   <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{c.name}</p><p className="text-mini text-zinc-500">{t('게스트로 입장', 'Enter as guest')}</p></div>
                   <span className="text-brand-lead-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
               {canHost && operate.map(c => (
                 <button key={c.id} onClick={() => enterOperate(c.id)} {...hubCard('#7C5AE8', true)}>
-                  <div {...hubIcon('#7C5AE8')}>🏢</div>
+                  <div {...hubIcon('#7C5AE8')}><i className="ti ti-building" aria-hidden="true"></i></div>
                   <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{c.name}</p><p className="text-mini text-zinc-500">{c.owner ? t('대시보드 운영', 'Owner') : t('공동 관리', 'Co-manager')}</p></div>
                   <span className="text-brand-lead-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
@@ -215,14 +215,14 @@ export default function HubPage() {
             <div className="grid gap-2.5">
               {castMemberships.map(m => (
                 <button key={`${m.hostId}|${m.project}`} onClick={() => router.push(`/roster/view/${m.hostId}`)} {...hubCard('#E3B24A')}>
-                  <div {...hubIcon('#E3B24A')}>🎤</div>
+                  <div {...hubIcon('#E3B24A')}><i className="ti ti-microphone" aria-hidden="true"></i></div>
                   <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{m.project || t('로스터', 'Roster')}</p><p className="text-mini text-zinc-500">{t(`${m.name}(으)로 참여 중`, `Joined as ${m.name}`)}</p></div>
                   <span className="text-brand-cast-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
               {castProjects.map(p => (
                 <button key={p} onClick={() => enterCast(p)} {...hubCard('#E3B24A', true)}>
-                  <div {...hubIcon('#E3B24A')}>🎬</div>
+                  <div {...hubIcon('#E3B24A')}><i className="ti ti-movie" aria-hidden="true"></i></div>
                   <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{p}</p><p className="text-mini text-zinc-500">{t('로스터 열기', 'Open roster')}</p></div>
                   <span className="text-brand-cast-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
@@ -250,7 +250,7 @@ export default function HubPage() {
             </div>
             <div className="grid gap-2.5">
               <Link href="/split" {...hubCard('#2FB6A3', true)}>
-                <div {...hubIcon('#2FB6A3')}>📝</div>
+                <div {...hubIcon('#2FB6A3')}><i className="ti ti-file-text" aria-hidden="true"></i></div>
                 <div className="flex-1 min-w-0"><p className="font-black text-body truncate text-white">{t('스플릿시트', 'Split Sheet')}</p><p className="text-mini text-zinc-500">{t('전세계 표준 저작권 지분 문서', 'Global-standard split sheet')}</p></div>
                 <span className="text-brand-split-text text-lead font-black shrink-0 opacity-60">→</span>
               </Link>

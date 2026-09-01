@@ -7,6 +7,7 @@ import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { useLang, LangToggle } from '@/lib/lang';
+import { QUICK_LINKS, getLinkIcon, linkName } from '@/lib/links';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -19,20 +20,7 @@ const ROLE_COLORS: Record<string, string> = {
   'A&R': '#C98BA0', 'Artist': '#3B82F6', 'Other': '#6B7280'
 };
 
-const QUICK_LINKS = [
-  { label: '📸 Instagram', prefix: 'https://instagram.com/' },
-  { label: '🎵 SoundCloud', prefix: 'https://soundcloud.com/' },
-  { label: '🎧 Spotify', prefix: 'https://open.spotify.com/artist/' },
-  { label: '▶️ YouTube', prefix: 'https://youtube.com/@' },
-];
 
-const getLinkIcon = (url: string) => {
-  if (url.includes('instagram')) return '📸';
-  if (url.includes('soundcloud')) return '🎵';
-  if (url.includes('spotify')) return '🎧';
-  if (url.includes('youtube')) return '▶️';
-  return '🔗';
-};
 
 export default function ArtistsPage() {
   const router = useRouter();
@@ -122,14 +110,14 @@ export default function ArtistsPage() {
     }
     setShowModal(false);
     fetchArtists();
-    toast(editingArtist ? t('✅ 수정됐어요!', '✅ Updated!') : t('✅ 추가됐어요!', '✅ Added!'));
+    toast(editingArtist ? t('수정됨', 'Updated') : t('추가됨', 'Added'));
   };
 
   const deleteArtist = async (id: string) => {
     await supabase.from('artists').delete().eq('id', id);
     fetchArtists();
     setViewingArtist(null);
-    toast(t('🗑 삭제됐어요', '🗑 Deleted'));
+    toast(t('삭제됨', 'Deleted'));
   };
 
   const uploadPhoto = async (file: File) => {
@@ -155,7 +143,7 @@ export default function ArtistsPage() {
     const { error } = await supabase.storage.from('artist - photo').upload(path, resized, { upsert: true, contentType: 'image/jpeg' });
     if (error) {
       console.error('업로드 에러:', error.message, error);
-      toast(`❌ ${t('업로드 실패', 'Upload failed')}: ${error.message}`);
+      toast(`${t('업로드 실패', 'Upload failed')}: ${error.message}`);
       setUploading(false);
       return;
     }
@@ -163,7 +151,7 @@ export default function ArtistsPage() {
     console.log('업로드 성공, URL:', data.publicUrl);
     setForm(prev => ({ ...prev, photo_url: data.publicUrl }));
     setUploading(false);
-    toast(t('📸 사진 업로드됐어요!', '📸 Photo uploaded!'));
+    toast(t('사진 업로드됨', 'Photo uploaded'));
   };
 
   // 아티스트 → 로스터 추가
@@ -173,7 +161,7 @@ export default function ArtistsPage() {
     const { data: existing } = await supabase.from('profiles')
       .select('id').eq('user_id', user.id).eq('project', selectedProject).eq('name', addToRosterArtist.name);
     if (existing && existing.length > 0) {
-      toast(t('⚠️ 이미 해당 로스터에 있어요!', '⚠️ Already in that roster!'));
+      toast(t('이미 그 로스터에 있음', 'Already in that roster'));
       setAddToRosterArtist(null);
       return;
     }
@@ -190,7 +178,7 @@ export default function ArtistsPage() {
       user_id: user.id,
       links: addToRosterArtist.links || [],
     });
-    toast(`✅ ${addToRosterArtist.name} → ${selectedProject} ${t('로스터에 추가됐어요!', 'added to roster!')}`);
+    toast(`${addToRosterArtist.name} → ${selectedProject} ${t('로스터에 추가됨', 'added to roster')}`);
     setAddToRosterArtist(null);
   };
 
@@ -239,7 +227,7 @@ export default function ArtistsPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <LangToggle className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-mini font-bold hover:text-white transition" />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('이름 검색...', 'Search name...')} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-mini outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white w-36" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('이름 검색', 'Search name')} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-mini outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white w-36" />
               <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-mini outline-none text-zinc-300">
                 <option value="" className="bg-zinc-900">{t('전체 역할', 'All roles')}</option>
                 {ROLES.map(r => <option key={r} value={r} className="bg-zinc-900">{r}</option>)}
@@ -292,7 +280,7 @@ export default function ArtistsPage() {
                             <img loading="lazy" decoding="async" src={artist.photo_url} alt={artist.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" crossOrigin="anonymous" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-display opacity-20">👤</span>
+                              <span className="text-display opacity-20"><i className="ti ti-user" aria-hidden="true"></i></span>
                             </div>
                           )}
                           <div className="absolute top-2 left-2">
@@ -324,7 +312,7 @@ export default function ArtistsPage() {
                           {artist.links?.length > 0 && (
                             <div className="flex gap-1.5">
                               {artist.links.slice(0, 4).map((link: string, i: number) => (
-                                <a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-mini hover:scale-110 transition-transform">{getLinkIcon(link)}</a>
+                                <a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} aria-label={linkName(link)} className="text-mini hover:scale-110 transition-transform">{getLinkIcon(link)}</a>
                               ))}
                             </div>
                           )}
@@ -342,12 +330,12 @@ export default function ArtistsPage() {
       {/* 아티스트 상세 모달 */}
       {viewingArtist && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={() => setViewingArtist(null)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-md bg-surface-0 border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-md bg-surface-0 border border-white/10 rounded-[2rem] overflow-hidden shadow-lg" onClick={e => e.stopPropagation()}>
             <div className="relative h-56 bg-white/5">
               {viewingArtist.photo_url ? (
                 <img loading="lazy" decoding="async" src={viewingArtist.photo_url} alt={viewingArtist.name} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><span className="text-display opacity-20">👤</span></div>
+                <div className="w-full h-full flex items-center justify-center"><span className="text-display opacity-20"><i className="ti ti-user" aria-hidden="true"></i></span></div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-5">
@@ -360,7 +348,7 @@ export default function ArtistsPage() {
                 <div>
                   <h2 className="text-white font-black text-title">{viewingArtist.name}</h2>
                   <div className="flex items-center gap-2 mt-1">
-                    {viewingArtist.nationality && <span className="text-zinc-500 text-mini">🌏 {viewingArtist.nationality}</span>}
+                    {viewingArtist.nationality && <span className="text-zinc-500 text-mini"><i className="ti ti-world" aria-hidden="true"></i> {viewingArtist.nationality}</span>}
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: viewingArtist.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={viewingArtist.gender === 'female' ? 'F' : 'M'} />
                   </div>
                 </div>
@@ -410,7 +398,7 @@ export default function ArtistsPage() {
       {/* 로스터 추가 모달 */}
       {addToRosterArtist && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={() => setAddToRosterArtist(null)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-sm bg-[#111] border border-white/10 rounded-xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-sm bg-[#111] border border-white/10 rounded-xl p-6 shadow-lg" onClick={e => e.stopPropagation()}>
             <h2 className="text-white font-black text-lead mb-1">{addToRosterArtist.name}</h2>
             <p className="text-zinc-500 text-mini mb-5">{t('로스터에 추가할 프로젝트를 선택하세요', 'Pick a roster to add to')}</p>
 
@@ -454,13 +442,13 @@ export default function ArtistsPage() {
       {/* 추가/수정 모달 */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto">
-          <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-xl shadow-2xl my-4">
+          <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-xl shadow-lg my-4">
             <div className="p-6">
               <h2 className="text-white font-black text-lead mb-5">{editingArtist ? t('아티스트 수정', 'Edit artist') : t('아티스트 추가', 'Add artist')}</h2>
 
               <div className="mb-5 flex flex-col items-center">
                 <div className="w-24 h-24 rounded-xl overflow-hidden bg-white/5 border border-white/10 mb-3 flex items-center justify-center cursor-pointer hover:border-white/30 transition" {...pressable(() => fileInputRef.current?.click())}>
-                  {form.photo_url ? <img loading="lazy" decoding="async" src={form.photo_url} alt="preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <span className="text-display opacity-30">📷</span>}
+                  {form.photo_url ? <img loading="lazy" decoding="async" src={form.photo_url} alt="preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <span className="text-display opacity-30"><i className="ti ti-camera" aria-hidden="true"></i></span>}
                 </div>
                 <button onClick={() => fileInputRef.current?.click()} className="text-zinc-500 text-mini font-bold hover:text-white transition-colors">{uploading ? t('업로드 중...', 'Uploading…') : t('사진 선택', 'Choose photo')}</button>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); }} />
@@ -491,7 +479,7 @@ export default function ArtistsPage() {
                     ))}
                   </div>
                   <div className="flex gap-2 mb-2">
-                    <input value={newLink} onChange={e => setNewLink(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} placeholder="https://..." className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-mini outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white" />
+                    <input value={newLink} onChange={e => setNewLink(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} placeholder="https://" className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-mini outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white" />
                     <button onClick={() => { if (newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} className="px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white font-black text-mini hover:bg-white/20 transition">{t('추가', 'Add')}</button>
                   </div>
                   {form.links.map((link, i) => (
@@ -514,7 +502,7 @@ export default function ArtistsPage() {
       )}
 
       {showToast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-2xl font-ui">{toastMsg}</div>
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-lg font-ui">{toastMsg}</div>
       )}
     </>
   );

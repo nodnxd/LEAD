@@ -87,7 +87,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
   };
 
   return (
-    <div className={`fixed z-[55] rounded-xl border shadow-2xl flex flex-col ${bd}`}
+    <div className={`fixed z-[55] rounded-xl border shadow-lg flex flex-col ${bd}`}
       style={{ left: pos.x, top: pos.y, width: winW, height: collapsed ? 'auto' : (isMobile ? '70vh' : 460), backgroundColor: D ? '#0f0f0f' : '#ffffff', opacity: opacity / 100, fontFamily: 'Pretendard,sans-serif' }}>
       <div onMouseDown={(e) => { dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y }; }}
         onTouchStart={(e) => { const t = e.touches[0]; dragRef.current = { dx: t.clientX - pos.x, dy: t.clientY - pos.y }; }}
@@ -119,7 +119,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
           <div className={`flex items-center gap-2 p-2.5 border-t ${bd}`}>
             <input ref={inputRef} defaultValue="" onChange={e => setInputVal(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !(e.nativeEvent as any).isComposing) { e.preventDefault(); send(); } }}
-              placeholder="메시지..." className={`flex-1 px-3 py-2 rounded-xl border text-body outline-none ${ib}`} />
+              placeholder="메시지" className={`flex-1 px-3 py-2 rounded-xl border text-body outline-none ${ib}`} />
             <button type="button" onClick={send} disabled={sending || !inputVal.trim()} aria-label="메시지 보내기" className="px-3 py-2 rounded-xl bg-brand-lead text-white text-body font-black disabled:opacity-40 hover:bg-[#6A48D6] transition"><span aria-hidden="true">→</span></button>
           </div>
         </>
@@ -436,7 +436,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
       {/* 새 메시지 토스트 */}
       {toast && (
         <div
-          className="fixed top-5 right-5 z-[60] max-w-[280px] rounded-xl shadow-2xl border cursor-pointer overflow-hidden"
+          className="fixed top-5 right-5 z-[60] max-w-[280px] rounded-xl shadow-lg border cursor-pointer overflow-hidden"
           style={{ backgroundColor: D ? '#1a1a1a' : '#fff', borderColor: D ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)', fontFamily: 'Pretendard,sans-serif' }}
           {...pressable(() => { openConv(toast.senderId); setToast(null); })}
         >
@@ -458,7 +458,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
             <button
               onClick={e => { e.stopPropagation(); openConv(toast.senderId); setToast(null); }}
               className="flex-1 py-1.5 rounded-xl bg-brand-lead text-white text-micro font-black"
-            >💬 답장</button>
+            ><i className="ti ti-corner-up-left" aria-hidden="true"></i> 답장</button>
           </div>
         </div>
       )}
@@ -469,7 +469,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
         className={`fixed ${liftMobile ? 'bottom-[74px] sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-40 rounded-xl flex items-center justify-center shadow-xl transition hover:scale-110 active:scale-95 ${D ? 'bg-[#1a1a1a] border border-white/10' : 'bg-white border border-black/[0.08]'}`}
         style={{ width: 52, height: 52 }}
       >
-        <span className="text-sub">💬</span>
+        <span className="text-sub"><i className="ti ti-message" aria-hidden="true"></i></span>
         {(unread > 0 || incomingReqs.length > 0) && (
           <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center shadow">
             <span className="text-white text-micro font-black">{unread + incomingReqs.length > 9 ? '9+' : unread + incomingReqs.length}</span>
@@ -480,7 +480,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
       {/* 메신저 패널 */}
       {open && (
         <div
-          className={`fixed ${liftMobile ? 'bottom-[140px] sm:bottom-[76px]' : 'bottom-[76px]'} right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[360px] rounded-xl border shadow-2xl flex flex-col transition duration-200 ${bd}`}
+          className={`fixed ${liftMobile ? 'bottom-[140px] sm:bottom-[76px]' : 'bottom-[76px]'} right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[360px] rounded-xl border shadow-lg flex flex-col transition duration-200 ${bd}`}
           style={{
             height: minimized ? 'auto' : 'min(500px, 75vh)',
             fontFamily: 'Pretendard,sans-serif',
@@ -578,7 +578,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                 <div className="flex-1 overflow-y-auto flex flex-col">
                   {/* 사람 찾기 (이름·이메일 — 회사 무관 디렉토리) */}
                   <div className={`px-3 pt-3 pb-2 border-b ${bd}`}>
-                    <p className={`text-micro font-black uppercase tracking-widest mb-1.5 ${dm}`}>🔍 사람 찾기 (이름·이메일)</p>
+                    <p className={`text-micro font-black uppercase tracking-widest mb-1.5 ${dm}`}><i className="ti ti-search" aria-hidden="true"></i> 사람 찾기 (이름·이메일)</p>
                     <div className="flex gap-1.5">
                       <input
                         value={emailSearch}
@@ -604,7 +604,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                                 {r.company && <p className={`text-micro truncate ${dm}`}>{r.company}</p>}
                               </div>
                               {fs?.status === 'accepted'
-                                ? <button onClick={() => openConv(r.id)} className="px-2 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text text-micro font-black">💬</button>
+                                ? <button onClick={() => openConv(r.id)} className="px-2 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text text-micro font-black"><i className="ti ti-message" aria-hidden="true"></i></button>
                                 : fs ? <span className={`text-micro ${dm}`}>요청중</span>
                                 : <button onClick={() => sendFriendReq(r.id)} className="px-2 py-0.5 rounded-lg bg-brand-lead/20 text-brand-lead-text text-micro font-black">+추가</button>}
                             </div>
@@ -634,7 +634,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                               {isFriend && <span className="text-micro text-emerald-400 font-black px-1">친구</span>}
                               {isPending && iSent && <span className={`text-micro ${dm}`}>요청중</span>}
                               {!fs && <button onClick={() => sendFriendReq(m.id)} className={`px-1.5 py-0.5 rounded-lg text-micro font-black ${D ? 'bg-white/5 text-zinc-500 hover:text-white' : 'bg-black/[0.05] text-zinc-500'}`}>+친구</button>}
-                              <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text text-micro font-black hover:bg-brand-lead/25">💬</button>
+                              <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text text-micro font-black hover:bg-brand-lead/25"><i className="ti ti-message" aria-hidden="true"></i></button>
                               <button title="팝업 창으로 띄우기" onClick={() => popOutConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text text-micro font-black hover:bg-brand-lead/25">↗</button>
                             </div>
                           </div>
@@ -702,7 +702,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                     )}
                     {viewingMember.instagram && (
                       <a href={`https://instagram.com/${viewingMember.instagram}`} target="_blank" rel="noopener noreferrer"
-                        className="block text-mini text-brand-lead-text hover:underline mb-3">📸 @{viewingMember.instagram}</a>
+                        className="block text-mini text-brand-lead-text hover:underline mb-3"><i className="ti ti-brand-instagram" aria-hidden="true"></i> @{viewingMember.instagram}</a>
                     )}
                     {memberWorks.length > 0 && (
                       <div className={`border-t ${bd} pt-3 mt-1`}>
@@ -710,7 +710,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         {memberWorks.slice(0, 3).map((w, i) => (
                           <a key={i} href={w.link} target="_blank" rel="noopener noreferrer"
                             className={`flex items-center gap-2 py-1.5 rounded-lg px-1 ${D ? 'hover:bg-white/5' : 'hover:bg-black/[0.04]'} transition`}>
-                            <span className="text-mini">🎶</span>
+                            <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
                             <div className="flex-1 min-w-0">
                               <p className={`text-mini font-bold truncate ${tx}`}>{w.song_title}</p>
                               <p className={`text-micro ${dm}`}>{w.artist_name}</p>
@@ -735,7 +735,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                       })()}
                       <button onClick={() => openConv(viewingMember.id)}
                         className="flex-1 py-2 rounded-xl bg-brand-lead text-white text-mini font-black hover:bg-[#6A48D6] transition">
-                        💬 채팅하기
+                        <i className="ti ti-message" aria-hidden="true"></i> 채팅하기
                       </button>
                     </div>
                   </div>
@@ -779,7 +779,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                           sendMsg();
                         }
                       }}
-                      placeholder="메시지..."
+                      placeholder="메시지"
                       className={`flex-1 border rounded-xl px-3 py-2 text-body outline-none transition ${ib}`}
                     />
                     <button type="button" onClick={sendMsg} disabled={!inputVal.trim() || sending} aria-label="메시지 보내기"
