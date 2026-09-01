@@ -131,7 +131,7 @@ export default function SplitIndex() {
             <LangToggle />
             <ThemeToggle className={`w-8 h-8 rounded-lg border flex items-center justify-center text-body transition ${btn}`} />
             <button onClick={newSheet} disabled={creating}
-              className="text-body px-4 py-2 rounded-xl bg-brand-split hover:bg-[#3fcbb6] text-white disabled:opacity-50 font-medium transition-colors">
+              className="text-body px-4 py-2 rounded-full bg-brand-split hover:bg-[#3fcbb6] text-white disabled:opacity-50 font-medium transition-colors">
               {t('+ 새 스플릿시트', '+ New split sheet')}
             </button>
           </>}
@@ -172,7 +172,7 @@ export default function SplitIndex() {
               </div>
               <div className="flex items-center gap-3 mt-4">
                 <button onClick={saveProfile} disabled={savingProfile}
-                  className={`text-body px-4 py-2 rounded-xl border disabled:opacity-50 transition-colors ${btn}`}>
+                  className={`text-body px-4 py-2 rounded-full border disabled:opacity-50 transition-colors ${btn}`}>
                   {savingProfile ? t('저장 중…', 'Saving…') : profileSaved ? t('✓ 저장됨', '✓ Saved') : t('프로필 저장', 'Save profile')}
                 </button>
                 <span className={`text-mini ${faint}`}>{t('한 번 저장하면 스플릿시트에서 내 정보로 자동채움돼요.', 'Saved once, it auto-fills into every split sheet.')}</span>
@@ -191,7 +191,7 @@ export default function SplitIndex() {
           <div className="flex flex-col gap-2">
             {sheets.map((s) => (
               <button key={s.id} onClick={() => router.push(`/split/${s.id}`)}
-                className={`text-left px-5 py-4 rounded-xl border transition-colors flex items-center gap-3 ${panel} ${hov}`}>
+                className={`text-left px-5 py-4 rounded-full border transition-colors flex items-center gap-3 ${panel} ${hov}`}>
                 <div className="min-w-0">
                   <div className="font-medium truncate">{s.song_title || t('(제목 없음)', '(Untitled)')}</div>
                   <div className={`text-mini truncate ${muted}`}>{s.artist_name || t('아티스트 미정', 'Artist TBD')}{s.iswc ? ` · ISWC ${s.iswc}` : ''}</div>

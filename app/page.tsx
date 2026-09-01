@@ -151,7 +151,7 @@ export default function LoginPage() {
                 {error && <p id="reset-error" role="alert" className="text-lead text-red-400">{error}</p>}
                 <button
                   type="submit"
-                  className="w-full rounded-xl px-5 py-4 text-sub font-semibold transition-colors disabled:opacity-60"
+                  className="w-full rounded-full px-5 py-4 text-sub font-semibold transition-colors disabled:opacity-60"
                   style={{ background: BRAND.lead.base, color: BRAND.lead.on }}
                   onMouseEnter={e => (e.currentTarget.style.background = BRAND.lead.hover)}
                   onMouseLeave={e => (e.currentTarget.style.background = BRAND.lead.base)}
@@ -217,7 +217,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                className="w-full rounded-xl px-5 py-4 text-sub font-semibold transition-colors disabled:opacity-60"
+                className="w-full rounded-full px-5 py-4 text-sub font-semibold transition-colors disabled:opacity-60"
                 style={{ background: BRAND.lead.base, color: BRAND.lead.on }}
                 onMouseEnter={e => (e.currentTarget.style.background = BRAND.lead.hover)}
                 onMouseLeave={e => (e.currentTarget.style.background = BRAND.lead.base)}

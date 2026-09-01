@@ -97,8 +97,8 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
         </div>
         <span className={`flex-1 font-black text-body truncate ${tx}`}>{name}</span>
         <input type="range" min={20} max={100} value={opacity} onChange={e => setOpacity(Number(e.target.value))} onMouseDown={e => e.stopPropagation()} className="w-14 cursor-pointer accent-brand-lead" title="투명도" />
-        <button onClick={() => setCollapsed(c => !c)} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-lg text-mini font-black ${D ? 'text-zinc-500' : 'text-zinc-500'}`}>{collapsed ? '▲' : '▼'}</button>
-        <button onClick={onClose} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-lg text-body font-black ${D ? 'text-zinc-500' : 'text-zinc-500'} hover:text-red-400 transition`}>✕</button>
+        <button onClick={() => setCollapsed(c => !c)} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-full text-mini font-black ${D ? 'text-zinc-500' : 'text-zinc-500'}`}>{collapsed ? '▲' : '▼'}</button>
+        <button onClick={onClose} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-full text-body font-black ${D ? 'text-zinc-500' : 'text-zinc-500'} hover:text-red-400 transition`}>✕</button>
       </div>
       {!collapsed && (
         <>
@@ -120,7 +120,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
             <input ref={inputRef} defaultValue="" onChange={e => setInputVal(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !(e.nativeEvent as any).isComposing) { e.preventDefault(); send(); } }}
               placeholder="메시지" className={`flex-1 px-3 py-2 rounded-xl border text-body outline-none ${ib}`} />
-            <button type="button" onClick={send} disabled={sending || !inputVal.trim()} aria-label="메시지 보내기" className="px-3 py-2 rounded-xl bg-brand-lead text-white text-body font-black disabled:opacity-40 hover:bg-[#6A48D6] transition"><span aria-hidden="true">→</span></button>
+            <button type="button" onClick={send} disabled={sending || !inputVal.trim()} aria-label="메시지 보내기" className="px-3 py-2 rounded-full bg-brand-lead text-white text-body font-black disabled:opacity-40 hover:bg-[#C41C00] transition"><span aria-hidden="true">→</span></button>
           </div>
         </>
       )}
@@ -451,13 +451,13 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
           <div className="flex gap-2 px-4 pb-3">
             <button
               onClick={e => { e.stopPropagation(); const s = toast.senderId; const fs = friendships.find(f => f.requester_id === s || f.recipient_id === s); if (!fs) sendFriendReq(s); }}
-              className={`flex-1 py-1.5 rounded-xl border text-micro font-black transition ${D ? 'border-white/10 text-zinc-400 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}
+              className={`flex-1 py-1.5 rounded-full border text-micro font-black transition ${D ? 'border-white/10 text-zinc-400 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}
             >
               {(() => { const fs = friendships.find(f => f.requester_id === toast.senderId || f.recipient_id === toast.senderId); return fs?.status === 'accepted' ? '✓ 친구' : fs ? '요청중' : '+친구'; })()}
             </button>
             <button
               onClick={e => { e.stopPropagation(); openConv(toast.senderId); setToast(null); }}
-              className="flex-1 py-1.5 rounded-xl bg-brand-lead text-white text-micro font-black"
+              className="flex-1 py-1.5 rounded-full bg-brand-lead text-white text-micro font-black"
             ><i className="ti ti-corner-up-left" aria-hidden="true"></i> 답장</button>
           </div>
         </div>
@@ -466,7 +466,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
       {/* 플로팅 버튼 */}
       <button
         onClick={() => { setOpen(o => !o); setMinimized(false); }}
-        className={`fixed ${liftMobile ? 'bottom-[74px] sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-40 rounded-xl flex items-center justify-center shadow-xl transition hover:scale-110 active:scale-95 ${D ? 'bg-[#1a1a1a] border border-white/10' : 'bg-white border border-black/[0.08]'}`}
+        className={`fixed ${liftMobile ? 'bottom-[74px] sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-40 rounded-full flex items-center justify-center shadow-xl transition hover:scale-110 active:scale-95 ${D ? 'bg-[#1a1a1a] border border-white/10' : 'bg-white border border-black/[0.08]'}`}
         style={{ width: 52, height: 52 }}
       >
         <span className="text-sub"><i className="ti ti-message" aria-hidden="true"></i></span>
@@ -523,22 +523,22 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                 const other = getOther(activeConv);
                 setPoppedConvs(p => p.find(x => x.conv.id === activeConv.id) ? p : [...p, { conv: activeConv, other }]);
                 setActiveConv(null); setMsgs([]);
-              }} className="text-mini font-black px-2 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text hover:bg-brand-lead/25 transition whitespace-nowrap">↗ 분리</button>
+              }} className="text-mini font-black px-2 py-0.5 rounded-full bg-brand-lead/15 text-brand-lead-text hover:bg-brand-lead/25 transition whitespace-nowrap">↗ 분리</button>
             )}
             {activeConv && (
               <button onClick={() => { if (confirm('대화를 삭제할까요?')) deleteConv(activeConv.id); }}
-                className={`text-mini font-black px-1.5 py-0.5 rounded-lg ${dm} hover:text-red-400 hover:bg-red-500/10 transition`}>✕</button>
+                className={`text-mini font-black px-1.5 py-0.5 rounded-full ${dm} hover:text-red-400 hover:bg-red-500/10 transition`}>✕</button>
             )}
 
             <input type="range" min={20} max={100} value={opacity}
               onChange={e => setOpacity(Number(e.target.value))}
               className="w-16 cursor-pointer accent-brand-lead" title="투명도" />
             <button onClick={() => setMinimized(m => !m)}
-              className={`w-6 h-6 flex items-center justify-center rounded-lg text-mini font-black ${dm} hover:${tx} transition`}>
+              className={`w-6 h-6 flex items-center justify-center rounded-full text-mini font-black ${dm} hover:${tx} transition`}>
               {minimized ? '▲' : '▼'}
             </button>
             <button onClick={() => { setOpen(false); setActiveConv(null); setMsgs([]); setViewingMember(null); }}
-              className={`w-6 h-6 flex items-center justify-center rounded-lg text-body font-black ${dm} hover:text-red-400 transition`}>✕</button>
+              className={`w-6 h-6 flex items-center justify-center rounded-full text-body font-black ${dm} hover:text-red-400 transition`}>✕</button>
           </div>
 
           {!minimized && (
@@ -553,8 +553,8 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                       <div key={req.id} className="flex items-center gap-2 mb-1">
                         <button onClick={() => m && openMemberProfile(m)}><Avatar p={m} /></button>
                         <span className={`flex-1 text-mini font-bold truncate ${tx}`}>{m?.artist_name || '알 수 없음'}</span>
-                        <button onClick={() => respondFriend(req.id, 'accepted')} className="px-2 py-0.5 rounded-lg bg-brand-lead/20 text-brand-lead-text text-micro font-black">✓</button>
-                        <button onClick={() => respondFriend(req.id, 'rejected')} className="px-2 py-0.5 rounded-lg bg-red-500/10 text-red-400 text-micro font-black">✕</button>
+                        <button onClick={() => respondFriend(req.id, 'accepted')} className="px-2 py-0.5 rounded-full bg-brand-lead/20 text-brand-lead-text text-micro font-black">✓</button>
+                        <button onClick={() => respondFriend(req.id, 'rejected')} className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-micro font-black">✕</button>
                       </div>
                     );
                   })}
@@ -588,7 +588,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         className={`flex-1 border rounded-xl px-2.5 py-1.5 text-mini outline-none transition ${ib}`}
                       />
                       <button onClick={searchByEmail} disabled={emailSearching}
-                        className="px-2.5 py-1.5 rounded-xl bg-brand-lead/20 text-brand-lead-text text-micro font-black disabled:opacity-40">
+                        className="px-2.5 py-1.5 rounded-full bg-brand-lead/20 text-brand-lead-text text-micro font-black disabled:opacity-40">
                         {emailSearching ? '…' : '검색'}
                       </button>
                     </div>
@@ -604,9 +604,9 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                                 {r.company && <p className={`text-micro truncate ${dm}`}>{r.company}</p>}
                               </div>
                               {fs?.status === 'accepted'
-                                ? <button onClick={() => openConv(r.id)} className="px-2 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text text-micro font-black"><i className="ti ti-message" aria-hidden="true"></i></button>
+                                ? <button onClick={() => openConv(r.id)} className="px-2 py-0.5 rounded-full bg-brand-lead/15 text-brand-lead-text text-micro font-black"><i className="ti ti-message" aria-hidden="true"></i></button>
                                 : fs ? <span className={`text-micro ${dm}`}>요청중</span>
-                                : <button onClick={() => sendFriendReq(r.id)} className="px-2 py-0.5 rounded-lg bg-brand-lead/20 text-brand-lead-text text-micro font-black">+추가</button>}
+                                : <button onClick={() => sendFriendReq(r.id)} className="px-2 py-0.5 rounded-full bg-brand-lead/20 text-brand-lead-text text-micro font-black">+추가</button>}
                             </div>
                           );
                         })}
@@ -633,9 +633,9 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                             <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                               {isFriend && <span className="text-micro text-emerald-400 font-black px-1">친구</span>}
                               {isPending && iSent && <span className={`text-micro ${dm}`}>요청중</span>}
-                              {!fs && <button onClick={() => sendFriendReq(m.id)} className={`px-1.5 py-0.5 rounded-lg text-micro font-black ${D ? 'bg-white/5 text-zinc-500 hover:text-white' : 'bg-black/[0.05] text-zinc-500'}`}>+친구</button>}
-                              <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text text-micro font-black hover:bg-brand-lead/25"><i className="ti ti-message" aria-hidden="true"></i></button>
-                              <button title="팝업 창으로 띄우기" onClick={() => popOutConv(m.id)} className="px-1.5 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text text-micro font-black hover:bg-brand-lead/25">↗</button>
+                              {!fs && <button onClick={() => sendFriendReq(m.id)} className={`px-1.5 py-0.5 rounded-full text-micro font-black ${D ? 'bg-white/5 text-zinc-500 hover:text-white' : 'bg-black/[0.05] text-zinc-500'}`}>+친구</button>}
+                              <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-full bg-brand-lead/15 text-brand-lead-text text-micro font-black hover:bg-brand-lead/25"><i className="ti ti-message" aria-hidden="true"></i></button>
+                              <button title="팝업 창으로 띄우기" onClick={() => popOutConv(m.id)} className="px-1.5 py-0.5 rounded-full bg-brand-lead/15 text-brand-lead-text text-micro font-black hover:bg-brand-lead/25">↗</button>
                             </div>
                           </div>
                         );
@@ -661,9 +661,9 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                             </div>
                           </button>
                           <button title="팝업 창으로 띄우기" onClick={() => popOutConv(other?.id || (conv.participant_1 === user?.id ? conv.participant_2 : conv.participant_1))}
-                            className="px-2 py-1 rounded-lg bg-brand-lead/15 text-brand-lead-text text-mini font-black hover:bg-brand-lead/25 transition shrink-0">↗ 분리</button>
+                            className="px-2 py-1 rounded-full bg-brand-lead/15 text-brand-lead-text text-mini font-black hover:bg-brand-lead/25 transition shrink-0">↗ 분리</button>
                           <button onClick={() => { if (confirm('삭제할까요?')) deleteConv(conv.id); }}
-                            className={`opacity-0 group-hover:opacity-100 text-mini font-black px-1.5 py-0.5 rounded-lg ${dm} hover:text-red-400 hover:bg-red-500/10 transition`}>✕</button>
+                            className={`opacity-0 group-hover:opacity-100 text-mini font-black px-1.5 py-0.5 rounded-full ${dm} hover:text-red-400 hover:bg-red-500/10 transition`}>✕</button>
                         </div>
                       );
                     })}
@@ -696,7 +696,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                     {(viewingMember.genres || []).length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
                         {viewingMember.genres.slice(0, 4).map((g: string) => (
-                          <span key={g} className={`text-micro px-1.5 py-0.5 rounded-lg ${D ? 'bg-white/5 text-zinc-400' : 'bg-black/[0.05] text-zinc-500'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
+                          <span key={g} className={`text-micro px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-zinc-400' : 'bg-black/[0.05] text-zinc-500'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
                         ))}
                       </div>
                     )}
@@ -709,7 +709,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         <p className={`text-micro font-black uppercase tracking-widest mb-2 ${dm}`}>Released Works</p>
                         {memberWorks.slice(0, 3).map((w, i) => (
                           <a key={i} href={w.link} target="_blank" rel="noopener noreferrer"
-                            className={`flex items-center gap-2 py-1.5 rounded-lg px-1 ${D ? 'hover:bg-white/5' : 'hover:bg-black/[0.04]'} transition`}>
+                            className={`flex items-center gap-2 py-1.5 rounded-full px-1 ${D ? 'hover:bg-white/5' : 'hover:bg-black/[0.04]'} transition`}>
                             <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
                             <div className="flex-1 min-w-0">
                               <p className={`text-mini font-bold truncate ${tx}`}>{w.song_title}</p>
@@ -724,7 +724,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         const fs = getFriendState(viewingMember.id);
                         return !fs ? (
                           <button onClick={() => sendFriendReq(viewingMember.id)}
-                            className={`flex-1 py-2 rounded-xl border text-mini font-black transition ${D ? 'border-white/10 text-zinc-400 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>
+                            className={`flex-1 py-2 rounded-full border text-mini font-black transition ${D ? 'border-white/10 text-zinc-400 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>
                             +친구 추가
                           </button>
                         ) : fs.status === 'accepted' ? (
@@ -734,7 +734,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         );
                       })()}
                       <button onClick={() => openConv(viewingMember.id)}
-                        className="flex-1 py-2 rounded-xl bg-brand-lead text-white text-mini font-black hover:bg-[#6A48D6] transition">
+                        className="flex-1 py-2 rounded-full bg-brand-lead text-white text-mini font-black hover:bg-[#C41C00] transition">
                         <i className="ti ti-message" aria-hidden="true"></i> 채팅하기
                       </button>
                     </div>
@@ -757,7 +757,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                           )}
                           <div className={`flex flex-col gap-0.5 ${mine ? 'items-end' : 'items-start'}`} style={{ maxWidth: '82%' }}>
                             <div className={`px-3 py-2 rounded-xl text-body leading-snug break-keep whitespace-pre-wrap ${mine
-                              ? 'bg-brand-lead text-white rounded-br-lg'
+ ? 'bg-brand-lead text-white rounded-br-lg'
                               : D ? 'bg-white/[0.1] text-white rounded-bl-lg' : 'bg-black/[0.06] text-[#111] rounded-bl-lg'}`}
                               style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                               {msg.content}
@@ -783,7 +783,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                       className={`flex-1 border rounded-xl px-3 py-2 text-body outline-none transition ${ib}`}
                     />
                     <button type="button" onClick={sendMsg} disabled={!inputVal.trim() || sending} aria-label="메시지 보내기"
-                      className="px-3 py-2 rounded-xl bg-brand-lead text-white text-body font-black disabled:opacity-40 hover:bg-[#6A48D6] transition"><span aria-hidden="true">→</span></button>
+                      className="px-3 py-2 rounded-full bg-brand-lead text-white text-body font-black disabled:opacity-40 hover:bg-[#C41C00] transition"><span aria-hidden="true">→</span></button>
                   </div>
                 </>
               )}

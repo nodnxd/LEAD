@@ -68,17 +68,17 @@ export default function LandingPage() {
         </div>
 
         {signupDone ? (
-          <div className="bg-white/[0.03] border border-white/10 rounded-xl p-8 text-center">
+          <div className="/[0.03] border border-white/10 rounded-xl p-8 text-center">
             <p className="text-display mb-3 opacity-40"><i className="ti ti-mail" aria-hidden="true"></i></p>
             <p className="text-white font-bold mb-2">이메일을 확인해주세요</p>
             <p className="text-zinc-500 text-mini leading-relaxed">가입 확인 메일을 보냈어요.<br />확인 후 로그인하세요.</p>
             <button onClick={() => { setSignupDone(false); setAuthMode('login'); }} className="mt-6 text-brand-cast-text text-mini font-bold hover:underline">로그인 →</button>
           </div>
         ) : (
-          <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
+          <div className="/[0.03] border border-white/10 rounded-xl p-6">
             <div className="flex gap-1 mb-6 bg-white/5 rounded-xl p-1">
               {(['login', 'signup'] as AuthMode[]).map(m => (
-                <button key={m} onClick={() => { setAuthMode(m); setError(''); }} className={`flex-1 py-2 rounded-lg text-mini font-black uppercase tracking-widest transition ${authMode === m ? 'bg-brand-cast text-white shadow-lg shadow-black/20' : 'text-zinc-500 hover:text-white'}`}>
+                <button key={m} onClick={() => { setAuthMode(m); setError(''); }} className={`flex-1 py-2 rounded-full text-mini font-black uppercase tracking-widest transition ${authMode === m ? 'bg-brand-cast text-white shadow-lg shadow-black/20' : 'text-zinc-500 hover:text-white'}`}>
                   {m === 'login' ? '로그인' : '회원가입'}
                 </button>
               ))}
@@ -95,7 +95,7 @@ export default function LandingPage() {
                 </label>
               )}
               {error && <p className="text-red-400 text-mini">{error}</p>}
-              <button onClick={handleAuth} disabled={loading} className="w-full bg-brand-cast text-white py-3 rounded-xl font-semibold text-mini uppercase tracking-widest hover:opacity-90 transition disabled:opacity-50 mt-1">
+              <button onClick={handleAuth} disabled={loading} className="w-full bg-brand-cast text-white py-3 rounded-full font-semibold text-mini uppercase tracking-widest hover:opacity-90 transition disabled:opacity-50 mt-1">
                 {loading ? '…' : authMode === 'login' ? '로그인' : '회원가입'}
               </button>
             </div>

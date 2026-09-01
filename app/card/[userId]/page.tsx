@@ -81,7 +81,7 @@ export default function CardPage() {
           {/* 헤더 배너 */}
           <div className={`h-24 relative ${isHost ? 'bg-gradient-to-br from-amber-500/40 to-orange-400/20' : 'bg-gradient-to-br from-brand-lead/40 to-purple-500/20'}`}>
             <div className="absolute bottom-[-36px] left-6">
-              <div className="rounded-xl overflow-hidden border-2 border-white/20 bg-black/30 flex items-center justify-center shadow-xl" style={{ width: 72, height: 72 }}>
+              <div className="rounded-xl overflow-hidden border-2 border-white/20 flex items-center justify-center shadow-xl" style={{ width: 72, height: 72 }}>
                 {showPhoto
                   ? <img src={photoSrc} alt={displayName} referrerPolicy="no-referrer" onError={() => setImgError(true)} className="w-full h-full object-cover" />
                   : <span className={`text-display font-black ${isHost ? 'text-amber-400' : 'text-brand-lead-text'}`}>{displayName[0].toUpperCase()}</span>}
@@ -128,7 +128,7 @@ export default function CardPage() {
                   <span className={`text-micro font-black uppercase tracking-widest w-14 shrink-0 mt-0.5 ${dm}`}>{t('장르', 'Genres')}</span>
                   <div className="flex flex-wrap gap-1">
                     {profile.genres.slice(0, 5).map((g: string) => (
-                      <span key={g} className={`text-mini font-bold px-2 py-0.5 rounded-lg ${D ? 'bg-white/5 text-zinc-300' : 'bg-black/[0.05] text-zinc-600'}`}>
+                      <span key={g} className={`text-mini font-bold px-2 py-0.5 rounded-full ${D ? 'bg-white/5 text-zinc-300' : 'bg-black/[0.05] text-zinc-600'}`}>
                         {g.startsWith('ETC:') ? g.slice(4) : g}
                       </span>
                     ))}
@@ -186,11 +186,11 @@ export default function CardPage() {
         {/* 액션 버튼 */}
         <div className="no-print flex gap-3 mt-4 w-full max-w-sm">
           <button onClick={() => window.print()}
-            className="flex-1 py-3 rounded-xl bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition">
+            className="flex-1 py-3 rounded-full bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition">
             <i className="ti ti-file-type-pdf" aria-hidden="true"></i> {t('PDF 저장', 'Save PDF')}
           </button>
           <button onClick={goBack}
-            className={`px-5 py-3 rounded-xl border font-bold text-body transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+            className={`px-5 py-3 rounded-full border font-bold text-body transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
             ← {t('뒤로', 'Back')}
           </button>
         </div>

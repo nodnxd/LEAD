@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
        <input type="hidden" name="host_id" value="${esc(host_id)}">
        <input type="hidden" name="secret" value="${esc(secret!)}">
        <input type="hidden" name="action" value="${isApprove ? 'approve' : 'reject'}">
-       <button type="submit" style="width:100%;padding:14px 16px;border:0;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;background:${isApprove ? '#7C5AE8' : '#2a1212'};color:${isApprove ? '#fff' : '#f87171'}">
+       <button type="submit" style="width:100%;padding:14px 16px;border:0;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;background:${isApprove ? '#E01F00' : '#2a1212'};color:${isApprove ? '#fff' : '#f87171'}">
          ${isApprove ? '승인하기' : '거절하기'}
        </button>
      </form>

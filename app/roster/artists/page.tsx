@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { useLang, LangToggle } from '@/lib/lang';
 import { QUICK_LINKS, getLinkIcon, linkName } from '@/lib/links';
+import Toast from '@/components/Toast';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -236,18 +237,18 @@ export default function ArtistsPage() {
               <div className="flex gap-1">
                 {([['role', 'Role'], ['name', 'Name'], ['recent', 'Recent'], ['gender', 'Gender']] as const).map(([val, label]) => (
                   <button key={val} onClick={() => setSortBy(val)}
-                    className={`px-3 py-2 rounded-xl text-mini font-bold border transition ${sortBy === val ? 'border-brand-cast/50 bg-brand-cast/20 text-brand-cast-text' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}>
+                    className={`px-3 py-2 rounded-full text-mini font-bold border transition ${sortBy === val ? 'border-brand-cast/50 bg-brand-cast/20 text-brand-cast-text' : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'}`}>
                     {label}
                   </button>
                 ))}
               </div>
-              <button onClick={openCreate} className="bg-brand-cast text-white px-5 py-2 rounded-xl font-semibold text-mini hover:opacity-90 transition">+ {t('추가', 'Add')}</button>
+              <button onClick={openCreate} className="bg-brand-cast text-white px-5 py-2 rounded-full font-semibold text-mini hover:opacity-90 transition">+ {t('추가', 'Add')}</button>
             </div>
           </div>
 
           {/* Role별 그룹 */}
           {filtered.length === 0 ? (
-            <div className="text-center py-20">
+            <div className="empty-box text-center py-16 px-6">
               <p className="text-zinc-700 text-body">{t('아티스트가 없어요', 'No artists yet')}</p>
               <button onClick={openCreate} className="mt-4 text-brand-cast-text text-mini font-bold hover:underline">+ {t('첫 아티스트 추가', 'Add your first artist')}</button>
             </div>
@@ -271,7 +272,7 @@ export default function ArtistsPage() {
                       <div
                         key={artist.id}
                         id={`card-${artist.id}`}
-                        className="bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden shadow-xl cursor-pointer hover:border-white/15 transition group"
+                        className="/[0.03] border border-white/5 rounded-xl overflow-hidden shadow-xl cursor-pointer hover:border-white/15 transition group"
                         {...pressable(() => setViewingArtist(artist))}
                       >
                         {/* 사진 */}
@@ -383,12 +384,12 @@ export default function ArtistsPage() {
               )}
 
               <div className="flex gap-2">
-                <button onClick={() => { setViewingArtist(null); openEdit(viewingArtist); }} className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-mini hover:bg-white/10 transition">{t('수정', 'Edit')}</button>
+                <button onClick={() => { setViewingArtist(null); openEdit(viewingArtist); }} className="flex-1 py-2.5 rounded-full bg-white/5 border border-white/10 text-zinc-300 font-bold text-mini hover:bg-white/10 transition">{t('수정', 'Edit')}</button>
                 <button
                   onClick={() => { setViewingArtist(null); setAddToRosterArtist(viewingArtist); setRosterRole(ROSTER_ROLES.includes(viewingArtist.role) ? viewingArtist.role : 'Producer'); }}
-                  className="flex-1 py-2.5 rounded-xl bg-brand-cast/20 border border-brand-cast/30 text-brand-cast-text font-bold text-mini hover:bg-brand-cast/30 transition">+ {t('로스터', 'Roster')}</button>
-                <button onClick={() => { if (confirm(t(`"${viewingArtist.name}"을 삭제할까요?`, `Delete "${viewingArtist.name}"?`))) deleteArtist(viewingArtist.id); }} className="py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-mini hover:bg-red-500/20 transition">{t('삭제', 'Delete')}</button>
-                <button onClick={() => setViewingArtist(null)} className="py-2.5 px-4 rounded-xl border border-white/10 text-zinc-500 font-bold text-mini hover:text-white transition">{t('닫기', 'Close')}</button>
+                  className="flex-1 py-2.5 rounded-full bg-brand-cast/20 border border-brand-cast/30 text-brand-cast-text font-bold text-mini hover:bg-brand-cast/30 transition">+ {t('로스터', 'Roster')}</button>
+                <button onClick={() => { if (confirm(t(`"${viewingArtist.name}"을 삭제할까요?`, `Delete "${viewingArtist.name}"?`))) deleteArtist(viewingArtist.id); }} className="py-2.5 px-4 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-mini hover:bg-red-500/20 transition">{t('삭제', 'Delete')}</button>
+                <button onClick={() => setViewingArtist(null)} className="py-2.5 px-4 rounded-full border border-white/10 text-zinc-500 font-bold text-mini hover:text-white transition">{t('닫기', 'Close')}</button>
               </div>
             </div>
           </div>
@@ -432,8 +433,8 @@ export default function ArtistsPage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setAddToRosterArtist(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-mini hover:text-white transition">{t('취소', 'Cancel')}</button>
-              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-xl bg-brand-cast text-white font-semibold text-mini hover:opacity-90 transition disabled:opacity-40">{t('추가', 'Add')}</button>
+              <button onClick={() => setAddToRosterArtist(null)} className="flex-1 py-3 rounded-full border border-white/10 text-zinc-500 font-bold text-mini hover:text-white transition">{t('취소', 'Cancel')}</button>
+              <button onClick={addToRoster} disabled={!selectedProject} className="flex-1 py-3 rounded-full bg-brand-cast text-white font-semibold text-mini hover:opacity-90 transition disabled:opacity-40">{t('추가', 'Add')}</button>
             </div>
           </div>
         </div>
@@ -447,7 +448,7 @@ export default function ArtistsPage() {
               <h2 className="text-white font-black text-lead mb-5">{editingArtist ? t('아티스트 수정', 'Edit artist') : t('아티스트 추가', 'Add artist')}</h2>
 
               <div className="mb-5 flex flex-col items-center">
-                <div className="w-24 h-24 rounded-xl overflow-hidden bg-white/5 border border-white/10 mb-3 flex items-center justify-center cursor-pointer hover:border-white/30 transition" {...pressable(() => fileInputRef.current?.click())}>
+                <div className="w-24 h-24 rounded-xl overflow-hidden border border-white/10 mb-3 flex items-center justify-center cursor-pointer hover:border-white/30 transition" {...pressable(() => fileInputRef.current?.click())}>
                   {form.photo_url ? <img loading="lazy" decoding="async" src={form.photo_url} alt="preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <span className="text-display opacity-30"><i className="ti ti-camera" aria-hidden="true"></i></span>}
                 </div>
                 <button onClick={() => fileInputRef.current?.click()} className="text-zinc-500 text-mini font-bold hover:text-white transition-colors">{uploading ? t('업로드 중...', 'Uploading…') : t('사진 선택', 'Choose photo')}</button>
@@ -475,12 +476,12 @@ export default function ArtistsPage() {
                   <label className="text-zinc-500 text-micro font-bold uppercase tracking-widest mb-2 block">{t('링크', 'Links')}</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {QUICK_LINKS.map(({ label, prefix }) => (
-                      <button key={prefix} onClick={() => setNewLink(prefix)} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-micro font-bold hover:text-white hover:bg-white/10 transition">{label}</button>
+                      <button key={prefix} onClick={() => setNewLink(prefix)} className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-400 text-micro font-bold hover:text-white hover:bg-white/10 transition">{label}</button>
                     ))}
                   </div>
                   <div className="flex gap-2 mb-2">
                     <input value={newLink} onChange={e => setNewLink(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} placeholder="https://" className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-mini outline-none focus:border-white/30 transition placeholder:text-zinc-600 text-white" />
-                    <button onClick={() => { if (newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} className="px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white font-black text-mini hover:bg-white/20 transition">{t('추가', 'Add')}</button>
+                    <button onClick={() => { if (newLink.trim()) { setForm(p => ({ ...p, links: [...p.links, newLink.trim()] })); setNewLink(''); }}} className="px-3 py-2 rounded-full bg-white/10 border border-white/20 text-white font-black text-mini hover:bg-white/20 transition">{t('추가', 'Add')}</button>
                   </div>
                   {form.links.map((link, i) => (
                     <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 mb-1">
@@ -493,8 +494,8 @@ export default function ArtistsPage() {
               </div>
 
               <div className="flex gap-3 mt-5">
-                <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl border border-white/10 text-zinc-500 font-bold text-mini hover:text-white transition">{t('취소', 'Cancel')}</button>
-                <button onClick={saveArtist} className="flex-1 py-3 rounded-xl bg-brand-cast text-white font-semibold text-mini hover:opacity-90 transition">{t('저장', 'Save')}</button>
+                <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-full border border-white/10 text-zinc-500 font-bold text-mini hover:text-white transition">{t('취소', 'Cancel')}</button>
+                <button onClick={saveArtist} className="flex-1 py-3 rounded-full bg-brand-cast text-white font-semibold text-mini hover:opacity-90 transition">{t('저장', 'Save')}</button>
               </div>
             </div>
           </div>
@@ -502,7 +503,7 @@ export default function ArtistsPage() {
       )}
 
       {showToast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-lg font-ui">{toastMsg}</div>
+        <Toast msg={toastMsg} z="z-50" />
       )}
     </>
   );

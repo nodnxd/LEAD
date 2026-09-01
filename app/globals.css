@@ -5,20 +5,20 @@
    제품색은 배경용 base / 그 위 글자색 on / 다크배경 텍스트용 on-dark 3종으로 나뉜다.
    이유는 lib/brand.ts 주석 참고 — 골드·틸 위 흰 글씨는 대비 2 미만이라 실패한다. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f2ec;   /* subscrr 계열 — 순백 대신 따뜻한 종이 */
+  --foreground: #1a1712;   /* 크림 위 대비 15.96 */
 
-  --brand-lead: #7c5ae8;
-  --brand-lead-on-dark: #a78bfa;   /* #0a0a0a 위 대비 7.3 */
-  --brand-lead-hover: #6a48d6;
+  --brand-lead: #e01f00;
+  --brand-lead-on-dark: #ff2500;   /* subscrr 원색. #0a0a0a 위 대비 5.2 — 작은 글씨도 통과 */
+  --brand-lead-hover: #c41c00;
   --brand-cast: #e3b24a;
   --brand-split: #2fb6a3;
 
   /* 텍스트로 쓸 때의 제품색 — 테마마다 다르다.
-     라이트 배경에서 원색을 그대로 쓰면 대비가 무너진다(골드 1.9, 틸 2.5, 보라 3.6).
+     라이트 배경에서 원색을 그대로 쓰면 대비가 무너진다(골드 1.9, 틸 2.5, 주황 3.4).
      아래 두 블록이 테마별로 갈라 주므로 화면 코드는 text-brand-*-text 하나만 쓰면 된다.
-     측정: 라이트 5.0~6.0 / 다크 7.3~10.1. */
-  --brand-lead-text: #6a48d6;
+     측정: 라이트 4.5~5.4 / 다크 5.2~10.1. */
+  --brand-lead-text: #c41c00;
   --brand-cast-text: #8a6a18;
   --brand-split-text: #1e7a6d;
 
@@ -36,7 +36,9 @@
 
 /* 앱의 실제 테마는 localStorage(lead_theme) → <html data-theme>가 정한다 */
 html[data-theme="dark"] {
-  --brand-lead-text: #a78bfa;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --brand-lead-text: #ff2500;
   --brand-cast-text: #e3b24a;
   --brand-split-text: #2fb6a3;
 }
@@ -114,7 +116,13 @@ html { scroll-behavior: smooth; }
 /* 앱은 다크 우선 — 네이티브 스크롤바·select·입력창이 테마와 따로 놀지 않게 한다.
    라이트로 바꾼 사용자는 lib/theme.tsx가 <html data-theme="light">를 찍어 덮어쓴다. */
 html { color-scheme: dark; }
-html[data-theme="light"] { color-scheme: light; }
+html[data-theme="light"] {
+  color-scheme: light;
+  /* OS가 다크여도 사용자가 라이트를 고르면 종이 바탕이 이긴다 —
+     예전엔 미디어쿼리가 이겨서 토글이 바탕을 못 바꿨다. */
+  --background: #f4f2ec;
+  --foreground: #1a1712;
+}
 
 * { -webkit-tap-highlight-color: transparent; }
 
@@ -154,6 +162,31 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   outline: none;
   box-shadow: 0 0 0 2px rgba(91, 140, 255, 0.55);
   border-radius: 8px;
+}
+
+/* ── 입력 = 밑줄만 (2026-09-01, subscrr 계열 결정) ────────────────────────
+   상자를 없애고 아래 선만 남긴다. 인라인 클래스 100여 곳을 고치는 대신 여기서 한 번에
+   덮는다 — 되돌릴 때도 이 블록만 지우면 되고, 새로 만드는 입력에도 자동으로 걸린다.
+   !important 는 Tailwind 유틸리티(rounded-xl / border / px-4)를 이기기 위한 것.
+   네이티브 위젯(체크박스·라디오·파일·날짜·색·슬라이더)은 제외 — 상자가 곧 조작부다. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="date"]):not([type="color"]):not([type="range"]):not([type="month"]),
+textarea,
+select {
+  border-radius: 0 !important;
+  border-width: 0 0 1px 0 !important;
+  background-color: transparent !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+/* 포커스는 밑선 색으로만 알린다 (전역 :focus-visible 링은 그대로 유효) */
+input:focus, textarea:focus, select:focus { border-bottom-color: var(--brand-lead-text) !important; }
+
+/* ── 빈 화면 = 점선 상자 (2026-09-01, subscrr 계열 결정) ──────────────────
+   "여기 담길 자리"를 선으로 말한다. 정적 className 자리라 D?라이트/다크 삼항을 못 쓰는데,
+   --foreground 를 섞어 쓰면 테마를 따라간다. */
+.empty-box {
+  border: 1px dashed color-mix(in srgb, var(--foreground) 22%, transparent);
+  border-radius: 12px;
 }
 
 /* 얇고 은은한 스크롤바 */

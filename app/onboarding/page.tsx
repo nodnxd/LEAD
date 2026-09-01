@@ -283,7 +283,7 @@ export default function OnboardingPage() {
                   <label className={`text-micro font-black uppercase tracking-widest block mb-2 ${labelCls}`}>{t('성별', 'Gender')} *</label>
                   <div className="flex gap-2">
                     {[['male', t('남성','Male')], ['female', t('여성','Female')], ['other', t('기타','Other')]].map(([v, l]) => (
-                      <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2.5 rounded-xl border text-mini font-bold transition ${gender === v ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
+                      <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2.5 rounded-full border text-mini font-bold transition ${gender === v ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
                     ))}
                   </div>
                 </div>
@@ -305,7 +305,7 @@ export default function OnboardingPage() {
                   <label className={`text-micro font-black uppercase tracking-widest block mb-3 ${labelCls}`}>{t('역할', 'Roles')} *</label>
                   <div className="flex flex-wrap gap-2">
                     {ROLES.map(r => (
-                      <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-4 py-2 rounded-xl border text-mini font-bold transition ${roles.includes(r.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{r.label}</button>
+                      <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-4 py-2 rounded-full border text-mini font-bold transition ${roles.includes(r.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{r.label}</button>
                     ))}
                   </div>
                 </div>
@@ -313,7 +313,7 @@ export default function OnboardingPage() {
                   <label className={`text-micro font-black uppercase tracking-widest block mb-3 ${labelCls}`}>{t('선호 장르', 'Genres')} *</label>
                   <div className="flex flex-wrap gap-2">
                     {GENRES.map(g => (
-                      <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-4 py-2 rounded-xl border text-mini font-bold transition ${genres.includes(g.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{g.label}</button>
+                      <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-4 py-2 rounded-full border text-mini font-bold transition ${genres.includes(g.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500 hover:text-white' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{g.label}</button>
                     ))}
                   </div>
                   {genres.includes('ETC') && (
@@ -360,7 +360,7 @@ export default function OnboardingPage() {
                   {demoFiles.length > 0 && (
                     <div className="flex flex-col gap-2 mb-3">
                       {demoFiles.map(df => (
-                        <div key={df.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${D ? 'bg-white/[0.03] border-white/[0.07]' : 'bg-black/[0.02] border-black/[0.07]'}`}>
+                        <div key={df.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${D ? '/[0.03] border-white/[0.07]' : 'bg-black/[0.02] border-black/[0.07]'}`}>
                           <span className="text-lead"><i className="ti ti-music" aria-hidden="true"></i></span>
                           <div className="flex-1 min-w-0">
                             <p className={`text-mini font-bold truncate ${D ? 'text-white' : 'text-[#111]'}`}>{df.file.name}</p>
@@ -374,7 +374,7 @@ export default function OnboardingPage() {
                   {demoFiles.length < 3 && (
                     <>
                       <input ref={demoRef} type="file" accept=".mp3,audio/mpeg" multiple className="hidden" onChange={e => { Array.from(e.target.files || []).forEach(addDemo); e.target.value = ''; }} />
-                      <button onClick={() => demoRef.current?.click()} className={`w-full py-3 rounded-xl border-2 border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-zinc-600 hover:border-white/20 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:border-black/20'}`}>+ {t('파일 추가', 'Add file')}</button>
+                      <button onClick={() => demoRef.current?.click()} className={`w-full py-3 rounded-full border-2 border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-zinc-600 hover:border-white/20 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:border-black/20'}`}>+ {t('파일 추가', 'Add file')}</button>
                     </>
                   )}
                 </div>
@@ -389,7 +389,7 @@ export default function OnboardingPage() {
                   </div>
                   <div className="flex flex-col gap-3">
                     {works.map((w, i) => (
-                      <div key={i} className={`cv-row p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.07]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                      <div key={i} className={`cv-row p-3 rounded-xl border ${D ? '/[0.02] border-white/[0.07]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                         <div className="flex items-center justify-between mb-2">
                           <span className={`text-micro font-black ${dimText}`}>#{i + 1}</span>
                           {works.length > 1 && <button onClick={() => setWorks(p => p.filter((_, idx) => idx !== i))} className={`text-mini ${D ? 'text-zinc-700 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>{t('삭제', 'Delete')}</button>}
@@ -404,7 +404,7 @@ export default function OnboardingPage() {
                       </div>
                     ))}
                     {works.length < 5 && (
-                      <button onClick={() => setWorks(p => [...p, emptyWork()])} className={`py-2.5 rounded-xl border border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-zinc-600 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:text-zinc-600'}`}>+ {t('작업물 추가', 'Add work')}</button>
+                      <button onClick={() => setWorks(p => [...p, emptyWork()])} className={`py-2.5 rounded-full border border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-zinc-600 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:text-zinc-600'}`}>+ {t('작업물 추가', 'Add work')}</button>
                     )}
                   </div>
                 </div>
@@ -415,12 +415,12 @@ export default function OnboardingPage() {
           {/* 버튼 */}
           <div className="flex gap-3 mt-4">
             {step > 1 && (
-              <button onClick={() => setStep(s => s - 1)} className={`flex-1 py-3.5 rounded-xl border font-bold text-body transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{t('이전', 'Back')}</button>
+              <button onClick={() => setStep(s => s - 1)} className={`flex-1 py-3.5 rounded-full border font-bold text-body transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{t('이전', 'Back')}</button>
             )}
             {step < 4 ? (
-              <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className={`flex-1 py-3.5 rounded-xl font-black text-body transition ${canNext() ? 'bg-brand-lead text-white hover:opacity-90' : D ? 'bg-white/5 text-zinc-700 cursor-not-allowed' : 'bg-black/5 text-zinc-400 cursor-not-allowed'}`}>{t('다음', 'Next')} →</button>
+              <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className={`flex-1 py-3.5 rounded-full font-black text-body transition ${canNext() ? 'bg-brand-lead text-white hover:opacity-90' : D ? 'bg-white/5 text-zinc-700 cursor-not-allowed' : 'bg-black/5 text-zinc-400 cursor-not-allowed'}`}>{t('다음', 'Next')} →</button>
             ) : (
-              <button onClick={handleFinish} disabled={saving} className="flex-1 py-3.5 rounded-xl bg-brand-lead text-white font-semibold text-body transition hover:opacity-90 disabled:opacity-50">
+              <button onClick={handleFinish} disabled={saving} className="flex-1 py-3.5 rounded-full bg-brand-lead text-white font-semibold text-body transition hover:opacity-90 disabled:opacity-50">
                 {saving ? t('저장 중…', 'Saving…') : t('완료', 'Done')}
               </button>
             )}

@@ -41,13 +41,13 @@ export default function ResetPasswordPage() {
             <h1 className="font-display text-display text-brand-lead-text uppercase tracking-tighter">LEAD</h1>
             <p className="text-zinc-600 text-mini mt-1">{t('비밀번호 재설정', 'Reset password')}</p>
           </div>
-          <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6 shadow-lg">
+          <div className="/[0.03] border border-white/10 rounded-xl p-6 shadow-lg">
             {done ? (
               <div className="text-center py-4">
                 <div className="text-display mb-3 text-emerald-400"><i className="ti ti-circle-check" aria-hidden="true"></i></div>
                 <p className="text-white font-black text-body mb-1">{t('변경 완료!', 'Done!')}</p>
                 <p className="text-zinc-500 text-mini mb-5">{t('새 비밀번호로 로그인할 수 있어요.', 'You can now log in with your new password.')}</p>
-                <button onClick={() => router.push('/')} className="w-full py-3 rounded-xl bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition">{t('로그인하러 가기', 'Go to login')}</button>
+                <button onClick={() => router.push('/')} className="w-full py-3 rounded-full bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition">{t('로그인하러 가기', 'Go to login')}</button>
               </div>
             ) : !ready ? (
               <div className="text-center py-6">
@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-body outline-none focus:border-brand-lead/50 transition placeholder:text-zinc-600 text-white" />
                 </div>
                 {error && <p className="text-red-400 text-mini mb-3">{error}</p>}
-                <button onClick={submit} disabled={loading} className="w-full py-3 rounded-xl bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition disabled:opacity-50">
+                <button onClick={submit} disabled={loading} className="w-full py-3 rounded-full bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition disabled:opacity-50">
                   {loading ? '…' : t('비밀번호 변경', 'Change password')}
                 </button>
               </>

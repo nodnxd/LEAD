@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
 import { useLang, LangToggle } from '@/lib/lang';
+import Toast from '@/components/Toast';
 
 const PSTATUS: Record<string, { ko: string; en: string; cls: string }> = {
   pitched: { ko: '피칭', en: 'Pitched', cls: 'bg-emerald-500/15 text-emerald-400' },
@@ -253,13 +254,13 @@ export default function MyPage() {
             </div>
             <div className="flex items-center gap-2">
               {hostId && (
-                <button onClick={() => router.push(`/view/${hostId}`)} className={`px-3 py-1.5 rounded-xl border text-mini font-bold transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+                <button onClick={() => router.push(`/view/${hostId}`)} className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
                   ← {t('돌아가기', 'Back')}
                 </button>
               )}
               <LangToggle className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-mini font-bold hover:text-white transition" />
               <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
-                className={`w-9 h-9 rounded-xl border flex items-center justify-center text-body ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
+                className={`w-9 h-9 rounded-full border flex items-center justify-center text-body ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
                 {D ? '☀' : '◑'}
               </button>
               <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))}
@@ -292,12 +293,12 @@ export default function MyPage() {
                   {member?.genres?.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {member.genres.map((g: string) => (
-                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded-lg ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
+                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
                       ))}
                     </div>
                   )}
                 </div>
-                <button onClick={openEdit} className="shrink-0 px-3 py-2 rounded-xl bg-brand-lead/10 border border-brand-lead/20 text-brand-lead-text text-mini font-bold hover:bg-brand-lead/20 transition">
+                <button onClick={openEdit} className="shrink-0 px-3 py-2 rounded-full bg-brand-lead/10 border border-brand-lead/20 text-brand-lead-text text-mini font-bold hover:bg-brand-lead/20 transition">
                   <i className="ti ti-pencil" aria-hidden="true"></i> {t('수정', 'Edit')}
                 </button>
               </div>
@@ -321,7 +322,7 @@ export default function MyPage() {
               {demos.length > 0 ? (
                 <div className="flex flex-col gap-2">
                   {demos.map(d => (
-                    <div key={d.id} className={`cv-row flex items-center gap-3 p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                    <div key={d.id} className={`cv-row flex items-center gap-3 p-3 rounded-xl border ${D ? '/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                       <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
                       <span className={`flex-1 text-mini font-bold truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{d.file_name}</span>
                       <button onClick={async () => {
@@ -383,7 +384,7 @@ export default function MyPage() {
                   const lead = myLeads.find(l => l.id === p.lead_id);
                   const files = myPitchFiles.filter(f => f.pitch_id === p.id);
                   return (
-                    <div key={p.id} className={`cv-row p-4 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                    <div key={p.id} className={`cv-row p-4 rounded-xl border ${D ? '/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 min-w-0">
                           <p className={`font-bold text-body ${D ? 'text-white' : 'text-[#111]'}`}>{lead?.artist || '—'} <span className={`font-normal ${dimText}`}>— {lead?.title || ''}</span></p>
@@ -451,7 +452,7 @@ export default function MyPage() {
                     <label className={labelCls}>{t('성별', 'Gender')}</label>
                     <div className="flex gap-2">
                       {[['male', t('남성','Male')], ['female', t('여성','Female')], ['other', t('기타','Other')]].map(([v, l]) => (
-                        <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2 rounded-xl border text-mini font-bold transition ${gender === v ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{l}</button>
+                        <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2 rounded-full border text-mini font-bold transition ${gender === v ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{l}</button>
                       ))}
                     </div>
                   </div>
@@ -470,7 +471,7 @@ export default function MyPage() {
                     <label className={labelCls}>{t('역할', 'Roles')}</label>
                     <div className="flex flex-wrap gap-2">
                       {ROLES.map(r => (
-                        <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-3 py-1.5 rounded-xl border text-mini font-bold transition ${roles.includes(r.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{r.label}</button>
+                        <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${roles.includes(r.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{r.label}</button>
                       ))}
                     </div>
                   </div>
@@ -479,7 +480,7 @@ export default function MyPage() {
                     <label className={labelCls}>{t('선호 장르', 'Genres')}</label>
                     <div className="flex flex-wrap gap-2">
                       {GENRES.map(g => (
-                        <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-3 py-1.5 rounded-xl border text-mini font-bold transition ${genres.includes(g.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{g.label}</button>
+                        <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${genres.includes(g.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{g.label}</button>
                       ))}
                     </div>
                     {genres.includes('ETC') && (
@@ -493,7 +494,7 @@ export default function MyPage() {
                     {demos.length > 0 && (
                       <div className="flex flex-col gap-1.5 mb-2">
                         {demos.map(d => (
-                          <div key={d.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                          <div key={d.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${D ? '/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                             <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
                             <span className={`flex-1 text-mini truncate ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.file_name}</span>
                             <button onClick={() => deleteDemo(d)} className="text-red-400/60 hover:text-red-400 text-mini font-bold">{t('삭제', 'Delete')}</button>
@@ -505,7 +506,7 @@ export default function MyPage() {
                       <>
                         <input ref={demoRef} type="file" accept=".mp3,audio/mpeg" multiple className="hidden"
                           onChange={e => { const files = Array.from(e.target.files || []).slice(0, 3 - demos.length - newDemoFiles.length); setNewDemoFiles(p => [...p, ...files]); e.target.value = ''; }} />
-                        <button onClick={() => demoRef.current?.click()} className={`w-full py-2.5 rounded-xl border-2 border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-zinc-600 hover:border-white/20 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:border-black/20'}`}>{t('+ 데모곡 추가', '+ Add demo')} ({3 - demos.length - newDemoFiles.length} {t('개 남음', 'left')})</button>
+                        <button onClick={() => demoRef.current?.click()} className={`w-full py-2.5 rounded-full border-2 border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-zinc-600 hover:border-white/20 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:border-black/20'}`}>{t('+ 데모곡 추가', '+ Add demo')} ({3 - demos.length - newDemoFiles.length} {t('개 남음', 'left')})</button>
                       </>
                     )}
                     {newDemoFiles.length > 0 && (
@@ -527,7 +528,7 @@ export default function MyPage() {
                     <label className={labelCls}>{t('최근 컷난 작업물', 'Recent released works')}</label>
                     <div className="flex flex-col gap-2">
                       {editWorks.map((w, i) => (
-                        <div key={i} className={`cv-row p-3 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
+                        <div key={i} className={`cv-row p-3 rounded-xl border ${D ? '/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                           <div className="flex justify-between mb-2">
                             <span className={`text-micro font-black ${dimText}`}>#{i + 1}</span>
                             {editWorks.length > 0 && <button onClick={() => setEditWorks(p => p.filter((_, idx) => idx !== i))} className="text-red-400/60 hover:text-red-400 text-mini">{t('삭제', 'Delete')}</button>}
@@ -540,15 +541,15 @@ export default function MyPage() {
                         </div>
                       ))}
                       {editWorks.length < 5 && (
-                        <button onClick={() => setEditWorks(p => [...p, { song_title: '', artist_name: '', link: '' }])} className={`py-2 rounded-xl border border-dashed text-mini font-bold ${D ? 'border-white/10 text-zinc-600 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:text-zinc-600'}`}>+ {t('추가', 'Add')}</button>
+                        <button onClick={() => setEditWorks(p => [...p, { song_title: '', artist_name: '', link: '' }])} className={`py-2 rounded-full border border-dashed text-mini font-bold ${D ? 'border-white/10 text-zinc-600 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:text-zinc-600'}`}>+ {t('추가', 'Add')}</button>
                       )}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
-                  <button onClick={() => setEditing(false)} className={`flex-1 py-3 rounded-xl border font-bold text-body ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>{t('취소', 'Cancel')}</button>
-                  <button onClick={handleSave} disabled={saving} className="flex-1 py-3 rounded-xl bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition disabled:opacity-50">
+                  <button onClick={() => setEditing(false)} className={`flex-1 py-3 rounded-full border font-bold text-body ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>{t('취소', 'Cancel')}</button>
+                  <button onClick={handleSave} disabled={saving} className="flex-1 py-3 rounded-full bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition disabled:opacity-50">
                     {saving ? t('저장 중...', 'Saving…') : t('저장', 'Save')}
                   </button>
                 </div>
@@ -558,7 +559,7 @@ export default function MyPage() {
         )}
 
         {toast && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-lg font-ui">{toast}</div>
+          <Toast msg={toast} />
         )}
       </main>
     </>

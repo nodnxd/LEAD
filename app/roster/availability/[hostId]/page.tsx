@@ -386,7 +386,7 @@ export default function AvailabilityView() {
                   }}
                   onContextMenu={(e) => { e.preventDefault(); setSelectedDay(selectedDay === d ? null : d); }}
                   className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center select-none transition-[transform,background-color] duration-150
-                    ${isFinal ? 'ring-2 ring-brand-cast' : ''}
+ ${isFinal ? 'ring-2 ring-brand-cast' : ''}
                     ${!isBlocked && poll.is_open ? 'cursor-pointer active:scale-90' : 'cursor-default'}`}
                   style={{
                     backgroundColor: bg, borderColor: border,
@@ -457,9 +457,9 @@ export default function AvailabilityView() {
               </div>
             )}
             <div className="flex gap-2.5">
-              <button onClick={() => setReviewing(false)} className="flex-1 py-3 rounded-xl border font-bold text-body transition" style={{ borderColor: c.line, color: c.sub }}>{t.reviewMore}</button>
+              <button onClick={() => setReviewing(false)} className="flex-1 py-3 rounded-full border font-bold text-body transition" style={{ borderColor: c.line, color: c.sub }}>{t.reviewMore}</button>
               <button onClick={async () => { await toggleSubmit(); setReviewing(false); }} disabled={myYes.length + myNo.length === 0}
-                className="flex-1 py-3 rounded-xl font-black text-body transition disabled:opacity-30" style={{ backgroundColor: YES, color: c.yesText }}>{t.reviewSubmit}</button>
+                className="flex-1 py-3 rounded-full font-black text-body transition disabled:opacity-30" style={{ backgroundColor: YES, color: c.yesText }}>{t.reviewSubmit}</button>
             </div>
           </div>
         </div>
@@ -496,7 +496,7 @@ function TopBar({ c, lang, dark, onTheme, onLang, left }: any) {
 function Legend({ color, label, c }: { color: string | null; label: string; c: Tok }) {
   return (
     <span className="flex items-center gap-1.5 text-mini font-bold" style={{ color: c.sub }}>
-      <span className="w-3 h-3 rounded-lg border" style={{ backgroundColor: color ?? 'transparent', borderColor: color ?? c.line }} />{label}
+      <span className="w-3 h-3 rounded-full border" style={{ backgroundColor: color ?? 'transparent', borderColor: color ?? c.line }} />{label}
     </span>
   );
 }
