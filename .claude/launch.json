@@ -2,38 +2,15 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "cast-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "dev"
-      ],
-      "cwd": "/Users/newnormal/epg-roster",
-      "port": 3000
-    },
-    {
       "name": "lead-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "dev",
-        "--",
-        "--port",
-        "3100"
-      ],
-      "cwd": "/Users/newnormal/Desktop/lead by nen",
+      "runtimeArgs": ["run", "dev", "--", "--port", "3100"],
       "port": 3100
     },
     {
       "name": "lead-prod",
       "runtimeExecutable": "npx",
-      "runtimeArgs": [
-        "next",
-        "start",
-        "--port",
-        "3101"
-      ],
-      "cwd": "/Users/newnormal/Desktop/lead by nen",
+      "runtimeArgs": ["next", "start", "--port", "3101"],
       "port": 3101
     }
   ]
