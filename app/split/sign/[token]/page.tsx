@@ -82,7 +82,7 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
         </div>
 
         {/* song summary */}
-        <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 mb-5">
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 mb-5">
           <p className="text-sub font-bold">{sheet.song_title || t('(제목 없음)', '(Untitled)')}</p>
           <p className="text-body text-white/45">{sheet.artist_name || t('아티스트 미정', 'Artist TBD')}{sheet.iswc ? ` · ISWC ${sheet.iswc}` : ''}{sheet.audio_name ? ` · ♪ ${sheet.audio_name}` : ''}</p>
         </div>
@@ -94,7 +94,7 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
             if (rows.length === 0) return null;
             const total = categoryTotal(data.contributors, cat.key);
             return (
-              <div key={cat.key} className="cv-row rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+              <div key={cat.key} className="cv-row rounded-xl border border-white/10 bg-white/[0.02] p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="text-body font-bold">{catLabel(cat.key)}</h3>
                   <span className={`text-mini ${total === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>{t('합계', 'Total')} {total}%</span>
@@ -115,16 +115,16 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
 
         {/* sign box */}
         {done ? (
-          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.06] p-5 text-center">
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] p-5 text-center">
             <p className="text-emerald-400 font-bold mb-1">✓ {t('서명 완료', 'Signed')}</p>
             <p className="text-white/45 text-body">{t('참여해주셔서 감사합니다. 이 창은 닫아도 돼요.', 'Thanks — you can close this window.')}</p>
           </div>
         ) : locked ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-center text-white/50 text-body">
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 text-center text-white/50 text-body">
             {t('이미 확정된 문서라 서명할 수 없어요.', 'This document is finalized and can no longer be signed.')}
           </div>
         ) : (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
             <p className="text-body mb-1">{catLabel(me.category ?? '')} · <b>{Number(me.share) || 0}%</b></p>
             <p className="text-mini text-white/45 mb-4">{t('위 지분에 동의하고 서명해주세요.', 'Sign to agree to your split above.')}</p>
             <label className="block text-mini text-white/55 mb-1">{t('서명자 법적 이름', 'Signer legal name')}</label>

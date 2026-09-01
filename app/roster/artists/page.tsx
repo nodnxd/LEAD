@@ -283,7 +283,7 @@ export default function ArtistsPage() {
                       <div
                         key={artist.id}
                         id={`card-${artist.id}`}
-                        className="bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden shadow-xl cursor-pointer hover:border-white/15 transition group"
+                        className="bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden shadow-xl cursor-pointer hover:border-white/15 transition group"
                         {...pressable(() => setViewingArtist(artist))}
                       >
                         {/* 사진 */}
@@ -410,7 +410,7 @@ export default function ArtistsPage() {
       {/* 로스터 추가 모달 */}
       {addToRosterArtist && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={() => setAddToRosterArtist(null)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-sm bg-[#111] border border-white/10 rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-sm bg-[#111] border border-white/10 rounded-xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h2 className="text-white font-black text-lead mb-1">{addToRosterArtist.name}</h2>
             <p className="text-zinc-500 text-mini mb-5">{t('로스터에 추가할 프로젝트를 선택하세요', 'Pick a roster to add to')}</p>
 
@@ -454,12 +454,12 @@ export default function ArtistsPage() {
       {/* 추가/수정 모달 */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto">
-          <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-2xl shadow-2xl my-4">
+          <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-xl shadow-2xl my-4">
             <div className="p-6">
               <h2 className="text-white font-black text-lead mb-5">{editingArtist ? t('아티스트 수정', 'Edit artist') : t('아티스트 추가', 'Add artist')}</h2>
 
               <div className="mb-5 flex flex-col items-center">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/5 border border-white/10 mb-3 flex items-center justify-center cursor-pointer hover:border-white/30 transition" {...pressable(() => fileInputRef.current?.click())}>
+                <div className="w-24 h-24 rounded-xl overflow-hidden bg-white/5 border border-white/10 mb-3 flex items-center justify-center cursor-pointer hover:border-white/30 transition" {...pressable(() => fileInputRef.current?.click())}>
                   {form.photo_url ? <img loading="lazy" decoding="async" src={form.photo_url} alt="preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : <span className="text-display opacity-30">📷</span>}
                 </div>
                 <button onClick={() => fileInputRef.current?.click()} className="text-zinc-500 text-mini font-bold hover:text-white transition-colors">{uploading ? t('업로드 중...', 'Uploading…') : t('사진 선택', 'Choose photo')}</button>
@@ -514,7 +514,7 @@ export default function ArtistsPage() {
       )}
 
       {showToast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl font-ui">{toastMsg}</div>
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-2xl font-ui">{toastMsg}</div>
       )}
     </>
   );

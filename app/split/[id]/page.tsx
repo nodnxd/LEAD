@@ -13,7 +13,7 @@ import { useTheme, ThemeToggle } from '@/lib/theme';
 function ProSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
     <select value={value || ''} disabled={disabled} onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white focus:outline-none focus:border-brand-lead disabled:opacity-60">
+      className="w-full rounded-lg bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white focus:outline-none focus:border-brand-lead disabled:opacity-60">
       <option value="">PRO…</option>
       {PRO_GROUPS.map((g) => (
         <optgroup key={g.region} label={g.region}>
@@ -341,7 +341,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     w.document.open(); w.document.write(agreementHtml(true)); w.document.close();
   }
 
-  const field = 'w-full rounded-md bg-white/5 border border-white/10 px-2.5 py-1.5 text-mini text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
+  const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-mini text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
   const hfield = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
 
   if (loading || !sheet) return <div className={`min-h-[100dvh] flex items-center justify-center ${D ? 'bg-surface-0 text-white/55' : 'bg-[#f6f6f7] text-black/40'}`}>…</div>;
@@ -429,7 +429,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         )}
 
         {/* song header fields */}
-        <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 mb-6">
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 mb-6">
           <div className="text-mini uppercase tracking-widest text-white/55 mb-3">{t('곡 정보', 'Song info')}</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {([
@@ -491,7 +491,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
             const catRows = rows.filter((r) => r.category === cat.key);
             const total = categoryTotal(rows, cat.key);
             return (
-              <div key={cat.key} className="cv-row rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+              <div key={cat.key} className="cv-row rounded-xl border border-white/10 bg-white/[0.02] p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <h3 className="text-body font-bold">{lang === 'en' ? cat.en : cat.label} <span className="text-white/55 text-mini font-normal">{lang === 'en' ? cat.label : cat.en}</span></h3>
                   {catRows.length > 0 && (
@@ -517,7 +517,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                             <input type="number" min={0} max={100} value={Number(r.share) || 0} disabled={!editable}
                               onChange={(e) => setRowLocal(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
                               onBlur={(e) => commitRow(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
-                              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white text-center focus:outline-none focus:border-brand-lead disabled:opacity-60" />
+                              className="w-16 rounded-lg bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white text-center focus:outline-none focus:border-brand-lead disabled:opacity-60" />
                             <span className="text-mini text-white/55">%</span>
                           </div>
                           {r.user_id && <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400/80">{t('연동', 'Linked')}</span>}
@@ -622,7 +622,7 @@ function SignatureModal({ row, catLabel, t, onClose, onSubmit }: {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-4" onClick={onClose}>
-      <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161616] p-5" onClick={(e) => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" tabIndex={-1} className="w-full max-w-md rounded-xl border border-white/10 bg-[#161616] p-5" onClick={(e) => e.stopPropagation()}>
         <h3 className="text-lead font-bold mb-1">{t('전자 서명', 'Electronic signature')}</h3>
         <p className="text-mini text-white/45 mb-4">{catLabel} · {row.stage_name || row.legal_name || t('기여자', 'contributor')} · {Number(row.share) || 0}% — {t('아래 지분에 동의하고 서명합니다.', 'sign to agree to the split above.')}</p>
         <label className="block text-mini text-white/55 mb-1">{t('서명자 법적 이름', 'Signer legal name')}</label>

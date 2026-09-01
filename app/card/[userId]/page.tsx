@@ -77,11 +77,11 @@ export default function CardPage() {
         {/* 상단 고정 뒤로가기 */}
         <button type="button" onClick={goBack} aria-label="뒤로 가기" className={`no-print fixed top-4 left-4 z-50 w-10 h-10 rounded-full border flex items-center justify-center text-lead shadow-lg ${D ? 'bg-[#1a1a1a] border-white/10 text-white' : 'bg-white border-black/[0.08] text-[#111]'}`}><span aria-hidden="true">←</span></button>
         {/* 컴카드 */}
-        <div id="comp-card" className={`w-full max-w-sm border rounded-3xl overflow-hidden shadow-2xl ${card}`}>
+        <div id="comp-card" className={`w-full max-w-sm border rounded-xl overflow-hidden shadow-2xl ${card}`}>
           {/* 헤더 배너 */}
           <div className={`h-24 relative ${isHost ? 'bg-gradient-to-br from-amber-500/40 to-orange-400/20' : 'bg-gradient-to-br from-brand-lead/40 to-purple-500/20'}`}>
             <div className="absolute bottom-[-36px] left-6">
-              <div className="rounded-2xl overflow-hidden border-2 border-white/20 bg-black/30 flex items-center justify-center shadow-xl" style={{ width: 72, height: 72 }}>
+              <div className="rounded-xl overflow-hidden border-2 border-white/20 bg-black/30 flex items-center justify-center shadow-xl" style={{ width: 72, height: 72 }}>
                 {showPhoto
                   ? <img src={photoSrc} alt={displayName} referrerPolicy="no-referrer" onError={() => setImgError(true)} className="w-full h-full object-cover" />
                   : <span className={`text-display font-black ${isHost ? 'text-amber-400' : 'text-brand-lead-text'}`}>{displayName[0].toUpperCase()}</span>}
@@ -128,7 +128,7 @@ export default function CardPage() {
                   <span className={`text-micro font-black uppercase tracking-widest w-14 shrink-0 mt-0.5 ${dm}`}>{t('장르', 'Genres')}</span>
                   <div className="flex flex-wrap gap-1">
                     {profile.genres.slice(0, 5).map((g: string) => (
-                      <span key={g} className={`text-mini font-bold px-2 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-300' : 'bg-black/[0.05] text-zinc-600'}`}>
+                      <span key={g} className={`text-mini font-bold px-2 py-0.5 rounded-lg ${D ? 'bg-white/5 text-zinc-300' : 'bg-black/[0.05] text-zinc-600'}`}>
                         {g.startsWith('ETC:') ? g.slice(4) : g}
                       </span>
                     ))}

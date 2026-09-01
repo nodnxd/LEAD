@@ -138,7 +138,7 @@ export default function SplitIndex() {
         />
 
         {/* my copyright profile */}
-        <div className={`rounded-2xl border mb-8 overflow-hidden ${panel}`}>
+        <div className={`rounded-xl border mb-8 overflow-hidden ${panel}`}>
           <button onClick={() => setProfileOpen((v) => !v)} className={`w-full flex items-center gap-2 px-5 py-3.5 text-left transition-colors ${hov}`}>
             <span className="text-body font-semibold">{t('내 저작권 프로필', 'My copyright profile')}</span>
             <span className={`text-mini truncate ${faint}`}>{profile.pro ? `${PRO_LABEL[profile.pro] ?? profile.pro}${profile.ipi ? ` · IPI ${profile.ipi}` : ''}` : t('미설정 — 스플릿시트에 자동채움돼요', 'Not set — auto-fills into split sheets')}</span>
@@ -184,7 +184,7 @@ export default function SplitIndex() {
         {/* sheets list */}
         <div className={`text-mini uppercase tracking-widest mb-3 ${faint}`}>{t('내 스플릿시트', 'My split sheets')}</div>
         {sheets.length === 0 ? (
-          <div className={`rounded-2xl border border-dashed py-14 text-center text-body ${D ? 'border-white/10 text-white/55' : 'border-black/10 text-black/40'}`}>
+          <div className={`rounded-xl border border-dashed py-14 text-center text-body ${D ? 'border-white/10 text-white/55' : 'border-black/10 text-black/40'}`}>
             {t('아직 없어요. ', 'None yet. ')}<button onClick={newSheet} className="text-brand-lead-text hover:underline">{t('새 스플릿시트', 'Create one')}</button>{t('를 만들어보세요.', '.')}
           </div>
         ) : (

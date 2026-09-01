@@ -87,7 +87,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
   };
 
   return (
-    <div className={`fixed z-[55] rounded-2xl border shadow-2xl flex flex-col ${bd}`}
+    <div className={`fixed z-[55] rounded-xl border shadow-2xl flex flex-col ${bd}`}
       style={{ left: pos.x, top: pos.y, width: winW, height: collapsed ? 'auto' : (isMobile ? '70vh' : 460), backgroundColor: D ? '#0f0f0f' : '#ffffff', opacity: opacity / 100, fontFamily: 'Pretendard,sans-serif' }}>
       <div onMouseDown={(e) => { dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y }; }}
         onTouchStart={(e) => { const t = e.touches[0]; dragRef.current = { dx: t.clientX - pos.x, dy: t.clientY - pos.y }; }}
@@ -108,7 +108,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
               return (
                 <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex flex-col gap-0.5 ${mine ? 'items-end' : 'items-start'}`} style={{ maxWidth: '82%' }}>
-                    <div className={`px-3 py-2 rounded-2xl text-body leading-relaxed ${mine ? 'bg-brand-lead text-white rounded-br-md' : D ? 'bg-white/[0.08] text-zinc-200 rounded-bl-md' : 'bg-black/[0.05] text-zinc-800 rounded-bl-md'}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{m.content}</div>
+                    <div className={`px-3 py-2 rounded-xl text-body leading-relaxed ${mine ? 'bg-brand-lead text-white rounded-br-lg' : D ? 'bg-white/[0.08] text-zinc-200 rounded-bl-lg' : 'bg-black/[0.05] text-zinc-800 rounded-bl-lg'}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{m.content}</div>
                     <span className="text-micro px-1 text-zinc-500">{fmtTime(m.created_at)}</span>
                   </div>
                 </div>
@@ -436,7 +436,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
       {/* 새 메시지 토스트 */}
       {toast && (
         <div
-          className="fixed top-5 right-5 z-[60] max-w-[280px] rounded-2xl shadow-2xl border cursor-pointer overflow-hidden"
+          className="fixed top-5 right-5 z-[60] max-w-[280px] rounded-xl shadow-2xl border cursor-pointer overflow-hidden"
           style={{ backgroundColor: D ? '#1a1a1a' : '#fff', borderColor: D ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)', fontFamily: 'Pretendard,sans-serif' }}
           {...pressable(() => { openConv(toast.senderId); setToast(null); })}
         >
@@ -466,7 +466,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
       {/* 플로팅 버튼 */}
       <button
         onClick={() => { setOpen(o => !o); setMinimized(false); }}
-        className={`fixed ${liftMobile ? 'bottom-[74px] sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-40 rounded-2xl flex items-center justify-center shadow-xl transition hover:scale-110 active:scale-95 ${D ? 'bg-[#1a1a1a] border border-white/10' : 'bg-white border border-black/[0.08]'}`}
+        className={`fixed ${liftMobile ? 'bottom-[74px] sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-40 rounded-xl flex items-center justify-center shadow-xl transition hover:scale-110 active:scale-95 ${D ? 'bg-[#1a1a1a] border border-white/10' : 'bg-white border border-black/[0.08]'}`}
         style={{ width: 52, height: 52 }}
       >
         <span className="text-sub">💬</span>
@@ -480,7 +480,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
       {/* 메신저 패널 */}
       {open && (
         <div
-          className={`fixed ${liftMobile ? 'bottom-[140px] sm:bottom-[76px]' : 'bottom-[76px]'} right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[360px] rounded-2xl border shadow-2xl flex flex-col transition duration-200 ${bd}`}
+          className={`fixed ${liftMobile ? 'bottom-[140px] sm:bottom-[76px]' : 'bottom-[76px]'} right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[360px] rounded-xl border shadow-2xl flex flex-col transition duration-200 ${bd}`}
           style={{
             height: minimized ? 'auto' : 'min(500px, 75vh)',
             fontFamily: 'Pretendard,sans-serif',
@@ -696,7 +696,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                     {(viewingMember.genres || []).length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
                         {viewingMember.genres.slice(0, 4).map((g: string) => (
-                          <span key={g} className={`text-micro px-1.5 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-400' : 'bg-black/[0.05] text-zinc-500'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
+                          <span key={g} className={`text-micro px-1.5 py-0.5 rounded-lg ${D ? 'bg-white/5 text-zinc-400' : 'bg-black/[0.05] text-zinc-500'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
                         ))}
                       </div>
                     )}
@@ -756,9 +756,9 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                               className="opacity-0 group-hover:opacity-100 text-micro font-black text-red-400/50 hover:text-red-400 transition mb-0.5 shrink-0">✕</button>
                           )}
                           <div className={`flex flex-col gap-0.5 ${mine ? 'items-end' : 'items-start'}`} style={{ maxWidth: '82%' }}>
-                            <div className={`px-3 py-2 rounded-2xl text-body leading-snug break-keep whitespace-pre-wrap ${mine
-                              ? 'bg-brand-lead text-white rounded-br-md'
-                              : D ? 'bg-white/[0.1] text-white rounded-bl-md' : 'bg-black/[0.06] text-[#111] rounded-bl-md'}`}
+                            <div className={`px-3 py-2 rounded-xl text-body leading-snug break-keep whitespace-pre-wrap ${mine
+                              ? 'bg-brand-lead text-white rounded-br-lg'
+                              : D ? 'bg-white/[0.1] text-white rounded-bl-lg' : 'bg-black/[0.06] text-[#111] rounded-bl-lg'}`}
                               style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                               {msg.content}
                             </div>

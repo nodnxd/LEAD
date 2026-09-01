@@ -312,7 +312,7 @@ export default function GuestView() {
 
   const MemberCard = ({ m }: { m: any }) => (
     <div
-      className={`relative flex justify-between items-center p-4 rounded-2xl ${getRoleCardStyle(m.role)} ${m.links?.length > 0 ? 'cursor-pointer' : ''}`}
+      className={`relative flex justify-between items-center p-4 rounded-xl ${getRoleCardStyle(m.role)} ${m.links?.length > 0 ? 'cursor-pointer' : ''}`}
       onClick={(e) => {
         if (!m.links?.length) return;
         setLinkPopover(prev => prev?.member.id === m.id ? null : { member: m, x: e.clientX + 12, y: e.clientY - 20 });
@@ -342,7 +342,7 @@ export default function GuestView() {
       {linkPopover && (
         <div className="fixed inset-0 z-40" onClick={() => setLinkPopover(null)}>
           <div
-            className={`absolute z-50 border rounded-2xl p-3 shadow-lg font-ui ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/15'}`}
+            className={`absolute z-50 border rounded-xl p-3 shadow-lg font-ui ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/15'}`}
             style={{ top: Math.min(linkPopover.y, window.innerHeight - 180), left: Math.min(linkPopover.x, window.innerWidth - 210), minWidth: '180px' }}
             onClick={e => e.stopPropagation()}
           >
@@ -366,7 +366,7 @@ export default function GuestView() {
           {/* room 홍보 — 공유된 로스터 페이지 상단 배너 */}
           <a href="https://room-nu-seven.vercel.app" target="_blank" rel="noopener noreferrer"
             className="relative z-10 mb-5 block group">
-            <div className="flex items-center justify-between gap-3 rounded-2xl border px-4 py-2.5 backdrop-blur-md transition duration-200 border-[#a78bfa]/25 hover:border-[#a78bfa]/45"
+            <div className="flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 backdrop-blur-md transition duration-200 border-[#a78bfa]/25 hover:border-[#a78bfa]/45"
               style={{ backgroundImage: 'linear-gradient(90deg, rgba(167,139,250,0.14), rgba(167,139,250,0.03) 55%, transparent)' }}>
               <div className="flex items-center gap-2.5 min-w-0">
                 <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg text-[#a78bfa] bg-[#a78bfa]/10 border border-[#a78bfa]/25 shrink-0">
@@ -433,7 +433,7 @@ export default function GuestView() {
 
           {/* 멤버 포털 — 초대로 연결된 본인에게만 */}
           {me && (
-            <div className="relative z-10 mb-6 rounded-2xl border border-brand-cast/30 bg-brand-cast/[0.07] p-5">
+            <div className="relative z-10 mb-6 rounded-xl border border-brand-cast/30 bg-brand-cast/[0.07] p-5">
               <p className={`font-black text-lead ${textMain}`}>{tv.portalHi(me.name || '')}</p>
               <p className={`text-mini mb-4 ${textSub}`}>{tv.portalDesc}</p>
               <div className="flex flex-col gap-3">
@@ -485,7 +485,7 @@ export default function GuestView() {
           {notices.length > 0 && (
             <div className="relative z-10 mb-6 flex flex-col gap-3">
               {notices.map(n => (
-                <div key={n.id} className="cv-row rounded-2xl border border-brand-cast/20 bg-brand-cast/5 p-4">
+                <div key={n.id} className="cv-row rounded-xl border border-brand-cast/20 bg-brand-cast/5 p-4">
                   <p className="text-micro font-normal uppercase tracking-widest text-brand-cast-text/60 mb-1 flex items-center gap-1.5">{tv.notice}{new Date(n.created_at).getTime() > noticeSeen && <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-brand-cast text-black">NEW</span>}</p>
                   <p className={`font-bold text-body mb-1 ${textMain}`}>{n.title}</p>
                   {n.content && <p className={`text-mini leading-relaxed whitespace-pre-line ${textSub}`}>{n.content}</p>}
@@ -496,7 +496,7 @@ export default function GuestView() {
 
           {/* 투표 배너 */}
           {votingOpen && (
-            <div className={`relative z-10 mb-8 rounded-2xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-surface-2 border-[rgba(255,255,255,0.08)]'}`}>
+            <div className={`relative z-10 mb-8 rounded-xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-surface-2 border-[rgba(255,255,255,0.08)]'}`}>
               <p className={`text-micro font-black uppercase tracking-widest mb-1 ${textSub}`}>{tv.vote}</p>
               <p className={`font-black text-sub mb-1 ${textMain}`}>{votingTitle || (lang === 'ko' ? '참여 여부 투표' : 'Attendance Vote')}</p>
               {votingMemo && <p className={`text-mini mb-6 leading-relaxed whitespace-pre-line ${textSub}`}>{votingMemo}</p>}
@@ -540,7 +540,7 @@ export default function GuestView() {
                     { label: tv.noResponse, items: noResponse, headerColor: 'text-zinc-500', borderColor: 'border-zinc-600' },
                   ].map(({ label, items, headerColor, borderColor }) => (
                     <div key={label} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
-                      <div className={`border rounded-2xl p-6 min-h-[80px] shadow-lg flex flex-col ${cardBg}`}>
+                      <div className={`border rounded-xl p-6 min-h-[80px] shadow-lg flex flex-col ${cardBg}`}>
                         <div className={`flex justify-between items-center mb-4 px-1 border-l-4 ${borderColor} pl-4`}>
                           <h2 className={`text-body font-black uppercase ${headerColor}`}>{label}</h2>
                           <span className={`text-sub font-black ${headerColor}`}>{items.length}</span>
@@ -559,7 +559,7 @@ export default function GuestView() {
 
           {/* 세션 히스토리 */}
           {showHistory && (
-            <div className={`relative z-10 mb-8 rounded-2xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-surface-2 border-[rgba(255,255,255,0.08)]'}`}>
+            <div className={`relative z-10 mb-8 rounded-xl border backdrop-blur-md p-6 ${theme === 'light' ? 'bg-black/[0.02] border-black/10' : 'bg-surface-2 border-[rgba(255,255,255,0.08)]'}`}>
               <p className={`font-semibold text-lead mb-5 ${textMain}`}>{tv.history}</p>
               <div className="flex flex-col gap-4">
                 {Object.keys(sessionsByCamp).length === 0 ? <p className={`text-mini ${textSub}`}>{tv.noSession}</p> :
@@ -568,7 +568,7 @@ export default function GuestView() {
                       <p className={`text-mini font-black uppercase tracking-widest mb-2 ${textSub}`}>{campName}</p>
                       <div className="flex flex-col gap-2">
                         {campSessions.sort((a: any, b: any) => a.day_number - b.day_number).map((s: any) => (
-                          <div key={s.id} className={`rounded-2xl border overflow-hidden ${theme === 'light' ? 'border-black/10 bg-black/[0.02]' : 'border-white/10 bg-white/[0.02]'}`}>
+                          <div key={s.id} className={`rounded-xl border overflow-hidden ${theme === 'light' ? 'border-black/10 bg-black/[0.02]' : 'border-white/10 bg-white/[0.02]'}`}>
                             <div className="flex items-center justify-between p-4 cursor-pointer" {...pressable(() => setExpandedSession(expandedSession === s.id ? null : s.id))}>
                               <div className="flex items-center gap-3"><span className="text-brand-cast-text font-black text-body">Day {s.day_number}</span>{s.memo && <span className={`text-mini truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                               <div className="flex items-center gap-3">
@@ -596,7 +596,7 @@ export default function GuestView() {
             <div className="relative z-10 flex flex-wrap gap-6 items-start pb-8">
               {teams.map(tName => (
                 <div key={tName} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
-                  <div className={`border rounded-2xl p-6 min-h-[200px] shadow-lg flex flex-col ${cardBg}`}>
+                  <div className={`border rounded-xl p-6 min-h-[200px] shadow-lg flex flex-col ${cardBg}`}>
                     <div className={`flex items-center mb-6 px-1 border-l-4 border-brand-cast pl-4`}>
                       <h2 className={`text-body font-black uppercase ${textMain}`}>{tName}</h2>
                       <span className="ml-auto text-micro font-bold text-zinc-400">{tv.members(getSortedMembers(tName).length)}</span>

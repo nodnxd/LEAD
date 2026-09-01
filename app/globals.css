@@ -170,7 +170,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
 
 /* 인라인 오디오 플레이어 톤 정리 (color-scheme은 테마별로 인라인 지정) */
-audio { border-radius: 10px; }
+audio { border-radius: 12px; }
 
 /* 모달/카드 진입 모션 (원하는 곳에 .anim-rise 부여) */
 @keyframes riseIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }

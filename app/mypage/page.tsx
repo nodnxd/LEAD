@@ -364,9 +364,9 @@ export default function MyPage() {
             </div>
 
             {/* 호스트 정체성 카드 */}
-            <div className={`border rounded-2xl overflow-hidden mb-4 ${card}`}>
+            <div className={`border rounded-xl overflow-hidden mb-4 ${card}`}>
               <div className="flex items-center gap-4 p-5">
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center overflow-hidden shrink-0">
+                <div className="w-16 h-16 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center overflow-hidden shrink-0">
                   {hostProfile?.photo_url
                     ? <img loading="lazy" decoding="async" src={hostProfile.photo_url} alt="" className="w-full h-full object-cover" />
                     : <span className="text-title">🎛</span>}
@@ -416,7 +416,7 @@ export default function MyPage() {
                 { label: t('피칭 수신', 'Pitches in'), value: hostPitches.length, sub: t('총 피칭', 'Total'), color: 'text-emerald-400' },
                 { label: t('승인 멤버', 'Members'), value: approvedMembers.length, sub: `${t('대기', 'Pending')} ${pendingMembers.length}`, color: 'text-amber-400' },
               ].map(s => (
-                <div key={s.label} className={`cv-row border rounded-2xl p-4 ${card}`}>
+                <div key={s.label} className={`cv-row border rounded-xl p-4 ${card}`}>
                   <p className={`text-title font-black ${s.color}`}>{s.value}</p>
                   <p className={`text-mini font-bold ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{s.label}</p>
                   <p className={`text-micro mt-0.5 ${dimText}`}>{s.sub}</p>
@@ -425,7 +425,7 @@ export default function MyPage() {
             </div>
 
             {/* 리드 목록 */}
-            <div className={`border rounded-2xl overflow-hidden mb-4 ${card}`}>
+            <div className={`border rounded-xl overflow-hidden mb-4 ${card}`}>
               <div className={`px-5 py-4 border-b ${divider}`}>
                 <p className={`font-black text-body ${D ? 'text-white' : 'text-[#111]'}`}>📋 {t('내 리드', 'My leads')}</p>
                 <p className={`text-mini mt-0.5 ${dimText}`}>{t('총', 'Total')} {hostLeads.length} · {t('활성', 'Active')} {activeLeads.length}</p>
@@ -462,7 +462,7 @@ export default function MyPage() {
             </div>
 
             {/* 탭: 피칭 / 멤버 */}
-            <div className={`border rounded-2xl overflow-hidden ${card}`}>
+            <div className={`border rounded-xl overflow-hidden ${card}`}>
               <div className={`flex border-b ${divider}`}>
                 {(['pitches', 'members'] as const).map(tab => (
                   <button key={tab} onClick={() => setHostTab(tab)}
@@ -539,7 +539,7 @@ export default function MyPage() {
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-mini">🎵</span>
                                     <span className={`flex-1 min-w-0 text-mini truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
-                                    {vLabel && <span className="text-micro font-black px-1.5 py-0.5 rounded bg-brand-lead/15 text-brand-lead-text">{vLabel}</span>}
+                                    {vLabel && <span className="text-micro font-black px-1.5 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text">{vLabel}</span>}
                                     {f.bpm > 0 && <span className={`text-micro font-black ${dimText}`}>{f.bpm}BPM</span>}
                                     {f.key && <span className={`text-micro font-black ${dimText}`}>{f.key}</span>}
                                     {f.genre && <span className="text-micro font-black text-emerald-400">{f.genre}</span>}
@@ -582,7 +582,7 @@ export default function MyPage() {
                             <p className={`font-bold text-body ${D ? 'text-white' : 'text-[#111]'}`}>{m?.artist_name || '—'}</p>
                             <div className="flex flex-wrap gap-1 mt-0.5">
                               {m?.roles?.slice(0, 2).map((r: string) => (
-                                <span key={r} className={`text-micro font-black px-1.5 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>
+                                <span key={r} className={`text-micro font-black px-1.5 py-0.5 rounded-lg ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>
                                   {roleLabels[r] || r}
                                 </span>
                               ))}
@@ -599,7 +599,7 @@ export default function MyPage() {
 
           {hostEditing && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={() => setHostEditing(false)}>
-              <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+              <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
                 <div className="p-6 max-h-[85vh] overflow-y-auto">
                   <div className="flex items-center justify-between mb-5">
                     <h2 className={`font-black text-sub ${D ? 'text-white' : 'text-[#111]'}`}>{t('호스트 프로필 수정', 'Edit host profile')}</h2>
@@ -609,10 +609,10 @@ export default function MyPage() {
                     {/* 사진 */}
                     <div className="flex items-center gap-4">
                       <button onClick={() => hostPhotoRef.current?.click()} className="relative group">
-                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-amber-500/10 border-2 border-dashed border-amber-500/30 flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-amber-500/10 border-2 border-dashed border-amber-500/30 flex items-center justify-center">
                           {hostPhotoPreview ? <img loading="lazy" decoding="async" src={hostPhotoPreview} alt="" className="w-full h-full object-cover" /> : <span className="text-sub">📷</span>}
                         </div>
-                        <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="absolute inset-0 rounded-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <span className="text-white text-micro font-bold">{t('변경', 'Change')}</span>
                         </div>
                       </button>
@@ -682,7 +682,7 @@ export default function MyPage() {
           )}
 
           {toast && (
-            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl font-ui">{toast}</div>
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-2xl font-ui">{toast}</div>
           )}
         </main>
       </>
@@ -720,7 +720,7 @@ export default function MyPage() {
           </div>
 
           {/* 프로필 카드 */}
-          <div className={`border rounded-2xl overflow-hidden mb-5 ${card}`}>
+          <div className={`border rounded-xl overflow-hidden mb-5 ${card}`}>
             <div className={`p-6 border-b ${divider}`}>
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-brand-lead/10 border border-brand-lead/20 flex items-center justify-center shrink-0">
@@ -742,7 +742,7 @@ export default function MyPage() {
                   {member?.genres?.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {member.genres.map((g: string) => (
-                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>
+                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded-lg ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>
                           {g.startsWith('ETC:') ? g.slice(4) : g}
                         </span>
                       ))}
@@ -780,7 +780,7 @@ export default function MyPage() {
               )}
               {(cp?.pro || cp?.ipi) && (
                 <div>
-                  <p className={labelCls}>{t('저작권 정보', 'Copyright')} <span className="normal-case tracking-normal font-bold text-micro px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 ml-1">{t('내부용', 'internal')}</span></p>
+                  <p className={labelCls}>{t('저작권 정보', 'Copyright')} <span className="normal-case tracking-normal font-bold text-micro px-1.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-400 ml-1">{t('내부용', 'internal')}</span></p>
                   <p className={`text-body ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{[cp?.pro, cp?.ipi].filter(Boolean).join(' · ')}</p>
                 </div>
               )}
@@ -842,7 +842,7 @@ export default function MyPage() {
 
           {/* 내가 피칭한 곡 */}
           {myPitches.length > 0 && (
-            <div className={`border rounded-2xl overflow-hidden mt-5 ${card}`}>
+            <div className={`border rounded-xl overflow-hidden mt-5 ${card}`}>
               <div className={`p-5 border-b ${divider}`}>
                 <p className={`font-black text-body ${D ? 'text-white' : 'text-[#111]'}`}>📨 {t('내가 피칭한 곡', 'My pitches')}</p>
                 <p className={`text-mini mt-0.5 ${dimText}`}>{t('총', 'Total')} {myPitches.length}</p>
@@ -876,7 +876,7 @@ export default function MyPage() {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-mini">🎵</span>
                                 <span className={`flex-1 min-w-0 text-mini truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
-                                {vLabel && <span className="text-micro font-black px-1.5 py-0.5 rounded bg-brand-lead/15 text-brand-lead-text">{vLabel}</span>}
+                                {vLabel && <span className="text-micro font-black px-1.5 py-0.5 rounded-lg bg-brand-lead/15 text-brand-lead-text">{vLabel}</span>}
                                 {f.bpm > 0 && <span className={`text-micro font-black ${dimText}`}>{f.bpm}BPM</span>}
                                 {f.key && <span className={`text-micro font-black ${dimText}`}>{f.key}</span>}
                                 {f.genre && <span className="text-micro font-black text-emerald-400">{f.genre}</span>}
@@ -898,7 +898,7 @@ export default function MyPage() {
         {/* 수정 모달 */}
         {editing && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={() => setEditing(false)}>
-            <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+            <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-xl shadow-2xl my-4 ${D ? 'bg-[#0E0E0E] border-white/[0.07]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
               <div className="p-6 max-h-[85vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className={`font-black text-sub ${D ? 'text-white' : 'text-[#111]'}`}>{t('프로필 수정', 'Edit profile')}</h2>
@@ -1082,7 +1082,7 @@ export default function MyPage() {
         )}
 
         {toast && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl font-ui">{toast}</div>
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-2xl font-ui">{toast}</div>
         )}
       </main>
     </>

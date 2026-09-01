@@ -218,7 +218,7 @@ export default function OnboardingPage() {
 
   return (
     <>
-      {errToast && <div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl max-w-[90vw] text-center">{errToast}</div>}
+      {errToast && <div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-xl shadow-2xl max-w-[90vw] text-center">{errToast}</div>}
       <main className={`min-h-screen ${bg} font-ui flex flex-col items-center justify-center p-5 relative overflow-hidden`}>
 
         <div className="absolute top-5 right-5 z-20"><LangToggle /></div>
@@ -248,7 +248,7 @@ export default function OnboardingPage() {
             })}
           </div>
 
-          <div className={`border rounded-2xl p-6 shadow-2xl ${card}`}>
+          <div className={`border rounded-xl p-6 shadow-2xl ${card}`}>
 
             {/* STEP 1 */}
             {step === 1 && (

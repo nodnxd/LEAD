@@ -356,7 +356,7 @@ export default function AvailabilityView() {
         )}
 
         {/* 달력 */}
-        <div className="rounded-2xl border p-4 sm:p-5 mb-5" style={{ backgroundColor: c.card, borderColor: c.line }}>
+        <div className="rounded-xl border p-4 sm:p-5 mb-5" style={{ backgroundColor: c.card, borderColor: c.line }}>
           <div className="grid grid-cols-7 gap-1.5 mb-2">
             {t.weekdays.map((w, i) => <div key={i} className="text-center text-mini font-black" style={{ color: i === 0 || i === 6 ? c.sub : c.faint }}>{w}</div>)}
           </div>
@@ -445,7 +445,7 @@ export default function AvailabilityView() {
       {/* 제출 전 확인 */}
       {reviewing && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 anim-fade" onClick={() => setReviewing(false)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md border rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} onClick={(e) => e.stopPropagation()} className="w-full sm:max-w-md border rounded-t-[2rem] sm:rounded-[2rem] p-6 shadow-2xl anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
             <h3 className="font-black text-sub mb-1" style={{ color: c.text }}>{t.reviewTitle}</h3>
             <p className="text-mini mb-5" style={{ color: c.sub }}>{me?.name} · {poll.title || `${y}.${String(m).padStart(2, '0')}`}</p>
             {myYes.length + myNo.length === 0 ? (
@@ -496,7 +496,7 @@ function TopBar({ c, lang, dark, onTheme, onLang, left }: any) {
 function Legend({ color, label, c }: { color: string | null; label: string; c: Tok }) {
   return (
     <span className="flex items-center gap-1.5 text-mini font-bold" style={{ color: c.sub }}>
-      <span className="w-3 h-3 rounded-[5px] border" style={{ backgroundColor: color ?? 'transparent', borderColor: color ?? c.line }} />{label}
+      <span className="w-3 h-3 rounded-lg border" style={{ backgroundColor: color ?? 'transparent', borderColor: color ?? c.line }} />{label}
     </span>
   );
 }
@@ -547,7 +547,7 @@ function FinalDaysCard({ t, c, lang, poll, m }: any) {
   };
   const title = poll.title || `${yy}. ${String(mm).padStart(2, '0')}`;
   return (
-    <div className="rounded-2xl border p-5 mb-7" style={{ borderColor: GOLD + '59', backgroundColor: GOLD + '14' }}>
+    <div className="rounded-xl border p-5 mb-7" style={{ borderColor: GOLD + '59', backgroundColor: GOLD + '14' }}>
       <p className="text-mini font-black uppercase tracking-widest mb-3" style={{ color: c.goldText }}>{t.confirmedTitle}</p>
       <div className="flex flex-wrap gap-2 mb-3.5">
         {finals.map((d: number) => (
@@ -576,7 +576,7 @@ function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
     return { role, a, b };
   }).filter((g) => g.a.length + g.b.length > 0);
   return (
-    <div className="rounded-2xl border p-5 mb-2 anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
+    <div className="rounded-xl border p-5 mb-2 anim-rise" style={{ backgroundColor: c.card, borderColor: c.line }}>
       <div className="flex items-center justify-between mb-3">
         <p className="text-body font-black" style={{ color: c.text }}>{t.onDay(day)} · <span style={{ color: YES }}>{t.available} {yes.length}</span> · <span style={{ color: c.noText }}>{t.unavailable} {no.length}</span></p>
         <button onClick={onClose} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-mini hover:opacity-70" style={{ color: c.sub }}>✕</button>
@@ -603,7 +603,7 @@ function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
 function BestDays({ t, c, lang, bestDays, maxCount, finals, onPick }: any) {
   const isFinal = (d: number) => (finals || []).includes(d);
   return (
-    <div className="rounded-2xl border p-5 mt-6" style={{ backgroundColor: c.card, borderColor: c.line }}>
+    <div className="rounded-xl border p-5 mt-6" style={{ backgroundColor: c.card, borderColor: c.line }}>
       <p className="text-mini font-black uppercase tracking-widest mb-4" style={{ color: c.sub }}>{t.bestDays}</p>
       {bestDays.length === 0 ? <p className="text-mini" style={{ color: c.sub }}>{t.noneYet}</p> : (
         <div className="space-y-2.5">

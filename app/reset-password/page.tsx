@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
             <h1 className="font-display text-display text-brand-lead-text uppercase tracking-tighter">LEAD</h1>
             <p className="text-zinc-600 text-mini mt-1">{t('비밀번호 재설정', 'Reset password')}</p>
           </div>
-          <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-2xl">
+          <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6 shadow-2xl">
             {done ? (
               <div className="text-center py-4">
                 <div className="text-display mb-3">✅</div>

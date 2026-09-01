@@ -60,7 +60,7 @@ export default function LoginPage() {
 
   const inputCls = 'w-full rounded-xl bg-white/5 border border-white/15 px-5 py-4 text-sub text-white placeholder:text-white/55 transition-colors focus:border-white/70';
   const labelCls = 'block text-mini uppercase tracking-[0.18em] text-white/55 mb-2';
-  const quietBtn = 'text-lead text-white/55 rounded transition-colors hover:text-white';
+  const quietBtn = 'text-lead text-white/55 rounded-lg transition-colors hover:text-white';
 
   // 세 제품 — 이름만 있고 설명이 없어서 첫 방문자가 뭘 고르는지 모르던 자리.
   const products = [
@@ -204,7 +204,7 @@ export default function LoginPage() {
                     <input
                       type="checkbox" name="remember" checked={rememberMe}
                       onChange={e => setRememberMe(e.target.checked)}
-                      className="h-5 w-5 shrink-0 rounded border-2 border-white/25 bg-transparent accent-brand-lead"
+                      className="h-5 w-5 shrink-0 rounded-lg border-2 border-white/25 bg-transparent accent-brand-lead"
                     />
                     <span className="text-lead text-white/55">{t('아이디 기억하기', 'Remember Me')}</span>
                   </label>

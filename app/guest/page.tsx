@@ -270,7 +270,7 @@ export default function MyPage() {
           </div>
 
           {/* 프로필 카드 */}
-          <div className={`border rounded-2xl overflow-hidden mb-5 ${card}`}>
+          <div className={`border rounded-xl overflow-hidden mb-5 ${card}`}>
 
             {/* 상단 프로필 */}
             <div className={`p-6 border-b ${divider}`}>
@@ -292,7 +292,7 @@ export default function MyPage() {
                   {member?.genres?.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {member.genres.map((g: string) => (
-                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
+                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded-lg ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
                       ))}
                     </div>
                   )}
@@ -373,7 +373,7 @@ export default function MyPage() {
 
           {/* 내가 피칭한 곡 */}
           {myPitches.length > 0 && (
-            <div className={`border rounded-2xl overflow-hidden mt-5 ${card}`}>
+            <div className={`border rounded-xl overflow-hidden mt-5 ${card}`}>
               <div className={`p-5 border-b ${divider}`}>
                 <p className={`font-black text-body ${D ? 'text-white' : 'text-[#111]'}`}><i className="ti ti-inbox" aria-hidden="true"></i> {t('내가 피칭한 곡', 'My pitches')}</p>
                 <p className={`text-mini mt-0.5 ${dimText}`}>{t('총', 'Total')} {myPitches.length}</p>
@@ -420,7 +420,7 @@ export default function MyPage() {
         {/* 수정 모달 */}
         {editing && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={() => setEditing(false)}>
-            <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-2xl shadow-2xl my-4 ${D ? 'bg-surface-2 border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
+            <div role="dialog" aria-modal="true" tabIndex={-1} className={`w-full max-w-lg border rounded-xl shadow-2xl my-4 ${D ? 'bg-surface-2 border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]'}`} onClick={e => e.stopPropagation()}>
               <div className="p-6 max-h-[85vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className={`font-black text-sub ${D ? 'text-white' : 'text-[#111]'}`}>{t('프로필 수정', 'Edit profile')}</h2>
@@ -558,7 +558,7 @@ export default function MyPage() {
         )}
 
         {toast && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl font-ui">{toast}</div>
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-2xl font-ui">{toast}</div>
         )}
       </main>
     </>

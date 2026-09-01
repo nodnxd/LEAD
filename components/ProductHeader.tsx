@@ -42,7 +42,7 @@ export default function ProductHeader({
         {showHub && (
           <Link
             href="/hub"
-            className={`text-body rounded transition-colors ${muted} ${dark ? 'hover:text-white' : 'hover:text-black'}`}
+            className={`text-body rounded-lg transition-colors ${muted} ${dark ? 'hover:text-white' : 'hover:text-black'}`}
           >
             ← hub
           </Link>

@@ -13,7 +13,7 @@ const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
 // (Tailwind can't JIT runtime-built color classes).
 function hubCard(color: string, filled = false) {
   return {
-    className: 'hub-card group flex items-center gap-3.5 p-4 rounded-3xl border text-left transition duration-200 hover:-translate-y-0.5',
+    className: 'hub-card group flex items-center gap-3.5 p-4 rounded-xl border text-left transition duration-200 hover:-translate-y-0.5',
     style: {
       borderColor: filled ? color + '3d' : 'rgba(255,255,255,0.07)',
       backgroundColor: filled ? color + '12' : 'rgba(255,255,255,0.025)',
@@ -23,7 +23,7 @@ function hubCard(color: string, filled = false) {
 }
 function hubIcon(color: string) {
   return {
-    className: 'w-12 h-12 rounded-2xl flex items-center justify-center text-sub shrink-0',
+    className: 'w-12 h-12 rounded-xl flex items-center justify-center text-sub shrink-0',
     style: {
       background: `linear-gradient(135deg, ${color}33, ${color}12)`,
       color,
@@ -191,13 +191,13 @@ export default function HubPage() {
                 </button>
               ))}
               {!canHost && (
-                <a href="mailto:everplayground@gmail.com?subject=LEAD host access" className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-brand-lead/25 bg-brand-lead/[0.03] hover:bg-brand-lead/[0.07] text-left transition">
+                <a href="mailto:everplayground@gmail.com?subject=LEAD host access" className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-lead/25 bg-brand-lead/[0.03] hover:bg-brand-lead/[0.07] text-left transition">
                   <div {...hubIcon('#7C5AE8')}>＋</div>
                   <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{t('LEAD 시작하기', 'Get started with LEAD')}</p><p className="text-mini text-zinc-500">{t('호스트 권한 요청', 'Request host access')}</p></div>
                 </a>
               )}
               {member.length === 0 && (!canHost || operate.length === 0) && (
-                <div className="p-5 rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.01] text-center">
+                <div className="p-5 rounded-xl border border-dashed border-white/[0.08] bg-white/[0.01] text-center">
                   <p className="text-body text-zinc-500">{t('아직 참여 중인 회사가 없어요.', 'You haven’t joined any company yet.')}</p>
                   <p className="text-mini text-zinc-600 mt-1">{t('받은 초대 링크로 입장하세요.', 'Enter with an invite link.')}</p>
                 </div>
@@ -228,12 +228,12 @@ export default function HubPage() {
                 </button>
               ))}
               {(castProjects.length > 0 || canHost) ? (
-                <button onClick={() => enterCast()} className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-brand-cast/25 bg-brand-cast/[0.03] hover:bg-brand-cast/[0.07] text-left transition">
+                <button onClick={() => enterCast()} className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-cast/25 bg-brand-cast/[0.03] hover:bg-brand-cast/[0.07] text-left transition">
                   <div {...hubIcon('#E3B24A')}>＋</div>
                   <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{castProjects.length ? t('새 로스터 · CAST 열기', 'New roster · Open CAST') : t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-mini text-zinc-500">{t('아티스트 로스터 짜기', 'Build your artist roster')}</p></div>
                 </button>
               ) : castMemberships.length === 0 ? (
-                <a href="mailto:everplayground@gmail.com?subject=CAST host access" className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-brand-cast/25 bg-brand-cast/[0.03] hover:bg-brand-cast/[0.07] text-left transition">
+                <a href="mailto:everplayground@gmail.com?subject=CAST host access" className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-cast/25 bg-brand-cast/[0.03] hover:bg-brand-cast/[0.07] text-left transition">
                   <div {...hubIcon('#E3B24A')}>＋</div>
                   <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-mini text-zinc-500">{t('호스트 권한 요청 · 초대받으면 자동 입장', 'Request host access · invites auto-join')}</p></div>
                 </a>
@@ -254,7 +254,7 @@ export default function HubPage() {
                 <div className="flex-1 min-w-0"><p className="font-black text-body truncate text-white">{t('스플릿시트', 'Split Sheet')}</p><p className="text-mini text-zinc-500">{t('전세계 표준 저작권 지분 문서', 'Global-standard split sheet')}</p></div>
                 <span className="text-brand-split-text text-lead font-black shrink-0 opacity-60">→</span>
               </Link>
-              <Link href="/split" className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-brand-split/25 bg-brand-split/[0.03] hover:bg-brand-split/[0.07] text-left transition">
+              <Link href="/split" className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-split/25 bg-brand-split/[0.03] hover:bg-brand-split/[0.07] text-left transition">
                 <div {...hubIcon('#2FB6A3')}>＋</div>
                 <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{t('새 스플릿시트', 'New split sheet')}</p><p className="text-mini text-zinc-500">{t('저작권 지분 문서 만들기', 'Create a split sheet')}</p></div>
               </Link>

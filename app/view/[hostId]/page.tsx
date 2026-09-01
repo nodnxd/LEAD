@@ -31,7 +31,7 @@ type PitchFileItem = {id:string;file:File;hash:string;vocal:'male'|'female'|'unk
 
 const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='group';if(gender==='mixed')return{bg:g?'bg-[#7C7F65]/10':'bg-[#7C7F65]/20',border:g?'border-[#7C7F65]/20':'border-[#7C7F65]/40',text:g?'text-[#7C7F65]/60':'text-[#A6A985]',dot:g?'bg-[#7C7F65]/40':'bg-[#7C7F65]',label:g?'혼성 그룹':'혼성'};if(gender==='female')return{bg:g?'bg-[#DE3C4B]/10':'bg-[#DE3C4B]/20',border:g?'border-[#DE3C4B]/20':'border-[#DE3C4B]/40',text:g?'text-[#DE3C4B]/55':'text-[#E97582]',dot:g?'bg-[#DE3C4B]/40':'bg-[#DE3C4B]',label:g?'여자 그룹':'여자'};return{bg:g?'bg-brand-lead/10':'bg-brand-lead/20',border:g?'border-brand-lead/20':'border-brand-lead/40',text:g?'text-brand-lead-text/55':'text-[#94B6EE]',dot:g?'bg-brand-lead/40':'bg-brand-lead',label:g?'남자 그룹':'남자'};};
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
-const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-micro font-black px-1.5 py-0.5 rounded border ${t.cls}`}>{t.label}</span>;};
+const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-micro font-black px-1.5 py-0.5 rounded-lg border ${t.cls}`}>{t.label}</span>;};
 const getLinkIcon=(url:string)=>{if(!url)return'ti ti-link';if(url.includes('youtube')||url.includes('youtu.be'))return'ti ti-brand-youtube';if(url.includes('soundcloud'))return'ti ti-brand-soundcloud';if(url.includes('spotify'))return'ti ti-brand-spotify';if(url.includes('instagram'))return'ti ti-brand-instagram';return'ti ti-link';};
 const isExpired=(d:string|null)=>{if(!d)return false;return d.includes('T')?new Date(d)<new Date():new Date(d)<new Date(new Date().toDateString());};
 const getDDay=(d:string|null)=>{if(!d)return null;const dp=d.includes('T')?d.split('T')[0]:d;const diff=Math.ceil((new Date(dp).getTime()-new Date(new Date().toDateString()).getTime())/86400000);if(diff===0)return'D-DAY';return diff>0?`D-${diff}`:`D+${Math.abs(diff)}`;};
@@ -429,7 +429,7 @@ export default function GuestView(){
     const allText=lead.content?parseSections(lead.content)?.map((s:any)=>s.body).join('\n')||lead.content:'';
     const urls=extractUrls(allText);
     return(
-      <div onClick={(e)=>{e.stopPropagation();setViewingLead(lead);setContentLang('ko');}} className={`relative border rounded-2xl cursor-pointer transition duration-300 active:scale-[0.99] sm:hover:scale-[1.02] sm:hover:-translate-y-0.5 ${D?'shadow-lg shadow-black/30 sm:hover:shadow-xl sm:hover:shadow-black/40':'shadow-sm sm:hover:shadow-md'} before:absolute before:inset-x-0 before:top-0 before:h-px before:rounded-t-2xl before:bg-gradient-to-r before:from-transparent before:via-white/15 before:to-transparent ${c.bg} ${c.border} ${expired?'opacity-40 grayscale':''} ${compact?'p-2 before:hidden':'p-4 sm:p-4'}`}>
+      <div onClick={(e)=>{e.stopPropagation();setViewingLead(lead);setContentLang('ko');}} className={`relative border rounded-xl cursor-pointer transition duration-300 active:scale-[0.99] sm:hover:scale-[1.02] sm:hover:-translate-y-0.5 ${D?'shadow-lg shadow-black/30 sm:hover:shadow-xl sm:hover:shadow-black/40':'shadow-sm sm:hover:shadow-md'} before:absolute before:inset-x-0 before:top-0 before:h-px before:rounded-t-xl before:bg-gradient-to-r before:from-transparent before:via-white/15 before:to-transparent ${c.bg} ${c.border} ${expired?'opacity-40 grayscale':''} ${compact?'p-2 before:hidden':'p-4 sm:p-4'}`}>
         {compact?(<div className="flex items-center gap-1.5"><div className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`}/><span className={`text-mini font-bold truncate ${D?"text-white":"text-[#111]"}`}>{lead.artist}</span><DeadlineDisplay lead={lead} size="compact"/></div>):(
           <>
             <div className="flex items-start justify-between mb-2 gap-2">
@@ -445,7 +445,7 @@ export default function GuestView(){
   };
 
   const FileItem=({item}:{item:PitchFileItem})=>(
-    <div className={`border rounded-2xl overflow-hidden ${D?'border-[rgba(255,255,255,0.08)] bg-surface-2':'border-black/[0.08] bg-black/[0.02]'}`}>
+    <div className={`border rounded-xl overflow-hidden ${D?'border-[rgba(255,255,255,0.08)] bg-surface-2':'border-black/[0.08] bg-black/[0.02]'}`}>
       <div className="flex items-center gap-3 px-4 py-3">
         <span className="text-lead"><i className="ti ti-music" aria-hidden="true"></i></span>
         <div className="flex-1 min-w-0">
@@ -506,7 +506,7 @@ export default function GuestView(){
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-ui relative overflow-hidden`}>
         <div className="w-full max-w-sm text-center">
           <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="font-display text-display text-brand-lead-text uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-mini font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-brand-lead/25 bg-brand-lead/10"><span className={`text-mini font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
-          <div className={`border rounded-2xl p-8 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
+          <div className={`border rounded-xl p-8 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
             <div className="text-display mb-4"><i className={icon} aria-hidden="true"></i></div>
             <h2 className={`font-black text-sub mb-2 ${D?'text-white':'text-[#111]'}`}>{title}</h2>
             <p className={`text-body leading-relaxed ${dimText}`}>{sub}</p>
@@ -544,7 +544,7 @@ export default function GuestView(){
         <div className="w-full max-w-sm relative z-10">
           <div className="flex flex-col items-center mb-10"><div className="flex items-baseline justify-center gap-2.5"><h1 className="font-display text-display text-brand-lead-text uppercase tracking-tighter">LEAD</h1><span className={`${dimText} text-mini font-bold tracking-[0.2em]`}>by NEN</span></div>{hostCompany&&<div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-brand-lead/25 bg-brand-lead/10"><span className={`text-mini font-semibold ${D?'text-zinc-200':'text-zinc-700'}`}>{hostCompany}</span></div>}</div>
           {noProfile?(
-            <div className={`border rounded-2xl p-8 text-center ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
+            <div className={`border rounded-xl p-8 text-center ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
               <div className="text-display mb-4"><i className="ti ti-pencil" aria-hidden="true"></i></div>
               <h2 className={`font-black text-sub mb-2 ${D?'text-white':'text-[#111]'}`}>프로필을 완성해주세요</h2>
               <p className={`text-body ${dimText} mb-6`}>리드에 참여하려면 멤버 프로필 등록이 필요해요.</p>
@@ -552,7 +552,7 @@ export default function GuestView(){
               <button onClick={()=>supabase.auth.signOut().then(()=>{setCurrentUser(null);setNoProfile(false);})} className={`block w-full mt-3 py-2.5 text-mini font-bold ${dimText} hover:text-white transition-colors`}>다른 계정으로 로그인</button>
             </div>
           ):(
-            <div className={`border rounded-2xl p-6 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
+            <div className={`border rounded-xl p-6 ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`}>
               <h2 className={`font-semibold text-lead mb-1 ${D?'text-white':'text-[#111]'}`}>{guestIsSignUp?'멤버 가입':'멤버 로그인'}</h2>
               <p className={`text-mini ${dimText} mb-4`}>호스트 초대를 받으셨나요? 로그인하면 접근 요청이 자동으로 전달돼요.</p>
               <div className="flex flex-col gap-3 mb-3">
@@ -619,7 +619,7 @@ export default function GuestView(){
                   <div className="relative" ref={switcherRef}>
                     <button onClick={()=>setShowHostSwitcher(s=>!s)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-mini font-normal transition ${D?'border-white/10 bg-white/5 text-zinc-300 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>{t('회사 전환','Switch')} <span className="opacity-60">▾</span></button>
                     {showHostSwitcher&&(
-                      <div className={`anim-rise absolute right-0 mt-2 w-56 z-[80] rounded-2xl border shadow-2xl overflow-hidden ${D?'bg-surface-1 border-white/10':'bg-white border-black/[0.08]'}`}>
+                      <div className={`anim-rise absolute right-0 mt-2 w-56 z-[80] rounded-xl border shadow-2xl overflow-hidden ${D?'bg-surface-1 border-white/10':'bg-white border-black/[0.08]'}`}>
                         <p className={`text-micro font-black uppercase tracking-widest px-4 pt-3 pb-1 ${dimText}`}>{t('내 회사','My companies')}</p>
                         {myHosts.map(h=>(
                           <button key={h.host_id} onClick={()=>{setShowHostSwitcher(false);if(h.host_id!==hostId)window.location.href=`/view/${h.host_id}`;}} className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-body font-normal transition-colors ${h.host_id===hostId?'text-brand-lead-text':D?'text-zinc-300 hover:bg-white/5':'text-zinc-700 hover:bg-black/[0.04]'}`}>
@@ -652,7 +652,7 @@ export default function GuestView(){
               <div className="flex gap-2.5 overflow-x-auto pb-1.5 -mx-1 px-1">
                 {urgent.map(({lead,days})=>{
                   return(
-                    <button key={lead.id} onClick={()=>{setViewingLead(lead);setContentLang('ko');}} className="shrink-0 flex items-center gap-3 pl-3 pr-4 py-3 rounded-2xl border text-left transition hover:scale-[1.02] border-brand-lead/40 bg-brand-lead/10">
+                    <button key={lead.id} onClick={()=>{setViewingLead(lead);setContentLang('ko');}} className="shrink-0 flex items-center gap-3 pl-3 pr-4 py-3 rounded-xl border text-left transition hover:scale-[1.02] border-brand-lead/40 bg-brand-lead/10">
                       <div className="flex flex-col items-center justify-center px-2.5 py-1 rounded-xl bg-brand-lead/20">
                         <span className="text-lead font-black leading-none text-brand-lead-text">{days===0?'D-DAY':`D-${days}`}</span>
                       </div>
@@ -679,7 +679,7 @@ export default function GuestView(){
               {demoDrives.map(d=>{
                 const exp=isExpired(d.deadline);
                 return(
-                  <button key={d.id} onClick={()=>openDemo(d)} disabled={exp} className={`w-full flex items-center gap-3 p-4 rounded-2xl border text-left transition active:scale-[0.99] sm:hover:scale-[1.01] ${exp?'opacity-40 grayscale':''} ${D?'border-brand-lead/30 bg-brand-lead/10 hover:bg-brand-lead/15':'border-brand-lead/25 bg-brand-lead/5 hover:bg-brand-lead/10'}`}>
+                  <button key={d.id} onClick={()=>openDemo(d)} disabled={exp} className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition active:scale-[0.99] sm:hover:scale-[1.01] ${exp?'opacity-40 grayscale':''} ${D?'border-brand-lead/30 bg-brand-lead/10 hover:bg-brand-lead/15':'border-brand-lead/25 bg-brand-lead/5 hover:bg-brand-lead/10'}`}>
                     <div className="w-11 h-11 rounded-xl bg-brand-lead/20 flex items-center justify-center text-sub shrink-0"><i className="ti ti-microphone" aria-hidden="true"></i></div>
                     <div className="min-w-0 flex-1">
                       <p className={`font-black text-body truncate ${D?'text-white':'text-[#111]'}`}>{d.artist}</p>
@@ -690,7 +690,7 @@ export default function GuestView(){
                   </button>
                 );
               })}
-              <button onClick={()=>openDemo()} className={`w-full flex items-center gap-3 p-4 rounded-2xl border border-dashed text-left transition active:scale-[0.99] ${D?'border-white/15 bg-white/[0.02] hover:bg-white/[0.04]':'border-black/15 bg-black/[0.02] hover:bg-black/[0.04]'}`}>
+              <button onClick={()=>openDemo()} className={`w-full flex items-center gap-3 p-4 rounded-xl border border-dashed text-left transition active:scale-[0.99] ${D?'border-white/15 bg-white/[0.02] hover:bg-white/[0.04]':'border-black/15 bg-black/[0.02] hover:bg-black/[0.04]'}`}>
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-sub shrink-0 ${D?'bg-white/5':'bg-black/[0.05]'}`}><i className="ti ti-microphone" aria-hidden="true"></i></div>
                 <div className="min-w-0">
                   <p className={`font-black text-body ${D?'text-white':'text-[#111]'}`}>{t('자유 데모 보내기','Send a Demo')}</p>
@@ -721,7 +721,7 @@ export default function GuestView(){
               <p className={`text-center text-mini font-bold mb-3 ${dimText}`}>← {t('밀어서 주 이동','swipe to change week')} →</p>
               <div className="flex flex-col gap-2">
                 {weekDays.map((d,i)=>{const ds=toDateStr(d.getFullYear(),d.getMonth()+1,d.getDate()),isToday=d.toDateString()===today.toDateString(),isPast=d<new Date(new Date().toDateString()),dl=getLeadsForDate(ds);return(
-                  <div key={ds} className={`cv-row rounded-2xl p-3 border ${isToday?'border-brand-lead/50 bg-brand-lead/10':D?'border-white/5 bg-white/[0.02]':'border-black/[0.06] bg-white/70'} ${isPast&&!isToday?'opacity-50':''}`}>
+                  <div key={ds} className={`cv-row rounded-xl p-3 border ${isToday?'border-brand-lead/50 bg-brand-lead/10':D?'border-white/5 bg-white/[0.02]':'border-black/[0.06] bg-white/70'} ${isPast&&!isToday?'opacity-50':''}`}>
                     <div className={`flex items-center gap-2 mb-1.5 ${isToday?'text-brand-lead-text':i===0?'text-red-400':i===6?'text-blue-400':D?'text-zinc-300':'text-zinc-600'}`}>
                       <span className="text-body font-black">{DAYS[i]}</span>
                       <span className="text-body font-black">{d.getMonth()+1}/{d.getDate()}</span>
@@ -782,7 +782,7 @@ export default function GuestView(){
                       {translating?<><div className="w-2.5 h-2.5 border border-current border-t-transparent rounded-full animate-spin"/>번역 중</>:'EN'}
                     </button>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                     {contentLang==='en'&&getEnContent(viewingLead)
                       ?renderSections(getEnContent(viewingLead)!)
                       :renderContent(viewingLead.content||'')}
@@ -804,8 +804,8 @@ export default function GuestView(){
         </div>
       )}
 
-      {errToast&&<div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl max-w-[90vw] text-center">{errToast}</div>}
-      {shareToast&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-2xl shadow-2xl"><i className="ti ti-link" aria-hidden="true"></i> 링크가 복사됐어요!</div>}
+      {errToast&&<div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-xl shadow-2xl max-w-[90vw] text-center">{errToast}</div>}
+      {shareToast&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] bg-white/10 backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-2xl"><i className="ti ti-link" aria-hidden="true"></i> 링크가 복사됐어요!</div>}
 
       {showLeadForm&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4 overflow-y-auto">
@@ -870,7 +870,7 @@ export default function GuestView(){
                       <div className="flex items-center justify-between mb-2"><label className={`text-micro font-black uppercase tracking-widest ${D?'text-zinc-500':'text-zinc-400'}`}>데모 파일 <span className={`font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>MP3 · 최대 50MB</span></label>{pitchFiles.length>0&&<span className={`text-mini ${D?'text-zinc-600':'text-zinc-400'}`}>{pitchFiles.length}개</span>}</div>
                       {pitchFiles.length>0&&<div className="flex flex-col gap-2 mb-3">{pitchFiles.map(item=><FileItem key={item.id} item={item}/>)}</div>}
                       <input ref={fileInputRef} type="file" accept=".mp3,audio/mpeg" multiple className="hidden" onChange={handleFileInput}/>
-                      <div onDragOver={e=>e.preventDefault()} onDrop={handleFileDrop} {...pressable(() => fileInputRef.current?.click())} className={`border-2 border-dashed rounded-2xl p-6 sm:p-4 text-center cursor-pointer transition active:scale-[0.99] ${D?'border-white/10 hover:border-white/20 hover:bg-white/[0.02]':'border-black/[0.08] hover:border-black/20 hover:bg-black/[0.02]'}`}>
+                      <div onDragOver={e=>e.preventDefault()} onDrop={handleFileDrop} {...pressable(() => fileInputRef.current?.click())} className={`border-2 border-dashed rounded-xl p-6 sm:p-4 text-center cursor-pointer transition active:scale-[0.99] ${D?'border-white/10 hover:border-white/20 hover:bg-white/[0.02]':'border-black/[0.08] hover:border-black/20 hover:bg-black/[0.02]'}`}>
                         <p className={`text-body sm:text-mini font-bold ${D?'text-zinc-400':'text-zinc-500'}`}>＋ 파일 추가</p>
                         <p className={`text-mini mt-1 ${D?'text-zinc-700':'text-zinc-400'}`}>클릭 또는 드래그 · 여러 개 동시 선택</p>
                       </div>
