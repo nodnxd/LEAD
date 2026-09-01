@@ -136,7 +136,7 @@ export default function HubPage() {
       <main className="min-h-screen bg-surface-1 text-white font-ui relative overflow-hidden">
         {/* soft product orbs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full" style={{ background:'#E01F00', filter:'blur(200px)', opacity:0.10, animation:'orb-float 9s ease-in-out infinite' }} />
+          <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full" style={{ background:'#C14425', filter:'blur(200px)', opacity:0.10, animation:'orb-float 9s ease-in-out infinite' }} />
           <div className="absolute top-10 -right-40 w-[480px] h-[480px] rounded-full" style={{ background:'#E3B24A', filter:'blur(210px)', opacity:0.07, animation:'orb-float 11s ease-in-out infinite 1s' }} />
           <div className="absolute -bottom-48 left-1/3 w-[500px] h-[500px] rounded-full" style={{ background:'#2FB6A3', filter:'blur(210px)', opacity:0.07, animation:'orb-float 13s ease-in-out infinite 2s' }} />
         </div>
@@ -146,7 +146,7 @@ export default function HubPage() {
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-baseline gap-2.5">
               <span className="font-display text-body uppercase tracking-tighter flex items-center gap-1.5">
-                <span style={{ color: '#E01F00' }}>LEAD</span>
+                <span style={{ color: '#C14425' }}>LEAD</span>
                 <span aria-hidden="true" className="w-[3px] h-[3px] rounded-full bg-white/25 shrink-0" />
                 <span style={{ color: '#E3B24A' }}>CAST</span>
                 <span aria-hidden="true" className="w-[3px] h-[3px] rounded-full bg-white/25 shrink-0" />
@@ -171,28 +171,28 @@ export default function HubPage() {
           {/* ── LEAD ── company workspaces (선택형) */}
           <section>
             <div className="flex items-center gap-2.5 mb-3.5 px-1">
-              <span className="w-2 h-2 rounded-full" style={{ background:'#E01F00', boxShadow:'0 0 12px #E01F00' }} />
+              <span className="w-2 h-2 rounded-full" style={{ background:'#C14425', boxShadow:'0 0 12px #C14425' }} />
               <span className="text-body font-black tracking-tight text-white">LEAD</span>
               <span className="text-mini text-zinc-600 font-medium">{t('회사 워크스페이스', 'Company workspaces')}</span>
             </div>
             <div className="grid gap-2.5">
               {member.map(c => (
-                <button key={c.id} onClick={() => enterMember(c.id)} {...hubCard('#E01F00')}>
-                  <div {...hubIcon('#E01F00')}><i className="ti ti-microphone" aria-hidden="true"></i></div>
+                <button key={c.id} onClick={() => enterMember(c.id)} {...hubCard('#C14425')}>
+                  <div {...hubIcon('#C14425')}><i className="ti ti-microphone" aria-hidden="true"></i></div>
                   <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{c.name}</p><p className="text-mini text-zinc-500">{t('게스트로 입장', 'Enter as guest')}</p></div>
                   <span className="text-brand-lead-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
               {canHost && operate.map(c => (
-                <button key={c.id} onClick={() => enterOperate(c.id)} {...hubCard('#E01F00', true)}>
-                  <div {...hubIcon('#E01F00')}><i className="ti ti-building" aria-hidden="true"></i></div>
+                <button key={c.id} onClick={() => enterOperate(c.id)} {...hubCard('#C14425', true)}>
+                  <div {...hubIcon('#C14425')}><i className="ti ti-building" aria-hidden="true"></i></div>
                   <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{c.name}</p><p className="text-mini text-zinc-500">{c.owner ? t('대시보드 운영', 'Owner') : t('공동 관리', 'Co-manager')}</p></div>
                   <span className="text-brand-lead-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
               {!canHost && (
                 <a href="mailto:everplayground@gmail.com?subject=LEAD host access" className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-lead/25 bg-brand-lead/[0.03] hover:bg-brand-lead/[0.07] text-left transition">
-                  <div {...hubIcon('#E01F00')}>＋</div>
+                  <div {...hubIcon('#C14425')}>＋</div>
                   <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{t('LEAD 시작하기', 'Get started with LEAD')}</p><p className="text-mini text-zinc-500">{t('호스트 권한 요청', 'Request host access')}</p></div>
                 </a>
               )}

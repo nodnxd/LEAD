@@ -120,7 +120,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
             <input ref={inputRef} defaultValue="" onChange={e => setInputVal(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !(e.nativeEvent as any).isComposing) { e.preventDefault(); send(); } }}
               placeholder="메시지" className={`flex-1 px-3 py-2 rounded-xl border text-body outline-none ${ib}`} />
-            <button type="button" onClick={send} disabled={sending || !inputVal.trim()} aria-label="메시지 보내기" className="px-3 py-2 rounded-full bg-brand-lead text-white text-body font-black disabled:opacity-40 hover:bg-[#C41C00] transition"><span aria-hidden="true">→</span></button>
+            <button type="button" onClick={send} disabled={sending || !inputVal.trim()} aria-label="메시지 보내기" className="px-3 py-2 rounded-full bg-brand-lead text-white text-body font-black disabled:opacity-40 hover:bg-[#A3391F] transition"><span aria-hidden="true">→</span></button>
           </div>
         </>
       )}
@@ -734,7 +734,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         );
                       })()}
                       <button onClick={() => openConv(viewingMember.id)}
-                        className="flex-1 py-2 rounded-full bg-brand-lead text-white text-mini font-black hover:bg-[#C41C00] transition">
+                        className="flex-1 py-2 rounded-full bg-brand-lead text-white text-mini font-black hover:bg-[#A3391F] transition">
                         <i className="ti ti-message" aria-hidden="true"></i> 채팅하기
                       </button>
                     </div>
@@ -783,7 +783,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                       className={`flex-1 border rounded-xl px-3 py-2 text-body outline-none transition ${ib}`}
                     />
                     <button type="button" onClick={sendMsg} disabled={!inputVal.trim() || sending} aria-label="메시지 보내기"
-                      className="px-3 py-2 rounded-full bg-brand-lead text-white text-body font-black disabled:opacity-40 hover:bg-[#C41C00] transition"><span aria-hidden="true">→</span></button>
+                      className="px-3 py-2 rounded-full bg-brand-lead text-white text-body font-black disabled:opacity-40 hover:bg-[#A3391F] transition"><span aria-hidden="true">→</span></button>
                   </div>
                 </>
               )}

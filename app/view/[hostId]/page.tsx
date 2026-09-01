@@ -608,7 +608,7 @@ export default function GuestView(){
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-400"/>
                   <span className="text-amber-400 text-mini font-bold">HOST</span>
                 </button>
-                <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-full bg-brand-lead text-white text-micro font-black hover:bg-[#C41C00] transition">+ 리드 추가</button>
+                <button onClick={()=>openLeadForm()} className="px-3 py-1.5 rounded-full bg-brand-lead text-white text-micro font-black hover:bg-[#A3391F] transition">+ 리드 추가</button>
                 <Link href="/mypage" className={`px-3 py-1.5 rounded-full border text-micro font-black transition ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>MY</Link>
               </div>
             ):isHost&&previewMode?(

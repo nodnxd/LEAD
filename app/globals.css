@@ -8,17 +8,17 @@
   --background: #f4f2ec;   /* subscrr 계열 — 순백 대신 따뜻한 종이 */
   --foreground: #1a1712;   /* 크림 위 대비 15.96 */
 
-  --brand-lead: #e01f00;
-  --brand-lead-on-dark: #ff2500;   /* subscrr 원색. #0a0a0a 위 대비 5.2 — 작은 글씨도 통과 */
-  --brand-lead-hover: #c41c00;
+  --brand-lead: #c14425;
+  --brand-lead-on-dark: #dd684b;   /* #0a0a0a 위 5.80 / 패널 #141416 위 5.39 */
+  --brand-lead-hover: #a3391f;
   --brand-cast: #e3b24a;
   --brand-split: #2fb6a3;
 
   /* 텍스트로 쓸 때의 제품색 — 테마마다 다르다.
-     라이트 배경에서 원색을 그대로 쓰면 대비가 무너진다(골드 1.9, 틸 2.5, 주황 3.4).
+     라이트 배경에서 원색을 그대로 쓰면 대비가 무너진다(골드 1.9, 틸 2.5, 주황 3.5).
      아래 두 블록이 테마별로 갈라 주므로 화면 코드는 text-brand-*-text 하나만 쓰면 된다.
-     측정: 라이트 4.5~5.4 / 다크 5.2~10.1. */
-  --brand-lead-text: #c41c00;
+     측정: 라이트 5.1~6.1 / 다크 5.4~10.1. */
+  --brand-lead-text: #b43f22;
   --brand-cast-text: #8a6a18;
   --brand-split-text: #1e7a6d;
 
@@ -38,7 +38,7 @@
 html[data-theme="dark"] {
   --background: #0a0a0a;
   --foreground: #ededed;
-  --brand-lead-text: #ff2500;
+  --brand-lead-text: #dd684b;
   --brand-cast-text: #e3b24a;
   --brand-split-text: #2fb6a3;
 }
@@ -78,7 +78,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   /* 예전엔 Arial이 박혀 있어서 .font-pretendard가 안 붙은 화면은 전부 Arial로 나왔음 */
-  font-family: "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: "Inter Tight", "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -88,8 +88,11 @@ body {
    ui       : 본문·컨트롤 (Wanted Sans, 가변 400–1000)
    display  : 제목·큰 날짜·워드마크 (Archivo Black + Black Han Sans — 포스터 무게, 1 weight)
    mono-num : 라벨·시간·코드 (IBM Plex Mono)                                   */
+/* 라틴은 Inter Tight(subscrr 레퍼런스와 같은 얼굴), 한글은 Wanted Sans가 이어받는다.
+   Inter Tight에 한글 글리프가 없어 자동으로 다음 서체로 넘어간다 — subscrr도 같은 구조로
+   라틴 Inter + 한글 시스템 서체를 쓴다. 다만 우리는 한글을 시스템에 안 맡기고 Wanted Sans로 받는다. */
 .font-ui {
-  font-family: "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: "Inter Tight", "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.005em;
 }
@@ -141,7 +144,7 @@ button, a, input, textarea, select, [role="button"] {
 }
 
 /* 텍스트 선택 색 */
-::selection { background: rgba(91, 140, 255, 0.30); color: inherit; }
+::selection { background: color-mix(in srgb, var(--brand-lead) 30%, transparent); color: inherit; }
 
 /* macOS WebKit가 select에 입히는 네이티브 스타일(이중 화살표) 제거 */
 select {
@@ -160,7 +163,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 :focus { outline: none; }
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(91, 140, 255, 0.55);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-lead-text) 70%, transparent);
   border-radius: 8px;
 }
 
@@ -178,8 +181,18 @@ select {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
-/* 포커스는 밑선 색으로만 알린다 (전역 :focus-visible 링은 그대로 유효) */
-input:focus, textarea:focus, select:focus { border-bottom-color: var(--brand-lead-text) !important; }
+/* 상자를 없앴으니 포커스도 밑선으로 말한다. 전역 :focus-visible 링(사각 박스)은
+   밑줄 입력 위에 뜨면 없앤 상자가 되살아난 것처럼 보여서 여기서만 끈다.
+   대신 밑선을 2px + 브랜드색으로 올려 표시는 남긴다 — 포커스 표시를 지우는 게 아니다.
+   위 기본 규칙과 같은 :not() 체인을 반복하는 이유는 특이도다. 둘 다 !important라
+   체인이 짧으면 기본 규칙(1px)이 이겨서 포커스가 안 보인다. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="date"]):not([type="color"]):not([type="range"]):not([type="month"]):focus,
+textarea:focus,
+select:focus {
+  box-shadow: none !important;
+  border-bottom-width: 2px !important;
+  border-bottom-color: var(--brand-lead-text) !important;
+}
 
 /* ── 빈 화면 = 점선 상자 (2026-09-01, subscrr 계열 결정) ──────────────────
    "여기 담길 자리"를 선으로 말한다. 정적 className 자리라 D?라이트/다크 삼항을 못 쓰는데,

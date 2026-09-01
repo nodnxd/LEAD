@@ -850,7 +850,7 @@ export default function GuestView(){
                 {hidePast?t('지난 리드 숨김','Hiding past'):t('지난 리드 숨기기','Hide past')}
               </button>
             </div>
-            <button onClick={()=>openLeadForm()} className="px-3.5 py-1.5 rounded-full text-mini font-bold bg-brand-lead text-white hover:bg-[#C41C00] transition whitespace-nowrap">+ {t('리드 추가','Add Lead')}</button>
+            <button onClick={()=>openLeadForm()} className="px-3.5 py-1.5 rounded-full text-mini font-bold bg-brand-lead text-white hover:bg-[#A3391F] transition whitespace-nowrap">+ {t('리드 추가','Add Lead')}</button>
           </div>
           )}
           <div className={`grid grid-cols-3 sm:grid-cols-6 gap-1 border rounded-xl p-1 ${D?' border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
@@ -868,7 +868,7 @@ export default function GuestView(){
             </div>
             {workspaces.length>=1&&(
               <div className="relative" ref={wsPickerRef}>
-                <button onClick={()=>setShowWsPicker(s=>!s)} className={`px-3 py-1.5 rounded-full border text-micro font-normal transition whitespace-nowrap ${D?'border-brand-lead/30 bg-brand-lead/10 text-[#FF7A5C]':'border-brand-lead/25 bg-brand-lead/5 text-[#C41C00]'}`}>{workspaces.find(w=>w.id===hostId)?.name||t('워크스페이스','Workspace')} ▾</button>
+                <button onClick={()=>setShowWsPicker(s=>!s)} className={`px-3 py-1.5 rounded-full border text-micro font-normal transition whitespace-nowrap ${D?'border-brand-lead/30 bg-brand-lead/10 text-[#E7937E]':'border-brand-lead/25 bg-brand-lead/5 text-[#A3391F]'}`}>{workspaces.find(w=>w.id===hostId)?.name||t('워크스페이스','Workspace')} ▾</button>
                 {showWsPicker&&(
                   <div className={`anim-rise absolute left-0 mt-2 w-60 z-[80] rounded-xl border shadow-lg overflow-hidden ${D?' border-white/10':' border-black/[0.08]'}`}>
                     <p className={`text-micro font-black uppercase tracking-widest px-4 pt-3 pb-1 ${dimText}`}>{t('내 워크스페이스','My workspaces')}</p>
@@ -1012,7 +1012,7 @@ export default function GuestView(){
                                     </div>
                                     <div className={`flex items-center justify-between gap-2 pt-2 border-t border-dashed ${D?'border-white/[0.07]':'border-black/[0.07]'}`}>
                                       {files.length>1?<button onClick={()=>downloadMany(dlFiles)} disabled={zipping} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-mini font-bold transition disabled:opacity-50 ${D?'border border-white/10 bg-white/5 text-zinc-300 hover:text-white':'border border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}><i className="ti ti-download" aria-hidden="true"></i>{zipping?t('압축 중…','Zipping…'):t('전부 다운로드','Download all')}</button>:<span/>}
-                                      <button onClick={()=>setPitchHidden(p,!p.hidden)} title={p.hidden?t('목록으로 복구','Restore to list'):t('확인하면 목록에서 사라져요 (히스토리는 남음)','Marks reviewed and hides from list (kept in history)')} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-mini font-bold transition ${p.hidden?'text-brand-lead-text hover:opacity-80':'bg-brand-lead text-white hover:bg-[#C41C00]'}`}>{p.hidden?<><i className="ti ti-arrow-back-up" aria-hidden="true"></i>{t('복구','Restore')}</>:<><i className="ti ti-check" aria-hidden="true"></i>{t('확인','Done')}</>}</button>
+                                      <button onClick={()=>setPitchHidden(p,!p.hidden)} title={p.hidden?t('목록으로 복구','Restore to list'):t('확인하면 목록에서 사라져요 (히스토리는 남음)','Marks reviewed and hides from list (kept in history)')} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-mini font-bold transition ${p.hidden?'text-brand-lead-text hover:opacity-80':'bg-brand-lead text-white hover:bg-[#A3391F]'}`}>{p.hidden?<><i className="ti ti-arrow-back-up" aria-hidden="true"></i>{t('복구','Restore')}</>:<><i className="ti ti-check" aria-hidden="true"></i>{t('확인','Done')}</>}</button>
                                     </div>
                                   </div>
                                 );
@@ -1404,7 +1404,7 @@ export default function GuestView(){
                     </div>
                     <div><label className={`text-micro font-black uppercase tracking-widest mb-1.5 block ${D?'text-zinc-500':'text-zinc-400'}`}>메시지 <span className={`font-normal normal-case ${D?'text-zinc-700':'text-zinc-400'}`}>(선택)</span></label><textarea value={pitchForm.message} onChange={e=>setPitchForm(p=>({...p,message:e.target.value}))} placeholder="한마디, 포트폴리오 링크 등" rows={2} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition resize-none leading-relaxed ${inputCls}`}/></div>
                   </div>
-                  {pitchLoading&&<div className="mt-4"><div className="flex items-center justify-between mb-1.5"><span className={`text-mini ${dimText}`}>업로드 중...</span><span className={`text-mini font-bold ${D?'text-zinc-400':'text-zinc-500'}`}>{uploadProgress}%</span></div><div className={`w-full h-1.5 rounded-full overflow-hidden ${D?'bg-white/10':'bg-black/[0.08]'}`}><div className="h-full bg-gradient-to-r from-brand-lead to-[#FF7A5C] rounded-full transition" style={{width:`${uploadProgress}%`}}/></div></div>}
+                  {pitchLoading&&<div className="mt-4"><div className="flex items-center justify-between mb-1.5"><span className={`text-mini ${dimText}`}>업로드 중...</span><span className={`text-mini font-bold ${D?'text-zinc-400':'text-zinc-500'}`}>{uploadProgress}%</span></div><div className={`w-full h-1.5 rounded-full overflow-hidden ${D?'bg-white/10':'bg-black/[0.08]'}`}><div className="h-full bg-gradient-to-r from-brand-lead to-[#E7937E] rounded-full transition" style={{width:`${uploadProgress}%`}}/></div></div>}
                   {uploadError&&<p className="mt-3 text-red-400 text-mini bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">{uploadError}</p>}
                   <div className="flex gap-3 mt-5">
                     <button onClick={()=>{setPitchingLead(null);setPitchSent(false);}} disabled={pitchLoading} className={`flex-1 py-3 rounded-full border font-bold text-body transition disabled:opacity-40 ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>취소</button>
