@@ -78,7 +78,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   /* 예전엔 Arial이 박혀 있어서 .font-pretendard가 안 붙은 화면은 전부 Arial로 나왔음 */
-  font-family: "Inter Tight", "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: "Outfit", "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -88,11 +88,13 @@ body {
    ui       : 본문·컨트롤 (Wanted Sans, 가변 400–1000)
    display  : 제목·큰 날짜·워드마크 (Archivo Black + Black Han Sans — 포스터 무게, 1 weight)
    mono-num : 라벨·시간·코드 (IBM Plex Mono)                                   */
-/* 라틴은 Inter Tight(subscrr 레퍼런스와 같은 얼굴), 한글은 Wanted Sans가 이어받는다.
-   Inter Tight에 한글 글리프가 없어 자동으로 다음 서체로 넘어간다 — subscrr도 같은 구조로
-   라틴 Inter + 한글 시스템 서체를 쓴다. 다만 우리는 한글을 시스템에 안 맡기고 Wanted Sans로 받는다. */
+/* 라틴은 Outfit, 한글은 Wanted Sans가 이어받는다(Outfit에 한글 글리프가 없어 자동 폴백).
+   레퍼런스(gdrinkme.com)의 본문 라틴은 Halenoir인데 Groteskly Yours 유료 서체라 못 싣는다.
+   Outfit을 고른 근거는 두 특성이 겹쳐서다 — 기하학적 산세리프 + 낮은 x높이(Halenoir 0.712).
+   Poppins도 기하학적이지만 x높이가 훨씬 높아 리듬이 다르다.
+   라이선스를 사면 여기 Outfit 자리에 Halenoir를 넣으면 끝난다. */
 .font-ui {
-  font-family: "Inter Tight", "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: "Outfit", "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.005em;
 }

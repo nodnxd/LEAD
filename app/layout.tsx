@@ -10,7 +10,7 @@ const FONTS =
   "?family=Archivo+Black" +                                 // 디스플레이 라틴 (1 weight)
   "&family=Black+Han+Sans" +                                // 디스플레이 한글 (1 weight)
   "&family=IBM+Plex+Mono:wght@400;500;600" +                // 라벨·카운트
-  "&family=Inter+Tight:wght@400;500;600;700" +             // 본문 라틴 (subscrr 레퍼런스)
+  "&family=Outfit:wght@400;500;600;700;800" +              // 본문 라틴 (gdrinkme의 Halenoir 대역 — 기하학적·낮은 x높이)
   "&display=swap";
 
 // 본문·컨트롤 (Wanted Sans, 가변 400–1000). Google Fonts에 없어서 jsDelivr에서 받는다.
