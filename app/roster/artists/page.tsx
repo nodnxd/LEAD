@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useLang, LangToggle } from '@/lib/lang';
 import { QUICK_LINKS, getLinkIcon, linkName } from '@/lib/links';
 import Toast from '@/components/Toast';
+import { genderColor } from '@/lib/brand';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -305,7 +306,7 @@ export default function ArtistsPage() {
                               <h3 className="text-white font-black text-body truncate">{artist.name}</h3>
                               <div className="flex items-center gap-1 mt-0.5">
                                 {artist.nationality && <span className="text-zinc-500 text-micro">{artist.nationality}</span>}
-                                <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: artist.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={artist.gender === 'female' ? 'F' : 'M'} />
+                                <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: genderColor(artist.gender, true) }} title={artist.gender === 'female' ? 'F' : 'M'} />
                               </div>
                             </div>
                           </div>
@@ -350,7 +351,7 @@ export default function ArtistsPage() {
                   <h2 className="text-white font-black text-title">{viewingArtist.name}</h2>
                   <div className="flex items-center gap-2 mt-1">
                     {viewingArtist.nationality && <span className="text-zinc-500 text-mini"><i className="ti ti-world" aria-hidden="true"></i> {viewingArtist.nationality}</span>}
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: viewingArtist.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={viewingArtist.gender === 'female' ? 'F' : 'M'} />
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: genderColor(viewingArtist.gender, true) }} title={viewingArtist.gender === 'female' ? 'F' : 'M'} />
                   </div>
                 </div>
               </div>

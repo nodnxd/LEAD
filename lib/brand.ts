@@ -32,3 +32,26 @@ export const PRODUCTS: { key: ProductKey; label: string; href: string }[] = [
   { key: 'cast',  label: 'CAST',  href: '/roster/dashboard' },
   { key: 'split', label: 'SPLIT', href: '/split' },
 ];
+
+// ── 성별색 ────────────────────────────────────────────────────────────────
+// 로스터에서 남/여를 점 하나로 말한다. 예전엔 화면마다 hex를 인라인으로 박아
+// 일곱 군데에 흩어져 있었다(#7E97C9 / #DB8FA9) — 바꾸려면 전부 찾아야 했다.
+//
+// 값을 하늘/벽돌로 고른 이유는 대비다. 옛 조합은 남↔여 대비가 1.19라
+// 두 점의 밝기가 사실상 같았고, 그래서 흑백 캡처·색약에서 구분이 안 됐다.
+// 콜시트를 이미지로 내보내는 기능이 있어 이건 실제로 걸리는 문제였다.
+//   다크  : 남 #9CC4F0 / 여 #B85C38 — 남↔여 2.50, 바탕 대비 10.91 / 4.36
+//   라이트: 남 #4A83BC / 여 #A45230 — 남↔여 1.38, 흰 배경 3.99 / 5.49
+// 라이트를 따로 두는 이유: 하늘색 원본은 흰 배경에서 대비 1.82라 거의 안 보인다.
+// ⚠️ 알려진 한계 — 다크 조합은 적록색약 D형에서 1.23으로 구분이 약하다
+//    (P형은 3.14로 좋다). 더 벌리려면 여자색을 #94492B 쪽으로 더 어둡게.
+export const GENDER_COLORS = {
+  dark:  { male: '#9CC4F0', female: '#B85C38' },
+  light: { male: '#4A83BC', female: '#A45230' },
+};
+
+/** 성별 점 색. gender 값이 'female' | 'F' | '여' 로 섞여 들어와서 한 곳에서 흡수한다. */
+export const genderColor = (gender: string | null | undefined, dark: boolean) =>
+  GENDER_COLORS[dark ? 'dark' : 'light'][
+    gender === 'female' || gender === 'F' || gender === '여' ? 'female' : 'male'
+  ];

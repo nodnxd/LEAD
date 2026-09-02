@@ -14,6 +14,7 @@ import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 import ProductHeader from '@/components/ProductHeader';
 import { QUICK_LINKS, getLinkIcon } from '@/lib/links';
 import Toast from '@/components/Toast';
+import { genderColor } from '@/lib/brand';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -1204,7 +1205,7 @@ export default function Dashboard() {
             ctx.font = 'bold 15px system-ui, sans-serif'; ctx.fillStyle = '#fff';
             ctx.fillText(m.name, mx + 14, my + mh * 0.46);
             const nameW = ctx.measureText(m.name).width;
-            const gColor = m.gender === 'female' ? '#DB8FA9' : '#7E97C9';
+            const gColor = genderColor(m.gender, true);
             const gLabel = m.gender === 'female' ? 'F' : 'M';
             const bx2 = mx + 14 + nameW + 6; const by2 = my + mh * 0.2;
             const bw = 20; const bh = 15;
@@ -1336,7 +1337,7 @@ export default function Dashboard() {
         ctx.fillText(m.name, mx + 16, my + mh * 0.44);
         const nameW = ctx.measureText(m.name).width;
         // M/F 뱃지 (UI처럼 배경 있는 둥근 뱃지)
-        const gColor = m.gender === 'female' ? '#DB8FA9' : '#7E97C9';
+        const gColor = genderColor(m.gender, true);
         const gLabel = m.gender === 'female' ? 'F' : 'M';
         const bx2 = mx + 22 + nameW; const by2 = my + mh * 0.2;
         const bw = 20; const bh = 15;
@@ -1949,7 +1950,7 @@ export default function Dashboard() {
                       <p className="text-micro font-black uppercase tracking-widest shrink-0" style={{ color: color + '99' }}>{label} {list.length}</p>
                       {list.map((m: any) => (
                         <span key={m.id} className="flex items-center gap-1.5 text-mini font-semibold px-2 py-1 rounded-full" style={{ backgroundColor: color + '14', color: color }}>
-                          <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} />
+                          <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: genderColor(m.gender, theme === 'dark') }} />
                           {m.name}
                         </span>
                       ))}
@@ -2142,7 +2143,7 @@ export default function Dashboard() {
                                             ) : (
                                               <div className="flex flex-col items-center text-center overflow-hidden">
                                                 <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-lead font-bold italic flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
-                                                  <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={m.gender === 'female' ? 'F' : 'M'} />
+                                                  <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: genderColor(m.gender, theme === 'dark') }} title={m.gender === 'female' ? 'F' : 'M'} />
                                                   {m.name}
                                                   {getAttendanceBadge(m.attendance)}
                                                   {isBusyOn(m.id) && <span className="text-micro font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22', border: '1px solid #E0575F55' }}>{t.busy}</span>}

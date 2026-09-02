@@ -9,6 +9,7 @@ import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 import { onDbError } from '@/lib/dbErrors';
 import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 import { getLinkIcon, linkName } from '@/lib/links';
+import { genderColor } from '@/lib/brand';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -315,7 +316,7 @@ export default function GuestView() {
     >
       <div className="flex flex-col overflow-hidden pl-1">
         <span className={`text-lead font-bold flex items-center gap-1.5 ${textMain}`}>
-          <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: m.gender === 'female' ? '#DB8FA9' : '#7E97C9' }} title={m.gender === 'female' ? 'F' : 'M'} />
+          <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: genderColor(m.gender, theme === 'dark') }} title={m.gender === 'female' ? 'F' : 'M'} />
           {m.name}
           {m.links?.length > 0 && <span className="text-mini"><i className="ti ti-link" aria-hidden="true"></i></span>}
         </span>
