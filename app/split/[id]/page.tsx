@@ -345,7 +345,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-mini text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
   const hfield = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
 
-  if (loading || !sheet) return <div className={`min-h-[100dvh] flex items-center justify-center ${D ? 'bg-surface-0 text-white/55' : 'bg-[#f6f6f7] text-black/40'}`}>…</div>;
+  if (loading || !sheet) return <div className={`font-ui min-h-[100dvh] flex items-center justify-center ${D ? 'bg-surface-0 text-white/55' : 'bg-[#f6f6f7] text-black/40'}`}>…</div>;
 
   const locked = !!sheet.locked;
   const editable = isOwner && !locked;         // owner may edit only while unlocked
@@ -353,7 +353,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const needMySign = myUnsigned.length > 0 && !locked;
 
   return (
-    <div className={`min-h-[100dvh] ${D ? 'bg-surface-0 text-white' : 'split-light bg-[#f6f6f7] text-[#1a1a1a]'}`}>
+    <div className={`font-ui min-h-[100dvh] ${D ? 'bg-surface-0 text-white' : 'split-light bg-[#f6f6f7] text-[#1a1a1a]'}`}>
       {!D && <style dangerouslySetInnerHTML={{ __html: `
         .split-light .text-white{color:#1a1a1a}
         .split-light .text-white\\/55{color:rgb(0 0 0/.6)}

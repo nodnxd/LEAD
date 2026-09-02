@@ -61,9 +61,9 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
 
   const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
 
-  if (loading) return <div className="min-h-[100dvh] bg-surface-0 flex items-center justify-center text-white/55">…</div>;
+  if (loading) return <div className="font-ui min-h-[100dvh] bg-surface-0 flex items-center justify-center text-white/55">…</div>;
   if (!data) return (
-    <div className="min-h-[100dvh] bg-surface-0 flex flex-col items-center justify-center gap-2 text-white px-6 text-center">
+    <div className="font-ui min-h-[100dvh] bg-surface-0 flex flex-col items-center justify-center gap-2 text-white px-6 text-center">
       <p className="text-white/70">{t('유효하지 않은 서명 링크예요.', 'This signing link is invalid.')}</p>
     </div>
   );
@@ -73,7 +73,7 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
   const catLabel = (k: string) => { const c = CATEGORIES.find((x) => x.key === k); return c ? (lang === 'en' ? c.en : c.label) : ''; };
 
   return (
-    <div className="min-h-[100dvh] bg-surface-0 text-white">
+    <div className="font-ui min-h-[100dvh] bg-surface-0 text-white">
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
           <h1 className="text-sub font-bold">Split Sheet · {t('서명', 'Sign')}</h1>

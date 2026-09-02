@@ -88,7 +88,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
 
   return (
     <div className={`fixed z-[55] rounded-xl border shadow-lg flex flex-col ${bd}`}
-      style={{ left: pos.x, top: pos.y, width: winW, height: collapsed ? 'auto' : (isMobile ? '70vh' : 460), backgroundColor: D ? '#0f0f0f' : '#ffffff', opacity: opacity / 100, fontFamily: 'Pretendard,sans-serif' }}>
+      style={{ left: pos.x, top: pos.y, width: winW, height: collapsed ? 'auto' : (isMobile ? '70vh' : 460), backgroundColor: D ? '#0f0f0f' : '#ffffff', opacity: opacity / 100 }}>
       <div onMouseDown={(e) => { dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y }; }}
         onTouchStart={(e) => { const t = e.touches[0]; dragRef.current = { dx: t.clientX - pos.x, dy: t.clientY - pos.y }; }}
         className={`flex items-center gap-2 px-3 py-2.5 border-b cursor-move select-none touch-none ${bd}`}>
@@ -437,7 +437,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
       {toast && (
         <div
           className="fixed top-5 right-5 z-[60] max-w-[280px] rounded-xl shadow-lg border cursor-pointer overflow-hidden"
-          style={{ backgroundColor: D ? '#1a1a1a' : '#fff', borderColor: D ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)', fontFamily: 'Pretendard,sans-serif' }}
+          style={{ backgroundColor: D ? '#1a1a1a' : '#fff', borderColor: D ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' }}
           {...pressable(() => { openConv(toast.senderId); setToast(null); })}
         >
           <div className="flex items-start gap-2.5 px-4 py-3">
@@ -483,7 +483,6 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
           className={`fixed ${liftMobile ? 'bottom-[140px] sm:bottom-[76px]' : 'bottom-[76px]'} right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[360px] rounded-xl border shadow-lg flex flex-col transition duration-200 ${bd}`}
           style={{
             height: minimized ? 'auto' : 'min(500px, 75vh)',
-            fontFamily: 'Pretendard,sans-serif',
             opacity: opacity / 100,
             backgroundColor: D ? '#0d0d0d' : '#ffffff',
             backdropFilter: 'blur(24px)',

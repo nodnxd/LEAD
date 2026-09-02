@@ -122,7 +122,7 @@ export default function SplitIndex() {
   if (loading) return <div className={`min-h-[100dvh] flex items-center justify-center ${bg} ${faint}`}>…</div>;
 
   return (
-    <div className={`min-h-[100dvh] ${bg}`}>
+    <div className={`font-ui min-h-[100dvh] ${bg}`}>
       <div className="w-full px-5 lg:px-8 py-8">
         {/* header */}
         <h1 className="sr-only">{t('스플릿시트', 'Split sheets')}</h1>
