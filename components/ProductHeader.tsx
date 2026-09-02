@@ -13,15 +13,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { BRAND, PRODUCTS, PRODUCT_COLOR, type ProductKey } from '@/lib/brand';
-import { stepWheel, initialArm } from '@/lib/wheelNav';
+import { stepWheel, initialArm, insideHorizontalScroller, modalOpen } from '@/lib/wheelNav';
 
 export type { ProductKey };
 export { PRODUCT_COLOR };
 
 // ── 휠 전환의 2중장치 ────────────────────────────────────────────────────────
-//   1단 — 포인터가 토글 위에 있을 때만 반응한다(리스너를 nav에만 건다).
-//   2단 — 가로 델타를 누적해 임계값을 넘겨야 넘어간다. 진행률을 눈에 보이게 그려서
-//         "지금 넘어가는 중"임을 알린다. 손을 떼면 DECAY_MS 뒤 0으로 풀린다.
+// 화면 어디서 휠을 굴려도 받는다. 그만큼 오발 여지가 커지므로 두 겹으로 막는다.
+//   1단 — "가로 의도"만 통과시킨다. 가로 델타가 세로보다 커야 하고(또는 Shift+휠),
+//         가로 스크롤이 아직 남은 영역 위면 그쪽에 양보하고, 모달이 떠 있으면 무시한다.
+//   2단 — 가로 델타를 ARM_PX(220px)까지 누적해야 넘어간다. 진행률을 토글 가장자리에
+//         그려서 "지금 넘어가는 중"을 보여주고, 손을 떼면 DECAY_MS 뒤 풀린다.
 // 판정 자체는 lib/wheelNav.ts (임계값·쿨다운·방향반전·끝단 처리 + 테스트).
 const DECAY_MS = 320;
 
@@ -47,16 +49,12 @@ export default function ProductHeader({
   const muted = dark ? 'text-zinc-400' : 'text-zinc-600';
 
   const router = useRouter();
-  const navRef = useRef<HTMLElement | null>(null);
   const armState = useRef(initialArm());
   const decayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // -1..1 — 어느 쪽으로 얼마나 찼는지. 인디케이터를 그리는 데만 쓴다.
   const [arm, setArm] = useState(0);
 
   useEffect(() => {
-    const el = navRef.current;
-    if (!el) return;
-
     // wheel은 기본이 passive라 React onWheel로는 preventDefault를 못 한다.
     // 가로 휠이 브라우저 뒤로가기 제스처를 부르는 걸 막아야 해서 직접 건다.
     const onWheel = (e: WheelEvent) => {
@@ -64,8 +62,14 @@ export default function ProductHeader({
       // 세로 휠뿐인 마우스를 위해 Shift+휠도 가로로 인정한다.
       const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.shiftKey ? e.deltaY : 0;
       if (!dx) return;
+
+      // ── 1단 ──
+      if (modalOpen(document)) return;
+      if (insideHorizontalScroller(e.target as Element | null, dx)) return;
+
       e.preventDefault();
 
+      // ── 2단 ──
       const r = stepWheel(armState.current, dx, Date.now(), idx, PRODUCTS.length);
       armState.current = r.state;
       setArm(r.arm);
@@ -79,9 +83,9 @@ export default function ProductHeader({
       if (r.move) router.push(PRODUCTS[idx + r.move].href);
     };
 
-    el.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('wheel', onWheel, { passive: false });
     return () => {
-      el.removeEventListener('wheel', onWheel);
+      window.removeEventListener('wheel', onWheel);
       if (decayTimer.current) clearTimeout(decayTimer.current);
     };
   }, [idx, router]);
@@ -117,9 +121,8 @@ export default function ProductHeader({
         </div>
 
         <nav
-          ref={navRef}
           aria-label="제품 전환"
-          title="가로 휠(또는 Shift+휠)로 전환"
+          title="가로 휠(또는 Shift+휠)로 전환 — 화면 어디서나"
           className={`relative flex gap-1 p-1 rounded-full border overscroll-contain ${pillWrap}`}
           style={{ touchAction: 'pan-y' }}
         >
