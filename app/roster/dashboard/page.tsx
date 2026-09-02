@@ -1367,7 +1367,7 @@ export default function Dashboard() {
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     const x = cv.getContext('2d')!;
-    const sans = (w: string, sz: number) => `${w} ${sz}px "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", sans-serif`;
+    const sans = (w: string, sz: number) => `${w} ${sz}px "Unbounded", "Gothic A1", -apple-system, "Apple SD Gothic Neo", sans-serif`;
     // 디스플레이는 굵기 400 하나뿐 — 라틴 Archivo Black, 한글 Black Han Sans
     const serif = (_w: string, sz: number) => `400 ${sz}px "Archivo Black", "Black Han Sans", sans-serif`;
     const mono = (w: string, sz: number) => `${w} ${sz}px "IBM Plex Mono", ui-monospace, monospace`;
@@ -1654,45 +1654,54 @@ export default function Dashboard() {
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className={`flex p-1 rounded-lg border gap-1 shadow-lg backdrop-blur-md ${inputBg}`}>
+                  {/* 한 줄 안에 입력·셀렉트·버튼이 섞이는 자리. 정렬이 어긋나던 이유가 둘이었다 —
+                      (1) 컨테이너에 items-center가 없어 높이가 제각각 늘어났고,
+                      (2) 전역 입력 규칙(밑줄+padding 0)이 여기서도 걸려 글자가 벽에 붙고
+                          바 테두리와 밑줄이 두 겹이 됐다. field-bare로 그 규칙만 빼고,
+                          간격은 컨테이너의 gap과 각 필드의 px로 준다. */}
+                  <div className={`flex items-center p-1 pl-1.5 rounded-full border gap-1.5 shadow-lg backdrop-blur-md ${inputBg}`}>
                     <input value={name} onChange={e => setName(e.target.value)}
                       onCompositionStart={() => { isComposing.current = true; }}
                       onCompositionEnd={() => { isComposing.current = false; }}
                       onKeyDown={e => { if (e.key === 'Enter' && !isComposing.current) handleJoin(); }}
                       placeholder={t.namePlaceholder}
-                      className={`bg-transparent px-3 text-mini outline-none w-28 ${textMain}`} />
-                    <select value={role} onChange={e => setRole(e.target.value)} className={`bg-transparent text-mini font-bold outline-none px-1 ${textMain}`}>
+                      aria-label={t.namePlaceholder}
+                      className={`field-bare bg-transparent border-0 rounded-full px-3 py-1.5 text-mini outline-none w-32 ${textMain}`} />
+                    <span aria-hidden="true" className={`w-px self-stretch my-1 ${theme === 'light' ? 'bg-black/10' : 'bg-white/12'}`} />
+                    <select value={role} onChange={e => setRole(e.target.value)} aria-label={lang === 'ko' ? '역할' : 'Role'}
+                      className={`field-bare bg-transparent border-0 rounded-full text-mini font-bold outline-none px-2 py-1.5 cursor-pointer ${textMain}`}>
                       {ROLES.map(r => <option key={r} className={theme === 'light' ? 'bg-white' : 'bg-zinc-900'}>{r}</option>)}
                     </select>
-                    <select value={gender} onChange={e => setGender(e.target.value)} className={`bg-transparent text-mini font-bold outline-none px-1 ${textMain}`}>
+                    <select value={gender} onChange={e => setGender(e.target.value)} aria-label={lang === 'ko' ? '성별' : 'Gender'}
+                      className={`field-bare bg-transparent border-0 rounded-full text-mini font-bold outline-none px-2 py-1.5 cursor-pointer ${textMain}`}>
                       <option value="male" className={theme === 'light' ? 'bg-white' : 'bg-zinc-900'}>M</option>
                       <option value="female" className={theme === 'light' ? 'bg-white' : 'bg-zinc-900'}>F</option>
                     </select>
-                    <button type="button" onClick={handleJoin} className={`px-3 py-1 rounded-full font-bold text-mini ${theme === 'light' ? 'bg-black text-white' : 'bg-white text-black'}`}>{t.join}</button>
+                    <button type="button" onClick={handleJoin} className={`px-4 py-2 rounded-full font-bold text-mini tracking-[0.08em] transition ${theme === 'light' ? 'bg-black text-white hover:bg-black/85' : 'bg-white text-black hover:bg-white/85'}`}>{t.join}</button>
                   </div>
                 </div>
               </div>
               {/* 2줄 — 자주 쓰는 것만 밖에, 나머지는 더보기 안에 */}
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <button onClick={addStudio} title={t.studioHint}
-                  className={`px-3.5 py-1.5 rounded-full border font-bold text-mini transition text-brand-cast-text ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
+                  className={`px-4 py-2 rounded-full border font-bold text-mini transition text-brand-cast-text ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
                 {(votingOpen || availPoll) && (
                   <button onClick={() => votingOpen
                     ? showConfirm(t.voteClose, t.closeVoteConfirm, async () => { await closeVoting(); setConfirmModal(null); })
                     : (setAvailSelDay(null), setShowAvailModal(true))}
-                    className="px-4 py-1.5 rounded-full font-bold text-mini transition border bg-brand-cast/20 border-brand-cast/40 text-[#EFCF8E] hover:bg-brand-cast/30 flex items-center gap-1.5">
+                    className="px-4 py-2 rounded-full font-bold text-mini transition border bg-brand-cast/20 border-brand-cast/40 text-[#EFCF8E] hover:bg-brand-cast/30 flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-cast animate-pulse" />
                     {votingOpen ? t.voteClose : `${t.availOpen} ${t.availLive}`}
                   </button>
                 )}
-                <button onClick={copyShareLink} className={`px-4 py-1.5 rounded-full border font-normal text-mini transition ${btnBg}`}>{t.share}</button>
+                <button onClick={copyShareLink} className={`px-4 py-2 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.share}</button>
                 <button onClick={() => setRandomModal(true)}
-                  className="bg-brand-cast text-white px-5 py-1.5 rounded-full font-normal text-mini hover:opacity-90 transition uppercase tracking-tighter">{t.random}</button>
+                  className="bg-brand-cast text-white px-5 py-2 rounded-full font-bold text-mini hover:opacity-90 transition uppercase tracking-[0.06em]">{t.random}</button>
 
                 {/* 더보기 */}
                 <div className="relative">
                   <button onClick={() => setMenuOpen(v => !v)} title={t.more}
-                    aria-label={t.more} aria-expanded={menuOpen} className={`px-3.5 py-1.5 rounded-full border font-black text-body leading-none transition ${menuOpen ? 'border-brand-cast/50 text-brand-cast-text bg-brand-cast/10' : btnBg}`}>⋯</button>
+                    aria-label={t.more} aria-expanded={menuOpen} className={`px-4 py-2 rounded-full border font-black text-body leading-none transition ${menuOpen ? 'border-brand-cast/50 text-brand-cast-text bg-brand-cast/10' : btnBg}`}>⋯</button>
                   {menuOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />

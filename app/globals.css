@@ -78,30 +78,31 @@ body {
   background: var(--background);
   color: var(--foreground);
   /* 예전엔 Arial이 박혀 있어서 .font-pretendard가 안 붙은 화면은 전부 Arial로 나왔음 */
-  font-family: "Outfit", "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: "Unbounded", "Gothic A1", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
 /* ── 타이포 역할 ──
-   ui       : 본문·컨트롤 (Wanted Sans, 가변 400–1000)
+   ui       : 본문·컨트롤 (라틴 Unbounded + 한글 Gothic A1)
    display  : 제목·큰 날짜·워드마크 (Archivo Black + Black Han Sans — 포스터 무게, 1 weight)
    mono-num : 라벨·시간·코드 (IBM Plex Mono)                                   */
-/* 라틴은 Outfit, 한글은 Wanted Sans가 이어받는다(Outfit에 한글 글리프가 없어 자동 폴백).
-   레퍼런스(gdrinkme.com)의 본문 라틴은 Halenoir인데 Groteskly Yours 유료 서체라 못 싣는다.
-   Outfit을 고른 근거는 두 특성이 겹쳐서다 — 기하학적 산세리프 + 낮은 x높이(Halenoir 0.712).
-   Poppins도 기하학적이지만 x높이가 훨씬 높아 리듬이 다르다.
-   라이선스를 사면 여기 Outfit 자리에 Halenoir를 넣으면 끝난다. */
+/* 라틴은 Unbounded, 한글은 Gothic A1이 이어받는다(Unbounded에 한글 글리프가 없어 자동 폴백).
+   Unbounded는 기하학적·폭 넓음·획 균일이 특징이라, 한글도 그 셋을 맞춰야 한 서체처럼 읽힌다.
+   Gothic A1을 고른 이유가 그거다 — 획이 균일하고 네모틀에 꽉 차서 구조가 맞고,
+   폭도 후보 중 가장 넓어(같은 문장 625px, 다른 후보 568~608) 넓은 라틴 옆에서 눌리지 않는다.
+   Unbounded가 개성을 이미 다 쓰고 있으므로 한글은 조용한 쪽이 맞다.
+   ⚠️ Unbounded는 원래 디스플레이체다. 12px 이하로는 내리지 말 것. */
 .font-ui {
-  font-family: "Outfit", "Wanted Sans Variable", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: "Unbounded", "Gothic A1", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.005em;
 }
 /* 디스플레이는 굵기가 400 하나뿐 — 라틴은 Archivo Black, 한글은 Black Han Sans가 받는다.
    font-bold 같은 걸 얹으면 브라우저가 가짜 볼드를 만들어 뭉개지므로 400으로 못박음. */
 .font-display {
-  font-family: "Archivo Black", "Black Han Sans", "Wanted Sans Variable", "Apple SD Gothic Neo", sans-serif;
+  font-family: "Archivo Black", "Black Han Sans", "Gothic A1", "Apple SD Gothic Neo", sans-serif;
   font-weight: 400 !important;
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.025em;
@@ -173,10 +174,12 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
    상자를 없애고 아래 선만 남긴다. 인라인 클래스 100여 곳을 고치는 대신 여기서 한 번에
    덮는다 — 되돌릴 때도 이 블록만 지우면 되고, 새로 만드는 입력에도 자동으로 걸린다.
    !important 는 Tailwind 유틸리티(rounded-xl / border / px-4)를 이기기 위한 것.
-   네이티브 위젯(체크박스·라디오·파일·날짜·색·슬라이더)은 제외 — 상자가 곧 조작부다. */
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="date"]):not([type="color"]):not([type="range"]):not([type="month"]),
-textarea,
-select {
+   네이티브 위젯(체크박스·라디오·파일·날짜·색·슬라이더)은 제외 — 상자가 곧 조작부다.
+   `.field-bare`도 제외한다: 테두리 있는 복합 바(예: 멤버 추가 바) 안의 입력은
+   바 자체가 경계라, 밑줄까지 그리면 경계가 두 겹이 되고 padding-0 때문에 글자가 벽에 붙는다. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="date"]):not([type="color"]):not([type="range"]):not([type="month"]):not(.field-bare),
+textarea:not(.field-bare),
+select:not(.field-bare) {
   border-radius: 0 !important;
   border-width: 0 0 1px 0 !important;
   background-color: transparent !important;
@@ -188,9 +191,9 @@ select {
    대신 밑선을 2px + 브랜드색으로 올려 표시는 남긴다 — 포커스 표시를 지우는 게 아니다.
    위 기본 규칙과 같은 :not() 체인을 반복하는 이유는 특이도다. 둘 다 !important라
    체인이 짧으면 기본 규칙(1px)이 이겨서 포커스가 안 보인다. */
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="date"]):not([type="color"]):not([type="range"]):not([type="month"]):focus,
-textarea:focus,
-select:focus {
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="date"]):not([type="color"]):not([type="range"]):not([type="month"]):not(.field-bare):focus,
+textarea:not(.field-bare):focus,
+select:not(.field-bare):focus {
   box-shadow: none !important;
   border-bottom-width: 2px !important;
   border-bottom-color: var(--brand-lead-text) !important;
