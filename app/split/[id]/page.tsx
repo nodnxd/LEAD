@@ -6,7 +6,7 @@ import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
-import { SplitSheet, Contributor, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal } from '@/lib/splitsheet';
+import { SplitSheet, Contributor, CopyrightProfile, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal } from '@/lib/splitsheet';
 import { useLang, LangToggle } from '@/lib/lang';
 import { useTheme, ThemeToggle } from '@/lib/theme';
 import Toast from '@/components/Toast';
@@ -40,6 +40,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const [audioUrl, setAudioUrl] = useState('');       // signed playback URL
   const [audioUploading, setAudioUploading] = useState(false);
   const [signRow, setSignRow] = useState<Contributor | null>(null);  // signature-capture modal target
+  const [docHash, setDocHash] = useState('');   // 현재 문서의 SHA-256 (서명 유효성 판정용)
 
   const isOwner = !!me && sheet?.owner_id === me;
 
@@ -65,6 +66,16 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   }, [id, router]);
 
   function flash(m: string) { setToast(m); setTimeout(() => setToast(''), 1800); }
+
+  // 문서가 바뀔 때마다 해시를 다시 계산한다 (agreementHash와 같은 스냅샷 규칙)
+  useEffect(() => {
+    if (!sheet) return;
+    let alive = true;
+    agreementHash().then((h) => { if (alive) setDocHash(h); });
+    return () => { alive = false; };
+  }, [sheet?.song_title, sheet?.artist_name, sheet?.iswc, sheet?.audio_name,
+      // 지분·이름이 한 글자라도 바뀌면 해시가 달라진다
+      rows.map((r) => `${r.category}:${Number(r.share) || 0}:${r.legal_name ?? ''}`).join('|')]); // eslint-disable-line
 
   // Finalized sheets are read-only until the owner unlocks (which invalidates signatures).
   function lockedGuard(): boolean {
@@ -121,8 +132,11 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     if (!email) { await addRow(category, {}, null, ''); return; }
     let userId: string | null = null;
     const base: Partial<Contributor> = {};
-    // 1) copyright_profiles (authenticated-readable) — links the account AND auto-fills in one shot
-    const { data: cp } = await supabase.from('copyright_profiles').select('*').ilike('email', email).limit(1).maybeSingle();
+    // 1) 저작권 프로필 조회 — 예전엔 테이블을 로그인 유저 전원에게 열어놨다.
+    //    아무 계정이나 전원의 본명·IPI·주소를 긁을 수 있었고, ilike라 '%' 한 글자로
+    //    아무나 잡혔다. 이제 이메일 완전일치 RPC 하나만 열려 있다.
+    const { data: cpRaw } = await supabase.rpc('copyright_profile_by_email', { p_email: email });
+    const cp = cpRaw as CopyrightProfile | null;
     if (cp) {
       userId = cp.id;
       Object.assign(base, {
@@ -169,13 +183,19 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     if (lockedGuard()) return;
     const hash = await agreementHash();
     const patch = { signed: true, signed_at: new Date().toISOString(), signature_name: name || row.legal_name, signature_data: dataUrl || null, signed_hash: hash };
+    // 기여자에게 열려 있던 자기 행 UPDATE 정책은 없앴다 — 지분까지 자기 손으로
+    // 바꿀 수 있었기 때문이다. 서명만 하는 RPC로 좁혔다. 오너는 원래 전권이라 그대로.
+    const ok = isOwner
+      ? !(await supabase.from('split_contributors').update(patch).eq('id', row.id)).error
+      : !!(await supabase.rpc('split_sign_self', { p_row_id: row.id, p_name: name || row.legal_name || '', p_data: dataUrl || '', p_hash: hash })).data;
+    if (!ok) { flash(t('서명 실패 — 다시 시도해주세요', 'Signing failed — please retry')); return; }
     setRowLocal(row.id, patch);
-    await supabase.from('split_contributors').update(patch).eq('id', row.id);
     setSignRow(null);
     flash(t('서명 완료 — 문서 해시로 봉인됨', 'Signed — sealed with a document hash'));
   }
   async function unsign(row: Contributor) {
     if (lockedGuard()) return;
+    if (!isOwner) { flash(t('서명 취소는 시트 소유자만 할 수 있어요', 'Only the sheet owner can undo a signature')); return; }
     const patch = { signed: false, signed_at: null, signature_name: null, signature_data: null, signed_hash: null };
     setRowLocal(row.id, patch);
     await supabase.from('split_contributors').update(patch).eq('id', row.id);
@@ -192,7 +212,12 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   }
 
   // ── finalize / lock / request signatures ──
-  const allSigned = rows.length > 0 && rows.every((r) => r.signed);
+  // 서명은 '이 숫자에 동의했다'는 뜻이다. 그런데 오너는 서명 뒤에도 지분을 바꿀 수
+  // 있었고 signed는 true로 남았다. signed_hash를 쓰기만 하고 아무도 대조하지 않아서
+  // 아무 데도 안 나타났다. 이제 현재 문서 해시와 대조해 낡은 서명을 골라낸다.
+  const isStale = (r: Contributor) => !!r.signed && !!r.signed_hash && !!docHash && r.signed_hash !== docHash;
+  const staleRows = rows.filter(isStale);
+  const allSigned = rows.length > 0 && rows.every((r) => r.signed) && staleRows.length === 0;
   // each category with entries must total 100%; empty categories are fine
   const sharesOk = rows.length > 0 && CATEGORIES.every((c) => {
     const n = rows.filter((r) => r.category === c.key).length;
@@ -209,6 +234,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
   async function lockSheet() {
     if (!sheet || !isOwner) return;
+    if (staleRows.length) { flash(t('서명 뒤에 문서가 바뀌었어요 — 해당 서명을 다시 받아야 해요', 'The document changed after signing — those signatures must be renewed')); return; }
     if (!allSigned) { flash(t('전원 서명 후 확정할 수 있어요', 'Everyone must sign before finalizing')); return; }
     if (!sharesOk) { flash(t('작사/작곡/편곡 지분이 각각 100%가 아니에요', 'Each pool (lyrics/comp/arr) must total 100%')); return; }
     const ts = new Date().toISOString();
@@ -222,10 +248,13 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     if (!confirm(t('잠금을 해제하면 모든 서명이 초기화되고 버전이 올라가요. 계속할까요?', 'Unlocking clears all signatures and bumps the version. Continue?'))) return;
     const nextVer = (sheet.version ?? 1) + 1;
     setSheet((s) => s ? { ...s, locked: false, locked_at: null, version: nextVer } : s);
-    setRows((rs) => rs.map((r) => ({ ...r, signed: false, signed_at: null })));
+    setRows((rs) => rs.map((r) => ({ ...r, signed: false, signed_at: null, signature_name: null, signature_data: null, signed_hash: null })));
     await supabase.from('split_sheets').update({ locked: false, locked_at: null, version: nextVer }).eq('id', sheet.id);
-    await supabase.from('split_contributors').update({ signed: false, signed_at: null }).eq('sheet_id', sheet.id);
-    flash(`잠금 해제 · 버전 ${nextVer} — 수정 후 재서명 필요`);
+    // 예전엔 signed/signed_at만 지워서 이전 버전의 서명 이미지·해시가 DB에 남았다.
+    await supabase.from('split_contributors')
+      .update({ signed: false, signed_at: null, signature_name: null, signature_data: null, signed_hash: null })
+      .eq('sheet_id', sheet.id);
+    flash(t(`잠금 해제 · 버전 ${nextVer} — 수정 후 재서명 필요`, `Unlocked · v${nextVer} — everyone must sign again`));
   }
 
   // ── evidence bundle (zip): agreement + audio + tamper-evident manifest(SHA-256) ──
@@ -249,6 +278,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       generated_at: new Date().toISOString(),
       version: sheet.version ?? 1,
       locked: !!sheet.locked,
+      document_sha256: docHash,
       song: { title: sheet.song_title, aka: sheet.aka, artist: sheet.artist_name, album: sheet.album, duration: sheet.duration, iswc: sheet.iswc, isrc: sheet.isrc, date: sheet.work_date },
       audio: sheet.audio_name ? { file: sheet.audio_name, sha256: audioSha } : null,
       entries: rows.map((r) => ({
@@ -256,6 +286,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         legal_name: r.legal_name, stage_name: r.stage_name,
         pro: r.pro, ipi: r.ipi, publisher: r.publisher_name,
         signed: !!r.signed, signed_at: r.signed_at, signature_name: r.signature_name, signed_hash: r.signed_hash,
+        signature_matches_current_document: r.signed ? !isStale(r) : null,
         contact: { email: r.email, phone: r.phone },
       })),
     };
@@ -274,7 +305,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     const esc = (t: string | null | undefined) => (t ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!));
     const proTxt = (c: string | null) => c ? (PRO_LABEL[c] ?? c) : '—';
     const info = (label: string, val: string | null | undefined) => `<div class="kv"><span>${label}</span><b>${esc(val) || '—'}</b></div>`;
-    const sigCell = (r: Contributor) => r.signed
+    const sigCell = (r: Contributor) => isStale(r)
+      ? `<span class="sub">${t('무효 — 서명 뒤 문서 변경됨', 'INVALID — document changed after signing')}</span>`
+      : r.signed
       ? (r.signature_data ? `<img loading="lazy" decoding="async" class="sig" alt="서명" src="${r.signature_data}"/>` : `<span class="sub">✓ ${esc(r.signature_name) || 'signed'}</span>`)
         + `<br><span class="sub">${esc((r.signed_at ?? '').slice(0, 10))}</span>`
       : `<span class="sub">${t('미서명', 'unsigned')}</span>`;
@@ -393,6 +426,18 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
             <button onClick={exportPdf} className="text-body px-3 py-2 rounded-full border border-white/15 hover:bg-white/5 transition-colors">⎙ PDF</button>
           </div>
         </div>
+
+        {/* 서명 뒤 문서가 바뀐 경우 — 조용히 넘어가면 안 되는 상태다 */}
+        {staleRows.length > 0 && !locked && (
+          <div className="flex items-start gap-3 mb-4 px-4 py-3 rounded-xl border border-amber-500/40 bg-amber-500/[0.08]">
+            <span className="text-body">
+              ⚠ {t('서명 뒤에 문서가 바뀌었어요.', 'The document changed after signing.')}{' '}
+              <b>{staleRows.map((r) => r.legal_name || r.stage_name || '—').join(', ')}</b>
+              {t('의 서명은 지금 내용과 맞지 않아 무효예요. 다시 받아야 확정할 수 있어요.',
+                 '’s signature no longer matches the current terms. It must be renewed before finalizing.')}
+            </span>
+          </div>
+        )}
 
         {/* all-signed notification for the owner */}
         {isOwner && !locked && allSigned && (
@@ -523,9 +568,12 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                           </div>
                           {r.user_id && <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400/80">{t('연동', 'Linked')}</span>}
                           {r.signed ? (
-                            <span className="text-mini px-2.5 py-1 rounded-full border border-emerald-500/40 text-emerald-400 flex items-center gap-1">
-                              ✓ {r.signature_name || t('서명됨', 'Signed')}
-                              {mine && !locked && <button onClick={() => unsign(r)} className="text-white/55 hover:text-red-400 ml-0.5" title={t('서명 취소', 'Unsign')}>×</button>}
+                            // 낡은 서명(서명 뒤 문서가 바뀜)은 초록으로 두면 안 된다 — 유효한 것처럼 보인다
+                            <span className={`text-mini px-2.5 py-1 rounded-full border flex items-center gap-1 ${isStale(r) ? 'border-amber-500/50 text-amber-400' : 'border-emerald-500/40 text-emerald-400'}`}
+                              title={isStale(r) ? t('서명 뒤에 문서가 바뀌어 무효예요', 'Invalid — the document changed after this signature') : undefined}>
+                              {isStale(r) ? '⚠' : '✓'} {r.signature_name || t('서명됨', 'Signed')}
+                              {isStale(r) && <span className="opacity-80">· {t('무효', 'stale')}</span>}
+                              {isOwner && !locked && <button onClick={() => unsign(r)} className="text-white/55 hover:text-red-400 ml-0.5" title={t('서명 취소', 'Unsign')}>×</button>}
                             </span>
                           ) : (
                             <button onClick={() => setSignRow(r)} disabled={!mine || locked}
