@@ -9,7 +9,7 @@ import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 import { onDbError } from '@/lib/dbErrors';
 import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 import { getLinkIcon, linkName } from '@/lib/links';
-import { genderColor } from '@/lib/brand';
+import { OAT, GENDER_NOTCH } from '@/lib/brand';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -254,17 +254,6 @@ export default function GuestView() {
     }
   };
 
-  const getRoleCardStyle = (r: string) => {
-    const base = "border-l-[3px] backdrop-blur-md ";
-    switch(r) {
-      case 'Producer': return base + "border-l-brand-cast bg-gradient-to-r from-brand-cast/[0.10] to-transparent";
-      case 'Topliner': return base + "border-l-[#5FA39A] bg-gradient-to-r from-[#5FA39A]/[0.10] to-transparent";
-      case 'Engineer': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent";
-      case 'A&R': return base + "border-l-[#C98BA0] bg-gradient-to-r from-[#C98BA0]/[0.10] to-transparent";
-      default: return theme === 'light' ? "border-l-[3px] border-l-black/15 bg-black/[0.02]" : "border-l-[3px] border-l-white/15 bg-white/[0.02]";
-    }
-  };
-
 
   const getVoteIcon = (attendance: string | null) => {
     if (attendance === 'attending') return <span className="text-[#77B18E] shrink-0"><CheckIcon /></span>;
@@ -307,20 +296,26 @@ export default function GuestView() {
 
   const MemberCard = ({ m }: { m: any }) => (
     <div
-      className={`relative flex justify-between items-center p-4 rounded-xl ${getRoleCardStyle(m.role)} ${m.links?.length > 0 ? 'cursor-pointer' : ''}`}
+      className={`relative flex justify-between items-center px-4 py-3 rounded-xl overflow-hidden ${m.links?.length > 0 ? 'cursor-pointer' : ''}`}
+      style={{ backgroundColor: OAT.box, color: OAT.ink, borderTopLeftRadius: 0 }}
       onClick={(e) => {
         if (!m.links?.length) return;
         setLinkPopover(prev => prev?.member.id === m.id ? null : { member: m, x: e.clientX + 12, y: e.clientY - 20 });
         e.stopPropagation();
       }}
     >
-      <div className="flex flex-col overflow-hidden pl-1">
-        <span className={`text-lead font-bold flex items-center gap-1.5 ${textMain}`}>
-          <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: genderColor(m.gender, theme === 'dark') }} title={m.gender === 'female' ? 'F' : 'M'} />
+      {/* 좌상단 노치 = 성별 */}
+      <i aria-hidden="true" className="absolute left-0 top-0 w-4 h-4"
+        style={{
+          backgroundColor: m.gender === 'female' || m.gender === 'F' || m.gender === '여' ? GENDER_NOTCH.female : GENDER_NOTCH.male,
+          clipPath: 'polygon(0 0, 100% 0, 0 100%)',
+        }} />
+      <div className="flex flex-col overflow-hidden pl-2">
+        <span className="text-lead font-bold flex items-center gap-1.5">
           {m.name}
           {m.links?.length > 0 && <span className="text-mini"><i className="ti ti-link" aria-hidden="true"></i></span>}
         </span>
-        <span className={`text-micro font-bold uppercase tracking-widest mt-1 ${textSub}`}>{m.role}</span>
+        <span className="text-micro font-bold uppercase tracking-widest mt-1 opacity-60">{m.role}</span>
       </div>
     </div>
   );

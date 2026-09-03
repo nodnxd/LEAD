@@ -11,12 +11,15 @@ const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+import { AVAIL_COLORS } from '@/lib/brand';
+
 const ROLE_ORDER = ['Producer', 'Topliner', 'Engineer', 'A&R'];
 const ROLE_COLORS: Record<string, string> = { 'Producer': '#E3B24A', 'Topliner': '#5FA39A', 'Engineer': '#C98BA0', 'A&R': '#C98BA0' };
 
 // 가능 = 파랑, 불가능 = 빨강, 확정 = 골드. 미정 없음.
-const YES = '#4C8DF6';
-const NO = '#E0575F';
+// 파랑·빨강은 오트밀 팔레트 채도대로 내려 lib/brand의 AVAIL_COLORS에 둔다.
+const YES = AVAIL_COLORS.yes.bg;   // #528ED9
+const NO = AVAIL_COLORS.no.bg;     // #A7463C
 const GOLD = '#E3B24A';
 
 type Lang = 'ko' | 'en';
@@ -34,9 +37,9 @@ const tokens = (dark: boolean) => ({
   track: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
   hatch: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)',
   hover: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-  noBg: dark ? 'rgba(224,87,95,0.22)' : 'rgba(224,87,95,0.14)',
-  noText: dark ? '#FF9BA1' : '#B3363E',
-  yesText: dark ? '#0d1b33' : '#ffffff',
+  noBg: dark ? 'rgba(167,70,60,0.26)' : 'rgba(167,70,60,0.15)',
+  noText: dark ? '#E09386' : '#8E3A31',
+  yesText: AVAIL_COLORS.yes.fg,
   goldText: dark ? '#EFCF8E' : '#9A7420',
   barBg: dark ? 'rgba(20,20,20,0.95)' : 'rgba(244,244,245,0.95)',
 });

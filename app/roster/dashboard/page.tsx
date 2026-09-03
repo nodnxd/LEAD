@@ -14,7 +14,7 @@ import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 import ProductHeader from '@/components/ProductHeader';
 import { QUICK_LINKS, getLinkIcon } from '@/lib/links';
 import Toast from '@/components/Toast';
-import { genderColor, ROLE_BANNER } from '@/lib/brand';
+import { genderColor, ROLE_BANNER, OAT, GENDER_NOTCH, AVAIL_COLORS } from '@/lib/brand';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -1147,13 +1147,13 @@ export default function Dashboard() {
       canvas.width = totalW * SCALE; canvas.height = totalH * SCALE;
       const ctx = canvas.getContext('2d')!; ctx.scale(SCALE, SCALE);
 
-      ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, totalW, totalH);
+      ctx.fillStyle = OAT.cream; ctx.fillRect(0, 0, totalW, totalH);
 
       // 헤더
-      ctx.font = 'bold 28px system-ui, sans-serif'; ctx.fillStyle = '#E3B24A';
+      ctx.font = 'bold 28px system-ui, sans-serif'; ctx.fillStyle = OAT.ink;
       ctx.fillText('CAST', PAD, PAD + 30);
       const castW = ctx.measureText('CAST').width;
-      ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = '#555';
+      ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = OAT.banner;
       ctx.fillText('by NEN', PAD + castW + 8, PAD + 30);
 
       // 각 Day 그리기
@@ -1161,7 +1161,7 @@ export default function Dashboard() {
         const dayY = PAD + HEADER_H + di * dayRowH;
 
         // Day 라벨
-        ctx.font = 'bold 12px system-ui, sans-serif'; ctx.fillStyle = '#E3B24A';
+        ctx.font = 'bold 12px system-ui, sans-serif'; ctx.fillStyle = OAT.banner;
         ctx.fillText(dayLabel.toUpperCase(), PAD, dayY + 18);
 
         // 팀 카드
@@ -1170,12 +1170,12 @@ export default function Dashboard() {
           const cy = dayY + DAY_LABEL_H;
           const ch = allMaxCardH;
 
-          ctx.fillStyle = '#111'; roundRect(ctx, cx, cy, CARD_W, ch, CARD_RADIUS); ctx.fill();
-          ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+          ctx.fillStyle = '#ffffff'; roundRect(ctx, cx, cy, CARD_W, ch, CARD_RADIUS); ctx.fill();
+          ctx.strokeStyle = 'rgba(16,24,32,0.12)'; ctx.lineWidth = 1;
           roundRect(ctx, cx, cy, CARD_W, ch, CARD_RADIUS); ctx.stroke();
           // accent bar 제거됨
 
-          ctx.font = 'bold 13px system-ui, sans-serif'; ctx.fillStyle = '#fff';
+          ctx.font = 'bold 13px system-ui, sans-serif'; ctx.fillStyle = OAT.ink;
           ctx.fillText(td.name.toUpperCase(), cx + 20, cy + 28);
 
           // role 뱃지
@@ -1199,29 +1199,12 @@ export default function Dashboard() {
             if (!m) return;
             const mx = cx + 12; const my = membersY + mi * MEMBER_H;
             const mw = CARD_W - 24; const mh = MEMBER_H - 8;
-            const rc = ROLE_COLORS_MAP[m.role] || '#333';
-            ctx.fillStyle = rc + '15'; roundRect(ctx, mx, my, mw, mh, 10); ctx.fill();
-            // role bar 제거됨
-            ctx.font = 'bold 15px system-ui, sans-serif'; ctx.fillStyle = '#fff';
-            ctx.fillText(m.name, mx + 14, my + mh * 0.46);
-            const nameW = ctx.measureText(m.name).width;
-            const gColor = genderColor(m.gender, true);
-            const gLabel = m.gender === 'female' ? 'F' : 'M';
-            const bx2 = mx + 14 + nameW + 6; const by2 = my + mh * 0.2;
-            const bw = 20; const bh = 15;
-            ctx.fillStyle = gColor + '28'; roundRect(ctx, bx2, by2, bw, bh, 4); ctx.fill();
-            ctx.strokeStyle = gColor + '80'; ctx.lineWidth = 1; roundRect(ctx, bx2, by2, bw, bh, 4); ctx.stroke();
-            ctx.font = 'bold 10px Arial, sans-serif'; ctx.fillStyle = gColor;
-            ctx.textAlign = 'center';
-            ctx.fillText(gLabel, bx2 + bw / 2, by2 + bh * 0.75);
-            ctx.textAlign = 'left';
-            ctx.font = '8px system-ui, sans-serif'; ctx.fillStyle = rc + 'aa';
-            ctx.fillText(m.role.toUpperCase(), mx + 14, my + mh * 0.72);
+            drawMemberBox(ctx, m, mx, my, mw, mh);
           });
         });
       });
 
-      ctx.font = '10px system-ui, sans-serif'; ctx.fillStyle = '#1e1e1e';
+      ctx.font = '10px system-ui, sans-serif'; ctx.fillStyle = OAT.banner;
       ctx.fillText('CAST by NEN', PAD, totalH - 14);
 
       if (format === 'jpeg') {
@@ -1291,11 +1274,11 @@ export default function Dashboard() {
     const canvas = document.createElement('canvas');
     canvas.width = totalW * SCALE; canvas.height = totalH * SCALE;
     const ctx = canvas.getContext('2d')!; ctx.scale(SCALE, SCALE);
-    ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, totalW, totalH);
-    ctx.font = 'bold 28px system-ui, sans-serif'; ctx.fillStyle = '#E3B24A';
+    ctx.fillStyle = OAT.cream; ctx.fillRect(0, 0, totalW, totalH);
+    ctx.font = 'bold 28px system-ui, sans-serif'; ctx.fillStyle = OAT.ink;
     ctx.fillText('CAST', PAD, PAD + 30);
     const castW = ctx.measureText('CAST').width;
-    ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = '#555';
+    ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = OAT.banner;
     ctx.fillText('by NEN', PAD + castW + 8, PAD + 30);
     for (let i = 0; i < teamData.length; i++) {
       const td = teamData[i];
@@ -1304,10 +1287,10 @@ export default function Dashboard() {
       const cy = PAD + HEADER_H + row * (maxCardH + TEAM_GAP);
       const ch = maxCardH;
       ctx.fillStyle = '#111'; roundRect(ctx, cx, cy, CARD_W, ch, CARD_RADIUS); ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(16,24,32,0.12)'; ctx.lineWidth = 1;
       roundRect(ctx, cx, cy, CARD_W, ch, CARD_RADIUS); ctx.stroke();
       // accent bar 제거됨
-      ctx.font = 'bold 14px system-ui, sans-serif'; ctx.fillStyle = '#fff';
+      ctx.font = 'bold 14px system-ui, sans-serif'; ctx.fillStyle = OAT.ink;
       ctx.fillText(td.name.toUpperCase(), cx + 20, cy + 28);
       const roleCounts = getRoleCounts(td);
       let bx = cx + 20; let by = cy + CARD_TITLE_H;
@@ -1327,35 +1310,13 @@ export default function Dashboard() {
         if (!m) return;
         const mx = cx + 12; const my = membersY + mi * MEMBER_H;
         const mw = CARD_W - 24; const mh = MEMBER_H - 8;
-        const rc = ROLE_COLORS_MAP[m.role] || '#333';
-        // 멤버 카드 배경
-        ctx.fillStyle = rc + '18'; roundRect(ctx, mx, my, mw, mh, 12); ctx.fill();
-        // 왼쪽 role 바
-        ctx.fillStyle = rc; roundRect(ctx, mx, my + 6, 4, mh - 12, 2); ctx.fill();
-        // 이름
-        ctx.font = 'bold 15px system-ui, sans-serif'; ctx.fillStyle = '#fff';
-        ctx.fillText(m.name, mx + 16, my + mh * 0.44);
-        const nameW = ctx.measureText(m.name).width;
-        // M/F 뱃지 (UI처럼 배경 있는 둥근 뱃지)
-        const gColor = genderColor(m.gender, true);
-        const gLabel = m.gender === 'female' ? 'F' : 'M';
-        const bx2 = mx + 22 + nameW; const by2 = my + mh * 0.2;
-        const bw = 20; const bh = 15;
-        ctx.fillStyle = gColor + '28'; roundRect(ctx, bx2, by2, bw, bh, 4); ctx.fill();
-        ctx.strokeStyle = gColor + '80'; ctx.lineWidth = 1; roundRect(ctx, bx2, by2, bw, bh, 4); ctx.stroke();
-        ctx.font = 'bold 10px Arial, sans-serif'; ctx.fillStyle = gColor;
-        ctx.textAlign = 'center';
-        ctx.fillText(gLabel, bx2 + bw / 2, by2 + bh * 0.75);
-        ctx.textAlign = 'left';
-        // role 라벨
-        ctx.font = '9px system-ui, sans-serif'; ctx.fillStyle = rc + 'cc';
-        ctx.fillText(m.role.toUpperCase(), mx + 16, my + mh * 0.78);
+        drawMemberBox(ctx, m, mx, my, mw, mh);
       });
     }
-    ctx.font = '10px system-ui, sans-serif'; ctx.fillStyle = '#1e1e1e';
+    ctx.font = '10px system-ui, sans-serif'; ctx.fillStyle = OAT.banner;
     ctx.fillText('CAST by NEN', PAD, totalH - 14);
     return canvas;
-  };;;
+  };
 
   // Canvas 유틸
   // ── 콜시트 이미지 (카톡/인스타용 세로 9:16 · 정사각 1:1) ───────────────
@@ -1503,6 +1464,19 @@ export default function Dashboard() {
     showToastMsg((lang === 'ko' ? '콜시트 저장됨' : 'Call sheet saved'));
   };
 
+  function drawMemberBox(ctx: CanvasRenderingContext2D, m: any, x: number, y: number, w: number, h: number) {
+    ctx.fillStyle = OAT.box; roundRect(ctx, x, y, w, h, 10); ctx.fill();
+    // 좌상단 노치 = 성별 (화면 카드와 같은 신호)
+    const female = m.gender === 'female' || m.gender === 'F' || m.gender === '여';
+    ctx.save();
+    roundRect(ctx, x, y, w, h, 10); ctx.clip();
+    ctx.fillStyle = female ? GENDER_NOTCH.female : GENDER_NOTCH.male;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 16, y); ctx.lineTo(x, y + 16); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.font = 'bold 15px system-ui, sans-serif'; ctx.fillStyle = OAT.ink; ctx.textAlign = 'left';
+    ctx.fillText(m.name, x + 20, y + h * 0.62);
+  }
+
   function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -1526,23 +1500,6 @@ export default function Dashboard() {
   const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-400 hover:bg-black/10' : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10';
 
   // 역할색은 왼쪽 레일 한 곳에서만 말한다.
-  // 예전엔 그라디언트 워시(0.10)가 칩 전체를 덮었는데, 셀 배경의 성별 틴트(0.05)와
-  // 같은 자리에서 겹쳐 둘 다 안 읽혔다. 표면은 중립으로 두고 색은 레일에만 준다.
-  const getRoleCardStyle = (r: string, excluded: boolean) => {
-    const light = theme === 'light';
-    if (excluded) {
-      return `border-l-[3px] ${light ? 'border-l-black/15 bg-black/[0.015]' : 'border-l-white/15 bg-white/[0.015]'} grayscale opacity-50`;
-    }
-    const surface = light
-      ? 'bg-black/[0.035] hover:bg-black/[0.06]'
-      : 'bg-white/[0.045] hover:bg-white/[0.08]';
-    return `border-l-[3px] transition-colors duration-150 ${surface}`;
-  };
-
-  // 레일 색은 인라인 — Tailwind는 런타임에 만든 색 클래스를 JIT하지 못한다
-  const roleRail = (r: string, excluded: boolean) =>
-    excluded ? undefined : { borderLeftColor: ROLE_COLORS[r] ?? (theme === 'light' ? '#00000026' : '#ffffff26') };
-
   const getAttendanceBadge = (attendance: string | null) => {
     if (attendance === 'attending') return <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-[#77B18E]/20 text-[#77B18E] border border-[#77B18E]/30 shrink-0">{t.attending}</span>;
     if (attendance === 'absent') return <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-[#9A8F8A]/20 text-[#9A8F8A] border border-[#9A8F8A]/30 shrink-0">{t.absent}</span>;
@@ -2071,8 +2028,6 @@ export default function Dashboard() {
                   onContextMenu={(e) => { if ((e.target as HTMLElement).closest('[data-studio-card]')) return; e.preventDefault(); addStudio(); }}
                   className="relative z-10 flex flex-wrap gap-6 items-start pb-20 min-h-[200px]">
                   {otherTeams.map((tName, idx) => {
-                    const counts = getTeamCounts(tName);
-                    const countEntries = ROLES.filter(r => counts[r]);
                     const dayMembersForTeam = getDayMembers(tName) as any[];
                     return (
                       <Draggable key={tName} draggableId={`team-${tName}`} index={idx}>
@@ -2080,8 +2035,8 @@ export default function Dashboard() {
                           <div ref={provided.innerRef} {...provided.draggableProps} data-studio-card className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)]">
                             <div className={`group/studio border rounded-xl p-6 min-h-[320px] shadow-lg flex flex-col ${cardBg}`}>
                               {/* 제목 = 풀의 역할 배너와 같은 물건. 좌우 두 칸이 같은 방식으로 "여기는 구획이다"를 말한다. */}
-                              <div {...provided.dragHandleProps} className="relative flex items-center justify-center mb-4 px-3.5 py-2 rounded-xl cursor-grab active:cursor-grabbing"
-                                style={{ backgroundColor: ROLE_BANNER.bg, color: ROLE_BANNER.fg }}>
+                              <div {...provided.dragHandleProps} className="relative flex items-center justify-center -m-6 mb-5 px-4 py-2.5 rounded-t-xl cursor-grab active:cursor-grabbing"
+                                style={{ backgroundColor: OAT.banner, color: OAT.ink }}>
                                 <div className="flex flex-col items-center gap-1.5 flex-1">
                                   {editingTeam === tName ? (
                                     <input autoFocus value={teamEditValue} onChange={e => setTeamEditValue(e.target.value)}
@@ -2107,48 +2062,48 @@ export default function Dashboard() {
                                   const next = teams.filter(t => t !== tName); setTeams(next);
                                   await saveTeamOrder(user.id, currentProject, currentDay, next);
                                   fetchAssignments(user); setConfirmModal(null);
-                                })} aria-label={t.studioDelete} className="absolute right-0 top-0 text-zinc-400 hover:text-red-500 text-sub opacity-0 group-hover/studio:opacity-100 transition-opacity">×</button>
+                                })} aria-label={t.studioDelete} className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-red-600 text-lead leading-none opacity-0 group-hover/studio:opacity-60 transition-opacity">×</button>
                               </div>
-                              {countEntries.length > 0 && (
-                                <div className="flex flex-wrap justify-center gap-1.5 -mt-2 mb-4">
-                                  {countEntries.map(r => (
-                                    <span key={r} className="text-micro font-black px-2 py-0.5 rounded-full border"
-                                      style={{ color: ROLE_COLORS[r], borderColor: ROLE_COLORS[r] + '66', backgroundColor: ROLE_COLORS[r] + '22' }}>
-                                      {r.slice(0, 3)} {counts[r]}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
                               <Droppable droppableId={tName} type="MEMBER">
                                 {(provided) => (
-                                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3 flex-1 min-h-[100px]">
-                                    {dayMembersForTeam.map((m, i) => (
+                                  <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-col gap-1.5 flex-1 min-h-[100px]">
+                                    {/* 역할은 글씨로 쓰지 않고 '칸'으로만 나눈다 — 역할 순 정렬 후
+                                        역할이 바뀌는 자리에만 여백+헤어라인. index는 정렬 후 평면 인덱스라 DnD 그대로 동작. */}
+                                    {[...dayMembersForTeam].sort((a, b) => ROLES.indexOf(a.role) - ROLES.indexOf(b.role)).map((m, i, arr) => (
                                       <PortalDraggable key={`${m.id}-${currentDay}`} draggableId={String(m.id)} index={i}>
                                         <div
                                           onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                           onDoubleClick={() => setLinkModal(m)}
-                                          className={`group relative flex justify-center items-center p-4 rounded-xl transition-colors cursor-pointer ${getRoleCardStyle(m.role, m.excluded)} ${isBusyOn(m.id) ? 'ring-1 ring-[#E0575F]/50' : ''}`}
-                                          style={roleRail(m.role, m.excluded)}
+                                          className={`group relative flex justify-center items-center px-3 py-3 rounded-xl overflow-hidden cursor-pointer ${isBusyOn(m.id) ? 'ring-1 ring-[#E0575F]/50' : ''} ${i > 0 && arr[i - 1].role !== m.role ? 'mt-2.5' : ''}`}
+                                          style={{
+                                            backgroundColor: OAT.box, color: OAT.ink,
+                                            borderTopLeftRadius: 0,
+                                            opacity: m.excluded ? 0.45 : 1,
+                                            // 앞 사람과 역할이 다르면 위에 선을 그어 칸을 가른다
+                                            boxShadow: i > 0 && arr[i - 1].role !== m.role
+                                              ? `0 -10px 0 -9px ${theme === 'light' ? 'rgba(0,0,0,.14)' : 'rgba(255,255,255,.14)'}` : undefined,
+                                          }}
                                         >
+                                          {/* 좌상단 노치 = 성별 */}
+                                          <i aria-hidden="true" className="absolute left-0 top-0 w-4 h-4"
+                                            style={{
+                                              backgroundColor: m.gender === 'female' || m.gender === 'F' || m.gender === '여' ? GENDER_NOTCH.female : GENDER_NOTCH.male,
+                                              clipPath: 'polygon(0 0, 100% 0, 0 100%)',
+                                            }} />
                                           <div className="flex items-center justify-center gap-2 overflow-hidden flex-1 pl-1">
                                             {editingId === String(m.id) ? (
                                               <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-body font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                             ) : (
                                               <div className="flex flex-col items-center text-center overflow-hidden">
-                                                <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-lead font-bold italic flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400 italic' : textMain}`}>
-                                                  <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: genderColor(m.gender, theme === 'dark') }} title={m.gender === 'female' ? 'F' : 'M'} />
+                                                <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-lead font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through' : ''}`}>
                                                   {m.name}
                                                   {getAttendanceBadge(m.attendance)}
                                                   {isBusyOn(m.id) && <span className="text-micro font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22', border: '1px solid #E0575F55' }}>{t.busy}</span>}
-                                                  {m.links?.length > 0 && <i className="ti ti-link text-micro shrink-0 opacity-40" aria-hidden="true" />}
                                                 </span>
-                                                <button onClick={(e) => { e.stopPropagation(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }} className="text-micro font-bold uppercase tracking-widest mt-1 text-left text-zinc-400 hover:text-white transition-colors">
-                                                  {m.role}
-                                                </button>
                                               </div>
                                             )}
                                           </div>
-                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} aria-label={t.memberDelete} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-red-500 text-lead px-1 opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                                          <button onClick={(e) => { e.stopPropagation(); unassignMember(m.id); }} aria-label={t.memberDelete} className="absolute right-2 top-1/2 -translate-y-1/2 hover:text-red-600 text-lead px-1 opacity-0 group-hover:opacity-60 transition-opacity">×</button>
                                         </div>
                                       </PortalDraggable>
                                     ))}
