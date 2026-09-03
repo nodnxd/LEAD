@@ -1351,6 +1351,9 @@ export type Database = {
       }
       split_sheets: {
         Row: {
+          weight_arrangement: number | null
+          weight_composition: number | null
+          weight_lyrics: number | null
           aka: string | null
           album: string | null
           artist_name: string | null
@@ -1374,6 +1377,9 @@ export type Database = {
           work_date: string | null
         }
         Insert: {
+          weight_arrangement?: number | null
+          weight_composition?: number | null
+          weight_lyrics?: number | null
           aka?: string | null
           album?: string | null
           artist_name?: string | null
@@ -1397,6 +1403,9 @@ export type Database = {
           work_date?: string | null
         }
         Update: {
+          weight_arrangement?: number | null
+          weight_composition?: number | null
+          weight_lyrics?: number | null
           aka?: string | null
           album?: string | null
           artist_name?: string | null
@@ -1653,20 +1662,24 @@ export type Database = {
       copyright_profile_by_email: { Args: { p_email: string }; Returns: Json }
       split_sign_self: {
         Args: {
+          p_consent?: string
           p_data: string
           p_hash: string
           p_name: string
           p_row_id: string
+          p_ua?: string
         }
         Returns: boolean
       }
       split_get_by_token: { Args: { p_token: string }; Returns: Json }
       split_sign_by_token: {
         Args: {
+          p_consent?: string
           p_data: string
           p_hash: string
           p_name: string
           p_token: string
+          p_ua?: string
         }
         Returns: boolean
       }

@@ -181,3 +181,58 @@ test('keyFromChroma: A단조는 나란한 C장조와 구별된다', () => {
 test('keyFromChroma: 빈 chroma는 빈 문자열', () => {
   assert.equal(keyFromChroma(new Array(12).fill(0)), '');
 });
+
+// ── 풀 가중치 → 사람당 단일 지분 ────────────────────────────────────────
+import { writerShares, writerTotal, sheetWeights, DEFAULT_WEIGHTS } from './splitsheet.ts';
+
+const wrow = (o: { n: string; c: string; s: number; e?: string; id?: string }): any => ({ id: o.id ?? Math.random().toString(), sheet_id: 's', user_id: null,
+  legal_name: o.n, stage_name: null, email: o.e ?? null, category: o.c, share: o.s,
+  pro: null, ipi: null, publisher_name: null, publisher_pro: null, publisher_ipi: null,
+  phone: null, address: null, signed: false, signed_at: null, signature_name: null,
+  signature_data: null, signed_hash: null, sign_token: null, order_index: 0 }) as any;
+
+test('writerShares: 작사·작곡을 혼자 다 하면 100%', () => {
+  const ws = writerShares([wrow({ n: 'NEN', c: 'lyrics', s: 100 }), wrow({ n: 'NEN', c: 'composition', s: 100 })], DEFAULT_WEIGHTS);
+  assert.equal(ws.length, 1);
+  assert.equal(ws[0].share, 100);
+});
+
+test('writerShares: 작사만 한 사람은 가중치만큼만 가져간다', () => {
+  const ws = writerShares([
+    wrow({ n: '작사가', c: 'lyrics', s: 100 }),
+    wrow({ n: '작곡가', c: 'composition', s: 100 }),
+  ], DEFAULT_WEIGHTS);
+  assert.equal(ws.find((w) => w.name === '작사가')!.share, 50);
+  assert.equal(ws.find((w) => w.name === '작곡가')!.share, 50);
+  assert.equal(writerTotal(ws), 100);
+});
+
+test('writerShares: 풀별 100%가 지켜지면 최종 합계도 100%', () => {
+  const ws = writerShares([
+    wrow({ n: 'A', c: 'lyrics', s: 60 }), wrow({ n: 'B', c: 'lyrics', s: 40 }),
+    wrow({ n: 'A', c: 'composition', s: 30 }), wrow({ n: 'C', c: 'composition', s: 70 }),
+  ], DEFAULT_WEIGHTS);
+  assert.equal(writerTotal(ws), 100);
+  assert.equal(ws.find((w) => w.name === 'A')!.share, 45);  // 60*.5 + 30*.5
+});
+
+test('writerShares: 같은 사람은 이메일로 묶인다 (줄이 둘이어도 한 명)', () => {
+  const ws = writerShares([
+    wrow({ n: '김현식', e: 'a@b.com', c: 'lyrics', s: 100 }),
+    wrow({ n: '김현식', e: 'A@B.com', c: 'composition', s: 100 }),
+  ], DEFAULT_WEIGHTS);
+  assert.equal(ws.length, 1);
+  assert.equal(ws[0].share, 100);
+});
+
+test('writerShares: 편곡 가중치를 올리면 최종 지분이 따라 움직인다', () => {
+  const rows = [wrow({ n: 'A', c: 'composition', s: 100 }), wrow({ n: 'B', c: 'arrangement', s: 100 })];
+  const w1 = writerShares(rows, { lyrics: 0, composition: 100, arrangement: 0 });
+  assert.equal(w1.find((w) => w.name === 'B')!.share, 0);
+  const w2 = writerShares(rows, { lyrics: 0, composition: 70, arrangement: 30 });
+  assert.equal(w2.find((w) => w.name === 'B')!.share, 30);
+});
+
+test('sheetWeights: 컬럼이 없으면 업계 관행 50/50/0으로 떨어진다', () => {
+  assert.deepEqual(sheetWeights(null), { lyrics: 50, composition: 50, arrangement: 0 });
+});

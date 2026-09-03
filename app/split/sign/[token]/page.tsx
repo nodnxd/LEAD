@@ -54,7 +54,14 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
     setSigning(true);
     const hash = await agreementHash(data);
     const dataUrl = dirty.current ? canvasRef.current!.toDataURL('image/png') : '';
-    const { data: ok } = await supabase.rpc('split_sign_by_token', { p_token: token, p_name: name.trim(), p_data: dataUrl, p_hash: hash });
+    // 화면에 띄운 동의 문구를 그대로 기록에 남긴다 — '무엇에 동의했나'가 증거의 절반이다
+    const consent = lang === 'ko'
+      ? '위 지분이 정확하며 이에 동의함을 확인합니다.'
+      : 'I confirm the split above is accurate and I agree.';
+    const { data: ok } = await supabase.rpc('split_sign_by_token', {
+      p_token: token, p_name: name.trim(), p_data: dataUrl, p_hash: hash,
+      p_consent: consent, p_ua: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+    });
     setSigning(false);
     if (ok) { setDone(true); load(); }
   }

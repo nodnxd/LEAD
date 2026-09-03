@@ -6,12 +6,18 @@ import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
-import { SplitSheet, Contributor, CopyrightProfile, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal } from '@/lib/splitsheet';
+import { SplitSheet, Contributor, CopyrightProfile, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal, sheetWeights, writerShares, writerTotal } from '@/lib/splitsheet';
 import { CEL, OAT } from '@/lib/brand';
 import { analyzeAudio } from '@/lib/audioAnalysis';
 import { useLang, LangToggle } from '@/lib/lang';
 import { useTheme, ThemeToggle } from '@/lib/theme';
 import Toast from '@/components/Toast';
+
+// 서명이 무엇에 대한 동의였는지를 기록에 함께 남긴다. 법이 요구하는 '서명 의사'다.
+const CONSENT = {
+  ko: '나는 이 스플릿시트에 적힌 지분에 동의하며, 전자적으로 서명합니다.',
+  en: 'I agree to the ownership splits stated in this split sheet and sign electronically.',
+} as const;
 
 function ProSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
@@ -224,9 +230,10 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     const patch = { signed: true, signed_at: new Date().toISOString(), signature_name: name || row.legal_name, signature_data: dataUrl || null, signed_hash: hash };
     // 기여자에게 열려 있던 자기 행 UPDATE 정책은 없앴다 — 지분까지 자기 손으로
     // 바꿀 수 있었기 때문이다. 서명만 하는 RPC로 좁혔다. 오너는 원래 전권이라 그대로.
-    const ok = isOwner
-      ? !(await supabase.from('split_contributors').update(patch).eq('id', row.id)).error
-      : !!(await supabase.rpc('split_sign_self', { p_row_id: row.id, p_name: name || row.legal_name || '', p_data: dataUrl || '', p_hash: hash })).data;
+    const ok = !!(await supabase.rpc('split_sign_self', {
+      p_row_id: row.id, p_name: name || row.legal_name || '', p_data: dataUrl || '', p_hash: hash,
+      p_consent: CONSENT[lang], p_ua: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+    })).data;
     if (!ok) { flash(t('서명 실패 — 다시 시도해주세요', 'Signing failed — please retry')); return; }
     setRowLocal(row.id, patch);
     setSignRow(null);
@@ -248,6 +255,20 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       else { const ta = document.createElement('textarea'); ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
       flash(t('서명 링크 복사됨 — 상대에게 전달하세요', 'Signing link copied — send it to them'));
     } catch { flash(t('복사 실패', 'Copy failed')); }
+  }
+
+  const weights = sheetWeights(sheet);
+  const writers = writerShares(rows, weights);
+  const weightSum = weights.lyrics + weights.composition + weights.arrangement;
+
+  async function setWeight(cat: CategoryKey, v: number) {
+    if (!sheet || !isOwner || lockedGuard()) return;
+    const col = ({ lyrics: 'weight_lyrics', composition: 'weight_composition', arrangement: 'weight_arrangement' } as const)[cat];
+    setSheet((s) => s ? { ...s, [col]: v } : s);
+    // 계산된 키 하나 — commitSheet와 같은 이유로 타입을 좁혀 준다
+    const patch = { [col]: v } as Database['public']['Tables']['split_sheets']['Update'];
+    const { error } = await supabase.from('split_sheets').update(patch).eq('id', sheet.id);
+    if (error) flash(error.message);
   }
 
   // ── finalize / lock / request signatures ──
@@ -276,6 +297,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     if (staleRows.length) { flash(t('서명 뒤에 문서가 바뀌었어요 — 해당 서명을 다시 받아야 해요', 'The document changed after signing — those signatures must be renewed')); return; }
     if (!allSigned) { flash(t('전원 서명 후 확정할 수 있어요', 'Everyone must sign before finalizing')); return; }
     if (!sharesOk) { flash(t('작사/작곡/편곡 지분이 각각 100%가 아니에요', 'Each pool (lyrics/comp/arr) must total 100%')); return; }
+    if (weightSum !== 100) { flash(t('풀 비중 합계가 100%가 아니에요', 'Pool weights must total 100%')); return; }
     const ts = new Date().toISOString();
     setSheet((s) => s ? { ...s, locked: true, locked_at: ts } : s);
     await supabase.from('split_sheets').update({ locked: true, locked_at: ts }).eq('id', sheet.id);
@@ -320,6 +342,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       document_sha256: docHash,
       song: { title: sheet.song_title, aka: sheet.aka, artist: sheet.artist_name, album: sheet.album, duration: sheet.duration, iswc: sheet.iswc, isrc: sheet.isrc, date: sheet.work_date },
       audio: sheet.audio_name ? { file: sheet.audio_name, sha256: audioSha } : null,
+      pool_weights: weights,
+      writer_shares: writers.map((w) => ({ name: w.name, share: w.share, parts: w.parts })),
+      writer_shares_total: writerTotal(writers),
       entries: rows.map((r) => ({
         category: r.category, share: Number(r.share) || 0,
         legal_name: r.legal_name, stage_name: r.stage_name,
@@ -399,6 +424,19 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         ${info('ISWC', sheet.iswc)} ${info('ISRC', sheet.isrc)} ${info('Sample?', sheet.contains_sample ? `Yes${sheet.sample_note ? ' — ' + sheet.sample_note : ''}` : 'No')}
         ${info('Audio', sheet.audio_name)}
       </div>
+      ${writers.length ? `
+      <h2>${t('최종 지분 · Writer Share', 'Writer Share')} <span class="sub">(${t('작사', 'Lyrics')} ${weights.lyrics}% / ${t('작곡', 'Comp')} ${weights.composition}% / ${t('편곡', 'Arr')} ${weights.arrangement}%)</span></h2>
+      <table>
+        <thead><tr><th>Writer</th><th class="num">Lyrics</th><th class="num">Composition</th><th class="num">Arrangement</th><th class="num">WRITER SHARE</th></tr></thead>
+        <tbody>${writers.map((w) => `<tr>
+          <td><b>${esc(w.name)}</b></td>
+          <td class="num">${w.parts.lyrics ?? 0}%</td>
+          <td class="num">${w.parts.composition ?? 0}%</td>
+          <td class="num">${w.parts.arrangement ?? 0}%</td>
+          <td class="num"><b>${w.share}%</b></td></tr>`).join('')}
+          <tr class="tot"><td>TOTAL</td><td colspan="3"></td><td class="num ${writerTotal(writers) === 100 ? '' : 'bad'}">${writerTotal(writers)}%</td></tr>
+        </tbody>
+      </table>` : ''}
       ${sections || `<p class="sub">${t('기여자 없음', 'No contributors')}</p>`}
       ${sheet.notes ? `<div class="foot"><b>Notes:</b> ${esc(sheet.notes)}</div>` : ''}
       <div class="foot">By signing, each writer confirms the ownership splits above are accurate and agreed. Generated by CAST · ${new Date().toISOString().slice(0, 10)}</div>
@@ -700,6 +738,62 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
               </div>
             );
           })}
+        </div>
+
+        {/* 최종 지분 — 협회가 실제로 받는 숫자. 풀별 100%는 등록에 쓸 수 없다. */}
+        <div className="sheet-paper mt-6">
+          <div className="sheet-band flex items-center gap-2 flex-wrap text-mini uppercase">
+            {t('최종 지분 (협회 등록용)', 'Writer share (for registration)')}
+            <span className="font-mono-num tabular" style={{ color: writerTotal(writers) === 100 ? '#8FD8C9' : '#E8C577' }}>
+              {t('합계', 'Total')} {writerTotal(writers)}%
+            </span>
+          </div>
+          <p className="text-mini mb-3" style={{ color: CEL.sub }}>
+            {t('작사·작곡·편곡 각각의 100%는 협회에 그대로 낼 수 없어요. 아래 비중으로 한 사람당 하나의 숫자를 만듭니다.',
+               'Per-pool 100% cannot be registered as-is. These weights collapse it into one number per writer.')}
+          </p>
+          <div className="flex items-center gap-3 flex-wrap mb-4">
+            {CATEGORIES.map((c) => (
+              <label key={c.key} className="flex items-center gap-1.5 text-mini">
+                <span style={{ color: CEL.sub }}>{lang === 'en' ? c.en : c.label}</span>
+                <input type="number" min={0} max={100} disabled={!editable}
+                  value={weights[c.key]} onChange={(e) => setWeight(c.key, Number(e.target.value) || 0)}
+                  className="w-14 rounded-lg bg-white/5 border border-white/10 px-2 py-1 text-mini text-right" />
+                <span style={{ color: CEL.sub }}>%</span>
+              </label>
+            ))}
+            <span className="text-mini font-bold" style={{ color: weightSum === 100 ? CEL.accent : CEL.warn }}>
+              {weightSum === 100 ? '✓' : t(`비중 합계 ${weightSum}% — 100%여야 해요`, `Weights total ${weightSum}% — must be 100%`)}
+            </span>
+          </div>
+          {writers.length === 0 ? (
+            <p className="text-mini" style={{ color: CEL.sub }}>{t('기여자를 추가하면 여기에 계산돼요', 'Add contributors to see the computed shares')}</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-mini" style={{ borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ color: CEL.sub }}>
+                    <th className="text-left font-normal pb-2 pr-3">{t('작가', 'Writer')}</th>
+                    {CATEGORIES.map((c) => <th key={c.key} className="text-right font-normal pb-2 px-3">{lang === 'en' ? c.en : c.label}</th>)}
+                    <th className="text-right font-normal pb-2 pl-3">{t('최종', 'Final')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {writers.map((w) => (
+                    <tr key={w.key} style={{ borderTop: `1px solid ${CEL.line2}` }}>
+                      <td className="py-2 pr-3 font-bold">{w.name}</td>
+                      {CATEGORIES.map((c) => (
+                        <td key={c.key} className="py-2 px-3 text-right font-mono-num tabular" style={{ color: w.parts[c.key] ? undefined : CEL.sub }}>
+                          {w.parts[c.key] ? `${w.parts[c.key]}%` : '—'}
+                        </td>
+                      ))}
+                      <td className="py-2 pl-3 text-right font-mono-num tabular font-bold" style={{ color: CEL.accent }}>{w.share}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* notes */}

@@ -36,8 +36,22 @@ export type SplitSheet = {
   locked_at: string | null;
   version: number | null;      // bumps when unlocked for edits
   signature_requested_at: string | null;
+  // 풀 가중치. 작사 100 + 작곡 100 + 편곡 100짜리 시트는 KOMCA에도 ASCAP에도
+  // 등록이 안 된다 — 협회는 사람당 숫자 하나를 요구한다. 이 셋이 그 하나를 만든다.
+  // 업계 관행은 작사 50 / 작곡 50, 편곡은 별도 협의(0)라 그게 기본값이다.
+  weight_lyrics: number | null;
+  weight_composition: number | null;
+  weight_arrangement: number | null;
   created_at?: string;
 };
+
+export const DEFAULT_WEIGHTS: Record<CategoryKey, number> = { lyrics: 50, composition: 50, arrangement: 0 };
+
+export const sheetWeights = (s: Pick<SplitSheet, 'weight_lyrics' | 'weight_composition' | 'weight_arrangement'> | null): Record<CategoryKey, number> => ({
+  lyrics: s?.weight_lyrics ?? DEFAULT_WEIGHTS.lyrics,
+  composition: s?.weight_composition ?? DEFAULT_WEIGHTS.composition,
+  arrangement: s?.weight_arrangement ?? DEFAULT_WEIGHTS.arrangement,
+});
 
 // One entry = one person's contribution to ONE category (작사/작곡/편곡).
 // A person who did both 작사 and 작곡 has two entries.
@@ -131,3 +145,33 @@ export const PRO_LABEL: Record<string, string> = Object.fromEntries(
 export function categoryTotal(rows: Contributor[], cat: CategoryKey): number {
   return rows.filter((r) => r.category === cat).reduce((sum, r) => sum + (Number(r.share) || 0), 0);
 }
+
+/** 한 사람을 가리키는 열쇠. 같은 사람이 작사·작곡에 각각 한 줄씩 있으므로 묶어야 한다. */
+const personKey = (r: Contributor) =>
+  r.user_id || (r.email || '').trim().toLowerCase() || (r.legal_name || '').trim() || r.id;
+
+export type WriterShare = { key: string; name: string; stage: string | null; share: number; parts: Partial<Record<CategoryKey, number>> };
+
+/**
+ * 협회에 낼 수 있는 '사람당 하나'의 지분을 만든다.
+ *   최종 = Σ (그 풀에서의 지분 × 풀 가중치) / 100
+ * 풀별 100%와 가중치 합 100%가 지켜지면 최종 합계도 100%가 된다.
+ */
+export function writerShares(rows: Contributor[], weights: Record<CategoryKey, number>): WriterShare[] {
+  const byPerson = new Map<string, WriterShare>();
+  for (const r of rows) {
+    if (!r.category) continue;
+    const w = weights[r.category] ?? 0;
+    const k = personKey(r);
+    const cur = byPerson.get(k) ?? { key: k, name: r.legal_name || r.stage_name || '—', stage: r.stage_name, share: 0, parts: {} };
+    cur.share += ((Number(r.share) || 0) * w) / 100;
+    cur.parts[r.category] = (cur.parts[r.category] ?? 0) + (Number(r.share) || 0);
+    if (!cur.name || cur.name === '—') cur.name = r.legal_name || r.stage_name || '—';
+    byPerson.set(k, cur);
+  }
+  return [...byPerson.values()]
+    .map((p) => ({ ...p, share: Math.round(p.share * 100) / 100 }))
+    .sort((a, b) => b.share - a.share || a.name.localeCompare(b.name));
+}
+
+export const writerTotal = (ws: WriterShare[]) => Math.round(ws.reduce((s, w) => s + w.share, 0) * 100) / 100;
