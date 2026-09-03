@@ -52,6 +52,7 @@ const TX = {
     pickName: '이름을 골라 들어가세요', back: '이름 다시 고르기',
     available: '가능', unavailable: '불가능', noAnswer: '미응답',
     submit: '제출하기', submitted: '제출 완료', reopen: '수정하기',
+    editing: '수정 중', editDone: '수정 완료', lockedHint: '제출했어요. 바꾸려면 아래 수정하기를 누르세요.',
     bestDays: '날짜별 결과', people: (n: number) => `${n}명`, onDay: (d: number) => `${d}일`,
     noneYet: '아직 응답이 없어요', blocked: '차단된 날',
     weekdays: ['일', '월', '화', '수', '목', '금', '토'],
@@ -69,6 +70,7 @@ const TX = {
     pickName: 'Pick your name to enter', back: 'Change name',
     available: 'Available', unavailable: 'Unavailable', noAnswer: 'No answer',
     submit: 'Submit', submitted: 'Submitted', reopen: 'Edit',
+    editing: 'Editing', editDone: 'Done', lockedHint: 'Submitted. Tap Edit below to change your answers.',
     bestDays: 'Results by day', people: (n: number) => `${n}`, onDay: (d: number) => `Day ${d}`,
     noneYet: 'No responses yet', blocked: 'Blocked',
     weekdays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
@@ -104,6 +106,10 @@ export default function AvailabilityView() {
   const [meId, setMeId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [reviewing, setReviewing] = useState(false);
+  // 제출하고 나면 달력을 잠근다. '수정하기'는 그 잠금만 푼다 — 제출 기록은 건드리지 않는다.
+  // 예전엔 수정하기가 제출 행을 지웠는데, 달력은 어차피 처음부터 편집 가능해서
+  // 화면에는 아무 변화가 없고 확인만 하려던 사람이 조용히 미제출로 돌아갔다.
+  const [editing, setEditing] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
   const [ad, setAd] = useState<any>(null);
   const paintedRef = useRef<Set<number>>(new Set());
@@ -191,20 +197,31 @@ export default function AvailabilityView() {
     return p ? (p.status as Status) : null;
   };
   const iSubmitted = !!meId && subs.some((s) => s.member_id === meId);
+  const locked = iSubmitted && !editing;
+
+  // 답을 다 지우면 제출 상태를 유지할 수 없다 — 호스트에게 '제출'로 보이는데
+  // 실제로는 아무 날도 안 고른 사람이 생긴다(실제로 그런 행이 있었다).
+  const dropEmptySubmission = async (remaining: number) => {
+    if (remaining > 0 || !iSubmitted || !poll || !meId) return;
+    await supabase.from('availability_submissions').delete().eq('poll_id', poll.id).eq('member_id', meId);
+    setEditing(false);
+    fetchSubs(poll.id);
+  };
 
   const setDay = (day: number, status: Status | null) => {
-    if (!meId || !poll || !poll.is_open) return;
+    if (!meId || !poll || !poll.is_open || locked) return;
     if ((poll.blocked_days || []).includes(day)) return;
     setPicks((prev) => {
       const rest = prev.filter((p) => !(p.member_id === meId && p.day === day));
       return status ? [...rest, { poll_id: poll.id, member_id: meId, day, status }] : rest;
     });
     if (status) supabase.from('availability_picks').upsert({ poll_id: poll.id, member_id: meId, day, status }, { onConflict: 'poll_id,member_id,day' });
-    else supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).eq('day', day);
+    else supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).eq('day', day)
+      .then(() => dropEmptySubmission(picks.filter((p) => p.member_id === meId && p.day !== day).length));
   };
 
   const bulkSet = async (days: number[], status: Status | null) => {
-    if (!meId || !poll || !poll.is_open) return;
+    if (!meId || !poll || !poll.is_open || locked) return;
     const valid = days.filter((d) => !(poll.blocked_days || []).includes(d));
     if (valid.length === 0) return;
     setPicks((prev) => {
@@ -212,7 +229,10 @@ export default function AvailabilityView() {
       return status ? [...rest, ...valid.map((d) => ({ poll_id: poll.id, member_id: meId, day: d, status }))] : rest;
     });
     if (status) await supabase.from('availability_picks').upsert(valid.map((d) => ({ poll_id: poll.id, member_id: meId, day: d, status })), { onConflict: 'poll_id,member_id,day' });
-    else await supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).in('day', valid);
+    else {
+      await supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).in('day', valid);
+      await dropEmptySubmission(picks.filter((p) => p.member_id === meId && !valid.includes(p.day)).length);
+    }
   };
 
   // 누르면 파랑↔빨강. 드래그하면 처음 정해진 색으로 쭉 칠함.
@@ -238,10 +258,13 @@ export default function AvailabilityView() {
     setDay(day, target);
   };
 
-  const toggleSubmit = async () => {
+  // 제출(또는 수정 후 확정). 답이 하나도 없으면 제출로 치지 않는다.
+  const submitNow = async () => {
     if (!meId || !poll) return;
-    if (iSubmitted) await supabase.from('availability_submissions').delete().eq('poll_id', poll.id).eq('member_id', meId);
-    else await supabase.from('availability_submissions').upsert({ poll_id: poll.id, member_id: meId }, { onConflict: 'poll_id,member_id' });
+    if (myYes.length + myNo.length === 0) return;
+    await supabase.from('availability_submissions')
+      .upsert({ poll_id: poll.id, member_id: meId, submitted_at: new Date().toISOString() }, { onConflict: 'poll_id,member_id' });
+    setEditing(false);
     fetchSubs(poll.id);
   };
 
@@ -330,7 +353,7 @@ export default function AvailabilityView() {
     <div className="min-h-screen font-ui" style={{ backgroundColor: c.bg, color: c.text }}>
       <div className="max-w-2xl mx-auto px-5 py-10 pb-28 anim-fade">
         <TopBar c={c} lang={lang} dark={dark} onTheme={toggleTheme} onLang={toggleLang}
-          left={<button onClick={() => { setMeId(null); setSelectedDay(null); }} className="text-mini hover:opacity-70 transition-opacity" style={{ color: c.sub }}>← {t.back}</button>} />
+          left={<button onClick={() => { setMeId(null); setSelectedDay(null); setEditing(false); }} className="text-mini hover:opacity-70 transition-opacity" style={{ color: c.sub }}>← {t.back}</button>} />
         {dbError && (
           <div role="alert" className="mb-5 rounded-xl border px-4 py-3 flex items-start gap-3" style={{ borderColor: NO + '66', backgroundColor: NO + '14' }}>
             <span className="text-body leading-none mt-0.5" style={{ color: c.noText }}><i className="ti ti-alert-triangle" aria-hidden="true"></i></span>
@@ -358,10 +381,10 @@ export default function AvailabilityView() {
               <Legend c={c} color={NO} label={t.unavailable} />
               <Legend c={c} color={null} label={t.noAnswer} />
             </div>
-            <p className="text-mini mb-3.5" style={{ color: c.sub }}>{t.guide}</p>
+            <p className="text-mini mb-3.5" style={{ color: locked ? c.faint : c.sub }}>{locked ? t.lockedHint : t.guide}</p>
 
             {/* 빠른 선택 */}
-            <div className="flex items-center gap-1.5 mb-3.5 flex-wrap">
+            <div className={`flex items-center gap-1.5 mb-3.5 flex-wrap transition-opacity ${locked ? 'opacity-35 pointer-events-none' : ''}`} aria-hidden={locked}>
               <span className="text-micro font-black uppercase tracking-widest mr-0.5" style={{ color: c.sub }}>{t.quickPick}</span>
               <Quick color={YES} onClick={() => bulkSet(weekendDays, 'available')}>{t.quickWeekend}</Quick>
               <Quick color={YES} onClick={() => bulkSet(weekdayDays, 'available')}>{t.quickWeekday}</Quick>
@@ -379,9 +402,10 @@ export default function AvailabilityView() {
           <div className="grid grid-cols-7 gap-1.5 mb-2">
             {t.weekdays.map((w, i) => <div key={i} className="text-center text-mini font-black" style={{ color: i === 0 || i === 6 ? c.sub : c.faint }}>{w}</div>)}
           </div>
-          <div className="grid grid-cols-7 gap-1.5" style={{ touchAction: poll.is_open ? 'none' : 'auto' }}
-            onPointerDown={(e) => { if (poll.is_open) startPaint(e.clientX, e.clientY); }}
-            onPointerMove={(e) => movePaint(e.clientX, e.clientY)}>
+          <div className={`grid grid-cols-7 gap-1.5 transition-opacity ${locked ? 'opacity-60' : ''}`}
+            style={{ touchAction: poll.is_open && !locked ? 'none' : 'auto' }}
+            onPointerDown={(e) => { if (poll.is_open && !locked) startPaint(e.clientX, e.clientY); }}
+            onPointerMove={(e) => { if (!locked) movePaint(e.clientX, e.clientY); }}>
             {cells.map((d, i) => {
               if (d === null) return <div key={`e${i}`} />;
               const n = yesOn(d); const st = myStatus(d); const isFinal = finals.includes(d); const isBlocked = blocked.includes(d);
@@ -395,7 +419,7 @@ export default function AvailabilityView() {
                 : c.line;
               return (
                 <button key={d} type="button" data-day={d}
-                  disabled={isBlocked || !poll.is_open}
+                  disabled={isBlocked || !poll.is_open || locked}
                   aria-pressed={st === 'available'}
                   aria-label={`${d}${lang === 'ko' ? '일' : ''} — ${isBlocked ? t.blocked : st === 'available' ? t.available : st === 'unavailable' ? t.unavailable : t.noAnswer}`}
                   onKeyDown={(e) => {
@@ -406,7 +430,7 @@ export default function AvailabilityView() {
                   onContextMenu={(e) => { e.preventDefault(); setSelectedDay(selectedDay === d ? null : d); }}
                   className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center select-none transition-[transform,background-color] duration-150
  ${isFinal ? 'ring-2 ring-brand-cast' : ''}
-                    ${!isBlocked && poll.is_open ? 'cursor-pointer active:scale-90' : 'cursor-default'}`}
+                    ${!isBlocked && poll.is_open && !locked ? 'cursor-pointer active:scale-90' : 'cursor-default'}`}
                   style={{
                     backgroundColor: bg, borderColor: border,
                     backgroundImage: isBlocked ? `repeating-linear-gradient(45deg, ${c.hatch} 0 4px, transparent 4px 8px)` : undefined,
@@ -442,10 +466,20 @@ export default function AvailabilityView() {
       {poll.is_open && (
         <div className="fixed bottom-0 left-0 right-0 z-40 border-t backdrop-blur-md" style={{ borderColor: c.line, backgroundColor: c.barBg }}>
           <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center gap-3">
-            {iSubmitted ? (
+            {locked ? (
               <>
                 <span className="flex-1 text-body font-black text-[#8FD4C8] flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-[#5FA39A]" />{t.submitted}</span>
-                <button onClick={toggleSubmit} className="text-mini font-black px-5 py-2.5 rounded-full border transition" style={{ borderColor: c.line, color: c.sub }}>{t.reopen}</button>
+                <button onClick={() => setEditing(true)} className="text-mini font-black px-5 py-2.5 rounded-full border transition" style={{ borderColor: c.line, color: c.sub }}>{t.reopen}</button>
+              </>
+            ) : iSubmitted ? (
+              <>
+                <span className="flex-1 text-body font-black flex items-center gap-2" style={{ color: c.sub }}>
+                  <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: YES }} />{t.editing}
+                  <span className="text-mini font-bold" style={{ color: c.faint }}>{myYes.length + myNo.length}/{openDays.length}</span>
+                </span>
+                <button onClick={submitNow} disabled={myYes.length + myNo.length === 0}
+                  className="text-mini font-black px-5 py-2.5 rounded-full transition disabled:opacity-30 active:scale-[0.98]"
+                  style={{ backgroundColor: YES, color: c.yesText }}>{t.editDone}</button>
               </>
             ) : (
               <>
@@ -477,7 +511,7 @@ export default function AvailabilityView() {
             )}
             <div className="flex gap-2.5">
               <button onClick={() => setReviewing(false)} className="flex-1 py-3 rounded-full border font-bold text-body transition" style={{ borderColor: c.line, color: c.sub }}>{t.reviewMore}</button>
-              <button onClick={async () => { await toggleSubmit(); setReviewing(false); }} disabled={myYes.length + myNo.length === 0}
+              <button onClick={async () => { await submitNow(); setReviewing(false); }} disabled={myYes.length + myNo.length === 0}
                 className="flex-1 py-3 rounded-full font-black text-body transition disabled:opacity-30" style={{ backgroundColor: YES, color: c.yesText }}>{t.reviewSubmit}</button>
             </div>
           </div>
