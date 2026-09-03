@@ -288,12 +288,17 @@ export default function AvailabilityView() {
                     {items.map((mm) => {
                       const done = subs.some((s) => s.member_id === mm.id);
                       return (
+                        /* 제출 = 채움, 미제출 = 테두리만. '채워짐 = 끝남'은 범례가 없어도
+                           읽히고, 페이지 전체가 빈 칸이 하나씩 채워지는 진행 화면이 된다.
+                           흐리게 죽이는 게 아니라 비우는 것이라 정작 눌러야 할 미제출자가
+                           더 눈에 걸린다 (빈 칩 글씨 대비 15.93 / 채운 칩 15.19). */
                         <button key={mm.id} onClick={() => setMeId(mm.id)}
                           className="relative flex items-center gap-2 px-4 py-2.5 rounded-xl overflow-hidden font-black text-body transition hover:scale-105 active:scale-95"
                           style={{
                             borderTopLeftRadius: 0,
-                            borderBottomRightRadius: done ? 0 : undefined,
-                            backgroundColor: OAT.box, color: OAT.ink,
+                            backgroundColor: done ? OAT.box : 'transparent',
+                            color: done ? OAT.ink : dark ? OAT.cream : OAT.ink,
+                            boxShadow: done ? undefined : `inset 0 0 0 1.5px ${dark ? OAT.cream : OAT.ink}`,
                           }}>
                           {/* 좌상단 노치 = 성별. 스튜디오 카드와 같은 신호. */}
                           <i aria-hidden="true" className="absolute left-0 top-0 w-4 h-4"
@@ -302,14 +307,6 @@ export default function AvailabilityView() {
                               clipPath: 'polygon(0 0, 100% 0, 0 100%)',
                             }} />
                           <span className="pl-1.5">{mm.name}</span>
-                          {/* 제출 완료 = 우하단 잉크 코너. 좌상단 성별 노치와 같은 어법이고,
-                              박스색을 밝기로 갈랐을 때(대비 3.00)보다 훨씬 멀리서 보인다(14.18).
-                              코너만으로는 무슨 뜻인지 알 길이 없으니 ✓ 를 같이 남긴다. */}
-                          {done && <>
-                            <i aria-hidden="true" className="absolute right-0 bottom-0 w-4 h-4"
-                              style={{ backgroundColor: OAT.ink, clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }} />
-                            <span className="text-micro font-black pr-2">✓</span>
-                          </>}
                         </button>
                       );
                     })}
