@@ -19,7 +19,7 @@ const EMPTY_PROFILE: Omit<CopyrightProfile, 'id'> = {
 function ProSelect({ value, onChange, className, placeholder }: { value: string; onChange: (v: string) => void; className?: string; placeholder?: string }) {
   return (
     <select value={value || ''} onChange={(e) => onChange(e.target.value)}
-      className={className ?? 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white focus:outline-none focus:border-brand-lead'}>
+      className={className ?? 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white focus:outline-none focus:border-brand-split'}>
       <option value="">{placeholder ?? '저작권협회 (PRO/CMO) 선택…'}</option>
       {PRO_GROUPS.map((g) => (
         <optgroup key={g.region} label={g.region}>
@@ -109,8 +109,8 @@ export default function SplitIndex() {
   }
 
   const field = D
-    ? 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead'
-    : 'w-full rounded-lg bg-white border border-black/15 px-3 py-2 text-body text-[#1a1a1a] placeholder:text-black/30 focus:outline-none focus:border-brand-lead';
+    ? 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-split'
+    : 'w-full rounded-lg bg-white border border-black/15 px-3 py-2 text-body text-[#1a1a1a] placeholder:text-black/30 focus:outline-none focus:border-brand-split';
   const bg = D ? 'bg-surface-0 text-white' : 'bg-[#f6f6f7] text-[#1a1a1a]';
   const panel = D ? 'border-white/10 bg-white/[0.02]' : 'border-black/[0.08] bg-white';
   const muted = D ? 'text-white/55' : 'text-black/50';
@@ -185,7 +185,7 @@ export default function SplitIndex() {
         <div className={`text-mini uppercase tracking-widest mb-3 ${faint}`}>{t('내 스플릿시트', 'My split sheets')}</div>
         {sheets.length === 0 ? (
           <div className={`rounded-xl border border-dashed py-14 text-center text-body ${D ? 'border-white/10 text-white/55' : 'border-black/10 text-black/40'}`}>
-            {t('아직 없어요. ', 'None yet. ')}<button onClick={newSheet} className="text-brand-lead-text hover:underline">{t('새 스플릿시트', 'Create one')}</button>{t('를 만들어보세요.', '.')}
+            {t('아직 없어요. ', 'None yet. ')}<button onClick={newSheet} className="text-brand-split-text hover:underline">{t('새 스플릿시트', 'Create one')}</button>{t('를 만들어보세요.', '.')}
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -196,7 +196,7 @@ export default function SplitIndex() {
                   <div className="font-medium truncate">{s.song_title || t('(제목 없음)', '(Untitled)')}</div>
                   <div className={`text-mini truncate ${muted}`}>{s.artist_name || t('아티스트 미정', 'Artist TBD')}{s.iswc ? ` · ISWC ${s.iswc}` : ''}</div>
                 </div>
-                {needSign.has(s.id) && <span className="ml-auto text-micro px-2 py-0.5 rounded-full border border-brand-lead/40 text-[#6fa0f0]">{t('✍ 서명 필요', '✍ Sign')}</span>}
+                {needSign.has(s.id) && <span className="ml-auto text-micro px-2 py-0.5 rounded-full border border-brand-split/40 text-[#6fa0f0]">{t('✍ 서명 필요', '✍ Sign')}</span>}
                 {ready.has(s.id) && <span className={`${needSign.has(s.id) ? '' : 'ml-auto'} text-micro px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-500`}>{t('✓ 확정 가능', '✓ Ready')}</span>}
                 {s.owner_id !== me && <span className={`${needSign.has(s.id) || ready.has(s.id) ? '' : 'ml-auto'} text-micro px-2 py-0.5 rounded-full border ${D ? 'border-white/15 text-white/50' : 'border-black/15 text-black/50'}`}>{t('참여', 'Shared')}</span>}
                 {s.locked && <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/40 text-emerald-500"><i className="ti ti-lock" aria-hidden="true"></i></span>}

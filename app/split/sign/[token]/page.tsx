@@ -59,7 +59,7 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
     if (ok) { setDone(true); load(); }
   }
 
-  const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
+  const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-split';
 
   if (loading) return <div className="font-ui min-h-[100dvh] bg-surface-0 flex items-center justify-center text-white/55">…</div>;
   if (!data) return (
@@ -102,7 +102,7 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
                 {rows.map((r) => (
                   <div key={r.id} className={`flex items-center gap-2 py-1.5 text-body ${r.id === me.id ? 'text-white' : 'text-white/55'}`}>
                     <span className="font-medium">{r.legal_name || r.stage_name || '—'}</span>
-                    {r.id === me.id && <span className="text-micro px-1.5 py-0.5 rounded-full border border-brand-lead/40 text-[#6fa0f0]">{t('나', 'You')}</span>}
+                    {r.id === me.id && <span className="text-micro px-1.5 py-0.5 rounded-full border border-brand-split/40 text-[#6fa0f0]">{t('나', 'You')}</span>}
                     {r.pro && <span className="text-white/55 text-mini">{PRO_LABEL[r.pro] ?? r.pro}</span>}
                     <span className="ml-auto tabular-nums">{Number(r.share) || 0}%</span>
                     {r.signed && <span className="text-emerald-400 text-mini">✓</span>}
@@ -139,7 +139,7 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
               <span>{t('위 지분이 정확하며 이에 동의함을 확인합니다. 서명 시각·문서 해시(SHA-256)가 함께 기록됩니다.', 'I confirm the split above is accurate and I agree. The time and a document hash (SHA-256) are recorded.')}</span>
             </label>
             <button onClick={submit} disabled={!name.trim() || !agree || signing}
-              className="w-full text-body px-4 py-3 rounded-full bg-brand-lead hover:bg-[#A48BF0] disabled:opacity-40 font-medium transition-colors">
+              className="w-full text-body px-4 py-3 rounded-full bg-brand-split text-[#0a0a0a] hover:brightness-110 disabled:opacity-40 font-medium transition-colors">
               {signing ? '…' : t('서명 완료', 'Sign')}
             </button>
           </div>
