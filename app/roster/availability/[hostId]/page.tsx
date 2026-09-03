@@ -14,7 +14,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 import { AVAIL_COLORS, OAT, GENDER_NOTCH } from '@/lib/brand';
 
 const ROLE_ORDER = ['Producer', 'Topliner', 'Engineer', 'A&R'];
-const ROLE_TAG: Record<string, string> = { Producer: 'P', Topliner: 'T', Engineer: 'E', 'A&R': 'A' };
 
 // 가능 = 파랑, 불가능 = 빨강, 확정 = 골드. 미정 없음.
 // 파랑·빨강은 오트밀 팔레트 채도대로 내려 lib/brand의 AVAIL_COLORS에 둔다.
@@ -294,7 +293,6 @@ export default function AvailabilityView() {
                               clipPath: 'polygon(0 0, 100% 0, 0 100%)',
                             }} />
                           <span className="pl-1.5">{mm.name}</span>
-                          <span className="opacity-45">({ROLE_TAG[mm.role] || (mm.role || '?')[0]})</span>
                           {done && <span className="text-micro font-black">✓</span>}
                         </button>
                       );

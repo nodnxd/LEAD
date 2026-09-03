@@ -82,7 +82,7 @@ const T = {
     availBlockMode: '차단일 설정', availBlockDone: '설정 완료', availBlocked: '차단됨',
     availBlockHint: '막을 날짜를 눌러 차단 (멤버는 못 고름)',
     availFinalTitle: '확정일', availIcs: '캘린더 저장 (.ics)', availAnnounce: '확정 공지 복사', availMakeSessions: '이 날들로 세션 만들기', availSessionsMade: (n: number) => `세션 ${n}개 만들었어요`,
-    availRemind: '독촉', availRemindAll: '미제출 문구 복사',
+    availRemindAll: '미제출 문구 복사',
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] 확정 안내\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\n"${title}" 가능일 아직 제출 전이에요. 링크에서 이름 누르고 제출해주세요!\n${link}`,
     inviteAccount: '계정 초대 (이메일)', inviteTitle: '이 멤버를 이메일로 초대', inviteSent: '초대 등록! 그 이메일로 로그인하면 자동 연결돼요',
@@ -159,7 +159,7 @@ const T = {
     availBlockMode: 'Block days', availBlockDone: 'Done', availBlocked: 'Blocked',
     availBlockHint: 'Tap days to block (members cannot pick)',
     availFinalTitle: 'Confirmed days', availIcs: 'Save calendar (.ics)', availAnnounce: 'Copy announcement', availMakeSessions: 'Make sessions from these days', availSessionsMade: (n: number) => `Created ${n} sessions`,
-    availRemind: 'Remind', availRemindAll: 'Copy reminder (all)',
+    availRemindAll: 'Copy reminder (all)',
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] Confirmed\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\nPlease submit your availability for "${title}":\n${link}`,
     inviteAccount: 'Invite account (email)', inviteTitle: 'Invite this member by email', inviteSent: 'Invite saved! They auto-link when they log in with that email',
@@ -1602,7 +1602,7 @@ export default function Dashboard() {
             {/* 프로젝트 탭 */}
             <Droppable droppableId="projects-bar" direction="horizontal" type="PROJECT">
               {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="relative z-10 flex items-center justify-center gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+                <div {...provided.droppableProps} ref={provided.innerRef} className="relative z-10 flex items-center gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
                   {projects.map((p, index) => (
                     <Draggable key={p} draggableId={`proj-${p}`} index={index}>
                       {(provided) => (
@@ -1633,13 +1633,13 @@ export default function Dashboard() {
             {/* 서브 헤더 */}
             <header className={`relative z-30 mb-6 border-b pb-4 ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`}>
               {/* 1줄 */}
-              <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
                   {/* 프로젝트 이름은 바로 위 탭이 이미 말한다. 이 자리는 메모로 쓴다. */}
                   <input value={projectMemo} onChange={e => setProjectMemo(e.target.value)} onBlur={saveProjectMemo}
                     onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                     placeholder={t.projMemoPlaceholder} aria-label={t.projMemoPlaceholder}
-                    className={`field-bare bg-transparent border-0 text-lead font-bold outline-none text-center w-56 sm:w-72 ${textMain} placeholder:text-zinc-500 placeholder:font-normal`} />
+                    className={`field-bare bg-transparent border-0 text-lead font-bold outline-none w-56 sm:w-72 ${textMain} placeholder:text-zinc-500 placeholder:font-normal`} />
                   {votingOpen && (
                     <div className="flex items-center gap-2 ml-2">
                       <span className="text-micro font-bold text-[#77B18E]">{t.attending} {attendingCount}</span>
@@ -1677,7 +1677,7 @@ export default function Dashboard() {
                 </div>
               </div>
               {/* 2줄 — 자주 쓰는 것만 밖에, 나머지는 더보기 안에 */}
-              <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 <button onClick={addStudio} title={t.studioHint}
                   className={`px-4 py-2 rounded-full border font-bold text-mini transition text-brand-cast-text ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
                 {(votingOpen || availPoll) && (
@@ -2319,7 +2319,7 @@ export default function Dashboard() {
         const wd = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => { setShowAvailModal(false); setAvailSelMember(null); }}>
-            <div role="dialog" aria-modal="true" tabIndex={-1} onClick={e => e.stopPropagation()} className={`w-full ${availPoll ? 'max-w-4xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-xl p-7 sm:p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+            <div role="dialog" aria-modal="true" tabIndex={-1} onClick={e => e.stopPropagation()} className={`w-full ${availPoll ? 'max-w-6xl' : 'max-w-md'} max-h-[92vh] overflow-y-auto overscroll-contain-y border rounded-xl p-7 sm:p-8 shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className={`font-black text-lead ${textMain}`}>{t.availOpenTitle}</h2>
                 <button onClick={() => setShowAvailModal(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className={`text-body ${textSub} hover:opacity-70`}>✕</button>
@@ -2340,7 +2340,7 @@ export default function Dashboard() {
                     <button onClick={copyAvailShareLink} className={`shrink-0 text-mini font-bold px-3.5 py-1.5 rounded-full border transition ${btnBg}`}>{t.availCopyAll}</button>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6 items-start">
+                  <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] gap-6 items-start">
                     {/* 좌: 달력 + 선택일 + 베스트 */}
                     <div className="flex flex-col gap-5">
                       {/* 히트맵 달력 */}
@@ -2482,7 +2482,7 @@ export default function Dashboard() {
                             className={`shrink-0 text-micro font-black px-2.5 py-1 rounded-full border transition ${btnBg}`}>{t.availRemindAll}</button>
                         )}
                       </div>
-                      <div className="space-y-1.5">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-1.5 items-start">
                         {proj.map(m => {
                           const done = isSubmitted(m);
                           const cnt = availPicks.filter(p => p.member_id === m.id && p.status === 'available').length;
@@ -2495,7 +2495,6 @@ export default function Dashboard() {
                               <span className={`text-body font-bold ${selected ? 'text-[#8FD4C8]' : textMain}`}>{m.name} <span className={`text-mini font-normal ${textSub}`}>{m.role}</span></span>
                               <div className="flex items-center gap-2.5">
                                 <span className={`text-mini font-black ${textSub}`}><span className="text-[#7FB0FF]">{cnt}</span>{mcnt ? <> · <span className="text-[#E0575F]">{mcnt}</span></> : ''}</span>
-                                {!done && <button onClick={(e) => { e.stopPropagation(); copyAvailReminder([m.name]); }} className={`text-micro font-black px-2 py-0.5 rounded-full border transition ${btnBg}`}>{t.availRemind}</button>}
                                 <span className={`text-mini font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
                                 <button onClick={(e) => { e.stopPropagation(); toggleAvailExclude(m.id); }} title={t.availKick} aria-label={t.availKick} className={`text-mini font-black px-1.5 py-0.5 rounded-full transition ${textSub} hover:text-[#C98BA0]`}>✕</button>
                               </div>
@@ -2504,7 +2503,7 @@ export default function Dashboard() {
                         })}
                         {proj.length === 0 && <p className={`text-body ${textSub}`}>{t.availNoResp}</p>}
                         {kickedMembers.length > 0 && (
-                          <div className="pt-2">
+                          <div className="pt-2 lg:col-span-2">
                             <p className={`text-micro font-black uppercase tracking-widest mb-1.5 text-[#C98BA0]/80`}>{t.availKicked}</p>
                             {kickedMembers.map(m => (
                               <div key={m.id} className={`flex items-center justify-between px-3.5 py-2 rounded-lg opacity-60 ${inputBg}`}>
@@ -2568,28 +2567,44 @@ export default function Dashboard() {
         </>
       )}
 
+      {/* 스튜디오에 넣기 — fixed 드롭다운이었는데 페이지가 뒤에서 따로 스크롤돼
+          목록이 자리를 벗어나고 끝까지 내려가지도 않았다. 모달로 바꿔 스크롤을
+          안쪽 한 군데로 모으고, 역할별로 묶어서 길어져도 어디쯤인지 보이게 한다. */}
       {addToTeam && (() => {
-        const pool = members
-          .filter(m => m.project === currentProject && !m.excluded && !getAssignment(m.id))
-          .sort((a, b) => (ROLES.indexOf(a.role) - ROLES.indexOf(b.role)) || a.name.localeCompare(b.name));
+        const pool = members.filter(m => m.project === currentProject && !m.excluded && !getAssignment(m.id));
+        const groups = ROLES.map(r => ({ role: r, items: pool.filter(m => m.role === r).sort((a, b) => a.name.localeCompare(b.name)) })).filter(g => g.items.length);
         return (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setAddToTeam(null)} />
-            <div className={`fixed z-50 border rounded-xl shadow-lg overflow-y-auto max-h-[60vh] w-52 font-ui ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`}
-              style={{ top: Math.min(addToTeam.y, window.innerHeight - 240), left: Math.min(addToTeam.x, window.innerWidth - 220) }}>
-              {pool.length === 0 ? (
-                <p className={`px-4 py-3 text-mini ${textSub}`}>{t.poolEmpty}</p>
-              ) : pool.map((m, i) => (
-                <button key={m.id}
-                  onClick={() => { assignMember(m.id, addToTeam.team); setAddToTeam(null); }}
-                  className={`flex items-center gap-2 w-full px-4 py-2.5 text-mini font-bold text-left transition ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${i > 0 && pool[i - 1].role !== m.role ? (theme === 'light' ? 'border-t border-black/8' : 'border-t border-white/8') : ''}`}>
-                  <i className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: genderColor(m.gender, theme === 'dark') }} />
-                  <span className={textMain}>{m.name}</span>
-                  <span className="opacity-40 ml-auto">({ROLE_TAG[m.role] || m.role[0]})</span>
-                </button>
-              ))}
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => setAddToTeam(null)}>
+            <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}
+              className={`w-full max-w-2xl max-h-[80vh] flex flex-col border rounded-xl shadow-lg ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#111] border-white/10'}`}>
+              <div className={`flex items-center justify-between px-6 py-4 border-b ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`}>
+                <h2 className={`font-black text-lead ${textMain}`}>{addToTeam.team} <span className={`text-mini font-normal ${textSub}`}>· {t.studioAddMember}</span></h2>
+                <button onClick={() => setAddToTeam(null)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className={`text-body ${textSub} hover:opacity-70`}>✕</button>
+              </div>
+              <div className="overflow-y-auto overscroll-contain px-6 py-5 flex flex-col gap-5">
+                {groups.length === 0 && <p className={`text-body ${textSub}`}>{t.poolEmpty}</p>}
+                {groups.map(({ role, items }) => (
+                  <div key={role}>
+                    <p className={`text-micro font-black uppercase tracking-[0.2em] mb-2.5 ${textSub}`}>{role} <span className="opacity-50">{items.length}</span></p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {items.map(m => (
+                        <button key={m.id} onClick={() => { assignMember(m.id, addToTeam.team); setAddToTeam(null); }}
+                          className="relative flex items-center gap-2 px-3 py-2.5 rounded-xl overflow-hidden text-body font-bold transition hover:brightness-105 active:scale-95"
+                          style={{ backgroundColor: OAT.box, color: OAT.ink, borderTopLeftRadius: 0 }}>
+                          <i aria-hidden="true" className="absolute left-0 top-0 w-4 h-4"
+                            style={{
+                              backgroundColor: m.gender === 'female' || m.gender === 'F' || m.gender === '여' ? GENDER_NOTCH.female : GENDER_NOTCH.male,
+                              clipPath: 'polygon(0 0, 100% 0, 0 100%)',
+                            }} />
+                          <span className="pl-1.5 truncate">{m.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </>
+          </div>
         );
       })()}
 
