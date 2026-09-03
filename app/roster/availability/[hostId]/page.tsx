@@ -11,10 +11,10 @@ const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-import { AVAIL_COLORS } from '@/lib/brand';
+import { AVAIL_COLORS, OAT } from '@/lib/brand';
 
 const ROLE_ORDER = ['Producer', 'Topliner', 'Engineer', 'A&R'];
-const ROLE_COLORS: Record<string, string> = { 'Producer': '#E3B24A', 'Topliner': '#5FA39A', 'Engineer': '#C98BA0', 'A&R': '#C98BA0' };
+const ROLE_TAG: Record<string, string> = { Producer: 'P', Topliner: 'T', Engineer: 'E', 'A&R': 'A' };
 
 // 가능 = 파랑, 불가능 = 빨강, 확정 = 골드. 미정 없음.
 // 파랑·빨강은 오트밀 팔레트 채도대로 내려 lib/brand의 AVAIL_COLORS에 둔다.
@@ -275,27 +275,27 @@ export default function AvailabilityView() {
           <FinalDaysCard t={t} c={c} lang={lang} poll={poll} m={m} />
           <p className="text-body font-bold mb-5" style={{ color: c.sub }}>{t.pickName}</p>
           <div className="flex flex-col gap-5">
-            {byRole.map(({ role, items }) => {
-              const col = ROLE_COLORS[role] || '#9aa';
-              return (
+            {byRole.map(({ role, items }) => (
                 <div key={role}>
-                  <p className="text-mini font-black uppercase tracking-widest mb-2.5" style={{ color: dark ? col + 'cc' : shade(col) }}>{role}</p>
+                  <p className="text-mini font-black uppercase tracking-widest mb-2.5" style={{ color: c.sub }}>{role}</p>
                   <div className="flex flex-wrap gap-2.5">
                     {items.map((mm) => {
                       const done = subs.some((s) => s.member_id === mm.id);
                       return (
                         <button key={mm.id} onClick={() => setMeId(mm.id)}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-full border font-black text-body transition hover:scale-105 active:scale-95"
-                          style={{ color: dark ? col : shade(col), borderColor: col + (done ? '66' : '38'), backgroundColor: col + (done ? '20' : '10') }}>
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-full font-black text-body transition hover:scale-105 active:scale-95"
+                          style={done
+                            ? { backgroundColor: OAT.banner, color: OAT.ink }
+                            : { backgroundColor: OAT.box, color: OAT.ink }}>
                           {mm.name}
-                          {done && <span className="text-micro font-black px-1.5 py-0.5 rounded-full" style={{ backgroundColor: col + '25' }}>✓</span>}
+                          <span className="opacity-45">({ROLE_TAG[mm.role] || (mm.role || '?')[0]})</span>
+                          {done && <span className="text-micro font-black">✓</span>}
                         </button>
                       );
                     })}
                   </div>
                 </div>
-              );
-            })}
+            ))}
             {members.length === 0 && <p className="text-body" style={{ color: c.sub }}>{t.noneYet}</p>}
           </div>
           <BestDays t={t} c={c} lang={lang} bestDays={bestDays} maxCount={maxCount} finals={finals} onPick={setSelectedDay} />
@@ -307,7 +307,6 @@ export default function AvailabilityView() {
     );
   }
 
-  const roleCol = ROLE_COLORS[me?.role] || '#fff';
 
   // ── 개인 편집 화면 ──
   return (
@@ -329,8 +328,7 @@ export default function AvailabilityView() {
         <FinalDaysCard t={t} c={c} lang={lang} poll={poll} m={m} />
 
         <div className="flex items-center gap-2 mb-4">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: roleCol }} />
-          <p className="text-lead font-black" style={{ color: dark ? roleCol : shade(roleCol) }}>{me?.name}</p>
+          <p className="text-lead font-black" style={{ color: c.text }}>{me?.name}</p>
           <span className="text-mini" style={{ color: c.sub }}>{me?.role}</span>
         </div>
 
@@ -471,13 +469,6 @@ export default function AvailabilityView() {
   );
 }
 
-function shade(hex: string) {
-  // 라이트 테마용: 역할 색을 살짝 어둡게 눌러 흰 배경에서도 읽히게
-  const n = parseInt(hex.slice(1), 16);
-  const f = 0.62;
-  return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-    .map((v) => Math.round(v * f).toString(16).padStart(2, '0')).join('');
-}
 
 function Screen({ children, c }: { children: React.ReactNode; c: Tok }) {
   return <div className="min-h-screen flex items-center justify-center text-body font-ui" style={{ backgroundColor: c.bg, color: c.faint }}>{children}</div>;
@@ -564,15 +555,12 @@ function FinalDaysCard({ t, c, lang, poll, m }: any) {
 }
 
 function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
-  const chip = (mm: any, ok: boolean) => {
-    const col = ROLE_COLORS[mm.role] || '#8a8a8a';
-    return (
-      <span key={mm.id} className={`px-3 py-1 rounded-full text-mini font-bold border ${ok ? '' : 'line-through opacity-80'}`}
-        style={ok
-          ? { color: dark ? col : shade(col), borderColor: col + '66', backgroundColor: col + '1f' }
-          : { color: c.noText, borderColor: NO + '4d', backgroundColor: NO + '14' }}>{mm.name}</span>
-    );
-  };
+  const chip = (mm: any, ok: boolean) => (
+    <span key={mm.id} className={`px-3 py-1 rounded-full text-mini font-bold ${ok ? '' : 'line-through'}`}
+      style={ok
+        ? { backgroundColor: OAT.box, color: OAT.ink }
+        : { backgroundColor: AVAIL_COLORS.no.bg, color: AVAIL_COLORS.no.fg }}>{mm.name}</span>
+  );
   const roleGroups = [...ROLE_ORDER, '__etc'].map((role) => {
     const a = yes.filter((mm: any) => role === '__etc' ? !ROLE_ORDER.includes(mm.role) : mm.role === role);
     const b = no.filter((mm: any) => role === '__etc' ? !ROLE_ORDER.includes(mm.role) : mm.role === role);
@@ -588,7 +576,7 @@ function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
         <div className="flex flex-col gap-3">
           {roleGroups.map(({ role, a, b }) => (
             <div key={role} className="flex flex-col gap-1.5">
-              <p className="font-mono-num text-micro font-semibold uppercase tracking-widest" style={{ color: dark ? (ROLE_COLORS[role] || '#8a8a8a') + 'cc' : shade(ROLE_COLORS[role] || '#8a8a8a') }}>
+              <p className="font-mono-num text-micro font-semibold uppercase tracking-widest" style={{ color: c.sub }}>
                 {role === '__etc' ? (lang === 'ko' ? '기타' : 'Other') : role} <span style={{ color: c.faint }}>{a.length + b.length}</span>
               </p>
               <div className="flex flex-wrap gap-2">

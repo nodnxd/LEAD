@@ -1500,6 +1500,8 @@ export default function Dashboard() {
   const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-400 hover:bg-black/10' : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10';
 
   // 역할색은 왼쪽 레일 한 곳에서만 말한다.
+  const ROLE_TAG: Record<string, string> = { Producer: 'P', Topliner: 'T', Engineer: 'E', 'A&R': 'A' };
+
   const getAttendanceBadge = (attendance: string | null) => {
     if (attendance === 'attending') return <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-[#77B18E]/20 text-[#77B18E] border border-[#77B18E]/30 shrink-0">{t.attending}</span>;
     if (attendance === 'absent') return <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-[#9A8F8A]/20 text-[#9A8F8A] border border-[#9A8F8A]/30 shrink-0">{t.absent}</span>;
@@ -1691,45 +1693,6 @@ export default function Dashboard() {
                 </div>
               </div>
             </header>
-
-            {/* 진행 단계 — 지금 뭘 할 차례인지 */}
-            {(() => {
-              const projMembers = members.filter(m => m.project === currentProject && !m.excluded);
-              const finals: number[] = availPoll?.final_days || [];
-              const submitted = availPoll ? projMembers.filter(m => availSubs.some(sb => sb.member_id === m.id)).length : 0;
-              const placed = assignments.filter(a => a.project === currentProject && a.day_number === currentDay && a.team !== 'Unassigned').length;
-              const steps = [
-                { label: t.stepPoll, done: !!availPoll, note: availPoll ? `${submitted}/${projMembers.length}` : '', go: () => { setAvailSelDay(null); setShowAvailModal(true); } },
-                { label: t.stepConfirm, done: finals.length > 0, note: finals.length ? `${finals.length}${lang === 'ko' ? '일' : ''}` : '', go: () => { setAvailSelDay(null); setShowAvailModal(true); } },
-                { label: t.stepAssign, done: placed > 0, note: placed ? `${placed}${lang === 'ko' ? '명' : ''}` : '', go: () => setRandomModal(true) },
-                { label: t.stepShare, done: false, note: '', go: copyShareLink },
-              ];
-              const cur = steps.findIndex(x => !x.done);
-              return (
-                <div className="relative z-10 flex items-center gap-1 mb-5 overflow-x-auto no-scrollbar">
-                  {steps.map((st, i) => {
-                    const isCur = i === cur;
-                    return (
-                      <div key={i} className="flex items-center gap-1 shrink-0">
-                        <button onClick={st.go}
-                          className={`flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full border text-mini font-bold transition
- ${isCur ? 'border-brand-cast/60 bg-brand-cast/12 text-brand-cast-text'
-                              : st.done ? (theme === 'light' ? 'border-black/10 bg-black/[0.03] text-zinc-400' : 'border-white/10 bg-white/[0.03] text-zinc-400')
-                              : (theme === 'light' ? 'border-black/8 text-zinc-400' : 'border-white/8 text-zinc-400')}`}>
-                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-micro font-black shrink-0
- ${st.done ? 'bg-brand-cast text-black' : isCur ? 'border border-brand-cast text-brand-cast-text' : theme === 'light' ? 'border border-black/15' : 'border border-white/15'}`}>
-                            {st.done ? '✓' : i + 1}
-                          </span>
-                          {st.label}
-                          {st.note && <span className="opacity-60 font-normal">{st.note}</span>}
-                        </button>
-                        {i < steps.length - 1 && <span className={`w-3 h-px ${theme === 'light' ? 'bg-black/12' : 'bg-white/12'}`} />}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
 
             {/* Day 탭 */}
             <div className="relative z-10 flex items-center gap-2 mb-6">
@@ -1931,8 +1894,13 @@ export default function Dashboard() {
                 역할당 한 줄을 통으로 쓴다 — 빈 칸이 원리적으로 안 생기고 드롭 타깃도 넓어진다.
                 성비는 위 한 줄로 남긴다(열로 세던 걸 숫자가 대신한다). */}
             <div className={`relative z-10 lg:pr-5 lg:-my-3 lg:py-3 lg:-ml-3 lg:pl-3 rounded-xl ${theme === 'light' ? 'lg:bg-black/[0.02]' : 'lg:bg-white/[0.02]'}`}>
-              <h2 className={`text-micro font-bold uppercase tracking-[0.2em] mb-2.5 ${textSub}`}>{t.rosterPool}</h2>
-              <div className="flex items-center gap-4 mb-3.5 px-0.5">
+              <div className="flex items-center justify-center gap-2 mb-2.5">
+                <h2 className={`text-micro font-bold uppercase tracking-[0.2em] ${textSub}`}>{t.rosterPool}</h2>
+                <button onClick={() => { setShowArtistPanel(p => !p); if (!showArtistPanel) fetchArtists(user); }}
+                  aria-label={t.addFromArtists} title={t.addFromArtists}
+                  className={`w-5 h-5 rounded-full border leading-none text-mini font-black transition ${showArtistPanel ? 'border-brand-cast/60 text-brand-cast-text' : theme === 'light' ? 'border-black/15 text-black/40 hover:text-black' : 'border-white/15 text-white/40 hover:text-white'}`}>+</button>
+              </div>
+              <div className="flex items-center justify-center gap-4 mb-3.5">
                 {(['male', 'female'] as const).map(g => {
                   const n = members.filter(m => m.project === currentProject && poolOrder.flat().includes(m.role)
                     && !getAssignment(m.id) && (m.gender === 'female' ? 'female' : 'male') === g).length;
@@ -1973,7 +1941,8 @@ export default function Dashboard() {
                                 {...provided.droppableProps}
                                 ref={provided.innerRef}
                                 className={[
-                                  'flex flex-wrap items-center content-start gap-x-4 gap-y-1 rounded-xl transition-colors px-1 py-1.5',
+                                  // 2열 격자. 각 칸 안에서 가운데 정렬 — 가운데 축을 기점으로 좌우가 마주본다.
+                                  'grid grid-cols-2 justify-items-center content-start gap-x-2 gap-y-1 rounded-xl transition-colors px-1 py-1.5',
                                   poolMembers.length === 0 ? 'min-h-[34px]' : 'min-h-[40px]',
                                   // 칩에 배경이 없어졌으므로 "여기 놓을 수 있다"는 신호를 드래그 중에 더 세게 켠다
                                   snapshot.isDraggingOver
@@ -1986,7 +1955,7 @@ export default function Dashboard() {
                                     <div
                                       onContextMenu={(e) => { e.preventDefault(); setRoleDropdown({ id: m.id, x: e.clientX, y: e.clientY, excluded: m.excluded }); }}
                                       onDoubleClick={() => setLinkModal(m)}
-                                      className={`group relative flex items-center gap-2 pl-0.5 pr-4 py-1 rounded-lg cursor-pointer shrink-0 min-w-0 max-w-[210px] transition-colors ${theme === 'light' ? 'hover:bg-black/[0.05]' : 'hover:bg-white/[0.06]'} ${isBusyOn(m.id) ? 'opacity-45' : ''}`}
+                                      className={`group relative flex items-center justify-center gap-2 px-3 py-1 rounded-lg cursor-pointer min-w-0 max-w-full transition-colors ${theme === 'light' ? 'hover:bg-black/[0.05]' : 'hover:bg-white/[0.06]'} ${isBusyOn(m.id) ? 'opacity-45' : ''}`}
                                       title={isBusyOn(m.id) ? `${getDayLabel(currentDay)} ${t.busy}` : undefined}
                                     >
                                       {/* 점 = 성별. 풀에 남은 유일한 색이다 (역할은 배너가 말한다). */}
@@ -2001,7 +1970,7 @@ export default function Dashboard() {
                                           {m.links?.length > 0 && <i className="ti ti-link text-micro shrink-0 opacity-40" aria-hidden="true" />}
                                         </span>
                                       )}
-                                      <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-red-400 text-body leading-none px-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity">×</button>
+                                      <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="absolute -right-1 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-red-400 text-body leading-none px-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity">×</button>
                                     </div>
                                   </PortalDraggable>
                                 ))}
@@ -2097,6 +2066,7 @@ export default function Dashboard() {
                                               <div className="flex flex-col items-center text-center overflow-hidden">
                                                 <span onClick={(e) => { e.stopPropagation(); setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-lead font-bold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through' : ''}`}>
                                                   {m.name}
+                                                  <span className="opacity-45 shrink-0">({ROLE_TAG[m.role] || m.role[0]})</span>
                                                   {getAttendanceBadge(m.attendance)}
                                                   {isBusyOn(m.id) && <span className="text-micro font-black px-1.5 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22', border: '1px solid #E0575F55' }}>{t.busy}</span>}
                                                 </span>
