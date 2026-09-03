@@ -83,6 +83,8 @@ const T = {
     availBlockHint: '막을 날짜를 눌러 차단 (멤버는 못 고름)',
     availFinalTitle: '확정일', availIcs: '캘린더 저장 (.ics)', availAnnounce: '확정 공지 복사', availMakeSessions: '이 날들로 세션 만들기', availSessionsMade: (n: number) => `세션 ${n}개 만들었어요`,
     availRemindAll: '미제출 문구 복사',
+    adSlot: '스폰서 슬롯', adOn: '공유 페이지에 노출', adCaption: '한 줄 제목',
+    adBody: '설명 (선택)', adLink: '링크 (선택)', adImage: '이미지 URL (선택)', adSaved: '스폰서 슬롯 저장됨',
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] 확정 안내\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\n"${title}" 가능일 아직 제출 전이에요. 링크에서 이름 누르고 제출해주세요!\n${link}`,
     inviteAccount: '계정 초대 (이메일)', inviteTitle: '이 멤버를 이메일로 초대', inviteSent: '초대 등록! 그 이메일로 로그인하면 자동 연결돼요',
@@ -160,6 +162,8 @@ const T = {
     availBlockHint: 'Tap days to block (members cannot pick)',
     availFinalTitle: 'Confirmed days', availIcs: 'Save calendar (.ics)', availAnnounce: 'Copy announcement', availMakeSessions: 'Make sessions from these days', availSessionsMade: (n: number) => `Created ${n} sessions`,
     availRemindAll: 'Copy reminder (all)',
+    adSlot: 'Sponsor slot', adOn: 'Show on share page', adCaption: 'Headline',
+    adBody: 'Body (optional)', adLink: 'Link (optional)', adImage: 'Image URL (optional)', adSaved: 'Sponsor slot saved',
     availAnnounceMsg: (title: string, days: string, link: string) => `[${title}] Confirmed\n${days}\n${link}`,
     availRemindMsg: (who: string, title: string, link: string) => `${who}\nPlease submit your availability for "${title}":\n${link}`,
     inviteAccount: 'Invite account (email)', inviteTitle: 'Invite this member by email', inviteSent: 'Invite saved! They auto-link when they log in with that email',
@@ -313,6 +317,7 @@ export default function Dashboard() {
 
   const [showArtistPanel, setShowArtistPanel] = useState(false);
   const [projectMemo, setProjectMemo] = useState('');
+  const [adForm, setAdForm] = useState({ caption: '', body: '', link_url: '', image_url: '', active: true });
   // 스튜디오 카드의 + — 풀에 남은 사람을 그 스튜디오로 바로 넣는다
   const [addToTeam, setAddToTeam] = useState<{ team: string; x: number; y: number } | null>(null);
   const [artistList, setArtistList] = useState<any[]>([]);
@@ -476,7 +481,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     fetchMembers(user); fetchAssignments(user);
-    fetchVotingSession(user); fetchNotices(user); fetchSessions(user); fetchArtists(user);
+    fetchVotingSession(user); fetchNotices(user); fetchSessions(user); fetchArtists(user); fetchAd(user);
     const ch = supabase.channel('dashboard')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `user_id=eq.${user.id}` }, () => { fetchMembers(user); })
       .subscribe();
@@ -645,6 +650,17 @@ export default function Dashboard() {
   const saveMemberLinks = async (memberId: any, links: string[]) => {
     await supabase.from('profiles').update({ links }).eq('id', memberId).eq('user_id', user.id);
     setMembers(members.map(m => m.id === memberId ? { ...m, links } : m));
+  };
+
+  // 스폰서 슬롯 — 호스트당 한 칸이라 host_id가 곧 키다
+  const fetchAd = async (u: any) => {
+    const { data } = await supabase.from('roster_ads').select('*').eq('host_id', u.id).limit(1);
+    if (data && data.length) setAdForm({ caption: data[0].caption || '', body: data[0].body || '', link_url: data[0].link_url || '', image_url: data[0].image_url || '', active: !!data[0].active });
+  };
+  const saveAd = async () => {
+    const { error } = await supabase.from('roster_ads').upsert({ host_id: user.id, ...adForm }, { onConflict: 'host_id' });
+    if (error) { showToastMsg(error.message); return; }
+    showToastMsg(t.adSaved);
   };
 
   const saveProjectMemo = () => {
@@ -2471,6 +2487,29 @@ export default function Dashboard() {
                           <button onClick={applyFinalsToDays} className={`w-full mt-2 py-2 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.availToDays}</button>
                         </div>
                       )}
+
+                      {/* 스폰서 슬롯 — 공유 페이지 확정일 카드 아래 한 칸.
+                          멤버가 한 달에 여러 번 들어오고 오래 머무는 화면이라 자리값이 있다. */}
+                      <div className={`rounded-xl border p-4 ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <p className={`text-mini font-black uppercase tracking-widest ${textSub}`}>{t.adSlot}</p>
+                          <label className={`flex items-center gap-2 text-micro font-bold cursor-pointer ${textSub}`}>
+                            <input type="checkbox" checked={adForm.active} onChange={e => setAdForm(f => ({ ...f, active: e.target.checked }))} />
+                            {t.adOn}
+                          </label>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <input value={adForm.caption} onChange={e => setAdForm(f => ({ ...f, caption: e.target.value }))} placeholder={t.adCaption}
+                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                          <input value={adForm.body} onChange={e => setAdForm(f => ({ ...f, body: e.target.value }))} placeholder={t.adBody}
+                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                          <input value={adForm.link_url} onChange={e => setAdForm(f => ({ ...f, link_url: e.target.value }))} placeholder={t.adLink} inputMode="url"
+                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                          <input value={adForm.image_url} onChange={e => setAdForm(f => ({ ...f, image_url: e.target.value }))} placeholder={t.adImage} inputMode="url"
+                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                          <button onClick={saveAd} className={`py-2 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.save}</button>
+                        </div>
+                      </div>
                     </div>
 
                     {/* 우: 제출 현황 (어드민) */}
@@ -2489,14 +2528,21 @@ export default function Dashboard() {
                           const mcnt = availPicks.filter(p => p.member_id === m.id && p.status === 'unavailable').length;
                           const selected = availSelMember === m.id;
                           return (
+                            /* 제출 여부는 알약이 아니라 박스 밝기가 말한다 — 알약이 줄바꿈되며
+                               세로로 깨지던 자리다. 상태 글씨는 이름 위 작은 줄로 올린다. */
                             <div key={m.id} {...pressable(() => setAvailSelMember(selected ? null : m.id))}
                               title={t.availMemberPick}
-                              className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg cursor-pointer transition ${selected ? 'border border-[#5FA39A]/50 bg-[#5FA39A]/12' : `border border-transparent ${inputBg} hover:border-[#5FA39A]/30`}`}>
-                              <span className={`text-body font-bold ${selected ? 'text-[#8FD4C8]' : textMain}`}>{m.name} <span className={`text-mini font-normal ${textSub}`}>{m.role}</span></span>
-                              <div className="flex items-center gap-2.5">
+                              className={`flex items-center justify-between gap-2 px-3.5 py-2 rounded-lg cursor-pointer transition border
+ ${selected ? 'border-[#5FA39A]/50 bg-[#5FA39A]/12'
+                                : done ? (theme === 'light' ? 'border-transparent bg-black/[0.09] hover:border-[#5FA39A]/30' : 'border-transparent bg-white/[0.10] hover:border-[#5FA39A]/30')
+                                : (theme === 'light' ? 'border-transparent bg-black/[0.025] hover:border-[#5FA39A]/30' : 'border-transparent bg-white/[0.03] hover:border-[#5FA39A]/30')}`}>
+                              <div className="min-w-0">
+                                <p className={`text-micro font-bold uppercase tracking-[0.16em] leading-none mb-1 ${done ? 'text-[#8FD4C8]' : textSub}`}>{done ? t.availSubmitted : t.availWaiting}</p>
+                                <p className={`text-body font-bold truncate ${selected ? 'text-[#8FD4C8]' : done ? textMain : textSub}`}>{m.name} <span className={`text-mini font-normal ${textSub}`}>{m.role}</span></p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
                                 <span className={`text-mini font-black ${textSub}`}><span className="text-[#7FB0FF]">{cnt}</span>{mcnt ? <> · <span className="text-[#E0575F]">{mcnt}</span></> : ''}</span>
-                                <span className={`text-mini font-black px-2.5 py-0.5 rounded-full border ${done ? 'bg-[#5FA39A]/20 border-[#5FA39A]/40 text-[#8FD4C8]' : theme === 'light' ? 'border-black/15 text-zinc-500' : 'border-white/15 text-zinc-500'}`}>{done ? t.availSubmitted : t.availWaiting}</span>
-                                <button onClick={(e) => { e.stopPropagation(); toggleAvailExclude(m.id); }} title={t.availKick} aria-label={t.availKick} className={`text-mini font-black px-1.5 py-0.5 rounded-full transition ${textSub} hover:text-[#C98BA0]`}>✕</button>
+                                <button onClick={(e) => { e.stopPropagation(); toggleAvailExclude(m.id); }} title={t.availKick} aria-label={t.availKick} className={`text-mini font-black px-1 transition ${textSub} hover:text-[#C98BA0]`}>✕</button>
                               </div>
                             </div>
                           );

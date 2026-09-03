@@ -105,6 +105,7 @@ export default function AvailabilityView() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [reviewing, setReviewing] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
+  const [ad, setAd] = useState<any>(null);
   const paintedRef = useRef<Set<number>>(new Set());
   const paintingRef = useRef<Status | null>(null);
 
@@ -148,6 +149,12 @@ export default function AvailabilityView() {
     setLoading(false);
   }, [hostId, search]);
 
+  // 스폰서 슬롯 — 호스트당 한 칸. 없거나 꺼져 있으면 아무것도 안 그린다.
+  const fetchAd = useCallback(async () => {
+    const { data } = await supabase.from('roster_ads').select('*').eq('host_id', hostId).eq('active', true).limit(1);
+    setAd(data && data.length ? data[0] : null);
+  }, [hostId]);
+
   const fetchPicks = useCallback(async (pollId: string) => {
     const { data } = await supabase.from('availability_picks').select('*').eq('poll_id', pollId);
     // 예전 '미정(maybe)' 데이터는 무시 — 이제 가능/불가능만 있음
@@ -165,7 +172,7 @@ export default function AvailabilityView() {
     else setNotFound(true);
   }, [hostId]);
 
-  useEffect(() => { if (hostId) fetchPoll(); }, [hostId, fetchPoll]);
+  useEffect(() => { if (hostId) { fetchPoll(); fetchAd(); } }, [hostId, fetchPoll, fetchAd]);
 
   useEffect(() => {
     if (!poll) return;
@@ -271,6 +278,7 @@ export default function AvailabilityView() {
           <TopBar c={c} lang={lang} dark={dark} onTheme={toggleTheme} onLang={toggleLang} />
           <Header t={t} c={c} poll={poll} y={y} m={m} done={submittedCount} total={members.length} />
           <FinalDaysCard t={t} c={c} lang={lang} poll={poll} m={m} />
+          <SponsorCard ad={ad} lang={lang} />
           <p className="text-body font-bold mb-5" style={{ color: c.sub }}>{t.pickName}</p>
           <div className="flex flex-col gap-5">
             {byRole.map(({ role, items }) => (
@@ -330,6 +338,7 @@ export default function AvailabilityView() {
         )}
         <Header t={t} c={c} poll={poll} y={y} m={m} done={submittedCount} total={members.length} />
         <FinalDaysCard t={t} c={c} lang={lang} poll={poll} m={m} />
+        <SponsorCard ad={ad} lang={lang} />
 
         <div className="flex items-center gap-2 mb-4">
           <p className="text-lead font-black" style={{ color: c.text }}>{me?.name}</p>
@@ -592,6 +601,26 @@ function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
         </div>
       )}
     </div>
+  );
+}
+
+// 스폰서 한 칸. 크림/오트밀 그대로라 광고 배너가 아니라 카드 한 장으로 읽힌다.
+function SponsorCard({ ad, lang }: any) {
+  if (!ad || (!ad.caption && !ad.body && !ad.image_url)) return null;
+  const Tag: any = ad.link_url ? 'a' : 'div';
+  return (
+    <Tag {...(ad.link_url ? { href: ad.link_url, target: '_blank', rel: 'noopener noreferrer sponsored' } : {})}
+      className={`relative block rounded-xl overflow-hidden mb-7 transition ${ad.link_url ? 'hover:brightness-105 active:scale-[0.99]' : ''}`}
+      style={{ backgroundColor: OAT.box, color: OAT.ink, borderTopLeftRadius: 0 }}>
+      <span aria-hidden="true" className="absolute left-0 top-0 w-4 h-4 z-10"
+        style={{ backgroundColor: OAT.banner, clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} />
+      {ad.image_url && <img src={ad.image_url} alt="" className="w-full max-h-44 object-cover" loading="lazy" referrerPolicy="no-referrer" />}
+      <div className="px-5 py-4 pl-6">
+        <p className="text-micro font-bold uppercase tracking-[0.18em] opacity-45 mb-1">{lang === 'ko' ? '스폰서' : 'Sponsored'}</p>
+        {ad.caption && <p className="text-body font-black">{ad.caption}</p>}
+        {ad.body && <p className="text-mini font-medium opacity-70 mt-1">{ad.body}</p>}
+      </div>
+    </Tag>
   );
 }
 
