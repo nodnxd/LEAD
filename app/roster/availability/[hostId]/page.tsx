@@ -11,7 +11,7 @@ const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-import { AVAIL_COLORS, OAT } from '@/lib/brand';
+import { AVAIL_COLORS, OAT, GENDER_NOTCH } from '@/lib/brand';
 
 const ROLE_ORDER = ['Producer', 'Topliner', 'Engineer', 'A&R'];
 const ROLE_TAG: Record<string, string> = { Producer: 'P', Topliner: 'T', Engineer: 'E', 'A&R': 'A' };
@@ -53,7 +53,7 @@ const TX = {
     pickName: '이름을 골라 들어가세요', back: '이름 다시 고르기',
     available: '가능', unavailable: '불가능', noAnswer: '미응답',
     submit: '제출하기', submitted: '제출 완료', reopen: '수정하기',
-    bestDays: '가장 많이 되는 날', people: (n: number) => `${n}명`, onDay: (d: number) => `${d}일`,
+    bestDays: '날짜별 결과', people: (n: number) => `${n}명`, onDay: (d: number) => `${d}일`,
     noneYet: '아직 응답이 없어요', blocked: '차단된 날',
     weekdays: ['일', '월', '화', '수', '목', '금', '토'],
     confirmedTitle: '확정된 날', saveIcs: '캘린더 저장 (.ics)',
@@ -70,7 +70,7 @@ const TX = {
     pickName: 'Pick your name to enter', back: 'Change name',
     available: 'Available', unavailable: 'Unavailable', noAnswer: 'No answer',
     submit: 'Submit', submitted: 'Submitted', reopen: 'Edit',
-    bestDays: 'Best days', people: (n: number) => `${n}`, onDay: (d: number) => `Day ${d}`,
+    bestDays: 'Results by day', people: (n: number) => `${n}`, onDay: (d: number) => `Day ${d}`,
     noneYet: 'No responses yet', blocked: 'Blocked',
     weekdays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
     confirmedTitle: 'Confirmed days', saveIcs: 'Save calendar (.ics)',
@@ -252,7 +252,6 @@ export default function AvailabilityView() {
   const membersOnDay = (d: number, st: Status) => members.filter((mm) => picks.some((p) => p.member_id === mm.id && p.day === d && p.status === st));
   const allDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const openDays = allDays.filter((d) => !blocked.includes(d));
-  const bestDays = openDays.map((d) => ({ d, c: yesOn(d), no: noOn(d) })).filter((x) => x.c + x.no > 0).sort((a, b) => (b.c - a.c) || (a.no - b.no)).slice(0, 6);
   const cells: (number | null)[] = [...Array(firstWeekday).fill(null), ...allDays];
   const me = members.find((mm) => mm.id === meId);
   const weekendDays = openDays.filter((d) => { const w = new Date(y, m - 1, d).getDay(); return w === 0 || w === 6; });
@@ -283,11 +282,18 @@ export default function AvailabilityView() {
                       const done = subs.some((s) => s.member_id === mm.id);
                       return (
                         <button key={mm.id} onClick={() => setMeId(mm.id)}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-full font-black text-body transition hover:scale-105 active:scale-95"
-                          style={done
-                            ? { backgroundColor: OAT.banner, color: OAT.ink }
-                            : { backgroundColor: OAT.box, color: OAT.ink }}>
-                          {mm.name}
+                          className="relative flex items-center gap-2 px-4 py-2.5 rounded-xl overflow-hidden font-black text-body transition hover:scale-105 active:scale-95"
+                          style={{
+                            borderTopLeftRadius: 0,
+                            backgroundColor: done ? OAT.banner : OAT.box, color: OAT.ink,
+                          }}>
+                          {/* 좌상단 노치 = 성별. 스튜디오 카드와 같은 신호. */}
+                          <i aria-hidden="true" className="absolute left-0 top-0 w-4 h-4"
+                            style={{
+                              backgroundColor: mm.gender === 'female' || mm.gender === 'F' || mm.gender === '여' ? GENDER_NOTCH.female : GENDER_NOTCH.male,
+                              clipPath: 'polygon(0 0, 100% 0, 0 100%)',
+                            }} />
+                          <span className="pl-1.5">{mm.name}</span>
                           <span className="opacity-45">({ROLE_TAG[mm.role] || (mm.role || '?')[0]})</span>
                           {done && <span className="text-micro font-black">✓</span>}
                         </button>
@@ -298,7 +304,7 @@ export default function AvailabilityView() {
             ))}
             {members.length === 0 && <p className="text-body" style={{ color: c.sub }}>{t.noneYet}</p>}
           </div>
-          <BestDays t={t} c={c} lang={lang} bestDays={bestDays} maxCount={maxCount} finals={finals} onPick={setSelectedDay} />
+          <ResultCalendar t={t} c={c} lang={lang} cells={cells} yesOn={yesOn} noOn={noOn} maxCount={maxCount} finals={finals} blocked={blocked} onPick={setSelectedDay} />
           {selectedDay !== null && (
             <DayMembers t={t} c={c} dark={dark} lang={lang} day={selectedDay} yes={membersOnDay(selectedDay, 'available')} no={membersOnDay(selectedDay, 'unavailable')} onClose={() => setSelectedDay(null)} />
           )}
@@ -417,7 +423,7 @@ export default function AvailabilityView() {
         {selectedDay !== null && (
           <DayMembers t={t} c={c} dark={dark} lang={lang} day={selectedDay} yes={membersOnDay(selectedDay, 'available')} no={membersOnDay(selectedDay, 'unavailable')} onClose={() => setSelectedDay(null)} />
         )}
-        <BestDays t={t} c={c} lang={lang} bestDays={bestDays} maxCount={maxCount} finals={finals} onPick={setSelectedDay} />
+        <ResultCalendar t={t} c={c} lang={lang} cells={cells} yesOn={yesOn} noOn={noOn} maxCount={maxCount} finals={finals} blocked={blocked} onPick={setSelectedDay} />
       </div>
 
       {/* 하단 고정 제출 바 */}
@@ -591,28 +597,58 @@ function DayMembers({ t, c, dark, lang, day, yes, no, onClose }: any) {
   );
 }
 
-function BestDays({ t, c, lang, bestDays, maxCount, finals, onPick }: any) {
+// 결과 달력 — 막대 목록은 여섯 날만 보여주고 나머지 달을 통째로 감췄다.
+// 한 달을 다 펼치고, 칸마다 파랑(가능)이 아래에서, 빨강(불가능)이 위에서
+// 득표율만큼 차오른다. 표가 쌓일수록 칸이 채워지는 게 그대로 보인다.
+function ResultCalendar({ t, c, lang, cells, yesOn, noOn, maxCount, finals, blocked, onPick }: any) {
   const isFinal = (d: number) => (finals || []).includes(d);
   return (
-    <div className="rounded-xl border p-5 mt-6" style={{ backgroundColor: c.card, borderColor: c.line }}>
-      <p className="text-mini font-black uppercase tracking-widest mb-4" style={{ color: c.sub }}>{t.bestDays}</p>
-      {bestDays.length === 0 ? <p className="text-mini" style={{ color: c.sub }}>{t.noneYet}</p> : (
-        <div className="space-y-2.5">
-          {bestDays.map(({ d, c: cnt, no }: any) => (
-            <button key={d} onClick={() => onPick(d)} className="w-full flex items-center gap-3 group">
-              <span className="text-body font-black w-10 text-left" style={{ color: isFinal(d) ? c.goldText : c.text }}>{d}{lang === 'ko' ? '일' : ''}</span>
-              <div className="flex-1 h-2.5 rounded-full overflow-hidden flex" style={{ backgroundColor: c.track }}>
-                <div className="h-full transition duration-300" style={{ width: `${(cnt / maxCount) * 100}%`, backgroundColor: YES }} />
-                <div className="h-full transition duration-300" style={{ width: `${(no / maxCount) * 100}%`, backgroundColor: NO + '99' }} />
-              </div>
-              <span className="text-mini font-black w-14 text-right">
-                <span style={{ color: YES }}>{cnt}</span>{no ? <span style={{ color: c.noText }}> −{no}</span> : ''}
-              </span>
-              {isFinal(d) && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: GOLD }} />}
+    <div className="rounded-xl border p-4 sm:p-5 mt-6" style={{ backgroundColor: c.card, borderColor: c.line }}>
+      <div className="flex items-center justify-between mb-3.5">
+        <p className="text-mini font-black uppercase tracking-widest" style={{ color: c.sub }}>{t.bestDays}</p>
+        <span className="flex items-center gap-3 text-micro font-bold" style={{ color: c.sub }}>
+          <span className="flex items-center gap-1.5"><i className="w-2 h-2 rounded-full" style={{ backgroundColor: AVAIL_COLORS.yes.bg }} />{t.available}</span>
+          <span className="flex items-center gap-1.5"><i className="w-2 h-2 rounded-full" style={{ backgroundColor: AVAIL_COLORS.no.bg }} />{t.unavailable}</span>
+        </span>
+      </div>
+      <div className="grid grid-cols-7 gap-1.5 mb-2">
+        {t.weekdays.map((w: string, i: number) => (
+          <div key={i} className="text-center text-mini font-black" style={{ color: i === 0 || i === 6 ? c.sub : c.faint }}>{w}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1.5">
+        {cells.map((d: number | null, i: number) => {
+          if (d === null) return <div key={`e${i}`} />;
+          const isBlocked = (blocked || []).includes(d);
+          const yes = yesOn(d); const no = noOn(d);
+          const yesPct = Math.round((yes / maxCount) * 100);
+          const noPct = Math.round((no / maxCount) * 100);
+          return (
+            <button key={d} type="button" onClick={() => onPick(d)} disabled={isBlocked}
+              aria-label={`${d}${lang === 'ko' ? '일' : ''} — ${t.available} ${yes}, ${t.unavailable} ${no}`}
+              className={`relative aspect-square rounded-xl border overflow-hidden flex items-center justify-center transition
+                ${isFinal(d) ? 'ring-2 ring-brand-cast' : ''} ${isBlocked ? 'cursor-default' : 'cursor-pointer active:scale-90'}`}
+              style={{
+                borderColor: c.line,
+                backgroundImage: isBlocked ? `repeating-linear-gradient(45deg, ${c.hatch} 0 4px, transparent 4px 8px)` : undefined,
+              }}>
+              {/* 아래에서 차오르는 파랑, 위에서 내려오는 빨강 */}
+              {!isBlocked && yesPct > 0 && (
+                <span className="absolute inset-x-0 bottom-0 transition-[height] duration-500"
+                  style={{ height: `${yesPct}%`, backgroundColor: AVAIL_COLORS.yes.bg, opacity: 0.85 }} />
+              )}
+              {!isBlocked && noPct > 0 && (
+                <span className="absolute inset-x-0 top-0 transition-[height] duration-500"
+                  style={{ height: `${noPct}%`, backgroundColor: AVAIL_COLORS.no.bg, opacity: 0.85 }} />
+              )}
+              <span className={`relative text-body font-black ${isBlocked ? 'line-through' : ''}`}
+                style={{ color: isBlocked ? c.faint : yesPct + noPct >= 55 ? OAT.cream : c.text,
+                         textShadow: yesPct + noPct >= 55 ? '0 1px 2px rgba(0,0,0,.45)' : undefined }}>{d}</span>
+              {isFinal(d) && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-brand-cast" />}
             </button>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 }

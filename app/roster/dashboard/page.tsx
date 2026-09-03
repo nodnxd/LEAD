@@ -39,6 +39,9 @@ const T = {
     studioDelete: '스튜디오 삭제', studioDeleteMsg: (t: string) => `"${t}"을 삭제할까요?`,
     studioHint: '빈 곳 우클릭으로도 스튜디오를 추가할 수 있어요', studioAdded: (n: string) => `${n} 추가됨`,
     dayRenameHint: '우클릭(또는 더블클릭)으로 이름 바꾸기',
+    rosterRenameHint: '우클릭(또는 더블클릭)으로 이름 바꾸기',
+    rosterRename: '로스터 이름 바꾸기', projMemoPlaceholder: '메모',
+    studioAddMember: '풀에서 넣기', poolEmpty: '풀이 비었어요',
     memberDelete: '멤버 삭제', memberDeleteMsg: (n: string) => `"${n}"을 삭제할까요?`,
     dayDelete: (l: string) => `${l} 삭제`, dayDeleteMsg: (l: string) => `${l}를 삭제할까요?`,
     addDay: '+ Day', cancel: '취소', confirm: '확인',
@@ -113,6 +116,9 @@ const T = {
     studioDelete: 'Delete Studio', studioDeleteMsg: (t: string) => `Delete "${t}"?`,
     studioHint: 'Right-click empty space to add a studio', studioAdded: (n: string) => `${n} added`,
     dayRenameHint: 'Right-click (or double-click) to rename',
+    rosterRenameHint: 'Right-click (or double-click) to rename',
+    rosterRename: 'Rename roster', projMemoPlaceholder: 'Memo',
+    studioAddMember: 'Add from pool', poolEmpty: 'Pool is empty',
     memberDelete: 'Delete Member', memberDeleteMsg: (n: string) => `Delete "${n}"?`,
     dayDelete: (l: string) => `Delete ${l}`, dayDeleteMsg: (l: string) => `Delete ${l}?`,
     addDay: '+ Day', cancel: 'Cancel', confirm: 'OK',
@@ -306,6 +312,9 @@ export default function Dashboard() {
   const [promptValue, setPromptValue] = useState('');
 
   const [showArtistPanel, setShowArtistPanel] = useState(false);
+  const [projectMemo, setProjectMemo] = useState('');
+  // 스튜디오 카드의 + — 풀에 남은 사람을 그 스튜디오로 바로 넣는다
+  const [addToTeam, setAddToTeam] = useState<{ team: string; x: number; y: number } | null>(null);
   const [artistList, setArtistList] = useState<any[]>([]);
   const [artistSearch, setArtistSearch] = useState('');
 
@@ -479,6 +488,7 @@ export default function Dashboard() {
     const savedDays = JSON.parse(localStorage.getItem(`epg_days_${user.id}_${currentProject}`) || 'null');
     const savedNames = JSON.parse(localStorage.getItem(`epg_daynames_${user.id}_${currentProject}`) || '{}');
     setDayDates(JSON.parse(localStorage.getItem(`epg_daydates_${user.id}_${currentProject}`) || '{}'));
+    setProjectMemo(localStorage.getItem(`epg_memo_${user.id}_${currentProject}`) || '');
     if (savedDays && savedDays.length > 0) {
       setDays(savedDays); setCurrentDay(prev => savedDays.includes(prev) ? prev : savedDays[0]);
     } else {
@@ -636,6 +646,24 @@ export default function Dashboard() {
     await supabase.from('profiles').update({ links }).eq('id', memberId).eq('user_id', user.id);
     setMembers(members.map(m => m.id === memberId ? { ...m, links } : m));
   };
+
+  const saveProjectMemo = () => {
+    if (!user || !currentProject) return;
+    localStorage.setItem(`epg_memo_${user.id}_${currentProject}`, projectMemo);
+  };
+
+  // 로스터 이름 변경 — 이름이 곧 외래키라 두 테이블을 같이 옮긴다
+  const renameProject = (from: string) => showPrompt(t.rosterRename, t.rosterNamePlaceholder, from, async (to) => {
+    const next = (to || '').trim();
+    setPromptModal(null);
+    if (!next || next === from || projects.includes(next)) return;
+    await supabase.from('profiles').update({ project: next }).eq('project', from).eq('user_id', user.id);
+    await supabase.from('roster_assignments').update({ project: next }).eq('project', from).eq('user_id', user.id);
+    const order = projects.map(x => x === from ? next : x);
+    setProjects(order); await saveProjectOrder(user.id, order);
+    if (currentProject === from) setCurrentProject(next);
+    fetchMembers(user); fetchAssignments(user);
+  });
 
   // 멤버를 현재 Day 스튜디오에 배치
   const assignMember = async (profileId: any, teamName: string, orderIndex: number = 999) => {
@@ -1574,13 +1602,16 @@ export default function Dashboard() {
             {/* 프로젝트 탭 */}
             <Droppable droppableId="projects-bar" direction="horizontal" type="PROJECT">
               {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="relative z-10 flex items-center gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+                <div {...provided.droppableProps} ref={provided.innerRef} className="relative z-10 flex items-center justify-center gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
                   {projects.map((p, index) => (
                     <Draggable key={p} draggableId={`proj-${p}`} index={index}>
                       {(provided) => (
                         <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
                           className={`flex items-center rounded-full border transition overflow-hidden ${currentProject === p ? 'border-brand-cast/50 bg-gradient-to-r from-brand-cast/30 to-[#EFCF8E]/10 shadow-[0_0_20px_rgba(224,167,60,0.3)]' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
-                          <button onClick={() => setCurrentProject(p)} className={`px-4 py-1.5 font-bold text-mini tracking-widest uppercase transition ${currentProject === p ? textMain : textSub}`}>{p}</button>
+                          <button onClick={() => setCurrentProject(p)} title={t.rosterRenameHint}
+                            onDoubleClick={() => renameProject(p)}
+                            onContextMenu={(e) => { e.preventDefault(); renameProject(p); }}
+                            className={`px-4 py-1.5 font-bold text-mini tracking-widest uppercase transition ${currentProject === p ? textMain : textSub}`}>{p}</button>
                           <button onClick={() => showConfirm(t.rosterDelete, t.rosterDeleteMsg(p), () => {
                             supabase.from('profiles').delete().eq('project', p).eq('user_id', user.id).then(async () => {
                               await supabase.from('roster_assignments').delete().eq('project', p).eq('user_id', user.id);
@@ -1602,9 +1633,13 @@ export default function Dashboard() {
             {/* 서브 헤더 */}
             <header className={`relative z-30 mb-6 border-b pb-4 ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`}>
               {/* 1줄 */}
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <p className={`text-lead font-bold ${textSub}`}>{currentProject}</p>
+                  {/* 프로젝트 이름은 바로 위 탭이 이미 말한다. 이 자리는 메모로 쓴다. */}
+                  <input value={projectMemo} onChange={e => setProjectMemo(e.target.value)} onBlur={saveProjectMemo}
+                    onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                    placeholder={t.projMemoPlaceholder} aria-label={t.projMemoPlaceholder}
+                    className={`field-bare bg-transparent border-0 text-lead font-bold outline-none text-center w-56 sm:w-72 ${textMain} placeholder:text-zinc-500 placeholder:font-normal`} />
                   {votingOpen && (
                     <div className="flex items-center gap-2 ml-2">
                       <span className="text-micro font-bold text-[#77B18E]">{t.attending} {attendingCount}</span>
@@ -1642,7 +1677,7 @@ export default function Dashboard() {
                 </div>
               </div>
               {/* 2줄 — 자주 쓰는 것만 밖에, 나머지는 더보기 안에 */}
-              <div className="flex flex-wrap items-center justify-end gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 <button onClick={addStudio} title={t.studioHint}
                   className={`px-4 py-2 rounded-full border font-bold text-mini transition text-brand-cast-text ${theme === 'light' ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{t.studio}</button>
                 {(votingOpen || availPoll) && (
@@ -1695,7 +1730,7 @@ export default function Dashboard() {
             </header>
 
             {/* Day 탭 */}
-            <div className="relative z-10 flex items-center gap-2 mb-6">
+            <div className="relative z-10 flex items-center justify-center gap-2 mb-6">
               {days.map(d => (
                 <div key={d} className={`flex items-center rounded-full border overflow-hidden transition ${currentDay === d ? 'border-brand-cast/50 bg-gradient-to-r from-brand-cast/20 to-transparent' : theme === 'light' ? 'border-black/10 bg-black/5' : 'border-white/10 bg-white/5'}`}>
                   {editingDayName === d ? (
@@ -2078,6 +2113,11 @@ export default function Dashboard() {
                                       </PortalDraggable>
                                     ))}
                                     {provided.placeholder}
+                                    <button
+                                      onClick={(e) => setAddToTeam({ team: tName, x: e.clientX, y: e.clientY })}
+                                      title={t.studioAddMember} aria-label={t.studioAddMember}
+                                      className={`mt-1.5 w-full py-2 rounded-xl border border-dashed text-lead font-bold leading-none transition
+ ${theme === 'light' ? 'border-black/12 text-black/25 hover:text-black/60 hover:border-black/25' : 'border-white/12 text-white/25 hover:text-white/60 hover:border-white/25'}`}>+</button>
                                   </div>
                                 )}
                               </Droppable>
@@ -2527,6 +2567,31 @@ export default function Dashboard() {
           </div>
         </>
       )}
+
+      {addToTeam && (() => {
+        const pool = members
+          .filter(m => m.project === currentProject && !m.excluded && !getAssignment(m.id))
+          .sort((a, b) => (ROLES.indexOf(a.role) - ROLES.indexOf(b.role)) || a.name.localeCompare(b.name));
+        return (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setAddToTeam(null)} />
+            <div className={`fixed z-50 border rounded-xl shadow-lg overflow-y-auto max-h-[60vh] w-52 font-ui ${theme === 'light' ? 'bg-white border-black/10' : 'bg-[#1a1a1a] border-white/10'}`}
+              style={{ top: Math.min(addToTeam.y, window.innerHeight - 240), left: Math.min(addToTeam.x, window.innerWidth - 220) }}>
+              {pool.length === 0 ? (
+                <p className={`px-4 py-3 text-mini ${textSub}`}>{t.poolEmpty}</p>
+              ) : pool.map((m, i) => (
+                <button key={m.id}
+                  onClick={() => { assignMember(m.id, addToTeam.team); setAddToTeam(null); }}
+                  className={`flex items-center gap-2 w-full px-4 py-2.5 text-mini font-bold text-left transition ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${i > 0 && pool[i - 1].role !== m.role ? (theme === 'light' ? 'border-t border-black/8' : 'border-t border-white/8') : ''}`}>
+                  <i className="w-[7px] h-[7px] rounded-full shrink-0" style={{ backgroundColor: genderColor(m.gender, theme === 'dark') }} />
+                  <span className={textMain}>{m.name}</span>
+                  <span className="opacity-40 ml-auto">({ROLE_TAG[m.role] || m.role[0]})</span>
+                </button>
+              ))}
+            </div>
+          </>
+        );
+      })()}
 
       {/* 내보내기 모달 — 2단계 */}
       {randomModal && (
