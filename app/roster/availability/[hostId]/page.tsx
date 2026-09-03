@@ -215,9 +215,16 @@ export default function AvailabilityView() {
       const rest = prev.filter((p) => !(p.member_id === meId && p.day === day));
       return status ? [...rest, { poll_id: poll.id, member_id: meId, day, status }] : rest;
     });
-    if (status) supabase.from('availability_picks').upsert({ poll_id: poll.id, member_id: meId, day, status }, { onConflict: 'poll_id,member_id,day' });
-    else supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).eq('day', day)
-      .then(() => dropEmptySubmission(picks.filter((p) => p.member_id === meId && p.day !== day).length));
+    // supabase 쿼리 빌더는 thenable이라 await(또는 .then) 없이는 요청이 아예 안 나간다.
+    // 이 한 줄 때문에 날짜 하나 눌러 바꾼 건 화면에만 반영되고 저장이 안 됐다.
+    // 빠른 선택(bulkSet)은 await를 걸어서 멀쩡했던 탓에 한참 안 보였다.
+    void (async () => {
+      if (status) await supabase.from('availability_picks').upsert({ poll_id: poll.id, member_id: meId, day, status }, { onConflict: 'poll_id,member_id,day' });
+      else {
+        await supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).eq('day', day);
+        await dropEmptySubmission(picks.filter((p) => p.member_id === meId && p.day !== day).length);
+      }
+    })();
   };
 
   const bulkSet = async (days: number[], status: Status | null) => {
