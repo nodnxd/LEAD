@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { BRAND, PRODUCTS, PRODUCT_COLOR, type ProductKey } from '@/lib/brand';
-import { stepWheel, initialArm, insideHorizontalScroller, modalOpen } from '@/lib/wheelNav';
+import { stepWheel, initialArm, insideHorizontalScroller, modalOpen, IDLE_RESET_MS } from '@/lib/wheelNav';
 
 export type { ProductKey };
 export { PRODUCT_COLOR };
@@ -25,7 +25,8 @@ export { PRODUCT_COLOR };
 //   2단 — 가로 델타를 ARM_PX(220px)까지 누적해야 넘어간다. 진행률을 토글 가장자리에
 //         그려서 "지금 넘어가는 중"을 보여주고, 손을 떼면 DECAY_MS 뒤 풀린다.
 // 판정 자체는 lib/wheelNav.ts (임계값·쿨다운·방향반전·끝단 처리 + 테스트).
-const DECAY_MS = 320;
+// 인디케이터를 지우는 시각적 타이머. 누적 자체는 stepWheel이 IDLE_RESET_MS로 버린다.
+const DECAY_MS = IDLE_RESET_MS;
 
 export default function ProductHeader({
   product,
