@@ -27,6 +27,33 @@ function ProSelect({ value, onChange, disabled }: { value: string; onChange: (v:
   );
 }
 
+function PaperAudio({ src, accent, sub, line }: { src: string; accent: string; sub: string; line: string }) {
+  const ref = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [now, setNow] = useState(0);
+  const [dur, setDur] = useState(0);
+  const mmss = (x: number) => Number.isFinite(x) ? `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}` : '0:00';
+  return (
+    <span className="inline-flex items-center gap-2.5 rounded-full px-2.5 py-1.5" style={{ border: `1px solid ${line}` }}>
+      <audio ref={ref} src={src} preload="metadata"
+        onLoadedMetadata={(e) => setDur(e.currentTarget.duration)}
+        onTimeUpdate={(e) => setNow(e.currentTarget.currentTime)}
+        onEnded={() => setPlaying(false)} />
+      <button type="button" aria-label={playing ? 'Pause' : 'Play'}
+        onClick={() => { const a = ref.current; if (!a) return; if (a.paused) { a.play(); setPlaying(true); } else { a.pause(); setPlaying(false); } }}
+        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition"
+        style={{ backgroundColor: accent, color: '#EEF1F1' }}>
+        <i className={`ti ti-player-${playing ? 'pause' : 'play'}-filled text-mini`} aria-hidden="true" />
+      </button>
+      <input type="range" min={0} max={dur || 0} step={0.1} value={now}
+        aria-label="Seek"
+        onChange={(e) => { const a = ref.current; if (a) { a.currentTime = Number(e.target.value); setNow(Number(e.target.value)); } }}
+        style={{ accentColor: accent, width: 132 }} />
+      <span className="font-mono-num text-micro tabular shrink-0" style={{ color: sub }}>{mmss(now)} / {mmss(dur)}</span>
+    </span>
+  );
+}
+
 export default function SplitEditor({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -568,7 +595,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
               <span className="text-mini uppercase tracking-widest text-white/55">{t('음원', 'Audio')}</span>
               {sheet.audio_path ? (
                 <>
-                  {audioUrl && <audio src={audioUrl} controls className="h-9 max-w-full" style={{ minWidth: 220 }} />}
+                  {audioUrl && <PaperAudio src={audioUrl} accent={CEL.accent} sub={CEL.sub} line={CEL.line} />}
                   <span className="text-mini text-white/50 truncate max-w-[220px]">{sheet.audio_name}</span>
                   {audioUrl && <a href={audioUrl} download={sheet.audio_name ?? 'audio'} className="text-mini text-white/50 hover:text-white underline">{t('다운로드', 'Download')}</a>}
                   {editable && (
