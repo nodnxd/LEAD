@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
 import { SplitSheet, Contributor, CopyrightProfile, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal } from '@/lib/splitsheet';
+import { CEL, OAT } from '@/lib/brand';
+import { analyzeAudio } from '@/lib/audioAnalysis';
 import { useLang, LangToggle } from '@/lib/lang';
 import { useTheme, ThemeToggle } from '@/lib/theme';
 import Toast from '@/components/Toast';
@@ -14,7 +16,7 @@ import Toast from '@/components/Toast';
 function ProSelect({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
     <select value={value || ''} disabled={disabled} onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-lg bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white focus:outline-none focus:border-brand-lead disabled:opacity-60">
+      className="w-full rounded-lg bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white focus:outline-none focus:border-brand-split disabled:opacity-60">
       <option value="">PRO…</option>
       {PRO_GROUPS.map((g) => (
         <optgroup key={g.region} label={g.region}>
@@ -92,6 +94,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     await supabase.from('split_sheets').update(patch).eq('id', sheet.id);
   }
 
+  // mm:ss — 시트의 duration은 사람이 읽는 문자열이라 초를 그대로 넣지 않는다
+  const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+
   async function uploadAudio(file: File | undefined) {
     if (!file || !sheet || !isOwner || lockedGuard()) return;
     setAudioUploading(true);
@@ -99,9 +104,16 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     const path = `split/${sheet.id}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('member-demos').upload(path, file, { upsert: true, contentType: file.type || undefined });
     if (!error) {
-      await supabase.from('split_sheets').update({ audio_path: path, audio_name: file.name, updated_at: new Date().toISOString() }).eq('id', sheet.id);
-      setSheet((s) => s ? { ...s, audio_path: path, audio_name: file.name } : s);
+      // 길이는 파일에서 그대로 읽힌다 — 손으로 적을 이유가 없다.
+      // 비어 있을 때만 채운다. 이미 적어둔 값을 덮어쓰면 그게 더 나쁘다.
+      let duration = sheet.duration;
+      if (!duration) {
+        try { const a = await analyzeAudio(file); if (a.duration > 0) duration = mmss(a.duration); } catch { /* 길이 못 읽어도 업로드는 성공 */ }
+      }
+      await supabase.from('split_sheets').update({ audio_path: path, audio_name: file.name, duration, updated_at: new Date().toISOString() }).eq('id', sheet.id);
+      setSheet((s) => s ? { ...s, audio_path: path, audio_name: file.name, duration } : s);
       await signAudio(path);
+      if (duration && duration !== sheet.duration) flash(t(`길이 ${duration} 자동 입력됨`, `Duration ${duration} filled in`));
     } else flash(t('음원 업로드 실패', 'Audio upload failed'));
     setAudioUploading(false);
   }
@@ -375,8 +387,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     w.document.open(); w.document.write(agreementHtml(true)); w.document.close();
   }
 
-  const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-mini text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
-  const hfield = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead';
+  const field = 'w-full rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-mini text-white placeholder:text-white/55 focus:outline-none focus:border-brand-split';
+  const hfield = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-split';
 
   if (loading || !sheet) return <div className={`font-ui min-h-[100dvh] flex items-center justify-center ${D ? 'bg-surface-0 text-white/55' : 'bg-[#f6f6f7] text-black/40'}`}>…</div>;
 
@@ -408,6 +420,46 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         .split-light .hover\\:bg-white\\/\\[0\\.02\\]:hover{background-color:rgb(0 0 0/.03)}
         .split-light .placeholder\\:text-white\\/25::placeholder{color:rgb(0 0 0/.3)}
       ` }} />}
+      {/* C안 — 시트 영역은 '문서 그 자체'다. 편집 화면이 곧 내보낼 PDF의 모습이 된다.
+          청자(H168°)는 오트밀의 구조를 SPLIT의 색조로 옮긴 것 — 오트밀은 색조 39°로
+          CAST 골드(41°)와 같은 가족이라 틸(172°) 옆에서 따뜻함이 겉돌았다. */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .sheet-paper{background:${CEL.paper};color:${OAT.ink};border:1px solid ${CEL.line};
+          border-radius:16px;padding:22px;box-shadow:0 1px 0 rgba(16,24,32,.05),0 18px 40px -30px rgba(16,24,32,.7)}
+        .sheet-paper .text-white{color:${OAT.ink}}
+        .sheet-paper .text-white\\/70,
+        .sheet-paper .text-white\\/60,
+        .sheet-paper .text-white\\/55,
+        .sheet-paper .text-white\\/50{color:${CEL.sub}}
+        .sheet-paper .text-white\\/45,
+        .sheet-paper .text-white\\/40,
+        .sheet-paper .text-white\\/35,
+        .sheet-paper .text-white\\/30,
+        .sheet-paper .text-white\\/25{color:rgba(16,24,32,.5)}
+        .sheet-paper .bg-white\\/5,
+        .sheet-paper .bg-white\\/\\[0\\.02\\],
+        .sheet-paper .bg-white\\/\\[0\\.04\\]{background-color:${CEL.box}}
+        .sheet-paper .border-white\\/15{border-color:${CEL.line}}
+        .sheet-paper .border-white\\/10,
+        .sheet-paper .border-white\\/8,
+        .sheet-paper .border-white\\/5{border-color:${CEL.line2}}
+        .sheet-paper .hover\\:bg-white\\/5:hover,
+        .sheet-paper .hover\\:bg-white\\/\\[0\\.02\\]:hover{background-color:rgba(16,24,32,.05)}
+        .sheet-paper .placeholder\\:text-white\\/55::placeholder,
+        .sheet-paper .placeholder\\:text-white\\/25::placeholder{color:rgba(16,24,32,.42)}
+        /* 종이 위에서 브랜드 틸은 대비 2.19라 글씨로 못 쓴다 — 눕힌 판으로 */
+        .sheet-paper .text-brand-lead-text,
+        .sheet-paper .text-brand-split-text{color:${CEL.accent}}
+        .sheet-paper .text-emerald-400{color:${CEL.accent}}
+        .sheet-paper .text-amber-400,.sheet-paper .text-amber-400\\/90{color:#8A5A05}
+        .sheet-paper .text-red-400{color:${CEL.danger}}
+        .sheet-paper .border-emerald-500\\/40,.sheet-paper .border-emerald-500\\/30{border-color:rgba(29,114,103,.45)}
+        .sheet-paper input,.sheet-paper textarea,.sheet-paper select{color:${OAT.ink}}
+        .sheet-paper input:disabled,.sheet-paper textarea:disabled,.sheet-paper select:disabled{opacity:.75}
+        /* 구획 머리 — 풀/스튜디오 배너와 같은 물건 */
+        .sheet-band{background:${CEL.band};color:${OAT.ink};margin:-22px -22px 18px;padding:10px 18px;
+          border-radius:15px 15px 0 0;font-weight:700;letter-spacing:.04em}
+      ` }} />
       {toast && <Toast msg={toast} z="z-50" />}
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8">
         {/* header bar */}
@@ -475,8 +527,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         )}
 
         {/* song header fields */}
-        <div className="rounded-xl border border-white/10 /[0.02] p-5 mb-6">
-          <div className="text-mini uppercase tracking-widest text-white/55 mb-3">{t('곡 정보', 'Song info')}</div>
+        <div className="sheet-paper mb-6">
+          <div className="sheet-band text-mini uppercase">{t('곡 정보', 'Song info')}</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {([
               ['song_title', t('곡 제목', 'Title')], ['aka', t('AKA (부제)', 'AKA')], ['artist_name', t('아티스트', 'Artist')],
@@ -537,11 +589,11 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
             const catRows = rows.filter((r) => r.category === cat.key);
             const total = categoryTotal(rows, cat.key);
             return (
-              <div key={cat.key} className="cv-row rounded-xl border border-white/10 /[0.02] p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-body font-bold">{lang === 'en' ? cat.en : cat.label} <span className="text-white/55 text-mini font-normal">{lang === 'en' ? cat.label : cat.en}</span></h3>
+              <div key={cat.key} className="cv-row sheet-paper">
+                <div className="sheet-band flex items-center gap-2 flex-wrap">
+                  <h3 className="text-body font-bold">{lang === 'en' ? cat.en : cat.label} <span className="text-mini font-normal" style={{ opacity: .6 }}>{lang === 'en' ? cat.label : cat.en}</span></h3>
                   {catRows.length > 0 && (
-                    <span className={`text-mini ${total === 100 ? 'text-emerald-400' : 'text-amber-400'}`}>{t('합계', 'Total')} {total}%{total === 100 ? ' ✓' : t(' (100%여야 함)', ' (must be 100%)')}</span>
+                    <span className="text-mini font-bold" style={{ color: total === 100 ? '#0E3B33' : '#5C2E06' }}>{t('합계', 'Total')} {total}%{total === 100 ? ' ✓' : t(' (100%여야 함)', ' (must be 100%)')}</span>
                   )}
                 </div>
 
@@ -563,7 +615,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
                             <input type="number" min={0} max={100} value={Number(r.share) || 0} disabled={!editable}
                               onChange={(e) => setRowLocal(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
                               onBlur={(e) => commitRow(r.id, { share: e.target.value === '' ? 0 : Number(e.target.value) })}
-                              className="w-16 rounded-lg bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white text-center focus:outline-none focus:border-brand-lead disabled:opacity-60" />
+                              className="w-16 rounded-lg bg-white/5 border border-white/10 px-2 py-1.5 text-mini text-white text-center focus:outline-none focus:border-brand-split disabled:opacity-60" />
                             <span className="text-mini text-white/55">%</span>
                           </div>
                           {r.user_id && <span className="text-micro px-2 py-0.5 rounded-full border border-emerald-500/30 text-emerald-400/80">{t('연동', 'Linked')}</span>}
@@ -618,8 +670,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         </div>
 
         {/* notes */}
-        <div className="mt-6">
-          <label className="block text-mini text-white/55 mb-1">{t('비고 (Notes)', 'Notes')}</label>
+        <div className="sheet-paper mt-6">
+          <div className="sheet-band text-mini uppercase">{t('비고 (Notes)', 'Notes')}</div>
           <textarea value={sheet.notes ?? ''} disabled={!editable} rows={2}
             onChange={(e) => setSheetLocal('notes', e.target.value)} onBlur={() => commitSheet('notes')}
             className={`${hfield} resize-none`} placeholder={t('추가 합의사항, 마스터 지분(별도) 등', 'Extra terms, master-side splits (separate), etc.')} />
@@ -676,7 +728,7 @@ function SignatureModal({ row, catLabel, t, onClose, onSubmit }: {
         <p className="text-mini text-white/45 mb-4">{catLabel} · {row.stage_name || row.legal_name || t('기여자', 'contributor')} · {Number(row.share) || 0}% — {t('아래 지분에 동의하고 서명합니다.', 'sign to agree to the split above.')}</p>
         <label className="block text-mini text-white/55 mb-1">{t('서명자 법적 이름', 'Signer legal name')}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('이름', 'Name')}
-          className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-lead mb-3" />
+          className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-split mb-3" />
         <label className="block text-mini text-white/55 mb-1">{t('서명 (손으로 그리기 · 선택)', 'Signature (draw · optional)')}</label>
         <div className="rounded-lg bg-white overflow-hidden mb-1">
           <canvas ref={canvasRef} width={400} height={140} className="w-full touch-none"

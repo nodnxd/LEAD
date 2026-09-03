@@ -138,3 +138,46 @@ test('stepWheel: 찔끔찔끔 밀면 누적이 유지되지 않는다', () => {
   assert.equal(r.state.accum, 200);
   assert.equal(r.move, 0);
 });
+
+// ── 음원 분석 ─────────────────────────────────────────────────────────
+import { yinF0, keyFromChroma } from './audioAnalysis.ts';
+
+const tone = (hz: number, sr = 44100, sec = 0.06) => {
+  const n = Math.floor(sr * sec), f = new Float32Array(n);
+  // 배음을 섞는다 — 순수 사인은 자기상관도 맞히지만 실제 목소리는 배음이 있다
+  for (let i = 0; i < n; i++) {
+    const t = i / sr;
+    f[i] = Math.sin(2 * Math.PI * hz * t) + 0.5 * Math.sin(4 * Math.PI * hz * t) + 0.25 * Math.sin(6 * Math.PI * hz * t);
+  }
+  return f;
+};
+
+test('yinF0: 기본 주파수를 1% 안에서 맞힌다', () => {
+  for (const hz of [98, 130.8, 196, 220, 261.6]) {
+    const got = yinF0(tone(hz), 44100, 70, 400);
+    assert.ok(Math.abs(got - hz) / hz < 0.01, `${hz}Hz → ${got.toFixed(1)}Hz`);
+  }
+});
+
+test('yinF0: 배음이 강해도 옥타브 위로 안 뛴다 (자기상관의 고질병)', () => {
+  const got = yinF0(tone(110), 44100, 70, 400);
+  assert.ok(Math.abs(got - 110) < 3, `110Hz → ${got.toFixed(1)}Hz`);
+});
+
+test('keyFromChroma: C장조 3화음이 섞인 chroma를 C로 읽는다', () => {
+  const c = new Array(12).fill(0.2);
+  [0, 4, 7].forEach((i) => { c[i] += 3; });        // C E G
+  [2, 5, 9, 11].forEach((i) => { c[i] += 1; });    // 나머지 음계음
+  assert.equal(keyFromChroma(c), 'C');
+});
+
+test('keyFromChroma: A단조는 나란한 C장조와 구별된다', () => {
+  const c = new Array(12).fill(0.2);
+  [9, 0, 4].forEach((i) => { c[i] += 3; });        // A C E — 으뜸을 A로
+  c[9] += 2; c[11] += 1; c[2] += 1; c[5] += 1; c[7] += 1;
+  assert.equal(keyFromChroma(c), 'Am');
+});
+
+test('keyFromChroma: 빈 chroma는 빈 문자열', () => {
+  assert.equal(keyFromChroma(new Array(12).fill(0)), '');
+});
