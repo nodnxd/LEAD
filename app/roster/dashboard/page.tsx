@@ -70,6 +70,8 @@ const T = {
     addedToRoster: (n: string, p: string) => `${n} → ${p}`,
     linkCopied: '링크 복사됨', closeVoteConfirm: '투표를 닫을까요?',
     availOpen: '가능일', availOpenTitle: '가능일 투표 열기', availMonth: '대상 월',
+    availMonthChange: '대상 월 바꾸기',
+    availMonthMsg: (m: string, n: number) => `${m}로 바꿀까요? 새 달에 없는 ${n}일치 응답은 지워져요.`,
     availTitleLabel: '제목 (선택)', availTitlePlaceholder: '예: 8월 세션 가능일', availStart: '투표 열기',
     availClose: '가능일 닫기', availCloseConfirm: '가능일 투표를 닫을까요?',
     availStats: '날짜별 가능 인원', availBest: '가장 많이 되는 날', availConfirm: '이 날로 확정',
@@ -149,6 +151,8 @@ const T = {
     addedToRoster: (n: string, p: string) => `${n} → ${p}`,
     linkCopied: 'Link copied', closeVoteConfirm: 'Close the vote?',
     availOpen: 'Dates', availOpenTitle: 'Open Availability Poll', availMonth: 'Target month',
+    availMonthChange: 'Change target month',
+    availMonthMsg: (m: string, n: number) => `Switch to ${m}? ${n} answer(s) on days that don't exist there will be deleted.`,
     availTitleLabel: 'Title (optional)', availTitlePlaceholder: 'e.g. August session dates', availStart: 'Open Poll',
     availClose: 'Close Dates', availCloseConfirm: 'Close the availability poll?',
     availStats: 'Available by day', availBest: 'Best days', availConfirm: 'Confirm this day',
@@ -906,6 +910,24 @@ export default function Dashboard() {
     if (!availPoll) return;
     await supabase.from('availability_polls').update({ is_open: false }).eq('id', availPoll.id);
     setAvailPoll(null); setAvailPicks([]); setAvailSubs([]);
+  };
+
+  const changeAvailMonth = async (nextMonth: string) => {
+    if (!availPoll || !nextMonth || nextMonth === availPoll.month) return;
+    const [ny, nm] = nextMonth.split('-').map(Number);
+    const lastDay = new Date(ny, nm, 0).getDate();
+    const orphans = availPicks.filter(p => p.day > lastDay);
+    const apply = async () => {
+      if (orphans.length) await supabase.from('availability_picks').delete().eq('poll_id', availPoll.id).gt('day', lastDay);
+      const finals = (availPoll.final_days || []).filter((d: number) => d <= lastDay);
+      const blocked = (availPoll.blocked_days || []).filter((d: number) => d <= lastDay);
+      await supabase.from('availability_polls').update({ month: nextMonth, final_days: finals, blocked_days: blocked }).eq('id', availPoll.id);
+      setAvailSelDay(null); setAvailSelMember(null);
+      fetchAvailPoll(user, currentProject);
+      setConfirmModal(null);
+    };
+    if (orphans.length) showConfirm(t.availMonthChange, t.availMonthMsg(nextMonth, orphans.length), apply);
+    else apply();
   };
 
   const toggleFinalDay = async (day: number) => {
@@ -2352,7 +2374,12 @@ export default function Dashboard() {
               ) : (
                 <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between gap-2">
-                    <p className={`text-lead font-bold ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-mini font-normal ${textSub}`}>· {yy}.{String(mm).padStart(2, '0')} · {t.availSubmitted} {availSubs.filter(s => projIds.has(s.member_id)).length}/{proj.length}</span></p>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <p className={`text-lead font-bold truncate ${textMain}`}>{availPoll.title || `${yy}. ${String(mm).padStart(2, '0')}`} <span className={`text-mini font-normal ${textSub}`}>· {t.availSubmitted} {availSubs.filter(s => projIds.has(s.member_id)).length}/{proj.length}</span></p>
+                      <input type="month" value={availPoll.month || ''} onChange={e => changeAvailMonth(e.target.value)}
+                        title={t.availMonthChange} aria-label={t.availMonthChange}
+                        className={`field-bare shrink-0 border rounded-full px-3 py-1 text-mini font-bold outline-none cursor-pointer transition ${btnBg}`} />
+                    </div>
                     <button onClick={copyAvailShareLink} className={`shrink-0 text-mini font-bold px-3.5 py-1.5 rounded-full border transition ${btnBg}`}>{t.availCopyAll}</button>
                   </div>
 
