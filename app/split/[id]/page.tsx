@@ -9,6 +9,7 @@ import type { Database } from '@/lib/database.types';
 import { SplitSheet, Contributor, CopyrightProfile, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal, sheetWeights, writerShares, writerTotal } from '@/lib/splitsheet';
 import { CEL, OAT } from '@/lib/brand';
 import { analyzeAudio } from '@/lib/audioAnalysis';
+import { buildCwr, cwrFile, cwrPreflight } from '@/lib/cwr';
 import { useLang, LangToggle } from '@/lib/lang';
 import { useTheme, ThemeToggle } from '@/lib/theme';
 import Toast from '@/components/Toast';
@@ -76,6 +77,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const [audioUploading, setAudioUploading] = useState(false);
   const [signRow, setSignRow] = useState<Contributor | null>(null);  // signature-capture modal target
   const [docHash, setDocHash] = useState('');   // 현재 문서의 SHA-256 (서명 유효성 판정용)
+  const [cwrIssues, setCwrIssues] = useState<string[] | null>(null);
+  const [myProfileIpi, setMyProfileIpi] = useState('');
 
   const isOwner = !!me && sheet?.owner_id === me;
 
@@ -94,6 +97,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       if (!s) { router.push('/split'); return; }
       setSheet(s as SplitSheet);
       signAudio((s as SplitSheet).audio_path);
+      const { data: prof } = await supabase.from('copyright_profiles').select('ipi').eq('id', user.id).maybeSingle();
+      setMyProfileIpi(prof?.ipi ?? '');
       const { data: c } = await supabase.from('split_contributors').select('*').eq('sheet_id', id).order('order_index', { ascending: true });
       setRows((c as Contributor[]) ?? []);
       setLoading(false);
@@ -316,6 +321,31 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       .update({ signed: false, signed_at: null, signature_name: null, signature_data: null, signed_hash: null })
       .eq('sheet_id', sheet.id);
     flash(t(`잠금 해제 · 버전 ${nextVer} — 수정 후 재서명 필요`, `Unlocked · v${nextVer} — everyone must sign again`));
+  }
+
+  // ── CWR 내보내기 — 협회가 기계로 읽는 파일 ─────────────────────────
+  async function exportCwr() {
+    if (!sheet) return;
+    const senderId = (myProfileIpi || '').replace(/\D/g, '');
+    const problems = cwrPreflight(sheet, rows, writers, { senderId });
+    if (problems.length) {
+      flash(problems[0]);
+      // 하나만 띄우고 끝내면 왜 막혔는지 모른다 — 전부 모달로 보여준다
+      setCwrIssues(problems);
+      return;
+    }
+    const lines = buildCwr(sheet, rows, writers, {
+      senderId, senderName: (sheet.artist_name || 'SPLIT').toUpperCase(),
+      submitterWorkId: sheet.id.replace(/-/g, '').slice(0, 14),
+    });
+    const blob = new Blob([cwrFile(lines)], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    // 협회 관행 파일명: CWyynnnnsss_rrr.V21
+    const yy = String(new Date().getFullYear()).slice(2);
+    a.href = url; a.download = `CW${yy}0001${senderId.slice(-3).padStart(3, '0')}_000.V21`;
+    a.click(); URL.revokeObjectURL(url);
+    flash(t('CWR 파일을 내려받았어요 — 협회 검증 도구에 넣어보세요', 'CWR file downloaded — run it through your society’s validator'));
   }
 
   // ── evidence bundle (zip): agreement + audio + tamper-evident manifest(SHA-256) ──
@@ -546,6 +576,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
             <LangToggle />
             <ThemeToggle className="w-8 h-8 rounded-lg border border-white/15 hover:bg-white/5 flex items-center justify-center text-body transition" />
             <button onClick={exportBundle} title={t('합의서+음원+무결성해시(zip)', 'Agreement + audio + integrity hash (zip)')} className="text-body px-3 py-2 rounded-full border border-white/15 hover:bg-white/5 transition-colors">{t('증빙 번들', 'Evidence')}</button>
+            <button onClick={exportCwr} title={t('협회 등록용 CWR v2.1 파일', 'CWR v2.1 file for society registration')} className="text-body px-3 py-2 rounded-full border border-white/15 hover:bg-white/5 transition-colors">CWR</button>
             <button onClick={exportPdf} className="text-body px-3 py-2 rounded-full border border-white/15 hover:bg-white/5 transition-colors">⎙ PDF</button>
           </div>
         </div>
@@ -804,6 +835,20 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
             className={`${hfield} resize-none`} placeholder={t('추가 합의사항, 마스터 지분(별도) 등', 'Extra terms, master-side splits (separate), etc.')} />
         </div>
       </div>
+
+      {cwrIssues && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => setCwrIssues(null)}>
+          <div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}
+            className={`w-full max-w-md border rounded-xl p-6 ${D ? 'bg-[#111] border-white/10' : 'bg-white border-black/10'}`}>
+            <h2 className="font-black text-lead mb-1">{t('아직 CWR로 못 내보내요', 'Not ready for CWR')}</h2>
+            <p className="text-mini mb-4 text-white/55">{t('협회가 반려할 항목들이에요. 채우면 바로 내보낼 수 있어요.', 'These would be rejected by the society. Fill them in and export again.')}</p>
+            <ul className="flex flex-col gap-2 mb-5">
+              {cwrIssues.map((p, i) => <li key={i} className="text-mini flex gap-2"><span className="text-amber-400">•</span>{p}</li>)}
+            </ul>
+            <button onClick={() => setCwrIssues(null)} className="w-full py-2.5 rounded-full border border-white/15 text-mini font-bold hover:bg-white/5">{t('닫기', 'Close')}</button>
+          </div>
+        </div>
+      )}
 
       {signRow && (() => {
         const c = CATEGORIES.find((c) => c.key === signRow.category);

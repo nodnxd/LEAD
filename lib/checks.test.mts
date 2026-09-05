@@ -236,3 +236,98 @@ test('writerShares: 편곡 가중치를 올리면 최종 지분이 따라 움직
 test('sheetWeights: 컬럼이 없으면 업계 관행 50/50/0으로 떨어진다', () => {
   assert.deepEqual(sheetWeights(null), { lyrics: 50, composition: 50, arrangement: 0 });
 });
+
+// ── CWR (협회 등록 파일) ─────────────────────────────────────────────────
+import { buildCwr, cwrFile, cwrPreflight, cwrDuration, S, N, A, societyCode, writerDesignation } from './cwr.ts';
+
+const sheet: any = {
+  id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', owner_id: 'o', song_title: '고백',
+  aka: null, artist_name: 'NEW NORMAL', album: null, duration: '2:16',
+  iswc: 'T-123456789-0', isrc: null, contains_sample: false, sample_note: null,
+  work_date: null, notes: null, audio_path: 'x', audio_name: 'a.mp3',
+  locked: false, locked_at: null, version: 1, signature_requested_at: null,
+  weight_lyrics: 50, weight_composition: 50, weight_arrangement: 0,
+};
+const c = (o: any): any => ({ id: o.id ?? o.n, sheet_id: 'a', user_id: null, legal_name: o.n,
+  stage_name: null, email: o.e ?? null, category: o.c, share: o.s, pro: o.pro ?? 'KOMCA',
+  ipi: o.ipi ?? '00123456789', publisher_name: o.pub ?? null, publisher_pro: null,
+  publisher_ipi: null, phone: null, address: null, signed: true, signed_at: null,
+  signature_name: null, signature_data: null, signed_hash: null, sign_token: null, order_index: 0 });
+
+test('CWR: 고정폭 — 필드 하나 밀리면 파일 전체가 반려된다', () => {
+  assert.equal(A('abc', 5), 'abc  ');
+  assert.equal(A('abcdefg', 5), 'abcde');
+  assert.equal(N(42, 5), '00042');
+  assert.equal(S(50), '05000');       // 50.00%
+  assert.equal(S(33.33), '03333');
+  assert.equal(S(100), '10000');
+});
+
+test('CWR: 한글은 ASCII 밖이라 공백으로 바뀐다 (고정폭이 안 깨지게)', () => {
+  assert.equal(A('고백', 4).length, 4);
+});
+
+test('cwrDuration: mm:ss → HHMMSS', () => {
+  assert.equal(cwrDuration('2:16'), '000216');
+  assert.equal(cwrDuration('1:02:03'), '010203');
+  assert.equal(cwrDuration(null), '000000');
+});
+
+test('CWR: 레코드 순서와 트레일러 개수가 맞는다', () => {
+  const rows = [c({ n: 'KIM', c: 'lyrics', s: 100 }), c({ n: 'LEE', c: 'composition', s: 100 })];
+  const lines = buildCwr(sheet, rows, writerShares(rows, DEFAULT_WEIGHTS), { senderId: '00123456789', senderName: 'NEN', now: new Date('2026-09-03T10:20:30') });
+  assert.equal(lines[0].slice(0, 3), 'HDR');
+  assert.equal(lines[1].slice(0, 3), 'GRH');
+  assert.equal(lines[2].slice(0, 3), 'NWR');
+  assert.equal(lines.at(-2)!.slice(0, 3), 'GRT');
+  assert.equal(lines.at(-1)!.slice(0, 3), 'TRL');
+  // 작가 둘 → SWR/SWT 두 쌍
+  assert.equal(lines.filter((l) => l.startsWith('SWR')).length, 2);
+  assert.equal(lines.filter((l) => l.startsWith('SWT')).length, 2);
+  // 트랜잭션 레코드 순번은 0부터 빈틈없이 올라간다
+  const seqs = lines.filter((l) => /^(NWR|SWR|SWT|PWR)/.test(l)).map((l) => Number(l.slice(11, 19)));
+  assert.deepEqual(seqs, seqs.map((_, i) => i));
+});
+
+test('CWR: 지분이 최종 지분(가중치 적용)으로 들어간다', () => {
+  const rows = [c({ n: 'KIM', c: 'lyrics', s: 100 }), c({ n: 'LEE', c: 'composition', s: 100 })];
+  const lines = buildCwr(sheet, rows, writerShares(rows, DEFAULT_WEIGHTS), { senderId: '1', senderName: 'N' });
+  const swr = lines.filter((l) => l.startsWith('SWR'));
+  // 작사 50 / 작곡 50 이므로 둘 다 50.00%
+  assert.ok(swr.every((l) => l.includes('05000')), swr.join('\n'));
+});
+
+test('writerDesignation: 작사+작곡은 CA', () => {
+  assert.equal(writerDesignation({ lyrics: 50, composition: 50 }), 'CA');
+  assert.equal(writerDesignation({ lyrics: 100 }).trim(), 'A');
+  assert.equal(writerDesignation({ composition: 100 }).trim(), 'C');
+  assert.equal(writerDesignation({ arrangement: 100 }), 'AR');
+});
+
+test('societyCode: 아는 협회는 숫자로, 모르면 000 (틀린 숫자보다 낫다)', () => {
+  assert.equal(societyCode('KOMCA'), '040');
+  assert.equal(societyCode('ASCAP'), '010');
+  assert.equal(societyCode('머시기'), '000');
+  assert.equal(societyCode(null), '000');
+});
+
+test('cwrPreflight: 반려될 것들을 미리 잡는다', () => {
+  const badRows = [c({ n: 'KIM', c: 'lyrics', s: 50, ipi: null, pro: null })];
+  const bad = cwrPreflight({ ...sheet, song_title: '' } as any, badRows,
+    writerShares(badRows, DEFAULT_WEIGHTS), { senderId: '' });
+  assert.ok(bad.some((p) => p.includes('제출자 ID')));
+  assert.ok(bad.some((p) => p.includes('곡 제목')));
+  assert.ok(bad.some((p) => p.includes('IPI')));
+  assert.ok(bad.some((p) => p.includes('100%')));
+});
+
+test('cwrPreflight: 제대로 채워지면 문제 없음', () => {
+  const okRows = [c({ n: 'KIM', c: 'lyrics', s: 100 }), c({ n: 'KIM', c: 'composition', s: 100 })];
+  const ok = cwrPreflight(sheet, okRows, writerShares(okRows, DEFAULT_WEIGHTS), { senderId: '00123456789' });
+  assert.deepEqual(ok, []);
+});
+
+test('cwrFile: EDI 관행대로 CRLF로 끝난다', () => {
+  assert.ok(cwrFile(['HDR', 'TRL']).endsWith('\r\n'));
+  assert.equal(cwrFile(['HDR', 'TRL']), 'HDR\r\nTRL\r\n');
+});
