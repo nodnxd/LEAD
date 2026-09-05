@@ -78,6 +78,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const [signRow, setSignRow] = useState<Contributor | null>(null);  // signature-capture modal target
   const [docHash, setDocHash] = useState('');   // 현재 문서의 SHA-256 (서명 유효성 판정용)
   const [cwrIssues, setCwrIssues] = useState<string[] | null>(null);
+  const [ask, setAsk] = useState<{ title: string; body: string; ok: string; run: () => void } | null>(null);
   const [myProfileIpi, setMyProfileIpi] = useState('');
 
   const isOwner = !!me && sheet?.owner_id === me;
@@ -211,14 +212,21 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     if (lockedGuard()) return;
     setRowLocal(rid, patch);
     await supabase.from('split_contributors').update(patch).eq('id', rid);
+    if (sheet) await supabase.from('split_sheets').update({ updated_at: new Date().toISOString() }).eq('id', sheet.id);
   }
   async function deleteRow(rid: string) {
     if (lockedGuard()) return;
     const row = rows.find((r) => r.id === rid);
     const who = row?.legal_name || row?.stage_name || '';
-    if (!confirm(t(`${who ? `"${who}" ` : ''}이 기여자를 삭제할까요?`, `Remove ${who ? `"${who}"` : 'this contributor'}?`))) return;
-    setRows((rs) => rs.filter((r) => r.id !== rid));
-    await supabase.from('split_contributors').delete().eq('id', rid);
+    setAsk({
+      title: t('기여자 삭제', 'Remove contributor'),
+      body: t(`${who ? `"${who}" ` : ''}이 기여자를 삭제할까요?`, `Remove ${who ? `"${who}"` : 'this contributor'}?`),
+      ok: t('삭제', 'Remove'),
+      run: async () => {
+        setRows((rs) => rs.filter((r) => r.id !== rid));
+        await supabase.from('split_contributors').delete().eq('id', rid);
+      },
+    });
   }
   // SHA-256 of a canonical snapshot of the agreement at signing time (tamper-evidence).
   async function agreementHash(): Promise<string> {
@@ -311,7 +319,16 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
   async function unlockSheet() {
     if (!sheet || !isOwner) return;
-    if (!confirm(t('잠금을 해제하면 모든 서명이 초기화되고 버전이 올라가요. 계속할까요?', 'Unlocking clears all signatures and bumps the version. Continue?'))) return;
+    setAsk({
+      title: t('잠금 해제', 'Unlock'),
+      body: t('잠금을 해제하면 모든 서명이 초기화되고 버전이 올라가요. 계속할까요?', 'Unlocking clears all signatures and bumps the version. Continue?'),
+      ok: t('잠금 해제', 'Unlock'),
+      run: doUnlock,
+    });
+  }
+
+  async function doUnlock() {
+    if (!sheet || !isOwner) return;
     const nextVer = (sheet.version ?? 1) + 1;
     setSheet((s) => s ? { ...s, locked: false, locked_at: null, version: nextVer } : s);
     setRows((rs) => rs.map((r) => ({ ...r, signed: false, signed_at: null, signature_name: null, signature_data: null, signed_hash: null })));
@@ -322,6 +339,21 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       .eq('sheet_id', sheet.id);
     flash(t(`잠금 해제 · 버전 ${nextVer} — 수정 후 재서명 필요`, `Unlocked · v${nextVer} — everyone must sign again`));
   }
+
+  // ③ 동시 편집 — 둘이 열어두면 마지막 저장이 조용히 이겼다. 남의 변경을 실시간으로 받는다.
+  useEffect(() => {
+    if (!sheet?.id) return;
+    const ch = supabase.channel(`split-${sheet.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'split_contributors', filter: `sheet_id=eq.${sheet.id}` },
+        async () => {
+          const { data } = await supabase.from('split_contributors').select('*').eq('sheet_id', sheet.id).order('order_index', { ascending: true });
+          if (data) setRows(data as Contributor[]);
+        })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'split_sheets', filter: `id=eq.${sheet.id}` },
+        (payload) => setSheet((cur) => cur ? { ...cur, ...(payload.new as SplitSheet) } : cur))
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [sheet?.id]); // eslint-disable-line
 
   // ── CWR 내보내기 — 협회가 기계로 읽는 파일 ─────────────────────────
   async function exportCwr() {
@@ -835,6 +867,21 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
             className={`${hfield} resize-none`} placeholder={t('추가 합의사항, 마스터 지분(별도) 등', 'Extra terms, master-side splits (separate), etc.')} />
         </div>
       </div>
+
+      {ask && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => setAsk(null)}>
+          <div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}
+            className={`w-full max-w-sm border rounded-xl p-6 ${D ? 'bg-[#111] border-white/10' : 'bg-white border-black/10'}`}>
+            <h2 className="font-black text-lead mb-1">{ask.title}</h2>
+            <p className="text-mini mb-5 text-white/55">{ask.body}</p>
+            <div className="flex gap-2">
+              <button onClick={() => setAsk(null)} className="flex-1 py-2.5 rounded-full border border-white/15 text-mini font-bold hover:bg-white/5">{t('취소', 'Cancel')}</button>
+              <button onClick={() => { const r = ask.run; setAsk(null); r(); }}
+                className="flex-1 py-2.5 rounded-full text-mini font-bold" style={{ backgroundColor: CEL.danger, color: '#F2E9DB' }}>{ask.ok}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {cwrIssues && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => setCwrIssues(null)}>
