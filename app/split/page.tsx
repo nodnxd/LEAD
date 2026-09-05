@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CopyrightProfile, SplitSheet, PRO_GROUPS, PRO_LABEL } from '@/lib/splitsheet';
@@ -13,7 +13,7 @@ import ProductHeader from '@/components/ProductHeader';
 const EMPTY_PROFILE: Omit<CopyrightProfile, 'id'> = {
   legal_name: '', stage_name: '', pro: '', ipi: '',
   publisher_name: '', publisher_pro: '', publisher_ipi: '',
-  email: '', phone: '', address: '',
+  email: '', phone: '', address: '', signature_data: null,
 };
 
 function ProSelect({ value, onChange, className, placeholder }: { value: string; onChange: (v: string) => void; className?: string; placeholder?: string }) {
@@ -27,6 +27,42 @@ function ProSelect({ value, onChange, className, placeholder }: { value: string;
         </optgroup>
       ))}
     </select>
+  );
+}
+
+// 프로필에 저장하는 서명. 이건 '표시용'이다 — 법적 근거는 서명 때마다 새로 받는
+// 동의와 감사 기록이지 이 그림이 아니다. 그래서 저장해두고 재사용해도 강도가 안 떨어진다.
+function SignaturePad({ value, onChange, t, D }: {
+  value: string | null | undefined; onChange: (v: string | null) => void;
+  t: (ko: string, en: string) => string; D: boolean;
+}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const drawing = useRef(false);
+  const dirty = useRef(false);
+  const pos = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const c = ref.current!, r = c.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * (c.width / r.width), y: (e.clientY - r.top) * (c.height / r.height) };
+  };
+  if (value) return (
+    <div className="flex items-center gap-3 flex-wrap">
+      <img src={value} alt={t('저장된 서명', 'Saved signature')} className="h-14 rounded-lg bg-white px-3 py-1 border border-black/10" />
+      <button onClick={() => onChange(null)} className={`text-mini underline ${D ? 'text-white/55' : 'text-black/50'}`}>{t('다시 그리기', 'Draw again')}</button>
+    </div>
+  );
+  return (
+    <div className="flex items-center gap-3 flex-wrap">
+      <canvas ref={ref} width={420} height={110}
+        onPointerDown={(e) => { drawing.current = true; const c = ref.current!.getContext('2d')!; const p = pos(e); c.beginPath(); c.moveTo(p.x, p.y); (e.target as Element).setPointerCapture(e.pointerId); }}
+        onPointerMove={(e) => { if (!drawing.current) return; const c = ref.current!.getContext('2d')!; const p = pos(e); c.lineWidth = 2.5; c.lineCap = 'round'; c.strokeStyle = '#111'; c.lineTo(p.x, p.y); c.stroke(); dirty.current = true; }}
+        onPointerUp={() => { drawing.current = false; }}
+        className="rounded-lg bg-white border border-black/10 touch-none" style={{ width: 280, height: 74 }} />
+      <div className="flex flex-col gap-1.5">
+        <button onClick={() => { if (dirty.current) onChange(ref.current!.toDataURL('image/png')); }}
+          className={`text-mini px-3 py-1.5 rounded-lg border ${D ? 'border-white/15 hover:bg-white/5' : 'border-black/15 hover:bg-black/5'}`}>{t('이 서명 쓰기', 'Use this')}</button>
+        <button onClick={() => { const c = ref.current!; c.getContext('2d')!.clearRect(0, 0, c.width, c.height); dirty.current = false; }}
+          className={`text-mini ${D ? 'text-white/55' : 'text-black/50'} underline`}>{t('지우기', 'Clear')}</button>
+      </div>
+    </div>
   );
 }
 
@@ -56,7 +92,7 @@ export default function SplitIndex() {
         setProfile({
           legal_name: c.legal_name, stage_name: c.stage_name, pro: c.pro, ipi: c.ipi,
           publisher_name: c.publisher_name, publisher_pro: c.publisher_pro, publisher_ipi: c.publisher_ipi,
-          email: c.email, phone: c.phone, address: c.address,
+          email: c.email, phone: c.phone, address: c.address, signature_data: c.signature_data ?? null,
         });
       } else setProfileOpen(true); // first time — nudge to fill it
       // sheets I own
@@ -88,7 +124,7 @@ export default function SplitIndex() {
     })();
   }, [router]);
 
-  function up<K extends keyof typeof EMPTY_PROFILE>(k: K, v: string) { setProfile((p) => ({ ...p, [k]: v })); }
+  function up<K extends keyof typeof EMPTY_PROFILE>(k: K, v: string | null) { setProfile((p) => ({ ...p, [k]: v })); }
 
   async function saveProfile() {
     if (!me) return;
@@ -169,6 +205,14 @@ export default function SplitIndex() {
                   <input value={profile.phone ?? ''} onChange={(e) => up('phone', e.target.value)} className={field} /></div>
                 <div className="md:col-span-2"><label className={lbl}>{t('주소', 'Address')}</label>
                   <input value={profile.address ?? ''} onChange={(e) => up('address', e.target.value)} className={field} /></div>
+                <div className="md:col-span-2">
+                  <label className={lbl}>{t('내 서명 (한 번만 그려두면 돼요)', 'My signature (draw once)')}</label>
+                  <SignaturePad value={profile.signature_data} onChange={(v) => up('signature_data', v)} t={t} D={D} />
+                  <p className={`text-mini mt-2 ${faint}`}>
+                    {t('저장해두면 서명할 때 그리지 않고 확인만 하면 돼요. 서명할 때마다 동의 내용과 문서 해시가 따로 기록돼요.',
+                       'Saved once, signing becomes a single confirmation. Each signature still records your consent and a document hash.')}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-3 mt-4">
                 <button onClick={saveProfile} disabled={savingProfile}

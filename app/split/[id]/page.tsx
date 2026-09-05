@@ -80,6 +80,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const [cwrIssues, setCwrIssues] = useState<string[] | null>(null);
   const [ask, setAsk] = useState<{ title: string; body: string; ok: string; run: () => void } | null>(null);
   const [myProfileIpi, setMyProfileIpi] = useState('');
+  const [mySignature, setMySignature] = useState<string | null>(null);
 
   const isOwner = !!me && sheet?.owner_id === me;
 
@@ -98,8 +99,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       if (!s) { router.push('/split'); return; }
       setSheet(s as SplitSheet);
       signAudio((s as SplitSheet).audio_path);
-      const { data: prof } = await supabase.from('copyright_profiles').select('ipi').eq('id', user.id).maybeSingle();
+      const { data: prof } = await supabase.from('copyright_profiles').select('ipi, signature_data').eq('id', user.id).maybeSingle();
       setMyProfileIpi(prof?.ipi ?? '');
+      setMySignature(prof?.signature_data ?? null);
       const { data: c } = await supabase.from('split_contributors').select('*').eq('sheet_id', id).order('order_index', { ascending: true });
       setRows((c as Contributor[]) ?? []);
       setLoading(false);
@@ -900,7 +902,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       {signRow && (() => {
         const c = CATEGORIES.find((c) => c.key === signRow.category);
         return (
-          <SignatureModal row={signRow} t={t} catLabel={c ? (lang === 'en' ? c.en : c.label) : ''}
+          <SignatureModal row={signRow} t={t} saved={signRow.user_id === me ? mySignature : null} catLabel={c ? (lang === 'en' ? c.en : c.label) : ''}
             onClose={() => setSignRow(null)} onSubmit={(name, data) => submitSignature(signRow, name, data)} />
         );
       })()}
@@ -908,8 +910,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   );
 }
 
-function SignatureModal({ row, catLabel, t, onClose, onSubmit }: {
+function SignatureModal({ row, catLabel, t, saved, onClose, onSubmit }: {
   row: Contributor; catLabel: string; t: (ko: string, en: string) => string;
+  saved?: string | null;   // 프로필에 저장해둔 서명 (있으면 확인 한 번으로 끝난다)
   onClose: () => void; onSubmit: (name: string, dataUrl: string) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -917,6 +920,7 @@ function SignatureModal({ row, catLabel, t, onClose, onSubmit }: {
   const dirty = useRef(false);
   const [name, setName] = useState(row.legal_name ?? '');
   const [agree, setAgree] = useState(false);
+  const [redraw, setRedraw] = useState(false);   // 저장된 서명 대신 새로 그리기
 
   function pos(e: React.PointerEvent<HTMLCanvasElement>) {
     const c = canvasRef.current!; const r = c.getBoundingClientRect();
@@ -948,21 +952,42 @@ function SignatureModal({ row, catLabel, t, onClose, onSubmit }: {
         <label className="block text-mini text-white/55 mb-1">{t('서명자 법적 이름', 'Signer legal name')}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('이름', 'Name')}
           className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-body text-white placeholder:text-white/55 focus:outline-none focus:border-brand-split mb-3" />
-        <label className="block text-mini text-white/55 mb-1">{t('서명 (손으로 그리기 · 선택)', 'Signature (draw · optional)')}</label>
-        <div className="rounded-lg bg-white overflow-hidden mb-1">
-          <canvas ref={canvasRef} width={400} height={140} className="w-full touch-none"
-            onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up} />
-        </div>
-        <button onClick={clear} className="text-mini text-white/55 hover:text-white mb-3">{t('지우기', 'Clear')}</button>
-        <label className="flex items-start gap-2 text-mini text-white/70 mb-4">
-          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5" />
-          <span>{t('위 지분이 정확하며 이에 동의함을 확인합니다. 서명 시각·문서 해시(SHA-256)가 함께 기록됩니다.', 'I confirm the split above is accurate and I agree. The time and a document hash (SHA-256) are recorded.')}</span>
-        </label>
-        <div className="flex gap-2">
-          <button onClick={submit} disabled={!name.trim() || !agree}
-            className="flex-1 text-body px-4 py-2.5 rounded-full bg-brand-split text-[#0a0a0a] hover:brightness-110 disabled:opacity-40 font-medium transition-colors">{t('서명 완료', 'Sign')}</button>
-          <button onClick={onClose} className="px-4 py-2.5 rounded-full border border-white/15 text-body hover:bg-white/5 transition-colors">{t('취소', 'Cancel')}</button>
-        </div>
+        {saved && !redraw ? (
+          <>
+            <label className="block text-mini text-white/55 mb-1">{t('내 서명', 'My signature')}</label>
+            <div className="rounded-lg bg-white p-2 mb-2 flex items-center justify-center">
+              <img src={saved} alt={t('저장된 서명', 'Saved signature')} className="h-16" />
+            </div>
+            <button onClick={() => setRedraw(true)} className="text-mini text-white/55 hover:text-white underline mb-3">{t('이번엔 새로 그리기', 'Draw a new one instead')}</button>
+            <p className="text-mini text-white/70 mb-4">
+              {t('위 지분이 정확하며 이에 동의합니다. 누르면 서명 시각·동의 내용·문서 해시(SHA-256)가 함께 기록돼요.',
+                 'I confirm the split above is accurate and agree. Signing records the time, your consent, and a document hash (SHA-256).')}
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => onSubmit(name.trim() || (row.legal_name ?? ''), saved)} disabled={!name.trim()}
+                className="flex-1 text-body px-4 py-2.5 rounded-full bg-brand-split text-[#0a0a0a] hover:brightness-110 disabled:opacity-40 font-medium transition-colors">{t('네, 서명합니다', 'Yes, sign')}</button>
+              <button onClick={onClose} className="px-4 py-2.5 rounded-full border border-white/15 text-body hover:bg-white/5 transition-colors">{t('취소', 'Cancel')}</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <label className="block text-mini text-white/55 mb-1">{t('서명 (손으로 그리기 · 선택)', 'Signature (draw · optional)')}</label>
+            <div className="rounded-lg bg-white overflow-hidden mb-1">
+              <canvas ref={canvasRef} width={400} height={140} className="w-full touch-none"
+                onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up} />
+            </div>
+            <button onClick={clear} className="text-mini text-white/55 hover:text-white mb-3">{t('지우기', 'Clear')}</button>
+            <label className="flex items-start gap-2 text-mini text-white/70 mb-4">
+              <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5" />
+              <span>{t('위 지분이 정확하며 이에 동의함을 확인합니다. 서명 시각·문서 해시(SHA-256)가 함께 기록됩니다.', 'I confirm the split above is accurate and I agree. The time and a document hash (SHA-256) are recorded.')}</span>
+            </label>
+            <div className="flex gap-2">
+              <button onClick={submit} disabled={!name.trim() || !agree}
+                className="flex-1 text-body px-4 py-2.5 rounded-full bg-brand-split text-[#0a0a0a] hover:brightness-110 disabled:opacity-40 font-medium transition-colors">{t('서명 완료', 'Sign')}</button>
+              <button onClick={onClose} className="px-4 py-2.5 rounded-full border border-white/15 text-body hover:bg-white/5 transition-colors">{t('취소', 'Cancel')}</button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

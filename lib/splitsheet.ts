@@ -14,6 +14,9 @@ export type CopyrightProfile = {
   email: string | null;
   phone: string | null;
   address: string | null;
+  // 프로필에 한 번 저장해두는 서명 이미지. 이건 '표시용'이다 —
+  // 법적 효력의 근거는 서명 때마다 새로 받는 동의와 감사 기록이지 이 그림이 아니다.
+  signature_data?: string | null;
 };
 
 export type SplitSheet = {
