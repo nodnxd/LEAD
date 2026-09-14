@@ -14,6 +14,7 @@ import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 import ProductHeader from '@/components/ProductHeader';
 import { QUICK_LINKS, getLinkIcon } from '@/lib/links';
 import Toast from '@/components/Toast';
+import InquiryModal from '@/components/InquiryModal';
 import { genderColor, ROLE_BANNER, OAT, GENDER_NOTCH, AVAIL_COLORS } from '@/lib/brand';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
@@ -65,7 +66,7 @@ const T = {
     attending: '참석', absent: '불참', noResponse: '미응답',
     exclude: '✕ 제외하기', include: '✓ 포함시키기',
     sessionDeleteMsg: (d: number) => `Day ${d} 삭제할까요?`, sessionDelete: '세션 삭제',
-    contact: 'Contact : everplayground@gmail.com', loading: 'Loading…',
+    contact: '문의하기', loading: 'Loading…',
     alreadyInRoster: (n: string) => `${n} 이미 있어요!`,
     addedToRoster: (n: string, p: string) => `${n} → ${p}`,
     linkCopied: '링크 복사됨', closeVoteConfirm: '투표를 닫을까요?',
@@ -146,7 +147,7 @@ const T = {
     attending: 'Attending', absent: 'Absent', noResponse: 'No Response',
     exclude: '✕ Exclude', include: '✓ Include',
     sessionDeleteMsg: (d: number) => `Delete Day ${d}?`, sessionDelete: 'Delete Session',
-    contact: 'Contact : everplayground@gmail.com', loading: 'Loading…',
+    contact: 'Contact us', loading: 'Loading…',
     alreadyInRoster: (n: string) => `${n} already in roster!`,
     addedToRoster: (n: string, p: string) => `${n} → ${p}`,
     linkCopied: 'Link copied', closeVoteConfirm: 'Close the vote?',
@@ -273,6 +274,7 @@ export default function Dashboard() {
   const [lang, setLang] = useState<Lang>('ko');
   const [theme, setTheme] = useState<Theme>('dark');
   const t = T[lang];
+  const [inqTopic, setInqTopic] = useState<string | null>(null); // 문의하기 모달
 
   const [showFirstRosterModal, setShowFirstRosterModal] = useState(false);
   const [firstRosterName, setFirstRosterName] = useState('');
@@ -1512,7 +1514,6 @@ export default function Dashboard() {
     // ── 푸터
     rule(H - PAD - 46, 0.14);
     track(3); x.font = sans('600', 14); x.fillStyle = '#5A5A5E';
-    x.fillText('everplayground@gmail.com', PAD, H - PAD - 12);
     x.textAlign = 'right'; x.fillStyle = '#E3B24A';
     x.fillText(fmtDate(Date.now()), W - PAD, H - PAD - 12);
     x.textAlign = 'left'; track(0);
@@ -1624,6 +1625,7 @@ export default function Dashboard() {
 
   return (
     <>
+      <InquiryModal topic={inqTopic} onClose={() => setInqTopic(null)} dark={theme !== 'light'} brand="cast" />
       <div style={{ transform: `scale(${zoom * 1.1})`, transformOrigin: 'top left', width: `${100 / (zoom * 1.1)}%`, minHeight: `${100 / (zoom * 1.1)}vh` }}>
         <main className={`min-h-screen ${bg} ${textMain} p-5 lg:p-8 font-ui relative overflow-hidden transition-colors duration-150`}>
           {theme === 'dark' && <div className="absolute top-[-20%] left-[-10%] w-[520px] h-[520px] rounded-full pointer-events-none opacity-[0.07]" style={{background:'#E3B24A',filter:'blur(200px)'}} />}
@@ -2174,7 +2176,7 @@ export default function Dashboard() {
           </DragDropContext>
 
           <div className="relative z-10 mt-8 pb-8 text-center">
-            <p className={`text-mini font-medium ${textSub}`}>{t.contact}</p>
+            <button onClick={() => setInqTopic('일반')} className={`text-mini font-medium transition hover:opacity-80 ${textSub}`}>{t.contact}</button>
           </div>
         </main>
       </div>

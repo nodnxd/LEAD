@@ -556,6 +556,42 @@ export type Database = {
         }
         Relationships: []
       }
+      inquiries: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          name: string | null
+          reply_email: string
+          source: string | null
+          status: string
+          topic: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          name?: string | null
+          reply_email: string
+          source?: string | null
+          status?: string
+          topic?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          name?: string | null
+          reply_email?: string
+          source?: string | null
+          status?: string
+          topic?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       invites: {
         Row: {
           created_at: string | null
@@ -1722,6 +1758,16 @@ export type Database = {
           p_ua?: string
         }
         Returns: boolean
+      }
+      submit_inquiry: {
+        Args: {
+          p_message: string
+          p_name: string
+          p_reply_email: string
+          p_source: string
+          p_topic: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

@@ -10,6 +10,7 @@ import { onDbError } from '@/lib/dbErrors';
 import { buildDaysIcs, downloadIcs } from '@/lib/ics';
 import { getLinkIcon, linkName } from '@/lib/links';
 import { OAT, GENDER_NOTCH } from '@/lib/brand';
+import InquiryModal from '@/components/InquiryModal';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -56,6 +57,7 @@ export default function GuestView() {
   const hostId = params.hostId as string;
 
   const [members, setMembers] = useState<any[]>([]);
+  const [inqTopic, setInqTopic] = useState<string | null>(null); // 문의하기 모달
   const [assignments, setAssignments] = useState<any[]>([]);
   const [rawProjects, setRawProjects] = useState<string[]>([]);
   const [settings, setSettings] = useState<any>(null);
@@ -331,6 +333,7 @@ export default function GuestView() {
 
   return (
     <>
+      <InquiryModal topic={inqTopic} onClose={() => setInqTopic(null)} dark={theme !== 'light'} brand="cast" />
       {/* 링크 팝오버 */}
       {linkPopover && (
         <div className="fixed inset-0 z-40" onClick={() => setLinkPopover(null)}>
@@ -604,7 +607,7 @@ export default function GuestView() {
           )}
 
           <div className="relative z-10 mt-8 pb-8 text-center">
-            <p className={`text-mini font-medium ${textSub}`}>Contact : everplayground@gmail.com</p>
+            <button onClick={() => setInqTopic('일반')} className={`text-mini font-medium transition hover:opacity-80 ${textSub}`}>{lang === 'en' ? 'Contact us' : '문의하기'}</button>
           </div>
         </main>
       </div>

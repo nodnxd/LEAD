@@ -12,6 +12,7 @@ import { analyzeAudio } from '@/lib/audioAnalysis';
 import ChatPanel from '@/app/components/ChatPanel';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 import ProductHeader from '@/components/ProductHeader';
+import InquiryModal from '@/components/InquiryModal';
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
 
@@ -217,10 +218,12 @@ export default function GuestView(){
   const [guestProfile,setGuestProfile]=useState<any>(null);
   const [authStatus,setAuthStatus]=useState<'loading'|'none'|'pending'|'rejected'|'approved'>('loading');
   const SUPER_ADMIN_EMAIL='hseu2000@gmail.com'; // 호스트 가입 승인 관리자
-  const [hostStatus,setHostStatus]=useState<'loading'|'pending'|'approved'>('loading');
+  const [hostStatus,setHostStatus]=useState<'loading'|'pending'|'rejected'|'suspended'|'approved'>('loading');
   const [isAdmin,setIsAdmin]=useState(false);
   const [pendingHosts,setPendingHosts]=useState<any[]>([]);
-  const [showHostApprovals,setShowHostApprovals]=useState(false);
+  const [showInbox,setShowInbox]=useState(false); // 운영 수신함: 호스트 가입 승인 + 문의
+  const [inquiries,setInquiries]=useState<any[]>([]);
+  const [inqTopic,setInqTopic]=useState<string|null>(null); // 문의하기 모달 (null=닫힘)
   const [showHostGrants,setShowHostGrants]=useState(false);
   const [hostGrants,setHostGrants]=useState<any[]>([]);
   const [grantEmail,setGrantEmail]=useState('');
@@ -271,18 +274,24 @@ export default function GuestView(){
       if(admin){
         await supabase.from('host_approvals').upsert({host_id:user.id,email:user.email,status:'approved'},{onConflict:'host_id'});
         setHostStatus('approved');
-        const{data}=await supabase.from('host_approvals').select('*').eq('status','pending').order('created_at',{ascending:false});
-        setPendingHosts(data||[]);
+        fetchInbox();
         return;
       }
-      // 자유 가입: 새 호스트는 바로 활성. host_approvals 행은 향후 구독/제한용으로 유지.
+      // 승인제: 새 호스트는 'pending'으로 등록 → 운영자가 운영 수신함에서 승인.
+      // 'active'(자유 가입 시절)·'approved'만 통과. 조회·등록이 실패해도 절대 통과시키지 않는다.
       const{data:row}=await supabase.from('host_approvals').select('status').eq('host_id',user.id).maybeSingle();
-      if(!row){
-        await supabase.from('host_approvals').insert({host_id:user.id,email:user.email,status:'active'});
-      }
-      // 'suspended'/'rejected'만 차단 (미래 구독 미납 등). 그 외엔 모두 통과.
-      const blocked=row&&(row.status==='suspended'||row.status==='rejected');
-      setHostStatus(blocked?'pending':'approved');
+      const s=row?.status;
+      if(s==='rejected'||s==='suspended'){setHostStatus(s);return;}
+      if(s==='active'||s==='approved'){setHostStatus('approved');return;}
+      // 운영자가 이미 허락한 사람(host_grants)·초대받은 공동 관리자는 대기 없이 통과
+      try{await supabase.rpc('claim_workspace_admin');}catch(e){warnFail('workspace_admins 백필',e);}
+      const[{data:g},{data:wa}]=await Promise.all([
+        supabase.from('host_grants').select('id').eq('email',(user.email||'').toLowerCase()).eq('status','approved').limit(1),
+        supabase.from('workspace_admins').select('workspace_id').eq('admin_id',user.id).limit(1),
+      ]);
+      if((g&&g.length)||(wa&&wa.length)){setHostStatus('approved');return;}
+      if(!row)await supabase.from('host_approvals').insert({host_id:user.id,email:user.email,status:'pending'});
+      setHostStatus('pending');
     };
     const loadWorkspaces=async(user:any)=>{
       // 이메일로 초대된 관리자면 admin_id 백필 (본인 행만, 서버 함수가 이메일 확인)
@@ -364,7 +373,7 @@ export default function GuestView(){
     const onKey=(e:KeyboardEvent)=>{
       if(e.key!=='Escape')return;
       setShowWsPicker(false);setShowWsAdmins(false);setShowLeadForm(false);setEditingLead(null);
-      setShowAnnModal(false);setShowHiddenPitches(false);setFileAction(null);setShowHostApprovals(false);
+      setShowAnnModal(false);setShowHiddenPitches(false);setFileAction(null);setShowInbox(false);
       setShowHostGrants(false);setShowMyPitches(false);setShowMembers(false);setShowDemoMgr(false);
       setEditingDemo(null);setEditingCompany(false);setViewingLead(null);setNewFolderOpen(false);
     };
@@ -550,7 +559,12 @@ export default function GuestView(){
   const addFolder=async(name:string)=>{const n=name.trim();if(!n||hostFolders.includes(n))return;await saveFolders([...hostFolders,n]);setAddFolderInput('');};
   const removeFolder=async(name:string)=>{if(!confirm(`'${name}' 폴더를 목록에서 제거할까요? (파일은 삭제되지 않아요)`))return;await saveFolders(hostFolders.filter(f=>f!==name));if(fileFolderFilter===name)setFileFolderFilter('all');};
   const fetchPendingHosts=async()=>{const{data}=await supabase.from('host_approvals').select('*').eq('status','pending').order('created_at',{ascending:false});setPendingHosts(data||[]);};
-  const decideHost=async(h:any,status:'approved'|'rejected')=>{await supabase.from('host_approvals').update({status}).eq('host_id',h.host_id);setPendingHosts(p=>p.filter(x=>x.host_id!==h.host_id));};
+  const decideHost=async(h:any,status:'approved'|'rejected')=>{await supabase.from('host_approvals').update({status}).eq('host_id',h.host_id);fetchPendingHosts();};
+  // ponytail: 최근 문의 100건만 — 쌓이면 페이지네이션
+  const fetchInquiries=async()=>{const{data}=await supabase.from('inquiries').select('*').order('created_at',{ascending:false}).limit(100);setInquiries(data||[]);};
+  const fetchInbox=()=>{fetchPendingHosts();fetchInquiries();};
+  const markInquiryDone=async(id:string)=>{await supabase.from('inquiries').update({status:'done'}).eq('id',id);fetchInquiries();};
+  const inboxCount=pendingHosts.length+inquiries.filter(q=>q.status==='new').length;
   // ── 워크스페이스(회사) 다중 관리자 ──
   const switchWorkspace=(id:string)=>{setHostId(id);localStorage.setItem('selected_ws',id);setShowWsPicker(false);};
   const isOwner=hostId===ownerId; // 현재 워크스페이스의 소유자인지
@@ -780,7 +794,8 @@ export default function GuestView(){
     </div>
   );
 
-  const GateScreen=({icon,title,sub,children}:{icon:string;title:string;sub:string;children?:React.ReactNode})=>(
+  const inquiryModal=<InquiryModal topic={inqTopic} onClose={()=>setInqTopic(null)} dark={D}/>;
+  const GateScreen=({icon,title,sub,children,contact=true}:{icon:string;title:string;sub:string;children?:React.ReactNode;contact?:boolean})=>(
     <>
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-ui relative overflow-hidden`}>
         <div className="w-full max-w-sm text-center">
@@ -798,18 +813,22 @@ export default function GuestView(){
             <p className={`text-body leading-relaxed ${dimText}`}>{sub}</p>
             {children}
           </div>
-          <p className={`text-mini mt-6 ${D?'text-zinc-700':'text-zinc-400'}`}>Contact : everplayground@gmail.com</p>
+          {contact&&<button onClick={()=>setInqTopic('일반')} className={`text-mini mt-6 transition ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>{t('문의하기','Contact us')}</button>}
         </div>
       </main>
     </>
   );
 
   if(authStatus==='loading')return(<div className={`min-h-screen ${mainBg} flex items-center justify-center`}><div className="w-6 h-6 border-2 border-brand-lead border-t-transparent rounded-full animate-spin"/></div>);
-  if(authStatus==='none')return(<GateScreen icon="ti ti-lock" title="로그인이 필요해요" sub="리드를 보고 피칭하려면 로그인하세요."><a href={`/guest?hostId=${hostId}&redirect=/view/${hostId}`} className="block w-full mt-6 py-3.5 rounded-xl bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition">로그인 / 회원가입</a></GateScreen>);
-  if(authStatus==='pending')return(<GateScreen icon="ti ti-clock" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
-  if(authStatus==='rejected')return(<GateScreen icon="ti ti-ban" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  if(authStatus==='none')return(<><GateScreen icon="ti ti-lock" title="로그인이 필요해요" sub="리드를 보고 피칭하려면 로그인하세요."><a href={`/guest?hostId=${hostId}&redirect=/view/${hostId}`} className="block w-full mt-6 py-3.5 rounded-xl bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition">로그인 / 회원가입</a></GateScreen>{inquiryModal}</>);
+  if(authStatus==='pending')return(<><GateScreen icon="ti ti-clock" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>{inquiryModal}</>);
+  if(authStatus==='rejected')return(<><GateScreen icon="ti ti-ban" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>{inquiryModal}</>);
   if(authStatus==='approved'&&hostStatus==='loading')return(<div className={`min-h-screen ${mainBg} flex items-center justify-center`}><div className="w-6 h-6 border-2 border-brand-lead border-t-transparent rounded-full animate-spin"/></div>);
-  if(authStatus==='approved'&&hostStatus==='pending')return(<GateScreen icon="ti ti-lock" title="이용이 제한된 계정이에요" sub={"구독 만료 또는 정지 상태예요.\n문의: everplayground@gmail.com"}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  // 호스트 게이트 버튼: 문의하기(운영자 이메일은 노출하지 않음) + 다른 계정
+  const hostGateBtns=(topic:string)=>(<><button onClick={()=>setInqTopic(topic)} className="block w-full mt-6 py-3 rounded-full bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition">{t('문의하기','Contact us')}</button><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-2 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></>);
+  if(authStatus==='approved'&&hostStatus==='pending')return(<><GateScreen contact={false} icon="ti ti-clock" title="승인 대기 중이에요" sub={"운영자가 가입 요청을 확인하고 있어요.\n승인되면 바로 이용할 수 있어요."}>{hostGateBtns('LEAD 호스트 신청')}</GateScreen>{inquiryModal}</>);
+  if(authStatus==='approved'&&hostStatus==='rejected')return(<><GateScreen contact={false} icon="ti ti-ban" title="가입이 승인되지 않았어요" sub="자세한 내용은 운영자에게 문의해주세요.">{hostGateBtns('LEAD 호스트 신청')}</GateScreen>{inquiryModal}</>);
+  if(authStatus==='approved'&&hostStatus==='suspended')return(<><GateScreen contact={false} icon="ti ti-lock" title="이용이 제한된 계정이에요" sub="구독 만료 또는 정지 상태예요.">{hostGateBtns('일반')}</GateScreen>{inquiryModal}</>);
 
   return(
     <>
@@ -879,6 +898,7 @@ export default function GuestView(){
               </div>
             )}
             {isAdmin&&<button onClick={()=>{fetchHostGrants();setGrantMsg('');setShowHostGrants(true);}} className="px-3 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400 text-micro font-normal transition whitespace-nowrap hover:bg-amber-500/20">{t('호스트 권한','Host access')}</button>}
+            {isAdmin&&<button onClick={()=>{fetchInbox();setShowInbox(true);}} className="px-3 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400 text-micro font-normal transition whitespace-nowrap hover:bg-amber-500/20">{t('운영 수신함','Inbox')}{inboxCount>0&&<span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-brand-lead text-white text-micro font-black">{inboxCount}</span>}</button>}
             {isOwner&&<button onClick={()=>{fetchWsAdmins();setWsInviteMsg('');setShowWsAdmins(true);}} className={`px-3 py-1.5 rounded-full border text-micro font-normal transition whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{t('공동 관리자','Co-admins')}</button>}
             <button onClick={()=>{openDemoForm();setShowDemoMgr(true);}} className={`px-3 py-1.5 rounded-full border text-micro font-normal transition whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{t('데모 수급','Demos')}{demoDrives.length>0&&<span className="ml-1 opacity-70">{demoDrives.length}</span>}</button>
             <button onClick={()=>{setShowMembers(true);fetchMembers();}} className={`px-3 py-1.5 rounded-full border text-micro font-normal transition whitespace-nowrap ${D?'border-white/10 bg-white/5 text-zinc-500 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{t('멤버','Members')}</button>
@@ -1329,8 +1349,9 @@ export default function GuestView(){
           </div>
         )}
 
-        <div className={`relative z-10 mt-8 pb-8 text-center`}><p className={`text-mini ${D?'text-zinc-600':'text-zinc-400'}`}>Contact : everplayground@gmail.com</p></div>
+        <div className={`relative z-10 mt-8 pb-8 text-center`}><button onClick={()=>setInqTopic('일반')} className={`text-mini transition ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>{t('문의하기','Contact us')}</button></div>
       </main>
+      {inquiryModal}
 
       {viewingLead&&(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4">
@@ -1560,18 +1581,20 @@ export default function GuestView(){
         </div>
       )}
 
-      {showHostApprovals&&(
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={()=>setShowHostApprovals(false)}>
+      {showInbox&&(
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={()=>setShowInbox(false)}>
           <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-xl shadow-lg max-h-[90vh] flex flex-col ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`flex items-center justify-between p-5 border-b ${dividerCls}`}>
               <div>
-                <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}><i className="ti ti-shield" aria-hidden="true"></i> {t('호스트 가입 승인','Host Approvals')}</h2>
-                <p className={`text-mini mt-0.5 ${dimText}`}>{t('새로 가입한 호스트를 승인/거절해요','Approve or reject new host signups')}</p>
+                <h2 className={`font-black text-sub ${D?'text-white':'text-[#111]'}`}><i className="ti ti-inbox" aria-hidden="true"></i> {t('운영 수신함','Operator inbox')}</h2>
+                <p className={`text-mini mt-0.5 ${dimText}`}>{t('호스트 가입 승인과 문의를 한곳에서 봐요','Host signups and inquiries in one place')}</p>
               </div>
-              <button onClick={()=>setShowHostApprovals(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
+              <button onClick={()=>setShowInbox(false)} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D?'bg-white/5 border-white/10 text-zinc-500':'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
             </div>
-            <div className="overflow-y-auto p-5 flex flex-col gap-2">
-              {pendingHosts.length===0?<p className={`text-body text-center py-8 ${dimText}`}>{t('대기 중인 가입 요청이 없어요','No pending requests')}</p>:pendingHosts.map(h=>(
+            <div className="overflow-y-auto p-5 flex flex-col gap-6">
+              <section className="flex flex-col gap-2">
+                <p className={`text-micro font-black uppercase tracking-widest ${dimText}`}>{t('호스트 가입 승인','Host approvals')} · {pendingHosts.length}</p>
+              {pendingHosts.length===0?<p className={`text-body text-center py-6 ${dimText}`}>{t('대기 중인 가입 요청이 없어요','No pending requests')}</p>:pendingHosts.map(h=>(
                 <div key={h.host_id} className={`cv-row flex items-center gap-3 p-3 rounded-xl border ${D?'/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
                   <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center text-lead shrink-0"><i className="ti ti-building" aria-hidden="true"></i></div>
                   <div className="flex-1 min-w-0">
@@ -1582,6 +1605,25 @@ export default function GuestView(){
                   <button onClick={()=>decideHost(h,'rejected')} className="px-3 py-1.5 rounded-full bg-red-500/10 text-red-400 text-mini font-black hover:bg-red-500/20 transition">{t('거절','Reject')}</button>
                 </div>
               ))}
+              </section>
+              <section className="flex flex-col gap-2">
+                <p className={`text-micro font-black uppercase tracking-widest ${dimText}`}>{t('문의','Inquiries')} · {inquiries.filter(q=>q.status==='new').length}</p>
+              {inquiries.length===0?<p className={`text-body text-center py-6 ${dimText}`}>{t('받은 문의가 없어요','No inquiries yet')}</p>:inquiries.map(q=>(
+                <div key={q.id} className={`cv-row p-3 rounded-xl border ${q.status==='done'?'opacity-50':''} ${D?'/[0.02] border-white/[0.06]':'bg-black/[0.02] border-black/[0.06]'}`}>
+                  <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                    <span className="px-2 py-0.5 rounded-full border border-brand-lead/30 bg-brand-lead/10 text-brand-lead-text text-micro font-black">{q.topic}</span>
+                    <span className={`text-mini ${dimText}`}>{q.created_at?fmtDate(q.created_at, {month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</span>
+                    {q.source&&<span className={`text-micro truncate max-w-[12rem] ${dimText}`}>{q.source}</span>}
+                  </div>
+                  <p className={`font-bold text-body truncate ${D?'text-white':'text-[#111]'}`}>{q.name||t('이름 없음','No name')} <span className={`font-normal ${dimText}`}>{q.reply_email}</span></p>
+                  <p className={`text-body mt-1 whitespace-pre-wrap break-words ${D?'text-zinc-300':'text-zinc-700'}`}>{q.message}</p>
+                  <div className="flex justify-end gap-2 mt-2.5">
+                    <a href={`mailto:${q.reply_email}?subject=${encodeURIComponent('Re: '+q.topic)}`} className="px-3 py-1.5 rounded-full bg-brand-lead/15 text-brand-lead-text text-mini font-black hover:bg-brand-lead/25 transition">{t('답장','Reply')}</a>
+                    {q.status==='new'&&<button onClick={()=>markInquiryDone(q.id)} className="px-3 py-1.5 rounded-full bg-emerald-500/15 text-emerald-400 text-mini font-black hover:bg-emerald-500/25 transition">{t('확인함','Done')}</button>}
+                  </div>
+                </div>
+              ))}
+              </section>
             </div>
           </div>
         </div>

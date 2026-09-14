@@ -5,6 +5,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useLang, LangToggle } from '@/lib/lang';
+import InquiryModal from '@/components/InquiryModal';
 
 const SUPER_ADMIN_EMAIL = 'hseu2000@gmail.com';
 const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com'];
@@ -38,6 +39,7 @@ export default function HubPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [canHost, setCanHost] = useState(false);
+  const [inqTopic, setInqTopic] = useState<string | null>(null); // 문의하기 모달 (호스트 권한 요청)
   const [operate, setOperate] = useState<{ id: string; name: string; owner: boolean }[]>([]);
   const [member, setMember] = useState<{ id: string; name: string }[]>([]);
   const [castProjects, setCastProjects] = useState<string[]>([]);
@@ -191,10 +193,10 @@ export default function HubPage() {
                 </button>
               ))}
               {!canHost && (
-                <a href="mailto:everplayground@gmail.com?subject=LEAD host access" className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-lead/25 bg-brand-lead/[0.03] hover:bg-brand-lead/[0.07] text-left transition">
+                <button type="button" onClick={() => setInqTopic('LEAD 호스트 신청')} className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-lead/25 bg-brand-lead/[0.03] hover:bg-brand-lead/[0.07] text-left transition">
                   <div {...hubIcon('#C14425')}>＋</div>
                   <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{t('LEAD 시작하기', 'Get started with LEAD')}</p><p className="text-mini text-zinc-500">{t('호스트 권한 요청', 'Request host access')}</p></div>
-                </a>
+                </button>
               )}
               {member.length === 0 && (!canHost || operate.length === 0) && (
                 <div className="p-5 rounded-xl border border-dashed border-white/[0.08] /[0.01] text-center">
@@ -233,10 +235,10 @@ export default function HubPage() {
                   <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{castProjects.length ? t('새 로스터 · CAST 열기', 'New roster · Open CAST') : t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-mini text-zinc-500">{t('아티스트 로스터 짜기', 'Build your artist roster')}</p></div>
                 </button>
               ) : castMemberships.length === 0 ? (
-                <a href="mailto:everplayground@gmail.com?subject=CAST host access" className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-cast/25 bg-brand-cast/[0.03] hover:bg-brand-cast/[0.07] text-left transition">
+                <button type="button" onClick={() => setInqTopic('CAST 호스트 신청')} className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-cast/25 bg-brand-cast/[0.03] hover:bg-brand-cast/[0.07] text-left transition">
                   <div {...hubIcon('#E3B24A')}>＋</div>
                   <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-mini text-zinc-500">{t('호스트 권한 요청 · 초대받으면 자동 입장', 'Request host access · invites auto-join')}</p></div>
-                </a>
+                </button>
               ) : null}
             </div>
           </section>
@@ -267,6 +269,7 @@ export default function HubPage() {
           )}
         </div>
       </main>
+      <InquiryModal topic={inqTopic} onClose={() => setInqTopic(null)} brand={inqTopic === 'CAST 호스트 신청' ? 'cast' : 'lead'} />
     </>
   );
 }

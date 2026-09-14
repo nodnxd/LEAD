@@ -9,6 +9,7 @@ import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { analyzeAudio } from '@/lib/audioAnalysis';
 import ChatPanel from '@/app/components/ChatPanel';
+import InquiryModal from '@/components/InquiryModal';
 
 const GENRES = ['팝','R&B/소울','발라드','댄스/일렉','힙합/랩','록/밴드','EDM','재즈','인디','OST','포크/어쿠스틱','트로트','기타'];
 
@@ -172,6 +173,7 @@ export default function GuestView(){
   const [guestIsSignUp,setGuestIsSignUp]=useState(false);
   const [guestLoading,setGuestLoading]=useState(false);
   const [guestError,setGuestError]=useState('');
+  const [inqTopic,setInqTopic]=useState<string|null>(null); // 문의하기 모달 (null=닫힘)
   const [noProfile,setNoProfile]=useState(false); // 로그인됐지만 멤버 프로필 없음
 
   useEffect(()=>{const s=localStorage.getItem('lead_theme');if(s==='light')setTheme('light');},[]);
@@ -501,6 +503,7 @@ export default function GuestView(){
     </div>
   );
 
+  const inquiryModal=<InquiryModal topic={inqTopic} onClose={()=>setInqTopic(null)} dark={D}/>;
   const GateScreen=({icon,title,sub,children}:{icon:string;title:string;sub:string;children?:React.ReactNode})=>(
     <>
       <main className={`min-h-screen ${mainBg} flex items-center justify-center p-5 font-ui relative overflow-hidden`}>
@@ -512,7 +515,7 @@ export default function GuestView(){
             <p className={`text-body leading-relaxed ${dimText}`}>{sub}</p>
             {children}
           </div>
-          <p className={`text-mini mt-6 ${D?'text-zinc-700':'text-zinc-400'}`}>Contact : everplayground@gmail.com</p>
+          <button onClick={()=>setInqTopic('일반')} className={`text-mini mt-6 transition ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>{t('문의하기','Contact us')}</button>
         </div>
       </main>
     </>
@@ -572,13 +575,14 @@ export default function GuestView(){
               </button>
             </div>
           )}
-          <p className={`text-mini mt-6 text-center ${D?'text-zinc-700':'text-zinc-400'}`}>Contact : everplayground@gmail.com</p>
+          <div className="mt-6 text-center"><button onClick={()=>setInqTopic('일반')} className={`text-mini transition ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>{t('문의하기','Contact us')}</button></div>
         </div>
       </main>
+      {inquiryModal}
     </>
   );
-  if(authStatus==='pending')return(<GateScreen icon="ti ti-clock" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
-  if(authStatus==='rejected')return(<GateScreen icon="ti ti-ban" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>);
+  if(authStatus==='pending')return(<><GateScreen icon="ti ti-clock" title="승인 대기 중이에요" sub={`${guestProfile?.artist_name||''}님의 접근 요청을 담당자가 검토 중이에요.\n승인 완료 시 이용하실 수 있어요.`}><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>{inquiryModal}</>);
+  if(authStatus==='rejected')return(<><GateScreen icon="ti ti-ban" title="접근이 거절됐어요" sub="담당자에게 문의해주세요."><button onClick={()=>supabase.auth.signOut().then(()=>setAuthStatus('none'))} className={`block w-full mt-6 py-3 rounded-full border font-bold text-body transition ${D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>다른 계정으로 로그인</button></GateScreen>{inquiryModal}</>);
 
   return(
     <>
@@ -747,8 +751,9 @@ export default function GuestView(){
             {filteredLeads.length===0?<div className="empty-box text-center py-16 px-6"><p className={`text-body ${D?'text-zinc-700':'text-zinc-400'}`}>{t('해당하는 리드가 없어요','No leads found')}</p></div>:<div className="anim-rise grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{filteredLeads.map(lead=><LeadCard key={lead.id} lead={lead}/>)}</div>}
           </div>
         )}
-        <div className={`relative z-10 mt-8 pb-8 text-center`}><p className={`text-mini ${D?'text-zinc-600':'text-zinc-400'}`}>Contact : everplayground@gmail.com</p></div>
+        <div className={`relative z-10 mt-8 pb-8 text-center`}><button onClick={()=>setInqTopic('일반')} className={`text-mini transition ${D?'text-zinc-500 hover:text-white':'text-zinc-500 hover:text-[#111]'}`}>{t('문의하기','Contact us')}</button></div>
       </main>
+      {inquiryModal}
 
       {/* 모바일 하단 고정 탭바 */}
       <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch border-t backdrop-blur-xl ${D?'bg-surface-0/95 border-white/10':'bg-white/95 border-black/[0.08]'}`} style={{paddingBottom:'env(safe-area-inset-bottom)'}}>

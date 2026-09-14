@@ -6,6 +6,7 @@ import { pressable } from '@/lib/a11y';
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
+import InquiryModal from '@/components/InquiryModal';
 
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
@@ -16,6 +17,7 @@ type AuthMode = 'login' | 'signup';
 export default function LandingPage() {
   const router = useRouter();
   const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [inqTopic, setInqTopic] = useState<string | null>(null); // 문의하기 모달
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberEmail, setRememberEmail] = useState(false);
@@ -101,7 +103,8 @@ export default function LandingPage() {
             </div>
           </div>
         )}
-        <p className="text-center text-zinc-700 text-micro mt-8">Contact : everplayground@gmail.com</p>
+        <div className="text-center mt-8"><button onClick={() => setInqTopic('일반')} className="text-zinc-500 text-micro hover:text-zinc-300 transition-colors">문의하기</button></div>
+        <InquiryModal topic={inqTopic} onClose={() => setInqTopic(null)} brand="cast" />
       </div>
     </main>
   );
