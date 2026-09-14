@@ -169,7 +169,9 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
       if (prev[uid] !== undefined) return prev; // 이미 있으면 스킵
       return { ...prev, [uid]: null }; // placeholder 설정 후 fetch
     });
-    const { data: m } = await supabase.from('members').select('id,artist_name,photo_url,roles').eq('id', uid).single();
+    // 팀 밖 사람일 수도 있어 공개 카드 함수로 (이메일 등은 안 옴)
+    const { data: mc } = await supabase.rpc('member_cards', { p_ids: [uid] });
+    const m = mc?.[0];
     if (m) { setExtraProfiles(prev => ({ ...prev, [uid]: m })); return; }
     const { data: h } = await supabase.from('host_profiles').select('id,display_name,photo_url').eq('id', uid).single();
     if (h) { setExtraProfiles(prev => ({ ...prev, [uid]: { ...h, artist_name: h.display_name } })); return; }
@@ -198,7 +200,9 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
     // 게스트라면 호스트를 멤버 목록에 자동 포함
     if (user?.id && user.id !== hostId) {
       if (!list.find((m: any) => m.id === hostId)) {
-        const { data: hm } = await supabase.from('members').select('id,artist_name,photo_url,roles,name,company,instagram,genres,email').eq('id', hostId).single();
+        // 아직 승인 전이면 팀 밖이라 공개 카드 함수로 (이메일은 안 옴)
+        const { data: hmc } = await supabase.rpc('member_cards', { p_ids: [hostId] });
+        const hm = hmc?.[0];
         if (hm) list = [hm, ...list];
         else {
           const { data: hp } = await supabase.from('host_profiles').select('id,display_name,photo_url').eq('id', hostId).single();
@@ -409,12 +413,8 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
     const q = emailSearch.trim();
     if (!q) return;
     setEmailSearching(true); setEmailResult(null);
-    const like = `%${q.replace(/[%_]/g, '')}%`;
-    const { data } = await supabase.from('members')
-      .select('id,artist_name,photo_url,roles,genres,email,company,name')
-      .or(`email.ilike.${like},artist_name.ilike.${like},name.ilike.${like}`)
-      .neq('id', user?.id || '')
-      .limit(15);
+    // 이메일은 정확히 일치할 때만, 이름/활동명은 부분 일치 (서버 함수, 이메일은 돌려주지 않음)
+    const { data } = await supabase.rpc('member_search', { q });
     setEmailResult(data && data.length ? data : 'notfound');
     setEmailSearching(false);
   };

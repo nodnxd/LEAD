@@ -201,9 +201,9 @@ export default function AvailabilityView() {
 
   // 답을 다 지우면 제출 상태를 유지할 수 없다 — 호스트에게 '제출'로 보이는데
   // 실제로는 아무 날도 안 고른 사람이 생긴다(실제로 그런 행이 있었다).
+  // 제출 행은 서버(avail_set_picks)가 지운다 — 여기선 화면만 맞춘다.
   const dropEmptySubmission = async (remaining: number) => {
     if (remaining > 0 || !iSubmitted || !poll || !meId) return;
-    await supabase.from('availability_submissions').delete().eq('poll_id', poll.id).eq('member_id', meId);
     setEditing(false);
     fetchSubs(poll.id);
   };
@@ -218,12 +218,12 @@ export default function AvailabilityView() {
     // supabase 쿼리 빌더는 thenable이라 await(또는 .then) 없이는 요청이 아예 안 나간다.
     // 이 한 줄 때문에 날짜 하나 눌러 바꾼 건 화면에만 반영되고 저장이 안 됐다.
     // 빠른 선택(bulkSet)은 await를 걸어서 멀쩡했던 탓에 한참 안 보였다.
+    // 게스트 쓰기는 서버 함수로만 (열린 투표판·멤버·막힌 날 검사는 서버가 한다).
     void (async () => {
-      if (status) await supabase.from('availability_picks').upsert({ poll_id: poll.id, member_id: meId, day, status }, { onConflict: 'poll_id,member_id,day' });
-      else {
-        await supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).eq('day', day);
-        await dropEmptySubmission(picks.filter((p) => p.member_id === meId && p.day !== day).length);
-      }
+      const { error } = await supabase.rpc('avail_set_picks', { p_poll: poll.id, p_member: meId, p_days: [day], p_status: status });
+      // 거절되면 낙관적으로 칠한 칸을 서버 상태로 되돌린다
+      if (error) { fetchPicks(poll.id); return; }
+      if (!status) await dropEmptySubmission(picks.filter((p) => p.member_id === meId && p.day !== day).length);
     })();
   };
 
@@ -235,11 +235,9 @@ export default function AvailabilityView() {
       const rest = prev.filter((p) => !(p.member_id === meId && valid.includes(p.day)));
       return status ? [...rest, ...valid.map((d) => ({ poll_id: poll.id, member_id: meId, day: d, status }))] : rest;
     });
-    if (status) await supabase.from('availability_picks').upsert(valid.map((d) => ({ poll_id: poll.id, member_id: meId, day: d, status })), { onConflict: 'poll_id,member_id,day' });
-    else {
-      await supabase.from('availability_picks').delete().eq('poll_id', poll.id).eq('member_id', meId).in('day', valid);
-      await dropEmptySubmission(picks.filter((p) => p.member_id === meId && !valid.includes(p.day)).length);
-    }
+    const { error } = await supabase.rpc('avail_set_picks', { p_poll: poll.id, p_member: meId, p_days: valid, p_status: status });
+    if (error) { fetchPicks(poll.id); return; }
+    if (!status) await dropEmptySubmission(picks.filter((p) => p.member_id === meId && !valid.includes(p.day)).length);
   };
 
   // 누르면 파랑↔빨강. 드래그하면 처음 정해진 색으로 쭉 칠함.
@@ -269,8 +267,9 @@ export default function AvailabilityView() {
   const submitNow = async () => {
     if (!meId || !poll) return;
     if (myYes.length + myNo.length === 0) return;
-    await supabase.from('availability_submissions')
-      .upsert({ poll_id: poll.id, member_id: meId, submitted_at: new Date().toISOString() }, { onConflict: 'poll_id,member_id' });
+    const { error } = await supabase.rpc('avail_submit', { p_poll: poll.id, p_member: meId });
+    // 거절(마감·답 없음)이면 제출된 척하지 않는다 — 투표판 상태만 다시 읽음
+    if (error) { fetchPoll(); fetchSubs(poll.id); return; }
     setEditing(false);
     fetchSubs(poll.id);
   };

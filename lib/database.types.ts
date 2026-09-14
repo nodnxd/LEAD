@@ -1659,6 +1659,46 @@ export type Database = {
       is_split_owner: { Args: { p_sheet_id: string }; Returns: boolean }
       is_ws_admin: { Args: { uid: string; ws: string }; Returns: boolean }
       shares_team: { Args: { target: string }; Returns: boolean }
+      pitch_file_dup: { Args: { p_hash: string; p_host: string }; Returns: boolean }
+      claim_workspace_admin: { Args: never; Returns: number }
+      member_search: {
+        Args: { q: string }
+        Returns: {
+          artist_name: string | null
+          company: string | null
+          genres: string[] | null
+          id: string
+          name: string | null
+          photo_url: string | null
+          roles: string[] | null
+        }[]
+      }
+      member_cards: {
+        Args: { p_ids: string[] }
+        Returns: {
+          artist_name: string | null
+          bio: string | null
+          company: string | null
+          genres: string[] | null
+          id: string
+          instagram: string | null
+          links: Json | null
+          name: string | null
+          photo_url: string | null
+          roles: string[] | null
+        }[]
+      }
+      member_id_by_email: { Args: { p_email: string }; Returns: string | null }
+      ws_member_copyright: {
+        Args: { p_ws: string }
+        Returns: {
+          id: string
+          ipi: string | null
+          legal_name: string | null
+          phone: string | null
+          pro: string | null
+        }[]
+      }
       copyright_profile_by_email: { Args: { p_email: string }; Returns: Json }
       split_sign_self: {
         Args: {

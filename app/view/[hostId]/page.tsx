@@ -243,8 +243,8 @@ export default function GuestView(){
     const id=`f${++fileCounter}`;
     setPitchFiles(prev=>[...prev,{id,file,hash:'',vocal:'unknown',duration:0,analyzing:true,isDuplicate:false,bpm:'',genre:'',key:'',vocalOverride:''}]);
     const [hash,analysis]=await Promise.all([getFileHash(file),analyzeAudio(file)]);
-    const {data:dup}=await supabase.from('pitch_files').select('id').eq('file_hash',hash).eq('host_id',hostId);
-    setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,hash,vocal:analysis.vocal,duration:analysis.duration,bpm:analysis.bpm?String(analysis.bpm):f.bpm,key:analysis.key||f.key,isDuplicate:!!(dup&&dup.length>0),analyzing:false}:f));
+    const {data:dup}=await supabase.rpc('pitch_file_dup',{p_host:hostId,p_hash:hash});
+    setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,hash,vocal:analysis.vocal,duration:analysis.duration,bpm:analysis.bpm?String(analysis.bpm):f.bpm,key:analysis.key||f.key,isDuplicate:!!dup,analyzing:false}:f));
   };
   const removeFile=(id:string)=>setPitchFiles(prev=>prev.filter(f=>f.id!==id));
   const updateFile=(id:string,patch:Partial<PitchFileItem>)=>setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,...patch}:f));

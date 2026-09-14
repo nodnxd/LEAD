@@ -102,7 +102,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       const { data: prof } = await supabase.from('copyright_profiles').select('ipi, signature_data').eq('id', user.id).maybeSingle();
       setMyProfileIpi(prof?.ipi ?? '');
       setMySignature(prof?.signature_data ?? null);
-      const { data: c } = await supabase.from('split_contributors').select('*').eq('sheet_id', id).order('order_index', { ascending: true });
+      const { data: c } = await supabase.from('split_contributors').select('*').eq('sheet_id', id).order('order_index', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true });
       setRows((c as Contributor[]) ?? []);
       setLoading(false);
     })();
@@ -195,13 +195,15 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       Object.assign(base, {
         legal_name: cp.legal_name, stage_name: cp.stage_name, pro: cp.pro, ipi: cp.ipi,
         publisher_name: cp.publisher_name, publisher_pro: cp.publisher_pro, publisher_ipi: cp.publisher_ipi,
-        email: cp.email ?? email, phone: cp.phone, address: cp.address,
+        email: cp.email ?? email,
       });
+      // 전화·주소는 이제 RPC가 돌려주지 않는다 — 남의 연락처를 이메일 한 줄로 긁어갈 수 있었다.
       flash(t('계정 연동 · 저작권 프로필 자동채움됨', 'Account linked · profile auto-filled'));
     } else {
       // 2) fall back to the member directory (id only — no PRO profile saved yet)
-      const { data: m } = await supabase.from('members').select('id').ilike('email', email).limit(1).maybeSingle();
-      if (m?.id) { userId = m.id; flash(t('계정 연동됨 (저작권 프로필 미설정 — 본인이 채우면 반영)', 'Account linked (no profile yet — they can fill it)')); }
+      //    members 테이블은 이제 팀원끼리만 보인다 — 이메일 완전일치로 id 하나만 받는다.
+      const { data: mid } = await supabase.rpc('member_id_by_email', { p_email: email });
+      if (mid) { userId = mid as string; flash(t('계정 연동됨 (저작권 프로필 미설정 — 본인이 채우면 반영)', 'Account linked (no profile yet — they can fill it)')); }
       else flash(t('해당 이메일 계정 없음 — 이름만 채워 추가 (상대가 가입 후 자동 연동은 안 됨)', 'No account for that email — added by name only'));
     }
     await addRow(category, { ...base, email: (base.email as string) ?? email }, userId, (base.email as string) ?? email);
@@ -348,7 +350,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     const ch = supabase.channel(`split-${sheet.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'split_contributors', filter: `sheet_id=eq.${sheet.id}` },
         async () => {
-          const { data } = await supabase.from('split_contributors').select('*').eq('sheet_id', sheet.id).order('order_index', { ascending: true });
+          const { data } = await supabase.from('split_contributors').select('*').eq('sheet_id', sheet.id).order('order_index', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true });
           if (data) setRows(data as Contributor[]);
         })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'split_sheets', filter: `id=eq.${sheet.id}` },

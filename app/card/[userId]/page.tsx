@@ -31,7 +31,9 @@ export default function CardPage() {
 
   const loadProfile = async () => {
     // 멤버 테이블 먼저
-    const { data: m } = await supabase.from('members').select('*').eq('id', userId).single();
+    // 팀 밖 사람도 볼 수 있게 공개 카드 함수로 (이메일·전화는 안 옴)
+    const { data: mc } = await supabase.rpc('member_cards', { p_ids: [userId] });
+    const m = mc?.[0];
     if (m) {
       setProfile({ ...m, userType: 'member' });
       const { data: w } = await supabase.from('released_works').select('*').eq('member_id', userId).order('order_index');
@@ -113,9 +115,6 @@ export default function CardPage() {
             <div className={`mt-5 pt-4 border-t ${dv} flex flex-col gap-2.5`}>
               {profile.company && (
                 <Row label={t('소속', 'Company')} value={profile.company} D={D} />
-              )}
-              {(profile.email) && (
-                <Row label={t('이메일', 'Email')} value={profile.email} D={D} />
               )}
               {profile.instagram && (
                 <div className="flex items-center gap-3">

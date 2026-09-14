@@ -239,9 +239,12 @@ export default function GuestView() {
   }, [currentProject, currentDay, settings, assignments]);
 
   const vote = async (memberId: any, attendance: 'attending' | 'absent') => {
-    await supabase.from('profiles').update({ attendance }).eq('id', memberId);
-    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, attendance } : m));
+    // 게스트는 profiles를 직접 못 고친다 — 투표가 열려 있을 때만 서버 함수가 attendance만 바꾼다.
+    const { error } = await supabase.rpc('cast_vote', { p_member: memberId, p_attendance: attendance });
     setSelectedMemberId(null);
+    // 실패(대개 투표 마감)면 화면에 반영하지 않고 투표 상태를 다시 읽는다
+    if (error) { fetchVotingStatus(); return; }
+    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, attendance } : m));
   };
 
   const getRoleColor = (r: string) => {

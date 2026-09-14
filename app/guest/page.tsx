@@ -94,7 +94,13 @@ export default function MyPage() {
       // redirect 파라미터 있으면 바로 이동 (호스트/멤버 로그인 후 복귀)
       const params = new URLSearchParams(window.location.search);
       const redirectTo = params.get('redirect');
-      if (redirectTo) { router.push(redirectTo); return; }
+      // 같은 사이트로만 — 실제 URL로 풀어서 origin 비교 (//evil.com, /%09/evil.com 등 차단)
+      if (redirectTo) {
+        try {
+          const u = new URL(redirectTo, window.location.origin);
+          if (u.origin === window.location.origin) { router.push(u.pathname + u.search + u.hash); return; }
+        } catch {}
+      }
       setUser(session.user);
       fetchAll(session.user.id);
     });

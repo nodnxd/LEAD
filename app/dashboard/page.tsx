@@ -285,8 +285,8 @@ export default function GuestView(){
       setHostStatus(blocked?'pending':'approved');
     };
     const loadWorkspaces=async(user:any)=>{
-      // 이메일로 초대된 관리자면 admin_id 백필 (본인 행만)
-      try{await supabase.from('workspace_admins').update({admin_id:user.id}).is('admin_id',null).eq('admin_email',(user.email||'').toLowerCase());}catch(e){warnFail('workspace_admins 백필',e);}
+      // 이메일로 초대된 관리자면 admin_id 백필 (본인 행만, 서버 함수가 이메일 확인)
+      try{await supabase.rpc('claim_workspace_admin');}catch(e){warnFail('workspace_admins 백필',e);}
       const{data:wa}=await supabase.from('workspace_admins').select('workspace_id').eq('admin_id',user.id);
       const ids=[...new Set([user.id,...((wa||[]).map((w:any)=>w.workspace_id))])];
       const{data:hp}=await supabase.from('host_profiles').select('id,company,display_name').in('id',ids);
@@ -479,7 +479,7 @@ export default function GuestView(){
     if(ids.length===0){setMemberList(approvals);setMemberLoading(false);return;}
     const[{data:profiles},{data:cprofs}]=await Promise.all([
       supabase.from('members').select('*').in('id',ids),
-      supabase.from('copyright_profiles').select('*').in('id',ids),
+      supabase.rpc('ws_member_copyright',{p_ws:hostId}),
     ]);
     const profileMap:Record<string,any>={};
     if(profiles)profiles.forEach((p:any)=>{profileMap[p.id]=p;});
@@ -566,8 +566,8 @@ export default function GuestView(){
     const id=`f${++fileCounter}`;
     setPitchFiles(prev=>[...prev,{id,file,hash:'',vocal:'unknown',duration:0,analyzing:true,isDuplicate:false,bpm:'',genre:''}]);
     const [hash,analysis]=await Promise.all([getFileHash(file),analyzeAudio(file)]);
-    const {data:dup}=await supabase.from('pitch_files').select('id').eq('file_hash',hash).eq('host_id',hostId);
-    setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,hash,vocal:analysis.vocal,duration:analysis.duration,bpm:analysis.bpm?String(analysis.bpm):f.bpm,isDuplicate:!!(dup&&dup.length>0),analyzing:false}:f));
+    const {data:dup}=await supabase.rpc('pitch_file_dup',{p_host:hostId,p_hash:hash});
+    setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,hash,vocal:analysis.vocal,duration:analysis.duration,bpm:analysis.bpm?String(analysis.bpm):f.bpm,isDuplicate:!!dup,analyzing:false}:f));
   };
   const removeFile=(id:string)=>setPitchFiles(prev=>prev.filter(f=>f.id!==id));
   const updateFile=(id:string,patch:Partial<PitchFileItem>)=>setPitchFiles(prev=>prev.map(f=>f.id===id?{...f,...patch}:f));
