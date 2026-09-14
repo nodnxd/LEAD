@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useLang, LangToggle } from '@/lib/lang';
 import Toast from '@/components/Toast';
+import PitchAudio from '@/components/PitchAudio';
 
 const ROLES = [
   { id: 'producer', label: 'Producer' },
@@ -545,7 +546,7 @@ export default function MyPage() {
                                     {f.key && <span className={`text-micro font-black ${dimText}`}>{f.key}</span>}
                                     {f.genre && <span className="text-micro font-black text-emerald-400">{f.genre}</span>}
                                   </div>
-                                  {f.file_url && <audio controls preload="none" src={f.file_url} className="w-full h-8" style={{height:'32px',colorScheme:D?'dark':'light'}} />}
+                                  {f.file_url && <PitchAudio fileUrl={f.file_url} D={D} />}
                                 </div>
                                 );
                               })}
@@ -882,7 +883,7 @@ export default function MyPage() {
                                 {f.key && <span className={`text-micro font-black ${dimText}`}>{f.key}</span>}
                                 {f.genre && <span className="text-micro font-black text-emerald-400">{f.genre}</span>}
                               </div>
-                              {f.file_url && <audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px',colorScheme:D?'dark':'light'}} />}
+                              {f.file_url && <PitchAudio fileUrl={f.file_url} D={D} />}
                             </div>
                             );
                           })}

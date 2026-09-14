@@ -9,6 +9,8 @@ import { useParams } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
 import { analyzeAudio } from '@/lib/audioAnalysis';
+import { pitchSignedUrl, pitchPath } from '@/lib/pitchAudio';
+import PitchAudio from '@/components/PitchAudio';
 import ChatPanel from '@/app/components/ChatPanel';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 import ProductHeader from '@/components/ProductHeader';
@@ -50,7 +52,7 @@ const PitchFileRow=({f,D,dimText,onDl}:{f:any;D:boolean;dimText:string;onDl?:()=
         {f.genre&&<span className="text-micro font-black text-emerald-400">{f.genre}</span>}
         {onDl&&<button onClick={onDl} title="다운로드" className={`shrink-0 w-6 h-6 rounded-full border flex items-center justify-center text-mini transition ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}><i className="ti ti-download" aria-hidden="true"></i></button>}
       </div>
-      {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px',colorScheme:D?'dark':'light'}}/>}
+      {f.file_url&&<PitchAudio fileUrl={f.file_url} D={D}/>}
     </div>
   );
 };
@@ -406,14 +408,14 @@ export default function GuestView(){
   // ── 파일 관리: 삭제 / 폴더 ──
   const deleteFile=async(f:any)=>{
     if(!confirm('이 파일을 영구 삭제할까요?'))return;
-    if(f.file_url){const m=f.file_url.split('/pitch-files/')[1];if(m){try{await supabase.storage.from('pitch-files').remove([decodeURIComponent(m)]);}catch(e){warnFail('스토리지 파일 삭제(고아 파일 남을 수 있음)',e);}}}
+    if(f.file_url){try{await supabase.storage.from('pitch-files').remove([pitchPath(f.file_url)]);}catch(e){warnFail('스토리지 파일 삭제(고아 파일 남을 수 있음)',e);}}
     await supabase.from('pitch_files').delete().eq('id',f.id);
     setFileAction(null);fetchHostPitches();
   };
   // 다운로드 — 보낸 사람이 올린 원본 파일명 그대로 저장
   // 리드아티스트 이름을 앞에 붙인 저장 파일명 (원본명 유지). 파일시스템/zip 금지문자 정리.
   const dlName=(f:any)=>{const base=f.file_name||'audio.mp3';const lead=(f._lead||'').trim();const raw=lead?`${lead} - ${base}`:base;return raw.replace(/[\/\\:*?"<>|]/g,'-');};
-  const fileSrc=async(f:any)=>{let src=f.file_url as string;const m=f.file_url?.split('/pitch-files/')[1];if(m){const{data:signed}=await supabase.storage.from('pitch-files').createSignedUrl(decodeURIComponent(m),60);if(signed?.signedUrl)src=signed.signedUrl;}return src;};
+  const fileSrc=(f:any)=>pitchSignedUrl(f.file_url);// 비공개 버킷 — 서명 URL(캐시)
   const downloadFile=async(f:any)=>{
     try{
       const src=await fileSrc(f);
@@ -1161,7 +1163,7 @@ export default function GuestView(){
                               <button onClick={()=>deleteFile(f)} title={t('영구 삭제','Delete permanently')} className="w-8 h-8 rounded-full border border-red-500/25 bg-red-500/10 text-red-400 flex items-center justify-center text-lead hover:bg-red-500/20 transition"><i className="ti ti-trash" aria-hidden="true"></i></button>
                             </div>
                           </div>
-                          {on&&f.file_url&&<div className="px-3 pb-3"><audio autoPlay controls preload="none" src={f.file_url} className="w-full" style={{height:'40px',colorScheme:D?'dark':'light'}}/></div>}
+                          {on&&f.file_url&&<div className="px-3 pb-3"><PitchAudio fileUrl={f.file_url} D={D} h={40} auto/></div>}
                         </div>
                         );
                       })}
@@ -1228,7 +1230,7 @@ export default function GuestView(){
                             </div>
                             <button onClick={()=>downloadFile(f)} title={t('다운로드','Download')} className={`w-8 h-8 rounded-full border flex items-center justify-center text-lead shrink-0 transition ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}><i className="ti ti-download" aria-hidden="true"></i></button>
                           </div>
-                          {on&&f.file_url&&<div className="px-3 pb-3"><audio autoPlay controls preload="none" src={f.file_url} className="w-full" style={{height:'40px',colorScheme:D?'dark':'light'}} onEnded={()=>{const i=songs.findIndex((x:any)=>x.id===f.id);if(i>=0&&songs[i+1])setPlayingFileId(songs[i+1].id);}}/></div>}
+                          {on&&f.file_url&&<div className="px-3 pb-3"><PitchAudio fileUrl={f.file_url} D={D} h={40} auto onEnded={()=>{const i=songs.findIndex((x:any)=>x.id===f.id);if(i>=0&&songs[i+1])setPlayingFileId(songs[i+1].id);}}/></div>}
                         </div>
                       );
                     })}
@@ -1489,7 +1491,7 @@ export default function GuestView(){
                                     {f.key&&<span className={`text-micro font-black ${dimText}`}>{f.key}</span>}
                                     {f.genre&&<span className="text-micro font-black text-emerald-400">{f.genre}</span>}
                                   </div>
-                                  {f.file_url&&<audio controls preload="none" src={f.file_url} className="w-full" style={{height:'32px',colorScheme:D?'dark':'light'}}/>}
+                                  {f.file_url&&<PitchAudio fileUrl={f.file_url} D={D}/>}
                                 </div>
                                 );
                               })}
