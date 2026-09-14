@@ -136,15 +136,15 @@ drop policy if exists ha_upd on public.host_approvals;
 drop policy if exists ha_del on public.host_approvals;
 create policy ha_sel on public.host_approvals for select to authenticated
   using (host_id = (select auth.uid())
-         or ((select auth.jwt()) ->> 'email') = 'everplayground@gmail.com');
+         or ((select auth.jwt()) ->> 'email') = 'hseu2000@gmail.com');
 create policy ha_ins on public.host_approvals for insert to authenticated
   with check ((host_id = (select auth.uid()) and status = 'active')
-              or ((select auth.jwt()) ->> 'email') = 'everplayground@gmail.com');
+              or ((select auth.jwt()) ->> 'email') = 'hseu2000@gmail.com');
 create policy ha_upd on public.host_approvals for update to authenticated
-  using (((select auth.jwt()) ->> 'email') = 'everplayground@gmail.com')
-  with check (((select auth.jwt()) ->> 'email') = 'everplayground@gmail.com');
+  using (((select auth.jwt()) ->> 'email') = 'hseu2000@gmail.com')
+  with check (((select auth.jwt()) ->> 'email') = 'hseu2000@gmail.com');
 create policy ha_del on public.host_approvals for delete to authenticated
-  using (((select auth.jwt()) ->> 'email') = 'everplayground@gmail.com');
+  using (((select auth.jwt()) ->> 'email') = 'hseu2000@gmail.com');
 
 -- 7) host_profiles: 읽기는 공개 (로그인 전 회사 이름 표시), 쓰기는 그 회사 관리자
 drop policy if exists host_profiles_read on public.host_profiles;

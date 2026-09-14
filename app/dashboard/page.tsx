@@ -83,7 +83,7 @@ const FilterPill=({label,active,onClick,isDark}:{label:string;active:boolean;onC
 const emptyPitch=()=>({artist_name:'',contact:'',message:''});
 let fileCounter=0;
 // 두 제품(LEAD·CAST)을 모두 쓸 수 있도록 지정된 이메일
-const BOTH_PRODUCT_EMAILS=['hseu2000@gmail.com','everplayground@gmail.com'];
+const BOTH_PRODUCT_EMAILS=['hseu2000@gmail.com'];
 const PITCH_STATUS:Record<string,{ko:string;en:string;cls:string;dot:string}>={
   pitched:{ko:'피칭',en:'Pitched',cls:'bg-emerald-500/15 text-emerald-400',dot:'bg-emerald-400'},
   unpitched:{ko:'논피칭',en:'Unpitched',cls:'bg-zinc-500/15 text-zinc-400',dot:'bg-zinc-400'},
@@ -216,7 +216,7 @@ export default function GuestView(){
   const [sortBy,setSortBy]=useState<'dday'|'gender'|'group'|'album'>('dday');
   const [guestProfile,setGuestProfile]=useState<any>(null);
   const [authStatus,setAuthStatus]=useState<'loading'|'none'|'pending'|'rejected'|'approved'>('loading');
-  const SUPER_ADMIN_EMAIL='everplayground@gmail.com'; // 호스트 가입 승인 관리자
+  const SUPER_ADMIN_EMAIL='hseu2000@gmail.com'; // 호스트 가입 승인 관리자
   const [hostStatus,setHostStatus]=useState<'loading'|'pending'|'approved'>('loading');
   const [isAdmin,setIsAdmin]=useState(false);
   const [pendingHosts,setPendingHosts]=useState<any[]>([]);

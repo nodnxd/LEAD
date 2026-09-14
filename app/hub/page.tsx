@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useLang, LangToggle } from '@/lib/lang';
 
-const SUPER_ADMIN_EMAIL = 'everplayground@gmail.com';
-const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
+const SUPER_ADMIN_EMAIL = 'hseu2000@gmail.com';
+const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com'];
 
 // Uniform hub card / icon styling. Dynamic product colors go through inline style
 // (Tailwind can't JIT runtime-built color classes).

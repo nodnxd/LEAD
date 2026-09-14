@@ -40,7 +40,7 @@ create policy "본인만 작성" on public.notices
   with check (
     (select auth.uid()) = host_id
     and (not coalesce(is_global, false)
-         or (select auth.jwt() ->> 'email') in ('nodnxd@gmail.com', 'hseu2000@gmail.com'))
+         or (select auth.jwt() ->> 'email') = 'hseu2000@gmail.com')
   );
 drop policy if exists "본인만 수정" on public.notices;
 create policy "본인만 수정" on public.notices
@@ -49,7 +49,7 @@ create policy "본인만 수정" on public.notices
   with check (
     (select auth.uid()) = host_id
     and (not coalesce(is_global, false)
-         or (select auth.jwt() ->> 'email') in ('nodnxd@gmail.com', 'hseu2000@gmail.com'))
+         or (select auth.jwt() ->> 'email') = 'hseu2000@gmail.com')
   );
 -- (삭제 "본인만 삭제"는 이미 호스트 본인만이라 그대로)
 

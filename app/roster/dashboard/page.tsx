@@ -19,10 +19,10 @@ import { genderColor, ROLE_BANNER, OAT, GENDER_NOTCH, AVAIL_COLORS } from '@/lib
 const SUPABASE_URL = 'https://laebobhsuwzknboyqsyo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhZWJvYmhzdXd6a25ib3lxc3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTE0ODMsImV4cCI6MjA5NDM2NzQ4M30.jBmNwvrJJn45gG1nMKMfHnGQV83GPlHd0ohPBf-mA5k';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com', 'everplayground@gmail.com'];
+const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com'];
 
 const ROLES = ['Producer', 'Topliner', 'Engineer', 'A&R'];
-const DEVELOPER_EMAILS = ['nodnxd@gmail.com', 'hseu2000@gmail.com'];
+const DEVELOPER_EMAILS = ['hseu2000@gmail.com'];
 const ROLE_COLORS: Record<string, string> = {
   'Producer': '#E3B24A', 'Topliner': '#5FA39A', 'Engineer': '#C98BA0', 'A&R': '#C98BA0'
 };
@@ -404,7 +404,7 @@ export default function Dashboard() {
     if (!data.user) { router.push('/roster'); return; }
     // CAST 허락제: 슈퍼관리자/host_grants/기존 로스터 보유자만 호스트 대시보드 진입
     const email = (data.user.email || '').toLowerCase();
-    let ok = ['everplayground@gmail.com', 'hseu2000@gmail.com'].includes(email);
+    let ok = ['hseu2000@gmail.com'].includes(email);
     if (!ok) { const { data: g } = await supabase.from('host_grants').select('id').eq('email', email).eq('status', 'approved').maybeSingle(); ok = !!g; }
     if (!ok) { const { data: p } = await supabase.from('profiles').select('id').eq('user_id', data.user.id).limit(1); ok = !!(p && p.length); }
     if (!ok) { router.push('/hub'); return; }
