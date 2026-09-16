@@ -125,8 +125,10 @@ export default function GuestView(){
   const [lContent,setLContent]=useState('');
   const [lDeadline,setLDeadline]=useState('');
   const [lDeadline2,setLDeadline2]=useState('');
-  const [hidePast,setHidePast]=useState(false);
-  useEffect(()=>{setHidePast(localStorage.getItem('lead_hide_past')==='1');},[]);
+  // 지난 리드는 기본으로 접는다 — 목록을 열면 '지금 할 수 있는 것'만 보여야 한다.
+  // 저장값이 '0'일 때만 펼침(예전 사용자가 켜둔 상태는 그대로 유지).
+  const [hidePast,setHidePast]=useState(true);
+  useEffect(()=>{setHidePast(localStorage.getItem('lead_hide_past')!=='0');},[]);
   const [leads,setLeads]=useState<any[]>([]);
   const [announcements,setAnnouncements]=useState<any[]>([]);
   const [showAnnModal,setShowAnnModal]=useState(false);
@@ -723,6 +725,7 @@ export default function GuestView(){
   const DAYS=['일','월','화','수','목','금','토'];
 
   // 지난(마감된) 리드 숨기기 — 달력·목록 양쪽에 적용
+  const pastCount=useMemo(()=>leads.filter(l=>isExpired(l.deadline2||l.deadline)).length,[leads]);
   const shownLeads=useMemo(()=>hidePast?leads.filter(l=>!isExpired(l.deadline2||l.deadline)):leads,[leads,hidePast]);
   const filteredLeads=useMemo(()=>{
     let l=[...shownLeads];
@@ -866,10 +869,12 @@ export default function GuestView(){
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2"><span className={`${dimText} text-body font-bold`}>{leads.filter(l=>!isExpired(l.deadline2||l.deadline)).length} {t('활성','Active')}</span><span className={D?'text-zinc-700':'text-zinc-400'}>·</span><span className={`${D?'text-zinc-700':'text-zinc-400'} text-body`}>{leads.filter(l=>isExpired(l.deadline2||l.deadline)).length} {t('마감','Closed')}</span></div>
-              <button onClick={()=>{const v=!hidePast;setHidePast(v);localStorage.setItem('lead_hide_past',v?'1':'0');}}
+              {pastCount>0&&<button onClick={()=>{const v=!hidePast;setHidePast(v);localStorage.setItem('lead_hide_past',v?'1':'0');}}
                 className={`px-2.5 py-1 rounded-full text-mini font-bold border transition ${hidePast?'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text':D?'bg-white/5 border-white/10 text-zinc-500 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
-                {hidePast?t('지난 리드 숨김','Hiding past'):t('지난 리드 숨기기','Hide past')}
-              </button>
+                {hidePast
+                  ?t(`지난 리드 ${pastCount}개 보기`,`Show ${pastCount} past`)
+                  :t('지난 리드 숨기기','Hide past')}
+              </button>}
             </div>
             <button onClick={()=>openLeadForm()} className="px-3.5 py-1.5 rounded-full text-mini font-bold bg-brand-lead text-white hover:bg-[#A3391F] transition whitespace-nowrap">+ {t('리드 추가','Add Lead')}</button>
           </div>

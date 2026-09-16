@@ -71,7 +71,10 @@ export default function GuestView(){
   const [hostCompany,setHostCompany]=useState('');
   const [view,setView]=useState<'calendar'|'list'>('list');
   const [calView,setCalView]=useState<'month'|'week'>('week');
-  const [hidePast,setHidePast]=useState(false);
+  // LEAD 대시보드와 같은 규칙 — 지난 리드는 기본으로 접고, 선택은 기억한다.
+  const [hidePast,setHidePast]=useState(true);
+  useEffect(()=>{setHidePast(localStorage.getItem('lead_hide_past')!=='0');},[]);
+  const pastCount=useMemo(()=>leads.filter((x:any)=>isExpired(x.deadline2||x.deadline)).length,[leads]);
   const [demoDrives,setDemoDrives]=useState<any[]>([]);
   const [myHosts,setMyHosts]=useState<{host_id:string;name:string}[]>([]);
   const [showHostSwitcher,setShowHostSwitcher]=useState(false);
@@ -746,7 +749,7 @@ export default function GuestView(){
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-micro font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('성별','Gender')}</span>{[['male',t('남자','Male')],['female',t('여자','Female')],['mixed',t('혼성','Mixed')]].map(([v,l])=><FilterPill key={v} label={l} active={filterGender.includes(v)} onClick={()=>setFilterGender(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v])} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-micro font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('타입','Type')}</span>{[['solo',t('솔로','Solo')],['group',t('그룹','Group')]].map(([v,l])=><FilterPill key={v} label={l} active={filterGroup.includes(v)} onClick={()=>setFilterGroup(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v])} isDark={D}/>)}</div>
               <div className="flex items-center gap-2 flex-wrap"><span className={`text-micro font-black uppercase tracking-widest w-12 shrink-0 ${D?'text-zinc-600':'text-zinc-400'}`}>{t('앨범','Album')}</span>{[['single','Single'],['ep','EP'],['lp','LP'],['ost','OST']].map(([v,l])=><FilterPill key={v} label={l} active={filterAlbum.includes(v)} onClick={()=>setFilterAlbum(p=>p.includes(v)?p.filter(x=>x!==v):[...p,v])} isDark={D}/>)}</div>
-              <button onClick={()=>setHidePast(v=>!v)} className={`self-start flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-mini font-black transition ${hidePast?'bg-brand-lead border-brand-lead text-white':D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{hidePast?'✓ ':''}{t('지난 리드 숨기기','Hide past leads')}</button>
+              <button onClick={()=>{const v=!hidePast;setHidePast(v);localStorage.setItem('lead_hide_past',v?'1':'0');}} className={`self-start flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-mini font-black transition ${hidePast?'bg-brand-lead border-brand-lead text-white':D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>{hidePast?t(`지난 리드 ${pastCount}개 보기`,`Show ${pastCount} past`):t('지난 리드 숨기기','Hide past leads')}</button>
             </div>
             {filteredLeads.length===0?<div className="empty-box text-center py-16 px-6"><p className={`text-body ${D?'text-zinc-700':'text-zinc-400'}`}>{t('해당하는 리드가 없어요','No leads found')}</p></div>:<div className="anim-rise grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">{filteredLeads.map(lead=><LeadCard key={lead.id} lead={lead}/>)}</div>}
           </div>
