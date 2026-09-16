@@ -1,4 +1,5 @@
 'use client';
+import { getCardColor } from '@/lib/brand';
 import { warnFail } from '@/lib/log';
 import Link from 'next/link';
 import { pressable } from '@/lib/a11y';
@@ -30,7 +31,6 @@ const getFileHash = async (file: File): Promise<string> => {
 
 type PitchFileItem = {id:string;file:File;hash:string;vocal:'male'|'female'|'unknown';duration:number;analyzing:boolean;isDuplicate:boolean;bpm:string;genre:string;key:string;vocalOverride:'male'|'female'|'both'|'';};
 
-const getCardColor=(gender:string,group_type:string)=>{const g=group_type==='group';if(gender==='mixed')return{bg:g?'bg-[#7C7F65]/10':'bg-[#7C7F65]/20',border:g?'border-[#7C7F65]/20':'border-[#7C7F65]/40',text:g?'text-[#7C7F65]/60':'text-[#A6A985]',dot:g?'bg-[#7C7F65]/40':'bg-[#7C7F65]',label:g?'혼성 그룹':'혼성'};if(gender==='female')return{bg:g?'bg-[#DE3C4B]/10':'bg-[#DE3C4B]/20',border:g?'border-[#DE3C4B]/20':'border-[#DE3C4B]/40',text:g?'text-[#DE3C4B]/55':'text-[#E97582]',dot:g?'bg-[#DE3C4B]/40':'bg-[#DE3C4B]',label:g?'여자 그룹':'여자'};return{bg:g?'bg-brand-lead/10':'bg-brand-lead/20',border:g?'border-brand-lead/20':'border-brand-lead/40',text:g?'text-brand-lead-text/55':'text-[#94B6EE]',dot:g?'bg-brand-lead/40':'bg-brand-lead',label:g?'남자 그룹':'남자'};};
 const ALBUM_MAP:Record<string,{label:string;cls:string}>={single:{label:'Single',cls:'text-zinc-500 border-zinc-700/50 bg-zinc-800/30'},ep:{label:'EP',cls:'text-emerald-400/80 border-emerald-700/30 bg-emerald-900/20'},lp:{label:'LP',cls:'text-blue-400/80 border-blue-700/30 bg-blue-900/20'},ost:{label:'OST',cls:'text-amber-400/80 border-amber-700/30 bg-amber-900/20'}};
 const AlbumBadge=({type}:{type:string})=>{const t=ALBUM_MAP[type]||ALBUM_MAP.single;return<span className={`text-micro font-black px-1.5 py-0.5 rounded-full border ${t.cls}`}>{t.label}</span>;};
 const getLinkIcon=(url:string)=>{if(!url)return'ti ti-link';if(url.includes('youtube')||url.includes('youtu.be'))return'ti ti-brand-youtube';if(url.includes('soundcloud'))return'ti ti-brand-soundcloud';if(url.includes('spotify'))return'ti ti-brand-spotify';if(url.includes('instagram'))return'ti ti-brand-instagram';return'ti ti-link';};
@@ -429,7 +429,7 @@ export default function GuestView(){
   },[leads,filterGender,filterGroup,filterAlbum,sortBy,hidePast]);
 
   const LeadCard=({lead,compact=false}:{lead:any;compact?:boolean})=>{
-    const c=getCardColor(lead.gender,lead.group_type);
+    const c=getCardColor(lead.gender,lead.group_type,D);
     const expired=isExpired(lead.deadline2||lead.deadline);
     const allText=lead.content?parseSections(lead.content)?.map((s:any)=>s.body).join('\n')||lead.content:'';
     const urls=extractUrls(allText);
@@ -776,10 +776,10 @@ export default function GuestView(){
 
       {viewingLead&&(
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={()=>setViewingLead(null)}>
-          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-lg ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-lg ${getCardColor(viewingLead.gender,viewingLead.group_type,D).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type,D).border}`} onClick={e=>e.stopPropagation()}>
             <div className="p-5 sm:p-6 max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
               <div className="flex items-start justify-between mb-5">
-                <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><span className={`text-micro font-black ${getCardColor(viewingLead.gender,viewingLead.group_type).text}`}>{getCardColor(viewingLead.gender,viewingLead.group_type).label}</span><AlbumBadge type={viewingLead.album_type||'single'}/></div><h2 className="text-white font-black text-title leading-tight">{viewingLead.artist}</h2><p className="text-zinc-400 text-body mt-0.5">{viewingLead.title}</p></div>
+                <div className="flex-1 min-w-0"><div className="flex items-center gap-2 mb-1"><span className={`text-micro font-black ${getCardColor(viewingLead.gender,viewingLead.group_type,D).text}`}>{getCardColor(viewingLead.gender,viewingLead.group_type,D).label}</span><AlbumBadge type={viewingLead.album_type||'single'}/></div><h2 className="text-white font-black text-title leading-tight">{viewingLead.artist}</h2><p className="text-zinc-400 text-body mt-0.5">{viewingLead.title}</p></div>
                 <div className="ml-3 shrink-0"><DeadlineDisplay lead={viewingLead} size="large"/></div>
               </div>
               {viewingLead.content&&(

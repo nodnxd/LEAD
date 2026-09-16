@@ -331,3 +331,23 @@ test('cwrFile: EDI 관행대로 CRLF로 끝난다', () => {
   assert.ok(cwrFile(['HDR', 'TRL']).endsWith('\r\n'));
   assert.equal(cwrFile(['HDR', 'TRL']), 'HDR\r\nTRL\r\n');
 });
+
+// ── 리드 카드 색 — 틀리면 밝은 배경에 밝은 글씨가 된다 ──
+import { getCardColor } from './brand.ts';
+
+test('getCardColor: 성별로 색이 갈리고, 남자는 브랜드색(#C14425)과 겹치지 않는다', () => {
+  assert.ok(getCardColor('male', 'solo', true).bg.includes('#3E6FA8'));
+  assert.ok(getCardColor('female', 'solo', true).bg.includes('#C0392F'));
+  assert.ok(getCardColor('mixed', 'solo', true).bg.includes('#7C7F65'));
+  assert.ok(!getCardColor('male', 'solo', true).bg.includes('C14425'));
+});
+
+test('getCardColor: 글자색이 테마따라 갈린다 (다크=밝은 틴트, 라이트=어두운 틴트)', () => {
+  assert.equal(getCardColor('male', 'solo', true).text, 'text-[#94B6EE]');
+  assert.equal(getCardColor('male', 'solo', false).text, 'text-[#2C5384]');
+});
+
+test('getCardColor: 모르는 성별은 남자로, 그룹은 라벨에 붙는다', () => {
+  assert.equal(getCardColor('', 'solo', true).label, '남자');
+  assert.equal(getCardColor('female', 'group', true).label, '여자 그룹');
+});

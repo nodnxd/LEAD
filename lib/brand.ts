@@ -115,3 +115,47 @@ export const AVAIL_COLORS = {
 // 배너는 브랜드가 아니라 구조라서 제품색을 쓰지 않는다.
 //   패널(#141416) 위 대비 5.05 — 띠로 확실히 보임 / 검은 글씨 대비 5.44
 export const ROLE_BANNER = { bg: '#8C857D', fg: '#0a0a0a' };
+
+// ── LEAD 리드 카드 색 ──────────────────────────────────────────────────────
+// 예전 값은 남 #C14425 / 여 #DE3C4B 였다. 색상환에서 14°와 355° — 둘 다 빨강이라
+// 남↔여가 사실상 안 갈렸고, 게다가 남자색이 LEAD 브랜드색 그 자체여서 버튼·헤더와
+// 섞여 '이 카드가 남자'인지 '그냥 강조'인지 구별이 안 됐다.
+// 남자를 파랑으로 떼어내 색상거리를 ~150°로 벌렸다. 혼성 올리브는 그대로 둔다.
+//
+// 글자색을 테마별로 둘 두는 이유: 카드 배경이 원색이 아니라 원색의 10~20% 틴트다.
+// 밝은 테마에선 거의 흰색, 어두운 테마에선 거의 검정 위에 얹히므로 한 색으로는
+// 둘 다 만족할 수 없다. 예전 코드는 다크용 밝은 틴트(#94B6EE)를 라이트에서도 그대로
+// 써서 밝은 배경에 밝은 글씨가 됐다.
+//
+// 그룹은 같은 색을 옅게(/10 배경, 흐린 글씨) — 색은 성별 한 축에만 쓰고
+// 솔로/그룹은 농도로 말한다. 색을 두 축에 쓰면 한 화면에 색이 여섯이 된다.
+const LEAD_CARD = {
+  male:   { base: '#3E6FA8', dark: '#94B6EE', light: '#2C5384', label: '남자' },
+  female: { base: '#C0392F', dark: '#E97582', light: '#96271F', label: '여자' },
+  mixed:  { base: '#7C7F65', dark: '#A6A985', light: '#5C5F49', label: '혼성' },
+} as const;
+
+// Tailwind JIT는 소스에 적힌 문자열만 본다 — 클래스를 hex로 조립하면 못 만든다.
+// 그래서 값이 아니라 완성된 클래스를 성별마다 적어 둔다.
+const LEAD_CARD_CLASS = {
+  male:   { bgS:'bg-[#3E6FA8]/20', bgG:'bg-[#3E6FA8]/10', bdS:'border-[#3E6FA8]/40', bdG:'border-[#3E6FA8]/20', dotS:'bg-[#3E6FA8]',   dotG:'bg-[#3E6FA8]/40',
+            txS_d:'text-[#94B6EE]', txG_d:'text-[#94B6EE]/60', txS_l:'text-[#2C5384]', txG_l:'text-[#2C5384]/70' },
+  female: { bgS:'bg-[#C0392F]/20', bgG:'bg-[#C0392F]/10', bdS:'border-[#C0392F]/40', bdG:'border-[#C0392F]/20', dotS:'bg-[#C0392F]',   dotG:'bg-[#C0392F]/40',
+            txS_d:'text-[#E97582]', txG_d:'text-[#E97582]/60', txS_l:'text-[#96271F]', txG_l:'text-[#96271F]/70' },
+  mixed:  { bgS:'bg-[#7C7F65]/20', bgG:'bg-[#7C7F65]/10', bdS:'border-[#7C7F65]/40', bdG:'border-[#7C7F65]/20', dotS:'bg-[#7C7F65]',   dotG:'bg-[#7C7F65]/40',
+            txS_d:'text-[#A6A985]', txG_d:'text-[#A6A985]/60', txS_l:'text-[#5C5F49]', txG_l:'text-[#5C5F49]/70' },
+} as const;
+
+/** 리드 카드 한 장의 색. LEAD 대시보드와 공유 페이지가 같은 걸 쓴다 (전엔 양쪽에 복붙돼 있었다). */
+export const getCardColor = (gender: string, group_type: string, dark: boolean) => {
+  const key = gender === 'mixed' ? 'mixed' : gender === 'female' ? 'female' : 'male';
+  const c = LEAD_CARD_CLASS[key];
+  const g = group_type === 'group';
+  return {
+    bg: g ? c.bgG : c.bgS,
+    border: g ? c.bdG : c.bdS,
+    text: dark ? (g ? c.txG_d : c.txS_d) : (g ? c.txG_l : c.txS_l),
+    dot: g ? c.dotG : c.dotS,
+    label: LEAD_CARD[key].label + (g ? ' 그룹' : ''),
+  };
+};
