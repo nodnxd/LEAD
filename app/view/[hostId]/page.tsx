@@ -813,7 +813,7 @@ export default function GuestView(){
       {shareToast&&<div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] backdrop-blur-md border border-white/20 text-white text-mini font-bold px-5 py-3 rounded-xl shadow-lg"><i className="ti ti-link" aria-hidden="true"></i> 링크가 복사됐어요!</div>}
 
       {showLeadForm&&(
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4 overflow-y-auto" onClick={()=>setShowLeadForm(false)}>
           <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full max-w-lg border rounded-t-[2rem] sm:rounded-[2rem] shadow-lg sm:my-4 max-h-[92vh] overflow-y-auto ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className="p-5 sm:p-6">
               <h2 className={`font-black text-sub mb-5 ${D?'text-white':'text-[#111]'}`}>{editingLead?<><i className="ti ti-pencil" aria-hidden="true"></i> 리드 수정</>:<>+ 리드 추가</>}</h2>

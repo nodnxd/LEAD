@@ -29,7 +29,9 @@ export default function EscapeToClose() {
       const panel = topDialog();
       const backdrop = panel?.parentElement ?? topScrim();
       if (!backdrop) return;
-      e.stopPropagation();
+      // stopPropagation 금지 — 여기는 document, 페이지들은 window에 Esc 핸들러를 단다.
+      // 버블 순서가 document → window라서 여기서 막으면 그쪽이 통째로 안 돈다.
+      // 둘 다 돌아도 같은 모달을 닫을 뿐이라 해가 없다.
       backdrop.click();
     };
 

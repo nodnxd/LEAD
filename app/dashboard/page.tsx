@@ -1356,7 +1356,7 @@ export default function GuestView(){
       {inquiryModal}
 
       {viewingLead&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4" onClick={()=>setViewingLead(null)}>
           <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full ${viewExpanded?'max-w-5xl':'max-w-lg'} border rounded-[2rem] shadow-lg transition ${getCardColor(viewingLead.gender,viewingLead.group_type).bg} ${getCardColor(viewingLead.gender,viewingLead.group_type).border}`} onClick={e=>e.stopPropagation()}>
             <div className={`p-6 ${viewExpanded?'max-h-[90vh]':'max-h-[85vh]'} overflow-y-auto`}>
               <div className={viewExpanded&&viewingLead.content?'grid grid-cols-[0.85fr_1.25fr] gap-6 items-start mb-5':''}>
@@ -1837,7 +1837,7 @@ export default function GuestView(){
       )}
 
       {showLeadForm&&(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-y-auto font-ui">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-y-auto font-ui" onClick={()=>{setShowLeadForm(false);setEditingLead(null);}}>
           <div role="dialog" aria-modal="true" tabIndex={-1} className={`anim-rise w-full ${leadFormExpanded?'max-w-5xl':'max-w-lg'} border rounded-xl shadow-lg my-4 transition ${D?'bg-surface-2 border-[rgba(255,255,255,0.08)]':'bg-white border-black/[0.08]'}`} onClick={e=>e.stopPropagation()}>
             <div className={`p-6 ${leadFormExpanded?'max-h-[90vh]':'max-h-[85vh]'} overflow-y-auto`}>
               <div className="flex items-center justify-between mb-5">
