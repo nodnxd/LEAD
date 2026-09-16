@@ -18,11 +18,17 @@ export default function EscapeToClose() {
       return all.length ? all[all.length - 1] : null;
     };
 
+    // 모달이 없으면 열려 있는 드롭다운/팝오버 스크림(data-esc-close)을 닫는다.
+    const topScrim = () => {
+      const all = document.querySelectorAll<HTMLElement>('[data-esc-close]');
+      return all.length ? all[all.length - 1] : null;
+    };
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       const panel = topDialog();
-      const backdrop = panel?.parentElement;
-      if (!panel || !backdrop) return;
+      const backdrop = panel?.parentElement ?? topScrim();
+      if (!backdrop) return;
       e.stopPropagation();
       backdrop.click();
     };

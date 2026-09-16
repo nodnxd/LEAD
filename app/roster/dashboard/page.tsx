@@ -196,9 +196,9 @@ const T = {
 type Lang = 'ko' | 'en';
 type Theme = 'dark' | 'light';
 
-const Modal = ({ title, message, children, theme }: any) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui">
-    <div className={`w-full max-w-sm mx-4 border rounded-xl p-6 shadow-lg ${theme === 'light' ? ' border-black/10' : 'bg-[#111] border-white/10'}`}>
+const Modal = ({ title, message, children, theme, onClose }: any) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui" onClick={onClose}>
+    <div role="dialog" aria-modal="true" tabIndex={-1} onClick={e => e.stopPropagation()} className={`w-full max-w-sm mx-4 border rounded-xl p-6 shadow-lg ${theme === 'light' ? ' border-black/10' : 'bg-[#111] border-white/10'}`}>
       {title && <h2 className={`font-black text-lead mb-2 ${theme === 'light' ? 'text-black' : 'text-white'}`}>{title}</h2>}
       {message && <p className={`text-body mb-5 leading-relaxed whitespace-pre-line ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>{message}</p>}
       {children}
@@ -1739,7 +1739,7 @@ export default function Dashboard() {
                     aria-label={t.more} aria-expanded={menuOpen} className={`px-4 py-2 rounded-full border font-black text-body leading-none transition ${menuOpen ? 'border-brand-cast/50 text-brand-cast-text bg-brand-cast/10' : btnBg}`}>⋯</button>
                   {menuOpen && (
                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                      <div data-esc-close className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
                       <div className={`absolute right-0 top-full mt-2 z-50 w-52 max-h-[70vh] overflow-y-auto rounded-xl border shadow-lg anim-rise ${theme === 'light' ? ' border-black/10' : 'bg-[#171717] border-white/10'}`}>
                         {([
                           [t.availOpen, () => { setAvailSelDay(null); setShowAvailModal(true); }, !!availPoll],
@@ -2200,8 +2200,8 @@ export default function Dashboard() {
 
       {/* 링크 모달 */}
       {linkModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui">
-          <div className={`w-full max-w-sm mx-4 border rounded-xl p-6 shadow-lg ${theme === 'light' ? ' border-black/10' : 'bg-[#111] border-white/10'}`}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui" onClick={() => { setLinkModal(null); setNewLink(''); }}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} onClick={e => e.stopPropagation()} className={`w-full max-w-sm mx-4 border rounded-xl p-6 shadow-lg ${theme === 'light' ? ' border-black/10' : 'bg-[#111] border-white/10'}`}>
             <h2 className={`font-black text-lead mb-1 ${textMain}`}>{linkModal.name}</h2>
             <p className={`text-mini mb-4 ${textSub}`}>{t.linkAdd}</p>
             <div className="flex flex-wrap gap-2 mb-4">
@@ -2231,7 +2231,7 @@ export default function Dashboard() {
 
       {/* 세션 저장 모달 */}
       {showSessionModal && (
-        <Modal title={t.sessionSave} theme={theme}>
+        <Modal title={t.sessionSave} theme={theme} onClose={() => setShowSessionModal(false)}>
           <div className="flex flex-col gap-3 mb-5">
             <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.campName}</label><input value={sessionCampName} onChange={e => setSessionCampName(e.target.value)} placeholder={t.campPlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
             <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.day}</label><input type="number" value={sessionDayNumber} onChange={e => setSessionDayNumber(e.target.value)} min="1" className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain}`} /></div>
@@ -2246,7 +2246,7 @@ export default function Dashboard() {
 
       {/* 공지 모달 */}
       {showNoticeModal && (
-        <Modal title={editingNoticeId ? t.noticeEdit : t.noticeAddTitle} theme={theme}>
+        <Modal title={editingNoticeId ? t.noticeEdit : t.noticeAddTitle} theme={theme} onClose={() => setShowNoticeModal(false)}>
           <div className="flex flex-col gap-3 mb-5">
             <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeTitleLabel}</label><input value={noticeTitle} onChange={e => setNoticeTitle(e.target.value)} placeholder={t.noticeTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
             <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeContentLabel}</label><textarea value={noticeContent} onChange={e => setNoticeContent(e.target.value)} placeholder={t.noticeContentPlaceholder} rows={4} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition resize-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
@@ -2260,7 +2260,7 @@ export default function Dashboard() {
 
       {/* 투표 모달 */}
       {showVotingModal && (
-        <Modal title={t.voteOpenTitle} theme={theme}>
+        <Modal title={t.voteOpenTitle} theme={theme} onClose={() => setShowVotingModal(false)}>
           <div className="flex flex-col gap-3 mb-5">
             <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.voteTitleLabel}</label><input value={votingTitle} onChange={e => setVotingTitle(e.target.value)} placeholder={t.voteTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
             <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.memo}</label><textarea value={votingMemo} onChange={e => setVotingMemo(e.target.value)} placeholder={t.voteMemoPlaceholder} rows={3} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition resize-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
@@ -2603,7 +2603,7 @@ export default function Dashboard() {
 
       {/* Confirm 모달 */}
       {confirmModal && (
-        <Modal title={confirmModal.title} message={confirmModal.message} theme={theme}>
+        <Modal title={confirmModal.title} message={confirmModal.message} theme={theme} onClose={() => setConfirmModal(null)}>
           <div className="flex gap-3 mt-2">
             <button onClick={() => setConfirmModal(null)} className={`flex-1 py-3 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
             <button onClick={confirmModal.onOk} className={`flex-1 py-3 rounded-full border font-black text-mini transition ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.confirm}</button>
@@ -2613,7 +2613,7 @@ export default function Dashboard() {
 
       {/* Prompt 모달 */}
       {promptModal && (
-        <Modal title={promptModal.title} theme={theme}>
+        <Modal title={promptModal.title} theme={theme} onClose={() => setPromptModal(null)}>
           <input autoFocus value={promptValue} onChange={e => setPromptValue(e.target.value)} placeholder={promptModal.placeholder} onKeyDown={e => e.key === 'Enter' && promptModal.onOk(promptValue)} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
           <div className="flex gap-3">
             <button onClick={() => setPromptModal(null)} className={`flex-1 py-3 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
@@ -2625,7 +2625,7 @@ export default function Dashboard() {
       {/* Role 드롭다운 */}
       {roleDropdown && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setRoleDropdown(null)} />
+          <div data-esc-close className="fixed inset-0 z-40" onClick={() => setRoleDropdown(null)} />
           <div className={`fixed z-50 border rounded-xl shadow-lg overflow-hidden font-ui ${theme === 'light' ? ' border-black/10' : 'bg-[#1a1a1a] border-white/10'}`} style={{ top: roleDropdown.y, left: roleDropdown.x }}>
             {ROLES.map(r => (
               <button key={r} onClick={() => updateMemberRole(roleDropdown.id, r)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-mini font-bold transition text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`} style={{ color: ROLE_COLORS[r] }}>{r}</button>

@@ -46,3 +46,16 @@ src-tauri/gen/schemas/
 
 # skills CLI (project-scope installs)
 .agents/
+
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+
+# claude-flow / ruflo 런타임 산출물
+.claude-flow/
+.swarm/
+ruvector.db

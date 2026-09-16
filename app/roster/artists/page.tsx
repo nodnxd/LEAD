@@ -443,8 +443,8 @@ export default function ArtistsPage() {
 
       {/* 추가/수정 모달 */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto">
-          <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-xl shadow-lg my-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md font-ui p-4 overflow-y-auto" onClick={() => setShowModal(false)}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} onClick={e => e.stopPropagation()} className="w-full max-w-md bg-[#111] border border-white/10 rounded-xl shadow-lg my-4">
             <div className="p-6">
               <h2 className="text-white font-black text-lead mb-5">{editingArtist ? t('아티스트 수정', 'Edit artist') : t('아티스트 추가', 'Add artist')}</h2>
 

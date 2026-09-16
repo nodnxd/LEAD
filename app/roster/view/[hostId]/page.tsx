@@ -336,7 +336,7 @@ export default function GuestView() {
       <InquiryModal topic={inqTopic} onClose={() => setInqTopic(null)} dark={theme !== 'light'} brand="cast" />
       {/* 링크 팝오버 */}
       {linkPopover && (
-        <div className="fixed inset-0 z-40" onClick={() => setLinkPopover(null)}>
+        <div data-esc-close className="fixed inset-0 z-40" onClick={() => setLinkPopover(null)}>
           <div
             className={`absolute z-50 border rounded-xl p-3 shadow-lg font-ui ${theme === 'light' ? ' border-black/10' : 'bg-[#1a1a1a] border-white/15'}`}
             style={{ top: Math.min(linkPopover.y, window.innerHeight - 180), left: Math.min(linkPopover.x, window.innerWidth - 210), minWidth: '180px' }}
