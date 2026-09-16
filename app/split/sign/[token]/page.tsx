@@ -7,7 +7,8 @@ import { supabase } from '@/lib/supabase';
 import { SplitSheet, Contributor, CATEGORIES, PRO_LABEL, categoryTotal } from '@/lib/splitsheet';
 import { useLang, LangToggle } from '@/lib/lang';
 
-type Payload = { sheet: SplitSheet; me: Contributor; contributors: Contributor[] };
+// hash = 서버가 계산한 지금 문서의 SHA-256 (split_get_by_token이 함께 돌려준다)
+type Payload = { sheet: SplitSheet; me: Contributor; contributors: Contributor[]; hash: string };
 
 export default function SignByTokenPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
@@ -31,15 +32,6 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
   }
   useEffect(() => { load(); }, [token]); // eslint-disable-line
 
-  async function agreementHash(p: Payload): Promise<string> {
-    const snap = JSON.stringify({
-      song: { t: p.sheet.song_title, a: p.sheet.artist_name, iswc: p.sheet.iswc, audio: p.sheet.audio_name },
-      rows: p.contributors.map((r) => ({ c: r.category, s: Number(r.share) || 0, n: r.legal_name })),
-    });
-    const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(snap));
-    return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
-  }
-
   function pos(e: React.PointerEvent<HTMLCanvasElement>) {
     const c = canvasRef.current!; const r = c.getBoundingClientRect();
     return { x: (e.clientX - r.left) * (c.width / r.width), y: (e.clientY - r.top) * (c.height / r.height) };
@@ -52,14 +44,15 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
   async function submit() {
     if (!data || !name.trim() || !agree) return;
     setSigning(true);
-    const hash = await agreementHash(data);
     const dataUrl = dirty.current ? canvasRef.current!.toDataURL('image/png') : '';
     // 화면에 띄운 동의 문구를 그대로 기록에 남긴다 — '무엇에 동의했나'가 증거의 절반이다
     const consent = lang === 'ko'
       ? '위 지분이 정확하며 이에 동의함을 확인합니다.'
       : 'I confirm the split above is accurate and I agree.';
     const { data: ok } = await supabase.rpc('split_sign_by_token', {
-      p_token: token, p_name: name.trim(), p_data: dataUrl, p_hash: hash,
+      p_token: token, p_name: name.trim(), p_data: dataUrl,
+      // 저장되는 해시는 서버가 서명 순간에 다시 계산한다. 이건 '서명자 화면의 해시'로 일치 여부만 기록된다.
+      p_hash: data.hash ?? '',
       p_consent: consent, p_ua: typeof navigator !== 'undefined' ? navigator.userAgent : '',
     });
     setSigning(false);
@@ -141,10 +134,12 @@ export default function SignByTokenPage({ params }: { params: Promise<{ token: s
               <canvas ref={canvasRef} width={520} height={150} className="w-full touch-none" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up} />
             </div>
             <button onClick={clear} className="text-mini text-white/55 hover:text-white mb-3">{t('지우기', 'Clear')}</button>
-            <label className="flex items-start gap-2 text-mini text-white/70 mb-4">
+            <label className="flex items-start gap-2 text-mini text-white/70 mb-2">
               <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5" />
               <span>{t('위 지분이 정확하며 이에 동의함을 확인합니다. 서명 시각·문서 해시(SHA-256)가 함께 기록됩니다.', 'I confirm the split above is accurate and I agree. The time and a document hash (SHA-256) are recorded.')}</span>
             </label>
+            {/* 동의 대상 문서의 지문 — 증빙 번들·서명 기록의 document_sha256과 같은 값 */}
+            <p className="text-micro text-white/40 font-mono break-all mb-4">SHA-256 {data.hash || '—'}</p>
             <button onClick={submit} disabled={!name.trim() || !agree || signing}
               className="w-full text-body px-4 py-3 rounded-full bg-brand-split text-[#0a0a0a] hover:brightness-110 disabled:opacity-40 font-medium transition-colors">
               {signing ? '…' : t('서명 완료', 'Sign')}

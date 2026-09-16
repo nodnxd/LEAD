@@ -1736,6 +1736,10 @@ export type Database = {
         }[]
       }
       copyright_profile_by_email: { Args: { p_email: string }; Returns: Json }
+      split_agreement_hash: { Args: { p_sheet: string }; Returns: string }
+      split_agreement_snapshot: { Args: { p_sheet: string }; Returns: Json }
+      split_lock: { Args: { p_sheet: string }; Returns: undefined }
+      split_unlock: { Args: { p_sheet: string }; Returns: undefined }
       split_sign_self: {
         Args: {
           p_consent?: string

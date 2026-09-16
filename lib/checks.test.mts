@@ -440,3 +440,24 @@ test('getCardColor: 모르는 성별은 남자로, 그룹은 라벨에 붙는다
   assert.equal(getCardColor('', 'solo', true).label, '남자');
   assert.equal(getCardColor('female', 'group', true).label, '여자 그룹');
 });
+
+// ── 서명 유효성 — 틀리면 무효 서명이 붙은 시트가 협회로 나간다 ──
+import { isStaleSignature, exportBlocker } from './splitsheet.ts';
+
+test('isStaleSignature: 서버 해시와 다르면 무효, 같으면 유효', () => {
+  assert.equal(isStaleSignature({ signed: true, signed_hash: 'a' }, 'b'), true);
+  assert.equal(isStaleSignature({ signed: true, signed_hash: 'a' }, 'a'), false);
+});
+
+test('isStaleSignature: 해시 없이 서명된 행은 무효, 미서명·해시 미수신은 판정 안 함', () => {
+  assert.equal(isStaleSignature({ signed: true, signed_hash: null }, 'a'), true);
+  assert.equal(isStaleSignature({ signed: false, signed_hash: 'x' }, 'a'), false);
+  assert.equal(isStaleSignature({ signed: true, signed_hash: 'a' }, ''), false);
+});
+
+test('exportBlocker: 확정 + 해시 수신 + 무효 서명 0일 때만 통과', () => {
+  assert.equal(exportBlocker(false, 'h', 0), 'unlocked');
+  assert.equal(exportBlocker(true, '', 0), 'loading');
+  assert.equal(exportBlocker(true, 'h', 1), 'stale');
+  assert.equal(exportBlocker(true, 'h', 0), null);
+});

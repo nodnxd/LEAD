@@ -177,4 +177,17 @@ export function writerShares(rows: Contributor[], weights: Record<CategoryKey, n
     .sort((a, b) => b.share - a.share || a.name.localeCompare(b.name));
 }
 
+// ── 서명 유효성 ── 문서 해시는 서버(split_agreement_hash)가 계산한다. 클라는 대조만 한다.
+/** 서명 당시 해시가 지금 문서 해시와 다르면(해시 없이 서명됐어도) 그 서명은 지금 내용에 대한 동의가 아니다. */
+export const isStaleSignature = (r: Pick<Contributor, 'signed' | 'signed_hash'>, docHash: string): boolean =>
+  !!r.signed && !!docHash && r.signed_hash !== docHash;
+
+/** CWR·증빙 번들을 막는 이유. null이면 내보내도 된다. 해시를 아직 못 받았으면 판단 보류 = 막는다. */
+export function exportBlocker(locked: boolean, docHash: string, staleCount: number): 'unlocked' | 'loading' | 'stale' | null {
+  if (!locked) return 'unlocked';
+  if (!docHash) return 'loading';
+  if (staleCount > 0) return 'stale';
+  return null;
+}
+
 export const writerTotal = (ws: WriterShare[]) => Math.round(ws.reduce((s, w) => s + w.share, 0) * 100) / 100;

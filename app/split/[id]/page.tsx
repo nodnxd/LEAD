@@ -6,7 +6,7 @@ import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
-import { SplitSheet, Contributor, CopyrightProfile, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal, sheetWeights, writerShares, writerTotal } from '@/lib/splitsheet';
+import { SplitSheet, Contributor, CopyrightProfile, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal, sheetWeights, writerShares, writerTotal, isStaleSignature, exportBlocker } from '@/lib/splitsheet';
 import { CEL, OAT } from '@/lib/brand';
 import { analyzeAudio } from '@/lib/audioAnalysis';
 import { buildCwr, cwrFile, cwrPreflight } from '@/lib/cwr';
@@ -76,7 +76,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const [audioUrl, setAudioUrl] = useState('');       // signed playback URL
   const [audioUploading, setAudioUploading] = useState(false);
   const [signRow, setSignRow] = useState<Contributor | null>(null);  // signature-capture modal target
-  const [docHash, setDocHash] = useState('');   // 현재 문서의 SHA-256 (서명 유효성 판정용)
+  const [docHash, setDocHash] = useState('');   // 서버가 계산한 현재 문서의 SHA-256 (서명 유효성 판정용)
+  const hashSeq = useRef(0);
   const [cwrIssues, setCwrIssues] = useState<string[] | null>(null);
   const [ask, setAsk] = useState<{ title: string; body: string; ok: string; run: () => void } | null>(null);
   const [myProfileIpi, setMyProfileIpi] = useState('');
@@ -104,21 +105,32 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       setMySignature(prof?.signature_data ?? null);
       const { data: c } = await supabase.from('split_contributors').select('*').eq('sheet_id', id).order('order_index', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true });
       setRows((c as Contributor[]) ?? []);
+      refreshHash();
       setLoading(false);
     })();
-  }, [id, router]);
+  }, [id, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function flash(m: string) { setToast(m); setTimeout(() => setToast(''), 1800); }
 
-  // 문서가 바뀔 때마다 해시를 다시 계산한다 (agreementHash와 같은 스냅샷 규칙)
-  useEffect(() => {
-    if (!sheet) return;
-    let alive = true;
-    agreementHash().then((h) => { if (alive) setDocHash(h); });
-    return () => { alive = false; };
-  }, [sheet?.song_title, sheet?.artist_name, sheet?.iswc, sheet?.audio_name,
-      // 지분·이름이 한 글자라도 바뀌면 해시가 달라진다
-      rows.map((r) => `${r.category}:${Number(r.share) || 0}:${r.legal_name ?? ''}`).join('|')]); // eslint-disable-line
+  // 문서 해시는 서버(split_agreement_hash)가 계산한다. 클라가 만든 해시는 아무 값이나 넣을 수 있었고,
+  // 기여자는 RLS상 남의 행이 안 보여 오너와 같은 해시를 만들 수도 없었다.
+  // 실시간 구독(split_*)은 publication에 없어 안 온다 — DB에 쓴 직후마다 다시 받는다.
+  async function refreshHash() {
+    const n = ++hashSeq.current;
+    const { data, error } = await supabase.rpc('split_agreement_hash', { p_sheet: id });
+    if (n !== hashSeq.current) return;   // 늦게 온 옛 응답이 새 해시를 덮지 않게
+    setDocHash(error ? '' : (data ?? ''));
+  }
+  // 확정/해제처럼 서버가 여러 행을 한꺼번에 바꾼 뒤엔 통째로 다시 읽는다
+  async function reloadDoc() {
+    const [{ data: s }, { data: c }] = await Promise.all([
+      supabase.from('split_sheets').select('*').eq('id', id).maybeSingle(),
+      supabase.from('split_contributors').select('*').eq('sheet_id', id).order('order_index', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
+    ]);
+    if (s) setSheet(s as SplitSheet);
+    if (c) setRows(c as Contributor[]);
+    await refreshHash();
+  }
 
   // Finalized sheets are read-only until the owner unlocks (which invalidates signatures).
   function lockedGuard(): boolean {
@@ -133,6 +145,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     // 계산된 키 하나만 갱신 — 제네릭이 넓어져 Postgrest의 Update 타입과 안 맞아서 좁혀 준다
     const patch = { [k]: sheet[k], updated_at: new Date().toISOString() } as Database['public']['Tables']['split_sheets']['Update'];
     await supabase.from('split_sheets').update(patch).eq('id', sheet.id);
+    refreshHash();
   }
 
   // mm:ss — 시트의 duration은 사람이 읽는 문자열이라 초를 그대로 넣지 않는다
@@ -153,6 +166,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       }
       await supabase.from('split_sheets').update({ audio_path: path, audio_name: file.name, duration, updated_at: new Date().toISOString() }).eq('id', sheet.id);
       setSheet((s) => s ? { ...s, audio_path: path, audio_name: file.name, duration } : s);
+      refreshHash();
       await signAudio(path);
       if (duration && duration !== sheet.duration) flash(t(`길이 ${duration} 자동 입력됨`, `Duration ${duration} filled in`));
     } else flash(t('음원 업로드 실패', 'Audio upload failed'));
@@ -164,6 +178,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     if (sheet.audio_path) await supabase.storage.from('member-demos').remove([sheet.audio_path]);
     await supabase.from('split_sheets').update({ audio_path: null, audio_name: null }).eq('id', sheet.id);
     setSheet((s) => s ? { ...s, audio_path: null, audio_name: null } : s);
+    refreshHash();
     setAudioUrl('');
   }
 
@@ -175,7 +190,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       .insert({ sheet_id: id, user_id: userId, email, category, share: 0, order_index: rows.length, ...base })
       .select('*').single();
     setAdding(false);
-    if (!error && data) { setRows((r) => [...r, data as Contributor]); setAddEmail((m) => ({ ...m, [category]: '' })); }
+    if (!error && data) { setRows((r) => [...r, data as Contributor]); setAddEmail((m) => ({ ...m, [category]: '' })); refreshHash(); }
     else flash(t('추가 실패', 'Failed to add'));
   }
 
@@ -216,6 +231,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     if (lockedGuard()) return;
     setRowLocal(rid, patch);
     await supabase.from('split_contributors').update(patch).eq('id', rid);
+    refreshHash();
     if (sheet) await supabase.from('split_sheets').update({ updated_at: new Date().toISOString() }).eq('id', sheet.id);
   }
   async function deleteRow(rid: string) {
@@ -228,31 +244,25 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       ok: t('삭제', 'Remove'),
       run: async () => {
         setRows((rs) => rs.filter((r) => r.id !== rid));
-        await supabase.from('split_contributors').delete().eq('id', rid);
+        const { error } = await supabase.from('split_contributors').delete().eq('id', rid);
+        if (error) { flash(error.message); await reloadDoc(); return; }
+        refreshHash();
       },
     });
   }
-  // SHA-256 of a canonical snapshot of the agreement at signing time (tamper-evidence).
-  async function agreementHash(): Promise<string> {
-    const snap = JSON.stringify({
-      song: sheet && { t: sheet.song_title, a: sheet.artist_name, iswc: sheet.iswc, audio: sheet.audio_name },
-      rows: rows.map((r) => ({ c: r.category, s: Number(r.share) || 0, n: r.legal_name })),
-    });
-    const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(snap));
-    return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
-  }
   async function submitSignature(row: Contributor, name: string, dataUrl: string) {
     if (lockedGuard()) return;
-    const hash = await agreementHash();
-    const patch = { signed: true, signed_at: new Date().toISOString(), signature_name: name || row.legal_name, signature_data: dataUrl || null, signed_hash: hash };
     // 기여자에게 열려 있던 자기 행 UPDATE 정책은 없앴다 — 지분까지 자기 손으로
     // 바꿀 수 있었기 때문이다. 서명만 하는 RPC로 좁혔다. 오너는 원래 전권이라 그대로.
+    // 저장되는 해시·IP·UA는 서버가 정한다. p_hash는 '내 화면의 해시'로 일치 여부만 기록된다.
     const ok = !!(await supabase.rpc('split_sign_self', {
-      p_row_id: row.id, p_name: name || row.legal_name || '', p_data: dataUrl || '', p_hash: hash,
+      p_row_id: row.id, p_name: name || row.legal_name || '', p_data: dataUrl || '', p_hash: docHash,
       p_consent: CONSENT[lang], p_ua: typeof navigator !== 'undefined' ? navigator.userAgent : '',
     })).data;
     if (!ok) { flash(t('서명 실패 — 다시 시도해주세요', 'Signing failed — please retry')); return; }
-    setRowLocal(row.id, patch);
+    const { data: fresh } = await supabase.from('split_contributors').select('*').eq('id', row.id).maybeSingle();
+    if (fresh) setRowLocal(row.id, fresh as Contributor);
+    refreshHash();
     setSignRow(null);
     flash(t('서명 완료 — 문서 해시로 봉인됨', 'Signed — sealed with a document hash'));
   }
@@ -286,14 +296,21 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     const patch = { [col]: v } as Database['public']['Tables']['split_sheets']['Update'];
     const { error } = await supabase.from('split_sheets').update(patch).eq('id', sheet.id);
     if (error) flash(error.message);
+    refreshHash();
   }
 
   // ── finalize / lock / request signatures ──
   // 서명은 '이 숫자에 동의했다'는 뜻이다. 그런데 오너는 서명 뒤에도 지분을 바꿀 수
   // 있었고 signed는 true로 남았다. signed_hash를 쓰기만 하고 아무도 대조하지 않아서
-  // 아무 데도 안 나타났다. 이제 현재 문서 해시와 대조해 낡은 서명을 골라낸다.
-  const isStale = (r: Contributor) => !!r.signed && !!r.signed_hash && !!docHash && r.signed_hash !== docHash;
+  // 아무 데도 안 나타났다. 이제 서버가 계산한 현재 문서 해시와 대조해 낡은 서명을 골라낸다.
+  const isStale = (r: Contributor) => isStaleSignature(r, docHash);
   const staleRows = rows.filter(isStale);
+  // CWR·증빙 번들은 '확정됐고 서명이 전부 지금 문서와 맞는' 시트에서만. PDF는 DRAFT 워터마크가 있어 초안도 뽑는다.
+  const exportKey = exportBlocker(!!sheet?.locked, docHash, staleRows.length);
+  const exportWhy = exportKey === 'unlocked' ? t('확정(잠금)된 시트만 내보낼 수 있어요', 'Only finalized (locked) sheets can be exported')
+    : exportKey === 'loading' ? t('문서 해시 확인 중…', 'Checking the document hash…')
+    : exportKey === 'stale' ? t('지금 문서와 맞지 않는 서명이 있어요 — 잠금 해제 후 다시 서명받으세요', 'A signature no longer matches — unlock and re-sign')
+    : '';
   const allSigned = rows.length > 0 && rows.every((r) => r.signed) && staleRows.length === 0;
   // each category with entries must total 100%; empty categories are fine
   const sharesOk = rows.length > 0 && CATEGORIES.every((c) => {
@@ -315,9 +332,11 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
     if (!allSigned) { flash(t('전원 서명 후 확정할 수 있어요', 'Everyone must sign before finalizing')); return; }
     if (!sharesOk) { flash(t('작사/작곡/편곡 지분이 각각 100%가 아니에요', 'Each pool (lyrics/comp/arr) must total 100%')); return; }
     if (weightSum !== 100) { flash(t('풀 비중 합계가 100%가 아니에요', 'Pool weights must total 100%')); return; }
-    const ts = new Date().toISOString();
-    setSheet((s) => s ? { ...s, locked: true, locked_at: ts } : s);
-    await supabase.from('split_sheets').update({ locked: true, locked_at: ts }).eq('id', sheet.id);
+    // 위 검사는 빠른 안내일 뿐, 판정은 서버가 한다(전원 서명 · 서명 해시 = 지금 해시 · 풀별 100%).
+    // 예전엔 직접 UPDATE하고 실패해도 '확정됨'을 띄웠다.
+    const { error } = await supabase.rpc('split_lock', { p_sheet: sheet.id });
+    await reloadDoc();
+    if (error) { flash(error.message); return; }
     flash(t('확정(잠금)됨 — 이제 읽기 전용', 'Finalized (locked) — now read-only'));
   }
 
@@ -333,15 +352,13 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
 
   async function doUnlock() {
     if (!sheet || !isOwner) return;
+    // 버전 +1 · 서명 전부 초기화 · 서명 링크 재발급을 서버가 한 트랜잭션으로 한다.
+    // 예전엔 클라가 UPDATE 두 번으로 나눠 해서, 중간에 끊기면 '풀렸는데 서명은 남은' 시트가 생겼다.
     const nextVer = (sheet.version ?? 1) + 1;
-    setSheet((s) => s ? { ...s, locked: false, locked_at: null, version: nextVer } : s);
-    setRows((rs) => rs.map((r) => ({ ...r, signed: false, signed_at: null, signature_name: null, signature_data: null, signed_hash: null })));
-    await supabase.from('split_sheets').update({ locked: false, locked_at: null, version: nextVer }).eq('id', sheet.id);
-    // 예전엔 signed/signed_at만 지워서 이전 버전의 서명 이미지·해시가 DB에 남았다.
-    await supabase.from('split_contributors')
-      .update({ signed: false, signed_at: null, signature_name: null, signature_data: null, signed_hash: null })
-      .eq('sheet_id', sheet.id);
-    flash(t(`잠금 해제 · 버전 ${nextVer} — 수정 후 재서명 필요`, `Unlocked · v${nextVer} — everyone must sign again`));
+    const { error } = await supabase.rpc('split_unlock', { p_sheet: sheet.id });
+    await reloadDoc();
+    if (error) { flash(error.message); return; }
+    flash(t(`잠금 해제 · 버전 ${nextVer} — 서명 링크가 새로 발급됐어요, 다시 보내주세요`, `Unlocked · v${nextVer} — signing links were reissued; send them again`));
   }
 
   // ③ 동시 편집 — 둘이 열어두면 마지막 저장이 조용히 이겼다. 남의 변경을 실시간으로 받는다.
@@ -352,9 +369,10 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
         async () => {
           const { data } = await supabase.from('split_contributors').select('*').eq('sheet_id', sheet.id).order('order_index', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true });
           if (data) setRows(data as Contributor[]);
+          refreshHash();
         })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'split_sheets', filter: `id=eq.${sheet.id}` },
-        (payload) => setSheet((cur) => cur ? { ...cur, ...(payload.new as SplitSheet) } : cur))
+        (payload) => { setSheet((cur) => cur ? { ...cur, ...(payload.new as SplitSheet) } : cur); refreshHash(); })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [sheet?.id]); // eslint-disable-line
@@ -362,6 +380,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   // ── CWR 내보내기 — 협회가 기계로 읽는 파일 ─────────────────────────
   async function exportCwr() {
     if (!sheet) return;
+    if (exportWhy) { flash(exportWhy); return; }
     const senderId = (myProfileIpi || '').replace(/\D/g, '');
     const problems = cwrPreflight(sheet, rows, writers, { senderId });
     if (problems.length) {
@@ -387,6 +406,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   // ── evidence bundle (zip): agreement + audio + tamper-evident manifest(SHA-256) ──
   async function exportBundle() {
     if (!sheet) return;
+    if (exportWhy) { flash(exportWhy); return; }
     flash(t('증빙 번들 생성 중…', 'Building evidence bundle…'));
     const JSZip = (await import('jszip')).default;
     const zip = new JSZip();
@@ -405,7 +425,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       generated_at: new Date().toISOString(),
       version: sheet.version ?? 1,
       locked: !!sheet.locked,
-      document_sha256: docHash,
+      document_sha256: docHash,   // 서버 split_agreement_hash — 서명 기록의 signed_hash와 같은 규칙
       song: { title: sheet.song_title, aka: sheet.aka, artist: sheet.artist_name, album: sheet.album, duration: sheet.duration, iswc: sheet.iswc, isrc: sheet.isrc, date: sheet.work_date },
       audio: sheet.audio_name ? { file: sheet.audio_name, sha256: audioSha } : null,
       pool_weights: weights,
@@ -611,20 +631,23 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           <div className="ml-auto flex items-center gap-2">
             <LangToggle />
             <ThemeToggle className="w-8 h-8 rounded-lg border border-white/15 hover:bg-white/5 flex items-center justify-center text-body transition" />
-            <button onClick={exportBundle} title={t('합의서+음원+무결성해시(zip)', 'Agreement + audio + integrity hash (zip)')} className="text-body px-3 py-2 rounded-full border border-white/15 hover:bg-white/5 transition-colors">{t('증빙 번들', 'Evidence')}</button>
-            <button onClick={exportCwr} title={t('협회 등록용 CWR v2.1 파일', 'CWR v2.1 file for society registration')} className="text-body px-3 py-2 rounded-full border border-white/15 hover:bg-white/5 transition-colors">CWR</button>
+            <button onClick={exportBundle} disabled={!!exportWhy} title={exportWhy || t('합의서+음원+무결성해시(zip)', 'Agreement + audio + integrity hash (zip)')} className="text-body px-3 py-2 rounded-full border border-white/15 hover:bg-white/5 disabled:opacity-35 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors">{t('증빙 번들', 'Evidence')}</button>
+            <button onClick={exportCwr} disabled={!!exportWhy} title={exportWhy || t('협회 등록용 CWR v2.1 파일', 'CWR v2.1 file for society registration')} className="text-body px-3 py-2 rounded-full border border-white/15 hover:bg-white/5 disabled:opacity-35 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors">CWR</button>
             <button onClick={exportPdf} className="text-body px-3 py-2 rounded-full border border-white/15 hover:bg-white/5 transition-colors">⎙ PDF</button>
           </div>
         </div>
 
         {/* 서명 뒤 문서가 바뀐 경우 — 조용히 넘어가면 안 되는 상태다 */}
-        {staleRows.length > 0 && !locked && (
+        {staleRows.length > 0 && (
           <div className="flex items-start gap-3 mb-4 px-4 py-3 rounded-xl border border-amber-500/40 bg-amber-500/[0.08]">
             <span className="text-body">
               ⚠ {t('서명 뒤에 문서가 바뀌었어요.', 'The document changed after signing.')}{' '}
               <b>{staleRows.map((r) => r.legal_name || r.stage_name || '—').join(', ')}</b>
-              {t('의 서명은 지금 내용과 맞지 않아 무효예요. 다시 받아야 확정할 수 있어요.',
-                 '’s signature no longer matches the current terms. It must be renewed before finalizing.')}
+              {locked
+                ? t('의 서명은 지금 내용과 맞지 않아 무효예요. 잠금 해제 후 다시 받아야 CWR·증빙을 내보낼 수 있어요.',
+                    '’s signature no longer matches the current terms. Unlock and re-sign before exporting CWR/evidence.')
+                : t('의 서명은 지금 내용과 맞지 않아 무효예요. 다시 받아야 확정할 수 있어요.',
+                    '’s signature no longer matches the current terms. It must be renewed before finalizing.')}
             </span>
           </div>
         )}
@@ -684,7 +707,7 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           <div className="flex flex-wrap items-center gap-3 mt-3">
             <label className="flex items-center gap-2 text-mini text-white/60">
               <input type="checkbox" checked={!!sheet.contains_sample} disabled={!editable}
-                onChange={(e) => { setSheetLocal('contains_sample', e.target.checked); if (editable) supabase.from('split_sheets').update({ contains_sample: e.target.checked }).eq('id', sheet.id); }} />
+                onChange={(e) => { setSheetLocal('contains_sample', e.target.checked); if (editable) supabase.from('split_sheets').update({ contains_sample: e.target.checked }).eq('id', sheet.id).then(() => refreshHash()); }} />
               {t('샘플/인터폴레이션 포함', 'Contains a sample / interpolation')}
             </label>
             {sheet.contains_sample && (
