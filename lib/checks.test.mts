@@ -238,7 +238,7 @@ test('sheetWeights: 컬럼이 없으면 업계 관행 50/50/0으로 떨어진다
 });
 
 // ── CWR (협회 등록 파일) ─────────────────────────────────────────────────
-import { buildCwr, cwrFile, cwrPreflight, cwrDuration, S, N, A, societyCode, writerDesignation } from './cwr.ts';
+import { buildCwr, cwrFile, cwrPreflight, cwrDuration, S, N, A, societyCode, writerDesignation, romanizeKo, cwrName, cwrTitle, cwrAllocate, cwrNotices, within100 } from './cwr.ts';
 
 const sheet: any = {
   id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', owner_id: 'o', song_title: '고백',
@@ -325,6 +325,95 @@ test('cwrPreflight: 제대로 채워지면 문제 없음', () => {
   const okRows = [c({ n: 'KIM', c: 'lyrics', s: 100 }), c({ n: 'KIM', c: 'composition', s: 100 })];
   const ok = cwrPreflight(sheet, okRows, writerShares(okRows, DEFAULT_WEIGHTS), { senderId: '00123456789' });
   assert.deepEqual(ok, []);
+});
+
+// ── CWR 반려 사유 수정 (2026-09-17) ──
+const recLen: Record<string, number> = { HDR: 101, GRH: 28, NWR: 260, SPU: 183, SPT: 58, SWR: 180, SWT: 52, PWR: 110, GRT: 24, TRL: 24 };
+
+test('CWR: 레코드마다 규격 폭이 정확하다 (한 칸 밀리면 전체 반려)', () => {
+  const rows = [c({ n: '김민현', c: 'lyrics', s: 100, pub: '뉴노멀뮤직' }), c({ n: 'Kevin Lee', c: 'composition', s: 100 })];
+  const lines = buildCwr(sheet, rows, writerShares(rows, DEFAULT_WEIGHTS), { senderId: '00123456789', senderName: 'NEN' });
+  for (const l of lines) assert.equal(l.length, recLen[l.slice(0, 3)], `${l.slice(0, 3)} 폭`);
+  assert.ok(lines.every((l) => /^[\x20-\x7E]*$/.test(l)), 'ASCII 밖 문자가 섞이면 바이트 폭이 깨진다');
+});
+
+test('CWR: 트레일러 개수에 자기 자신이 포함된다 (예전엔 2씩 모자랐다)', () => {
+  const rows = [c({ n: 'KIM', c: 'lyrics', s: 100 }), c({ n: 'LEE', c: 'composition', s: 100 })];
+  const lines = buildCwr(sheet, rows, writerShares(rows, DEFAULT_WEIGHTS), { senderId: '1', senderName: 'N' });
+  const grt = lines.at(-2)!, trl = lines.at(-1)!;
+  const grhToGrt = lines.length - 2;                 // HDR·TRL 제외
+  assert.equal(Number(grt.slice(16, 24)), grhToGrt);
+  assert.equal(Number(trl.slice(16, 24)), lines.length);
+});
+
+test('CWR: 퍼블리셔가 있으면 SPU/SPT를 작가보다 먼저 선언하고 PWR이 그걸 가리킨다', () => {
+  const rows = [c({ n: 'KIM', c: 'lyrics', s: 100, pub: 'NEWNORMAL MUSIC' }), c({ n: 'LEE', c: 'composition', s: 100 })];
+  const lines = buildCwr(sheet, rows, writerShares(rows, DEFAULT_WEIGHTS), { senderId: '1', senderName: 'N' });
+  const types = lines.map((l) => l.slice(0, 3));
+  assert.deepEqual(types, ['HDR', 'GRH', 'NWR', 'SPU', 'SPT', 'SWR', 'SWT', 'PWR', 'SWR', 'SWT', 'GRT', 'TRL']);
+  const spuIp = lines[3].slice(21, 30);
+  assert.equal(lines[7].slice(19, 28), spuIp, 'PWR의 퍼블리셔 번호 = SPU 번호');
+  assert.equal(lines[7].slice(101, 110), lines[5].slice(19, 28), 'PWR의 작가 번호 = SWR 번호');
+  const seqs = lines.slice(2, -2).map((l) => Number(l.slice(11, 19)));
+  assert.deepEqual(seqs, seqs.map((_, i) => i));
+});
+
+test('CWR: 권리별 지분 — 퍼블리셔 있으면 PR 반반·MR/SR 전부, 합계는 권리마다 100', () => {
+  const rows = [c({ n: 'KIM', c: 'lyrics', s: 100, pub: 'NN' }), c({ n: 'LEE', c: 'composition', s: 100 })];
+  const a = cwrAllocate(rows, writerShares(rows, DEFAULT_WEIGHTS));
+  const kim = a.writers.find((w) => w.name === 'KIM')!, lee = a.writers.find((w) => w.name === 'LEE')!;
+  assert.deepEqual([kim.pr, kim.mr, kim.sr], [25, 0, 0]);
+  assert.deepEqual([lee.pr, lee.mr, lee.sr], [50, 50, 50]);
+  assert.deepEqual([a.publishers[0].pr, a.publishers[0].mr, a.publishers[0].sr], [25, 50, 50]);
+  for (const k of ['pr', 'mr', 'sr'] as const) {
+    assert.equal([...a.writers, ...a.publishers].reduce((s, x) => s + x[k], 0), 100);
+  }
+});
+
+test('CWR: IPI 없는 작가끼리 이해관계자 번호가 겹치지 않는다', () => {
+  const rows = [c({ n: 'KIM', c: 'lyrics', s: 100, ipi: '' }), c({ n: 'LEE', c: 'composition', s: 100, ipi: '' })];
+  const lines = buildCwr(sheet, rows, writerShares(rows, DEFAULT_WEIGHTS), { senderId: '1', senderName: 'N' });
+  const ips = lines.filter((l) => l.startsWith('SWR')).map((l) => l.slice(19, 28));
+  assert.equal(new Set(ips).size, 2);
+  // 모르는 IPI는 0이 아니라 공백 — '00000000000'이라는 사람이 생기면 안 된다
+  assert.ok(lines.filter((l) => l.startsWith('SWR')).every((l) => l.slice(115, 126) === ' '.repeat(11)));
+});
+
+test('CWR: 허용오차 ±0.06 — 33.33×3은 통과, 99.9는 반려', () => {
+  assert.ok(within100(99.99));
+  assert.ok(within100(100.06));
+  assert.ok(!within100(99.9));
+  const rows = ['A', 'B', 'C'].flatMap((n) => [c({ n, c: 'lyrics', s: 33.33 }), c({ n, c: 'composition', s: 33.33 })]);
+  const p = cwrPreflight(sheet, rows, writerShares(rows, DEFAULT_WEIGHTS), { senderId: '00123456789' });
+  assert.ok(!p.some((x) => x.includes('100%')), p.join(' / '));
+});
+
+test('romanizeKo / cwrName / cwrTitle: 한글이 공백이 아니라 로마자로 들어간다', () => {
+  assert.equal(romanizeKo('고백'), 'GOBAEK');
+  assert.equal(romanizeKo('사랑해 Baby'), 'SARANGHAE BABY');
+  assert.deepEqual(cwrName('김민현'), { last: 'KIM', first: 'MINHYEON' });
+  assert.deepEqual(cwrName('남궁민'), { last: 'NAMGOONG', first: 'MIN' });
+  assert.deepEqual(cwrName('이 수'), { last: 'LEE', first: 'SU' });
+  assert.deepEqual(cwrName('Kevin Kim'), { last: 'KIM', first: 'KEVIN' });
+  assert.equal(cwrTitle({ song_title: '고백', aka: null }), 'GOBAEK');
+  assert.equal(cwrTitle({ song_title: '고백', aka: 'Confession' }), 'CONFESSION');
+  const nwr = buildCwr(sheet, [c({ n: 'KIM', c: 'lyrics', s: 100 })], [], { senderId: '1', senderName: 'N' })[2];
+  assert.equal(nwr.slice(19, 79).trim(), 'GOBAEK');
+  assert.equal(nwr.slice(79, 81), 'KO');
+});
+
+test('CWR: 11자리 IPI 제출자는 앞 2자리가 Sender Type 칸으로 간다', () => {
+  const hdr = buildCwr(sheet, [], [], { senderId: '01234567890', senderName: 'N' })[0];
+  assert.equal(hdr.slice(3, 5), '01');
+  assert.equal(hdr.slice(5, 14), '234567890');
+});
+
+test('cwrNotices: 로마자 변환과 퍼블리셔 기본 배분을 사람에게 알린다', () => {
+  const rows = [c({ n: '김민현', c: 'lyrics', s: 100, pub: 'NN' }), c({ n: '김민현', c: 'composition', s: 100 })];
+  const n = cwrNotices(sheet, rows, writerShares(rows, DEFAULT_WEIGHTS));
+  assert.ok(n.some((x) => x.includes('GOBAEK')));
+  assert.ok(n.some((x) => x.includes('KIM, MINHYEON')));
+  assert.ok(n.some((x) => x.includes('퍼블리셔 몫')));
 });
 
 test('cwrFile: EDI 관행대로 CRLF로 끝난다', () => {
