@@ -416,6 +416,12 @@ test('cwrNotices: 로마자 변환과 퍼블리셔 기본 배분을 사람에게
   assert.ok(n.some((x) => x.includes('퍼블리셔 몫')));
 });
 
+test('CWR: 제출자 이름이 한글이어도 헤더가 빈칸이 되지 않는다', () => {
+  const hdr = buildCwr(sheet, [], [], { senderId: '1', senderName: '뉴노멀' })[0];
+  assert.equal(hdr.slice(14, 59).trim(), 'NYUNOMEOL');
+  assert.equal(hdr.length, 101);
+});
+
 test('cwrFile: EDI 관행대로 CRLF로 끝난다', () => {
   assert.ok(cwrFile(['HDR', 'TRL']).endsWith('\r\n'));
   assert.equal(cwrFile(['HDR', 'TRL']), 'HDR\r\nTRL\r\n');

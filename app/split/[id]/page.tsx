@@ -9,7 +9,7 @@ import type { Database } from '@/lib/database.types';
 import { SplitSheet, Contributor, CopyrightProfile, CATEGORIES, CategoryKey, PRO_GROUPS, PRO_LABEL, categoryTotal, sheetWeights, writerShares, writerTotal, isStaleSignature, exportBlocker } from '@/lib/splitsheet';
 import { CEL, OAT } from '@/lib/brand';
 import { analyzeAudio } from '@/lib/audioAnalysis';
-import { buildCwr, cwrFile, cwrPreflight } from '@/lib/cwr';
+import { buildCwr, cwrFile, cwrPreflight, cwrNotices } from '@/lib/cwr';
 import { useLang, LangToggle } from '@/lib/lang';
 import { useTheme, ThemeToggle } from '@/lib/theme';
 import Toast from '@/components/Toast';
@@ -79,6 +79,8 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
   const [docHash, setDocHash] = useState('');   // 서버가 계산한 현재 문서의 SHA-256 (서명 유효성 판정용)
   const hashSeq = useRef(0);
   const [cwrIssues, setCwrIssues] = useState<string[] | null>(null);
+  // 막지는 않지만 내려받기 전에 사람이 봐야 하는 것(로마자 변환·퍼블리셔 기본 배분)
+  const [cwrNotes, setCwrNotes] = useState<string[] | null>(null);
   const [ask, setAsk] = useState<{ title: string; body: string; ok: string; run: () => void } | null>(null);
   const [myProfileIpi, setMyProfileIpi] = useState('');
   const [mySignature, setMySignature] = useState<string | null>(null);
@@ -389,8 +391,17 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
       setCwrIssues(problems);
       return;
     }
+    const notes = cwrNotices(sheet, rows, writers);
+    if (notes.length) { setCwrNotes(notes); return; }
+    downloadCwr();
+  }
+
+  function downloadCwr() {
+    if (!sheet) return;
+    setCwrNotes(null);
+    const senderId = (myProfileIpi || '').replace(/\D/g, '');
     const lines = buildCwr(sheet, rows, writers, {
-      senderId, senderName: (sheet.artist_name || 'SPLIT').toUpperCase(),
+      senderId, senderName: sheet.artist_name || 'SPLIT',
       submitterWorkId: sheet.id.replace(/-/g, '').slice(0, 14),
     });
     const blob = new Blob([cwrFile(lines)], { type: 'text/plain' });
@@ -905,6 +916,23 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
               <button onClick={() => setAsk(null)} className="flex-1 py-2.5 rounded-full border border-white/15 text-mini font-bold hover:bg-white/5">{t('취소', 'Cancel')}</button>
               <button onClick={() => { const r = ask.run; setAsk(null); r(); }}
                 className="flex-1 py-2.5 rounded-full text-mini font-bold" style={{ backgroundColor: CEL.danger, color: '#F2E9DB' }}>{ask.ok}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {cwrNotes && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui p-4" onClick={() => setCwrNotes(null)}>
+          <div role="dialog" aria-modal="true" tabIndex={-1} onClick={(e) => e.stopPropagation()}
+            className={`w-full max-w-md border rounded-xl p-6 ${D ? 'bg-[#111] border-white/10' : 'bg-white border-black/10'}`}>
+            <h2 className="font-black text-lead mb-1">{t('내려받기 전에 확인해 주세요', 'Check before downloading')}</h2>
+            <p className={`text-mini mb-4 ${D ? 'text-white/55' : 'text-black/55'}`}>{t('파일은 만들 수 있어요. 다만 협회 등록 정보와 다르면 반려되니 아래를 확인하세요.', 'The file is valid, but the society will reject it if these differ from their records.')}</p>
+            <ul className="flex flex-col gap-2 mb-5">
+              {cwrNotes.map((p, i) => <li key={i} className="text-mini flex gap-2"><span className="text-amber-400">•</span>{p}</li>)}
+            </ul>
+            <div className="flex gap-2">
+              <button onClick={() => setCwrNotes(null)} className={`flex-1 py-2.5 rounded-full border text-mini font-bold ${D ? 'border-white/15 hover:bg-white/5' : 'border-black/15 hover:bg-black/5'}`}>{t('취소', 'Cancel')}</button>
+              <button onClick={downloadCwr} className={`flex-1 py-2.5 rounded-full text-mini font-black ${D ? 'bg-white text-black' : 'bg-black text-white'}`}>{t('확인했어요, 내려받기', 'Download')}</button>
             </div>
           </div>
         </div>

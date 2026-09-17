@@ -233,9 +233,10 @@ export function buildCwr(sheet: SplitSheet, rows: Contributor[], writers: Writer
   // ── 전송 헤더 ──
   // 제출자 ID 칸은 9자리다. IPI 이름번호는 11자리라, 규정대로 앞 2자리를 Sender Type 칸에 넣는다.
   const senderDigits = (opt.senderId ?? '').replace(/\D/g, '');
+  const senderName = hasHangul(opt.senderName) ? romanizeKo(opt.senderName) : opt.senderName.toUpperCase();
   const senderType = senderDigits.length > 9 ? senderDigits.slice(0, senderDigits.length - 9).padStart(2, '0') : (opt.senderType ?? 'PB');
   out.push(
-    'HDR' + A(senderType, 2) + N(senderDigits, 9) + A(opt.senderName.toUpperCase(), 45) +
+    'HDR' + A(senderType, 2) + N(senderDigits, 9) + A(senderName, 45) +
     '01.10' + date + time + date + A('', 15),
   );
   // ── 그룹 헤더 (NWR = 신규 작품 등록) ──
@@ -261,7 +262,7 @@ export function buildCwr(sheet: SplitSheet, rows: Contributor[], writers: Writer
     A('', 3) +                                   // 합성 유형
     'ORI' +                                      // 버전 유형 (원곡)
     A('', 3) + A('', 3) + A('', 3) +             // 발췌·편곡·개사
-    A(opt.senderName.toUpperCase(), 30) + A('', 10) + // 연락 담당·ID
+    A(senderName, 30) + A('', 10) + // 연락 담당·ID
     A('', 2) +                                   // CWR 작품 유형
     'N' +                                        // 공연권(그랜드라이츠)
     A('', 3) +                                   // 합성 구성요소 수
