@@ -467,3 +467,69 @@ test('exportBlocker: 확정 + 해시 수신 + 무효 서명 0일 때만 통과',
   assert.equal(exportBlocker(true, 'h', 1), 'stale');
   assert.equal(exportBlocker(true, 'h', 0), null);
 });
+
+// ── 노션 리드 가져오기 — 틀리면 같은 리드가 두 번 들어가거나 화면에서 사라진다 ──
+import { planNotionImport, notionCollection, notionRows, NOTION_LEADS_HOST } from './notionLeads.ts';
+
+const nid = (n: number) => `3dcf3a3b-3414-8027-baab-${String(n).padStart(12, '0')}`;
+const nrow = (n: number, o: any = {}) => ({ id: nid(n), artist: 'STUN-X', label: '3Y CORP', lead: '곡 설명', deadline: '2026-10-11', ...o });
+const NOW = new Date('2026-09-17T12:00:00');
+
+test('planNotionImport: 새 행만 넣고, 다시 돌려도 안 겹친다', () => {
+  const first = planNotionImport([nrow(1), nrow(2)], [], NOW);
+  assert.equal(first.added, 2);
+  const again = planNotionImport([nrow(1), nrow(2)], first.inserts.map((i) => ({ memo: i.memo, content: i.content })), NOW);
+  assert.equal(again.inserts.length, 0);
+  assert.equal(again.unchanged, 2);
+});
+
+test('planNotionImport: NFKC로 비교한다 — 보이지 않는 공백 차이로 바뀐 리드로 오판하지 않는다', () => {
+  const r = nrow(1, { lead: 'Ref)\u00A0Troye Sivan' });       // 노션 원문: 줄바꿈 없는 공백(NBSP)
+  const p = planNotionImport([r], [{ memo: `notion:${nid(1)}`, content: 'Ref) Troye Sivan' }], NOW);
+  assert.equal(p.unchanged, 1);
+  assert.equal(p.inserts.length, 0);
+});
+
+test('planNotionImport: 둥근·곧은 따옴표 차이는 같은 리드로 본다', () => {
+  const p = planNotionImport([nrow(1, { lead: '‘우주 아이돌 리그’라는 “오디션”' })],
+    [{ memo: `notion:${nid(1)}`, content: `'우주 아이돌 리그'라는 "오디션"` }], NOW);
+  assert.equal(p.unchanged, 1);
+  assert.equal(p.inserts.length, 0);
+});
+
+test('planNotionImport: 본문이 바뀌면 새 리드로 추가, 마감 지난 건 건너뛴다', () => {
+  const existing = [{ memo: `notion:${nid(1)}`, content: '옛 설명' }, { memo: `notion:${nid(2)}`, content: '옛 설명' }];
+  const p = planNotionImport([nrow(1, { lead: '새 설명' }), nrow(2, { lead: '새 설명', deadline: '2026-08-24' })], existing, NOW);
+  assert.equal(p.updated, 1);
+  assert.equal(p.skippedPast, 1);
+  assert.equal(p.inserts.length, 1);
+});
+
+test('planNotionImport: 성별 기본값이 male이면 필터에 숨는다 — mixed/solo(미정)로 넣는다', () => {
+  const [i] = planNotionImport([nrow(1)], [], NOW).inserts;
+  assert.equal(i.gender, 'mixed');
+  assert.equal(i.group_type, 'solo');
+  assert.equal(i.host_id, NOTION_LEADS_HOST);
+  assert.equal(i.artist, 'STUN-X / 3Y CORP');
+  assert.equal(planNotionImport([nrow(2, { label: '' })], [], NOW).inserts[0].artist, 'STUN-X');
+});
+
+test('notionCollection/notionRows: 노션이 value를 한 겹 더 감싸서 줘도 읽는다', () => {
+  const chunk = { recordMap: {
+    collection: { c1: { value: { value: { schema: { title: { name: '아티스트명' }, a: { name: '레이블' }, b: { name: '리드' }, d: { name: '마감일' } } } } } },
+    collection_view: { v1: {} },
+  } };
+  const { collectionId, columns } = notionCollection(chunk);
+  const result = {
+    result: { reducerResults: { collection_group_results: { blockIds: ['r1', 'other'] } } },
+    recordMap: { block: {
+      r1: { value: { value: { id: 'r1', parent_id: 'c1', properties: {
+        title: [['태연']], a: [['SM']], b: [['줄1\n'], ['줄2']], d: [['‣', [['d', { start_date: '2026-09-17', start_time: '11:44' }]]]],
+      } } } },
+      other: { value: { id: 'other', parent_id: 'zzz', properties: {} } },    // 다른 표의 블록은 버린다
+    } },
+  };
+  assert.deepEqual(notionRows(result, collectionId, columns), [
+    { id: 'r1', artist: '태연', label: 'SM', lead: '줄1\n줄2', deadline: '2026-09-17T11:44' },
+  ]);
+});

@@ -1,5 +1,6 @@
 'use client';
 import { getCardColor } from '@/lib/brand';
+import { NOTION_LEADS_HOST, planNotionImport } from '@/lib/notionLeads';
 import { warnFail } from '@/lib/log';
 import { fmtDate } from '@/lib/format';
 import Link from 'next/link';
@@ -168,6 +169,9 @@ export default function GuestView(){
   // 실패를 사용자에게 보이게 하는 자리 — 예전엔 번역 실패가 조용히 사라졌다
   const [errToast,setErrToast]=useState<string|null>(null);
   const showErr=(m:string)=>{setErrToast(m);setTimeout(()=>setErrToast(null),4000);};
+  // 노션 "진행중인 리드" → LEAD. 노션이 원본이라 새 행만 넣는다(중복·판단 규칙은 lib/notionLeads.ts).
+  const [notionSyncing,setNotionSyncing]=useState(false);
+  const [notionMsg,setNotionMsg]=useState<string|null>(null);
   const [fileSort,setFileSort]=useState<'recent'|'bpm'|'vocal'|'key'>('recent');
   const [fileVocalFilter,setFileVocalFilter]=useState<'all'|'male'|'female'|'both'>('all');
   const [fileSearch,setFileSearch]=useState('');
@@ -572,6 +576,26 @@ export default function GuestView(){
   // ── 워크스페이스(회사) 다중 관리자 ──
   const switchWorkspace=(id:string)=>{setHostId(id);localStorage.setItem('selected_ws',id);setShowWsPicker(false);};
   const isOwner=hostId===ownerId; // 현재 워크스페이스의 소유자인지
+  const importNotion=async()=>{
+    if(notionSyncing)return;
+    setNotionSyncing(true);
+    try{
+      const res=await fetch('/api/notion-leads',{cache:'no-store'});
+      const body=await res.json();
+      if(!res.ok)throw new Error(body.error||t('노션을 읽지 못했어요','Could not read Notion'));
+      const {data:existing,error}=await supabase.from('leads').select('memo,content').eq('host_id',hostId).like('memo','notion:%');
+      if(error)throw error;
+      const plan=planNotionImport(body.rows,existing||[]);
+      if(plan.inserts.length){const {error:e}=await supabase.from('leads').insert(plan.inserts);if(e)throw e;}
+      await fetchAll();
+      const parts=[plan.added&&t(`새 리드 ${plan.added}개`,`${plan.added} new`),plan.updated&&t(`바뀐 리드 ${plan.updated}개`,`${plan.updated} updated`)].filter(Boolean);
+      setNotionMsg(parts.length
+        ?t(`노션에서 ${parts.join(' · ')} 가져왔어요 — 성별·형태는 '미정'으로 들어가요`,`Imported ${parts.join(' · ')} from Notion — gender/type set to unknown`)
+        :t(`새로 가져올 리드가 없어요 (노션 ${body.rows.length}개 확인)`,`Nothing new (checked ${body.rows.length} in Notion)`));
+      setTimeout(()=>setNotionMsg(null),5000);
+    }catch(e:any){showErr(e?.message||t('노션 가져오기 실패','Notion import failed'));}
+    finally{setNotionSyncing(false);}
+  };
   const fetchWsAdmins=async()=>{if(!hostId)return;const{data}=await supabase.from('workspace_admins').select('*').eq('workspace_id',hostId).order('created_at',{ascending:false});setWsAdmins(data||[]);};
   const inviteAdmin=async()=>{const email=wsInviteEmail.trim().toLowerCase();if(!email||!isOwner)return;setWsInviteMsg('');const{error}=await supabase.from('workspace_admins').insert({workspace_id:hostId,admin_email:email});if(error){setWsInviteMsg(error.message||'초대 실패');return;}setWsInviteEmail('');setWsInviteMsg('초대했어요. 상대가 호스트로 로그인하면 이 회사가 보여요.');fetchWsAdmins();};
   const removeAdmin=async(id:string)=>{await supabase.from('workspace_admins').delete().eq('id',id);fetchWsAdmins();};
@@ -876,7 +900,13 @@ export default function GuestView(){
                   :t('지난 리드 숨기기','Hide past')}
               </button>}
             </div>
-            <button onClick={()=>openLeadForm()} className="px-3.5 py-1.5 rounded-full text-mini font-bold bg-brand-lead text-white hover:bg-[#A3391F] transition whitespace-nowrap">+ {t('리드 추가','Add Lead')}</button>
+            <div className="flex items-center gap-2">
+              {isOwner&&hostId===NOTION_LEADS_HOST&&<button onClick={importNotion} disabled={notionSyncing}
+                className={`px-3 py-1.5 rounded-full border text-mini font-bold transition whitespace-nowrap disabled:opacity-50 ${D?'border-white/10 bg-white/5 text-zinc-400 hover:text-white':'border-black/[0.08] bg-black/[0.04] text-zinc-500 hover:text-[#111]'}`}>
+                {notionSyncing?t('노션 확인 중…','Checking Notion…'):t('노션에서 가져오기','Import from Notion')}
+              </button>}
+              <button onClick={()=>openLeadForm()} className="px-3.5 py-1.5 rounded-full text-mini font-bold bg-brand-lead text-white hover:bg-[#A3391F] transition whitespace-nowrap">+ {t('리드 추가','Add Lead')}</button>
+            </div>
           </div>
           )}
           <div className={`grid grid-cols-3 sm:grid-cols-6 gap-1 border rounded-xl p-1 ${D?' border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}>
@@ -1924,6 +1954,7 @@ export default function GuestView(){
           </div>
         </button>
       )}
+      {notionMsg&&<div role="status" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-brand-lead/15 backdrop-blur-md border border-brand-lead/40 text-brand-lead-text text-mini font-bold px-5 py-3 rounded-xl shadow-lg max-w-[90vw] text-center">{notionMsg}</div>}
       {errToast&&<div role="alert" className="fixed top-6 left-1/2 -translate-x-1/2 z-[70] bg-red-500/15 backdrop-blur-md border border-red-400/40 text-red-200 text-mini font-bold px-5 py-3 rounded-xl shadow-lg max-w-[90vw] text-center">{errToast}</div>}
       {shareToast&&(
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-5 py-3 rounded-full bg-brand-lead text-white text-body font-black shadow-lg shadow-brand-lead/30 animate-[slideIn_0.25s_ease]">
