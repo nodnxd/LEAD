@@ -70,7 +70,7 @@ export default function GuestView(){
   const [announcements,setAnnouncements]=useState<any[]>([]);
   const [hostCompany,setHostCompany]=useState('');
   const [view,setView]=useState<'calendar'|'list'>('list');
-  const [calView,setCalView]=useState<'month'|'week'>('week');
+  const [calView,setCalView]=useState<'month'|'week'>('month');
   // LEAD 대시보드와 같은 규칙 — 지난 리드는 기본으로 접고, 선택은 기억한다.
   const [hidePast,setHidePast]=useState(true);
   useEffect(()=>{setHidePast(localStorage.getItem('lead_hide_past')!=='0');},[]);
@@ -104,7 +104,9 @@ export default function GuestView(){
   // 첫 마운트 시 디바이스에 맞춰 뷰 결정 (SSR 불일치 방지)
   useEffect(()=>{
     if(typeof window==='undefined')return;
-    if(window.innerWidth>=768){setView('calendar');setCalView('month');}
+    if(window.innerWidth>=768)setView('calendar');
+    const saved=localStorage.getItem('lead_cal_view');
+    if(saved==='week'||saved==='month')setCalView(saved);
   },[]);
   const [weekStart,setWeekStart]=useState(startOfWeek(new Date()));
   const [viewingLead,setViewingLead]=useState<any>(null);
@@ -712,7 +714,7 @@ export default function GuestView(){
         {view==='calendar'&&(
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className={`hidden sm:flex border rounded-xl p-1 gap-1 ${D?' border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}><button onClick={()=>setCalView('month')} className={`px-3 py-1 rounded-full text-mini font-bold transition ${calView==='month'?'bg-brand-lead text-white':dimText}`}>{t('월','Month')}</button><button onClick={()=>setCalView('week')} className={`px-3 py-1 rounded-full text-mini font-bold transition ${calView==='week'?'bg-brand-lead text-white':dimText}`}>{t('주','Week')}</button></div>
+              <div className={`hidden sm:flex border rounded-xl p-1 gap-1 ${D?' border-white/10':'bg-black/[0.04] border-black/[0.08]'}`}><button onClick={()=>{setCalView('month');localStorage.setItem('lead_cal_view','month');}} className={`px-3 py-1 rounded-full text-mini font-bold transition ${calView==='month'?'bg-brand-lead text-white':dimText}`}>{t('월','Month')}</button><button onClick={()=>{setCalView('week');localStorage.setItem('lead_cal_view','week');}} className={`px-3 py-1 rounded-full text-mini font-bold transition ${calView==='week'?'bg-brand-lead text-white':dimText}`}>{t('주','Week')}</button></div>
               {calView==='month'&&<div className="hidden sm:flex items-center gap-3"><button onClick={()=>setCurrentMonth(new Date(year,month-1))} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>‹</button><span className={`font-black text-lead ${D?'text-white':'text-[#111]'}`}>{globalEn?`${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month]} ${year}`:`${year}년 ${month+1}월`}</span><button onClick={()=>setCurrentMonth(new Date(year,month+1))} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>›</button></div>}
               {calView==='week'&&<div className="flex items-center gap-3"><button onClick={()=>{const d=new Date(weekStart);d.setDate(d.getDate()-7);setWeekStart(d);}} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>‹</button><span className={`font-black text-body ${D?'text-white':'text-[#111]'}`}>{weekDays[0].getMonth()+1}/{weekDays[0].getDate()} – {weekDays[6].getMonth()+1}/{weekDays[6].getDate()}</span><button onClick={()=>{const d=new Date(weekStart);d.setDate(d.getDate()+7);setWeekStart(d);}} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D?'bg-white/5 border-white/10 text-zinc-400 hover:text-white':'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>›</button></div>}
               <button onClick={()=>{setCurrentMonth(new Date());setWeekStart(startOfWeek(new Date()));}} className={`text-mini font-bold transition-colors ${D?'text-zinc-600 hover:text-white':'text-zinc-400 hover:text-[#111]'}`}>{t('오늘','Today')}</button>
