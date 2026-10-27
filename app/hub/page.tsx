@@ -44,6 +44,9 @@ export default function HubPage() {
   const [member, setMember] = useState<{ id: string; name: string }[]>([]);
   const [castProjects, setCastProjects] = useState<string[]>([]);
   const [castMemberships, setCastMemberships] = useState<{ hostId: string; project: string; name: string }[]>([]);
+  // SPLIT도 LEAD·CAST와 같은 '내 것들 + 추가' 구조로 맞춘다.
+  // 전에는 /split으로 가는 카드가 두 장 있었는데 둘이 완전히 같은 곳이었다.
+  const [sheets, setSheets] = useState<{ id: string; title: string; sub: string }[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -112,6 +115,26 @@ export default function HubPage() {
         if (p.user_id === u.id || seen.has(k)) return false;
         seen.add(k); return true;
       }).map((p: any) => ({ hostId: p.user_id, project: p.project || '', name: p.name || '' })));
+
+      // 스플릿시트 — 내가 만든 것과 참여 중인 것 (/split 화면과 같은 기준)
+      const { data: owned } = await supabase.from('split_sheets')
+        .select('id, song_title, artist_name').eq('owner_id', u.id)
+        .order('created_at', { ascending: false }).limit(5);
+      const { data: contrib } = await supabase.from('split_contributors')
+        .select('sheet_id').eq('user_id', u.id);
+      const otherIds = [...new Set((contrib || []).map((c: any) => c.sheet_id))]
+        .filter(id => !(owned || []).some((x: any) => x.id === id));
+      let shared: any[] = [];
+      if (otherIds.length) {
+        const { data } = await supabase.from('split_sheets')
+          .select('id, song_title, artist_name').in('id', otherIds).limit(5);
+        shared = data || [];
+      }
+      setSheets([...(owned || []), ...shared].slice(0, 6).map((x: any) => ({
+        id: x.id,
+        title: x.song_title || t('(제목 없음)', '(Untitled)'),
+        sub: x.artist_name || t('아티스트 미정', 'Artist TBD'),
+      })));
 
       setLoading(false);
     })();
@@ -239,14 +262,19 @@ export default function HubPage() {
               <span className="text-mini text-bone-dim">{t('저작권 지분', 'Songwriter splits')}</span>
             </div>
             <div className="grid gap-2">
-              <Link href="/split" {...hubCard('#2FB6A3', true)}>
-                <div {...hubIcon('#2FB6A3')}><i className="ti ti-file-text" aria-hidden="true"></i></div>
-                <div className="flex-1 min-w-0"><p className="font-black text-body truncate text-bone">{t('스플릿시트', 'Split Sheet')}</p><p className="text-mini text-bone-dim">{t('전세계 표준 저작권 지분 문서', 'Global-standard split sheet')}</p></div>
-                <span className="text-brand-split-text text-lead font-black shrink-0 opacity-60">→</span>
-              </Link>
-              <Link href="/split" className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-split/25 bg-brand-split/[0.03] hover:bg-brand-split/[0.07] text-left transition">
+              {sheets.map(sh => (
+                <button key={sh.id} onClick={() => router.push(`/split/${sh.id}`)} {...hubCard('#2FB6A3', true)}>
+                  <div {...hubIcon('#2FB6A3')}><i className="ti ti-file-text" aria-hidden="true"></i></div>
+                  <div className="flex-1 min-w-0"><p className="font-black text-body truncate text-bone">{sh.title}</p><p className="text-mini text-bone-dim truncate">{sh.sub}</p></div>
+                  <span className="text-brand-split-text text-lead font-black shrink-0 opacity-60">→</span>
+                </button>
+              ))}
+              <Link href="/split" className="flex items-center gap-4 p-4 rounded-xl border border-dashed border-brand-split/25 bg-brand-split/[0.03] hover:bg-brand-split/[0.07] text-left transition-colors">
                 <div {...hubIcon('#2FB6A3')}>＋</div>
-                <div className="flex-1 min-w-0"><p className="font-bold text-body text-bone">{t('새 스플릿시트', 'New split sheet')}</p><p className="text-mini text-bone-dim">{t('저작권 지분 문서 만들기', 'Create a split sheet')}</p></div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-body text-bone">{sheets.length ? t('스플릿시트 전체 보기', 'All split sheets') : t('SPLIT 시작하기', 'Get started with SPLIT')}</p>
+                  <p className="text-mini text-bone-dim">{sheets.length ? t('만들기 · 서명 요청 · CWR 내보내기', 'Create, request signatures, export CWR') : t('전세계 표준 저작권 지분 문서', 'Global-standard split sheet')}</p>
+                </div>
               </Link>
             </div>
           </section>

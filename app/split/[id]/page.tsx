@@ -653,7 +653,9 @@ export default function SplitEditor({ params }: { params: Promise<{ id: string }
           <div className="flex items-start gap-3 mb-4 px-4 py-3 rounded-xl border border-amber-500/40 bg-amber-500/[0.08]">
             <span className="text-body">
               ⚠ {t('서명 뒤에 문서가 바뀌었어요.', 'The document changed after signing.')}{' '}
-              <b>{staleRows.map((r) => r.legal_name || r.stage_name || '—').join(', ')}</b>
+              {/* 폴백이 '—'이면 "—의 서명은 무효예요"로 읽혀 문장이 깨진다.
+                  이름 없는 기여자는 실제로 생긴다(이메일만 받고 아직 안 채운 경우). */}
+              <b>{staleRows.map((r) => r.legal_name || r.stage_name || t('이름 없는 기여자', 'an unnamed contributor')).join(', ')}</b>
               {locked
                 ? t('의 서명은 지금 내용과 맞지 않아 무효예요. 잠금 해제 후 다시 받아야 CWR·증빙을 내보낼 수 있어요.',
                     '’s signature no longer matches the current terms. Unlock and re-sign before exporting CWR/evidence.')
