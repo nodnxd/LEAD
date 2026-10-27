@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useParams, useSearchParams } from 'next/navigation';
+import { applyDocTheme } from '@/lib/theme';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 import { onDbError } from '@/lib/dbErrors';
 import { buildDaysIcs, downloadIcs } from '@/lib/ics';
@@ -133,8 +134,9 @@ export default function AvailabilityView() {
     setLang(getLang());
     const saved = localStorage.getItem('cast_theme') as Theme | null;
     if (saved) setTheme(saved);
+    applyDocTheme(saved ?? 'dark');   // 위와 같은 이유 (lib/theme.tsx 주석 참고)
     const sync = () => setLang(getLang());
-    const syncTheme = () => setTheme((localStorage.getItem('cast_theme') as Theme) || 'dark');
+    const syncTheme = () => { const n = (localStorage.getItem('cast_theme') as Theme) || 'dark'; setTheme(n); applyDocTheme(n); };
     window.addEventListener(LANG_EVENT, sync);
     window.addEventListener('storage', syncTheme);
     return () => { window.removeEventListener(LANG_EVENT, sync); window.removeEventListener('storage', syncTheme); };
@@ -142,7 +144,7 @@ export default function AvailabilityView() {
 
   const toggleTheme = () => {
     const next: Theme = dark ? 'light' : 'dark';
-    setTheme(next); localStorage.setItem('cast_theme', next);
+    setTheme(next); localStorage.setItem('cast_theme', next); applyDocTheme(next);
   };
   const toggleLang = () => setLangValue(lang === 'ko' ? 'en' : 'ko');
 

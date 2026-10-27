@@ -62,9 +62,9 @@ function InquiryForm({ initialTopic, onClose, dark, brand }: { initialTopic: str
   const primary = brand === 'cast' ? 'bg-brand-cast text-black' : 'bg-brand-lead text-white';
   const chipOn = brand === 'cast' ? 'bg-brand-cast/20 border-brand-cast/50 text-brand-cast-text' : 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text';
   const focus = brand === 'cast' ? 'focus:border-brand-cast/50' : 'focus:border-brand-lead/50';
-  const inputCls = `w-full border rounded-xl px-3 py-2.5 text-body outline-none transition ${focus} ${D ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-700' : 'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400'}`;
-  const labelCls = `block text-micro font-black uppercase tracking-widest mb-2 ${D ? 'text-zinc-600' : 'text-zinc-400'}`;
-  const dimText = 'text-zinc-500';
+  const inputCls = `w-full border rounded-xl px-3 py-2.5 text-body outline-none transition ${focus} ${D ? 'bg-white/5 border-white/10 text-white placeholder:text-bone-dim' : 'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-bone-dim'}`;
+  const labelCls = `block text-micro font-black uppercase tracking-widest mb-2 ${D ? 'text-bone-dim' : 'text-bone-dim'}`;
+  const dimText = 'text-bone-dim';
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-md font-ui p-0 sm:p-4" onClick={onClose}>
@@ -74,7 +74,7 @@ function InquiryForm({ initialTopic, onClose, dark, brand }: { initialTopic: str
             <h2 id="inquiry-title" className={`font-black text-sub ${D ? 'text-white' : 'text-[#111]'}`}><i className="ti ti-message-circle" aria-hidden="true"></i> {t('문의하기', 'Contact us')}</h2>
             <p className={`text-mini mt-0.5 ${dimText}`}>{t('운영자에게 바로 전달돼요. 답장은 적어주신 이메일로 보내드려요.', 'Goes straight to the team. We reply to the email you enter.')}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label={t('닫기', 'Close')} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D ? 'bg-white/5 border-white/10 text-zinc-500' : 'bg-black/[0.04] border-black/[0.08] text-zinc-500'}`}>✕</button>
+          <button type="button" onClick={onClose} aria-label={t('닫기', 'Close')} className={`w-8 h-8 rounded-full border flex items-center justify-center text-body ${D ? 'bg-white/5 border-white/10 text-bone-dim' : 'bg-black/[0.04] border-black/[0.08] text-bone-dim'}`}>✕</button>
         </div>
 
         {state === 'done' ? (
@@ -91,7 +91,7 @@ function InquiryForm({ initialTopic, onClose, dark, brand }: { initialTopic: str
               <div className="flex flex-wrap gap-1.5">
                 {INQUIRY_TOPICS.map(tp => (
                   <button key={tp} type="button" onClick={() => setTopic(tp)} aria-pressed={topic === tp}
-                    className={`px-3 py-1.5 rounded-full text-mini font-bold border transition ${topic === tp ? chipOn : D ? 'bg-white/5 border-white/10 text-zinc-500 hover:text-white' : 'bg-black/[0.04] border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+                    className={`px-3 py-1.5 rounded-full text-mini font-bold border transition ${topic === tp ? chipOn : D ? 'bg-white/5 border-white/10 text-bone-dim hover:text-white' : 'bg-black/[0.04] border-black/[0.08] text-bone-dim hover:text-[#111]'}`}>
                     {t(tp, TOPIC_EN[tp])}
                   </button>
                 ))}

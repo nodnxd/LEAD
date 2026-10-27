@@ -10,7 +10,7 @@ import Toast from '@/components/Toast';
 
 const PSTATUS: Record<string, { ko: string; en: string; cls: string }> = {
   pitched: { ko: '피칭', en: 'Pitched', cls: 'bg-emerald-500/15 text-emerald-400' },
-  unpitched: { ko: '논피칭', en: 'Unpitched', cls: 'bg-zinc-500/15 text-zinc-400' },
+  unpitched: { ko: '논피칭', en: 'Unpitched', cls: 'bg-zinc-500/15 text-bone-dim' },
   hold: { ko: '보류', en: 'On hold', cls: 'bg-amber-500/15 text-amber-400' },
   cut: { ko: '컷', en: 'Cut', cls: 'bg-brand-lead/15 text-[#A48BF0]' },
 };
@@ -230,10 +230,10 @@ export default function MyPage() {
   const bg = D ? 'bg-surface-1 text-white' : 'bg-[#E6E6EC] text-[#111]';
   const card = D ? 'bg-surface-2 border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.1] shadow-sm';
   const inputCls = D
-    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-700 focus:border-brand-lead/60'
-    : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-brand-lead/60';
-  const labelCls = `text-micro font-black uppercase tracking-widest mb-1.5 block ${D ? 'text-zinc-500' : 'text-zinc-400'}`;
-  const dimText = D ? 'text-zinc-500' : 'text-zinc-600';
+    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-bone-dim focus:border-brand-lead/60'
+    : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-bone-dim focus:border-brand-lead/60';
+  const labelCls = `text-micro font-black uppercase tracking-widest mb-1.5 block ${D ? 'text-bone-dim' : 'text-bone-dim'}`;
+  const dimText = D ? 'text-bone-dim' : 'text-bone-dim';
   const divider = D ? 'border-white/[0.07]' : 'border-black/[0.1]';
 
   const roleLabels: Record<string, string> = { producer: 'Producer', topliner: 'Top-liner', lyricist: 'Lyricist', engineer: 'Engineer', ar: 'A&R' };
@@ -260,17 +260,17 @@ export default function MyPage() {
             </div>
             <div className="flex items-center gap-2">
               {hostId && (
-                <button onClick={() => router.push(`/view/${hostId}`)} className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+                <button onClick={() => router.push(`/view/${hostId}`)} className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${D ? 'border-white/10 text-bone-dim hover:text-white' : 'border-black/[0.08] text-bone-dim hover:text-[#111]'}`}>
                   ← {t('돌아가기', 'Back')}
                 </button>
               )}
-              <LangToggle className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-mini font-bold hover:text-white transition" />
+              <LangToggle className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-bone-dim text-mini font-bold hover:text-white transition" />
               <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
                 className={`w-9 h-9 rounded-full border flex items-center justify-center text-body ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
                 {D ? '☀' : '◑'}
               </button>
               <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))}
-                className={`text-mini font-bold transition-colors ${D ? 'text-zinc-600 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>
+                className={`text-mini font-bold transition-colors ${D ? 'text-bone-dim hover:text-red-400' : 'text-bone-dim hover:text-red-500'}`}>
                 {t('로그아웃', 'Log out')}
               </button>
             </div>
@@ -299,7 +299,7 @@ export default function MyPage() {
                   {member?.genres?.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {member.genres.map((g: string) => (
-                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
+                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-bone-dim' : 'bg-black/[0.05] text-bone-dim'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
                       ))}
                     </div>
                   )}
@@ -313,7 +313,7 @@ export default function MyPage() {
             {/* 연락처 */}
             <div className={`px-6 py-4 border-b ${divider} flex flex-wrap gap-4`}>
               {member?.email && (
-                <div><p className={labelCls}>{t('이메일', 'Email')}</p><p className={`text-body ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{member.email}</p></div>
+                <div><p className={labelCls}>{t('이메일', 'Email')}</p><p className={`text-body ${D ? 'text-bone' : 'text-bone-dim'}`}>{member.email}</p></div>
               )}
               {member?.instagram && (
                 <div><p className={labelCls}>{t('인스타그램', 'Instagram')}</p>
@@ -330,7 +330,7 @@ export default function MyPage() {
                   {demos.map(d => (
                     <div key={d.id} className={`cv-row flex items-center gap-3 p-3 rounded-xl border ${D ? '/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                       <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
-                      <span className={`flex-1 text-mini font-bold truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{d.file_name}</span>
+                      <span className={`flex-1 text-mini font-bold truncate ${D ? 'text-bone' : 'text-bone-dim'}`}>{d.file_name}</span>
                       <button onClick={async () => {
                         const path = d.file_url.split('/member-demos/')[1];
                         if (!path) return;
@@ -367,7 +367,7 @@ export default function MyPage() {
                         <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-mini font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
+                        <p className={`text-mini font-bold truncate ${D ? 'text-bone' : 'text-bone-dim'}`}>{w.song_title}</p>
                         <p className={`text-mini ${dimText}`}>{w.artist_name}</p>
                       </div>
                       <span className="text-brand-lead-text text-mini">→</span>
@@ -399,17 +399,17 @@ export default function MyPage() {
                         <div className="flex items-center gap-1.5 shrink-0">
                           {p.status && PSTATUS[p.status] && <span className={`text-micro font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${PSTATUS[p.status].cls}`}>{pitchChanged(p) && <span className="w-1.5 h-1.5 rounded-full bg-current" />}{t(PSTATUS[p.status].ko, PSTATUS[p.status].en)}</span>}
                           {files.length > 0 && (
-                            <span className={`text-micro font-black px-2 py-0.5 rounded-full ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>
+                            <span className={`text-micro font-black px-2 py-0.5 rounded-full ${D ? 'bg-white/10 text-bone-dim' : 'bg-black/[0.06] text-bone-dim'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>
                           )}
                         </div>
                       </div>
-                      {p.message && <p className={`text-mini leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>}
+                      {p.message && <p className={`text-mini leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{p.message}</p>}
                       {files.length > 0 && (
                         <div className="flex flex-col gap-1.5 mt-2">
                           {files.map(f => (
                             <div key={f.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.03]'}`}>
                               <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
-                              <span className={`flex-1 text-mini truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
+                              <span className={`flex-1 text-mini truncate ${D ? 'text-bone' : 'text-bone-dim'}`}>{f.file_name || 'audio.mp3'}</span>
                               {f.bpm > 0 && <span className={`text-micro font-black ${dimText}`}>{f.bpm}BPM</span>}
                               {f.genre && <span className="text-micro font-black text-brand-lead-text">{f.genre}</span>}
                             </div>
@@ -458,7 +458,7 @@ export default function MyPage() {
                     <label className={labelCls}>{t('성별', 'Gender')}</label>
                     <div className="flex gap-2">
                       {[['male', t('남성','Male')], ['female', t('여성','Female')], ['other', t('기타','Other')]].map(([v, l]) => (
-                        <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2 rounded-full border text-mini font-bold transition ${gender === v ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{l}</button>
+                        <button key={v} onClick={() => setGender(v)} className={`flex-1 py-2 rounded-full border text-mini font-bold transition ${gender === v ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-bone-dim' : 'bg-black/[0.03] border-black/[0.08] text-bone-dim'}`}>{l}</button>
                       ))}
                     </div>
                   </div>
@@ -477,7 +477,7 @@ export default function MyPage() {
                     <label className={labelCls}>{t('역할', 'Roles')}</label>
                     <div className="flex flex-wrap gap-2">
                       {ROLES.map(r => (
-                        <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${roles.includes(r.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{r.label}</button>
+                        <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)} className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${roles.includes(r.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-bone-dim' : 'bg-black/[0.03] border-black/[0.08] text-bone-dim'}`}>{r.label}</button>
                       ))}
                     </div>
                   </div>
@@ -486,7 +486,7 @@ export default function MyPage() {
                     <label className={labelCls}>{t('선호 장르', 'Genres')}</label>
                     <div className="flex flex-wrap gap-2">
                       {GENRES.map(g => (
-                        <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${genres.includes(g.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>{g.label}</button>
+                        <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)} className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${genres.includes(g.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-bone-dim' : 'bg-black/[0.03] border-black/[0.08] text-bone-dim'}`}>{g.label}</button>
                       ))}
                     </div>
                     {genres.includes('ETC') && (
@@ -502,7 +502,7 @@ export default function MyPage() {
                         {demos.map(d => (
                           <div key={d.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${D ? '/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                             <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
-                            <span className={`flex-1 text-mini truncate ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.file_name}</span>
+                            <span className={`flex-1 text-mini truncate ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{d.file_name}</span>
                             <button onClick={() => deleteDemo(d)} className="text-red-400/60 hover:text-red-400 text-mini font-bold">{t('삭제', 'Delete')}</button>
                           </div>
                         ))}
@@ -512,7 +512,7 @@ export default function MyPage() {
                       <>
                         <input ref={demoRef} type="file" accept=".mp3,audio/mpeg" multiple className="hidden"
                           onChange={e => { const files = Array.from(e.target.files || []).slice(0, 3 - demos.length - newDemoFiles.length); setNewDemoFiles(p => [...p, ...files]); e.target.value = ''; }} />
-                        <button onClick={() => demoRef.current?.click()} className={`w-full py-2.5 rounded-full border-2 border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-zinc-600 hover:border-white/20 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:border-black/20'}`}>{t('+ 데모곡 추가', '+ Add demo')} ({3 - demos.length - newDemoFiles.length} {t('개 남음', 'left')})</button>
+                        <button onClick={() => demoRef.current?.click()} className={`w-full py-2.5 rounded-full border-2 border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-bone-dim hover:border-white/20 hover:text-bone-dim' : 'border-black/10 text-bone-dim hover:border-black/20'}`}>{t('+ 데모곡 추가', '+ Add demo')} ({3 - demos.length - newDemoFiles.length} {t('개 남음', 'left')})</button>
                       </>
                     )}
                     {newDemoFiles.length > 0 && (
@@ -547,14 +547,14 @@ export default function MyPage() {
                         </div>
                       ))}
                       {editWorks.length < 5 && (
-                        <button onClick={() => setEditWorks(p => [...p, { song_title: '', artist_name: '', link: '' }])} className={`py-2 rounded-full border border-dashed text-mini font-bold ${D ? 'border-white/10 text-zinc-600 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:text-zinc-600'}`}>+ {t('추가', 'Add')}</button>
+                        <button onClick={() => setEditWorks(p => [...p, { song_title: '', artist_name: '', link: '' }])} className={`py-2 rounded-full border border-dashed text-mini font-bold ${D ? 'border-white/10 text-bone-dim hover:text-bone-dim' : 'border-black/10 text-bone-dim hover:text-bone-dim'}`}>+ {t('추가', 'Add')}</button>
                       )}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
-                  <button onClick={() => setEditing(false)} className={`flex-1 py-3 rounded-full border font-bold text-body ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>{t('취소', 'Cancel')}</button>
+                  <button onClick={() => setEditing(false)} className={`flex-1 py-3 rounded-full border font-bold text-body ${D ? 'border-white/10 text-bone-dim hover:text-white' : 'border-black/[0.08] text-bone-dim'}`}>{t('취소', 'Cancel')}</button>
                   <button onClick={handleSave} disabled={saving} className="flex-1 py-3 rounded-full bg-brand-lead text-white font-semibold text-body hover:opacity-90 transition disabled:opacity-50">
                     {saving ? t('저장 중...', 'Saving…') : t('저장', 'Save')}
                   </button>

@@ -50,7 +50,7 @@ export default function CardPage() {
   const bg = D ? 'bg-surface-1' : 'bg-[#E6E6EC]';
   const card = D ? 'bg-surface-2 border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.08]';
   const tx = D ? 'text-white' : 'text-[#111]';
-  const dm = D ? 'text-zinc-500' : 'text-zinc-500';
+  const dm = D ? 'text-bone-dim' : 'text-bone-dim';
   const dv = D ? 'border-white/[0.07]' : 'border-black/[0.07]';
   const isHost = profile?.userType === 'host';
 
@@ -127,7 +127,7 @@ export default function CardPage() {
                   <span className={`text-micro font-black uppercase tracking-widest w-14 shrink-0 mt-0.5 ${dm}`}>{t('장르', 'Genres')}</span>
                   <div className="flex flex-wrap gap-1">
                     {profile.genres.slice(0, 5).map((g: string) => (
-                      <span key={g} className={`text-mini font-bold px-2 py-0.5 rounded-full ${D ? 'bg-white/5 text-zinc-300' : 'bg-black/[0.05] text-zinc-600'}`}>
+                      <span key={g} className={`text-mini font-bold px-2 py-0.5 rounded-full ${D ? 'bg-white/5 text-bone' : 'bg-black/[0.05] text-bone-dim'}`}>
                         {g.startsWith('ETC:') ? g.slice(4) : g}
                       </span>
                     ))}
@@ -149,7 +149,7 @@ export default function CardPage() {
                 {Object.entries(profile.links as Record<string, string>).filter(([, v]) => v).map(([k, v]) => {
                   const label: Record<string, string> = { spotify: 'Spotify', youtube: 'YouTube', soundcloud: 'SoundCloud', x: 'X', tiktok: 'TikTok', website: 'Web' };
                   const href = v.startsWith('http') ? v : `https://${v}`;
-                  return <a key={k} href={href} target="_blank" rel="noopener noreferrer" className={`text-mini font-black px-2.5 py-1 rounded-full border transition ${D ? 'border-white/10 bg-white/5 text-zinc-300 hover:text-white' : 'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>{label[k] || k} →</a>;
+                  return <a key={k} href={href} target="_blank" rel="noopener noreferrer" className={`text-mini font-black px-2.5 py-1 rounded-full border transition ${D ? 'border-white/10 bg-white/5 text-bone hover:text-white' : 'border-black/[0.08] bg-black/[0.04] text-bone-dim hover:text-[#111]'}`}>{label[k] || k} →</a>;
                 })}
               </div>
             )}
@@ -164,7 +164,7 @@ export default function CardPage() {
                       className={`flex items-center gap-2.5 p-2.5 rounded-xl transition ${D ? 'bg-white/[0.02] hover:bg-white/5' : 'bg-black/[0.02] hover:bg-black/[0.05]'}`}>
                       <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-mini font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
+                        <p className={`text-mini font-bold truncate ${D ? 'text-bone' : 'text-bone-dim'}`}>{w.song_title}</p>
                         <p className={`text-mini ${dm}`}>{w.artist_name}</p>
                       </div>
                       <span className="text-brand-lead-text text-mini">→</span>
@@ -176,7 +176,7 @@ export default function CardPage() {
 
             {/* 푸터 */}
             <div className={`mt-5 pt-3 border-t ${dv} flex items-center justify-between`}>
-              <span className={`text-micro font-black tracking-[0.25em] ${D ? 'text-zinc-700' : 'text-zinc-300'}`}>LEAD by NEN</span>
+              <span className={`text-micro font-black tracking-[0.25em] ${D ? 'text-bone-dim' : 'text-bone'}`}>LEAD by NEN</span>
               <span className={`text-micro ${dm}`}>lead-by-nen.vercel.app</span>
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function CardPage() {
             <i className="ti ti-file-type-pdf" aria-hidden="true"></i> {t('PDF 저장', 'Save PDF')}
           </button>
           <button onClick={goBack}
-            className={`px-5 py-3 rounded-full border font-bold text-body transition ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>
+            className={`px-5 py-3 rounded-full border font-bold text-body transition ${D ? 'border-white/10 text-bone-dim hover:text-white' : 'border-black/[0.08] text-bone-dim hover:text-[#111]'}`}>
             ← {t('뒤로', 'Back')}
           </button>
         </div>
@@ -201,8 +201,8 @@ export default function CardPage() {
 function Row({ label, value, D }: { label: string; value: string; D: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <span className={`text-micro font-black uppercase tracking-widest w-14 ${D ? 'text-zinc-600' : 'text-zinc-400'}`}>{label}</span>
-      <span className={`text-mini ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{value}</span>
+      <span className={`text-micro font-black uppercase tracking-widest w-14 ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{label}</span>
+      <span className={`text-mini ${D ? 'text-bone' : 'text-bone-dim'}`}>{value}</span>
     </div>
   );
 }

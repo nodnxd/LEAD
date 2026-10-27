@@ -316,10 +316,10 @@ export default function MyPage() {
   const bg = D ? 'bg-surface-1 text-white' : 'bg-[#E6E6EC] text-[#111]';
   const card = D ? 'bg-surface-2 border-[rgba(255,255,255,0.08)]' : 'bg-white border-black/[0.1] shadow-sm';
   const inputCls = D
-    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-zinc-500 focus:border-brand-lead/60'
-    : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-zinc-400 focus:border-brand-lead/60';
-  const labelCls = `text-micro font-black uppercase tracking-widest mb-1.5 block ${D ? 'text-zinc-500' : 'text-zinc-400'}`;
-  const dimText = D ? 'text-zinc-500' : 'text-zinc-600';
+    ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-bone-dim focus:border-brand-lead/60'
+    : 'bg-black/[0.03] border-black/[0.08] text-[#111] placeholder:text-bone-dim focus:border-brand-lead/60';
+  const labelCls = `text-micro font-black uppercase tracking-widest mb-1.5 block ${D ? 'text-bone-dim' : 'text-bone-dim'}`;
+  const dimText = D ? 'text-bone-dim' : 'text-bone-dim';
   const divider = D ? 'border-white/[0.07]' : 'border-black/[0.1]';
 
   const hostId = typeof window !== 'undefined' ? localStorage.getItem('last_host_id') : null;
@@ -353,13 +353,13 @@ export default function MyPage() {
                   className="px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-mini font-bold hover:bg-amber-500/20 transition">
                   <i className="ti ti-layout-dashboard" aria-hidden="true"></i> {t('대시보드', 'Dashboard')}
                 </button>
-                <LangToggle className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-mini font-bold hover:text-white transition" />
+                <LangToggle className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-bone-dim text-mini font-bold hover:text-white transition" />
                 <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
                   className={`w-9 h-9 rounded-full border flex items-center justify-center text-body ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
                   {D ? <i className="ti ti-sun" aria-hidden="true"></i> : <i className="ti ti-moon" aria-hidden="true"></i>}
                 </button>
                 <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))}
-                  className={`text-mini font-bold transition-colors ${D ? 'text-zinc-600 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>
+                  className={`text-mini font-bold transition-colors ${D ? 'text-bone-dim hover:text-red-400' : 'text-bone-dim hover:text-red-500'}`}>
                   {t('로그아웃', 'Log out')}
                 </button>
               </div>
@@ -378,8 +378,8 @@ export default function MyPage() {
                     <span className="text-micro font-black px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">HOST</span>
                   </div>
                   <p className={`font-bold text-lead ${D ? 'text-white' : 'text-[#111]'}`}>{hostProfile?.display_name || user?.email?.split('@')[0]}</p>
-                  <p className={`text-mini ${D ? 'text-zinc-500' : 'text-zinc-500'}`}>{user?.email}</p>
-                  {hostProfile?.company && <p className={`text-mini mt-0.5 ${D ? 'text-zinc-600' : 'text-zinc-400'}`}>{hostProfile.company}</p>}
+                  <p className={`text-mini ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{user?.email}</p>
+                  {hostProfile?.company && <p className={`text-mini mt-0.5 ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{hostProfile.company}</p>}
                 </div>
                 <button onClick={openHostEdit}
                   className="shrink-0 px-3 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-mini font-bold hover:bg-amber-500/20 transition">
@@ -397,7 +397,7 @@ export default function MyPage() {
                       ))}
                     </div>
                   )}
-                  {hostProfile?.bio && <p className={`text-mini leading-relaxed ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{hostProfile.bio}</p>}
+                  {hostProfile?.bio && <p className={`text-mini leading-relaxed ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{hostProfile.bio}</p>}
                   {hostProfile?.instagram && (
                     <a href={`https://instagram.com/${hostProfile.instagram}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-1 text-mini text-brand-lead-text hover:underline"><i className="ti ti-brand-instagram" aria-hidden="true"></i> @{hostProfile.instagram}</a>
                   )}
@@ -420,7 +420,7 @@ export default function MyPage() {
               ].map(s => (
                 <div key={s.label} className={`cv-row border rounded-xl p-4 ${card}`}>
                   <p className={`text-title font-black ${s.color}`}>{s.value}</p>
-                  <p className={`text-mini font-bold ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{s.label}</p>
+                  <p className={`text-mini font-bold ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{s.label}</p>
                   <p className={`text-micro mt-0.5 ${dimText}`}>{s.sub}</p>
                 </div>
               ))}
@@ -447,12 +447,12 @@ export default function MyPage() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {pCount > 0 && (
-                            <span className={`text-micro font-black px-2 py-0.5 rounded-full ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>
+                            <span className={`text-micro font-black px-2 py-0.5 rounded-full ${D ? 'bg-white/10 text-bone-dim' : 'bg-black/[0.06] text-bone-dim'}`}>
                               <i className="ti ti-music" aria-hidden="true"></i> {pCount}
                             </span>
                           )}
                           {dday && (
-                            <span className={`text-micro font-black px-2 py-0.5 rounded-full border ${expired ? 'text-red-400/60 border-red-500/20' : dday === 'D-DAY' ? 'text-yellow-400 border-yellow-500/30' : D ? 'text-zinc-400 border-zinc-700' : 'text-zinc-500 border-zinc-300'}`}>
+                            <span className={`text-micro font-black px-2 py-0.5 rounded-full border ${expired ? 'text-red-400/60 border-red-500/20' : dday === 'D-DAY' ? 'text-yellow-400 border-yellow-500/30' : D ? 'text-bone-dim border-zinc-700' : 'text-bone-dim border-zinc-300'}`}>
                               {dday}
                             </span>
                           )}
@@ -484,13 +484,13 @@ export default function MyPage() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className={`text-micro font-black uppercase tracking-widest w-8 shrink-0 ${dimText}`}>{t('정렬', 'Sort')}</span>
                       {([['recent',t('최신순','Recent')],['bpm','BPM'],['vocal',t('보컬','Vocal')],['key','Key']] as const).map(([v,l])=>(
-                        <button key={v} onClick={()=>setPitchSort(v)} className={`text-micro font-black px-2.5 py-1 rounded-full border transition ${pitchSort===v?'bg-brand-lead border-brand-lead text-white':D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
+                        <button key={v} onClick={()=>setPitchSort(v)} className={`text-micro font-black px-2.5 py-1 rounded-full border transition ${pitchSort===v?'bg-brand-lead border-brand-lead text-white':D?'border-white/10 text-bone-dim hover:text-white':'border-black/[0.08] text-bone-dim hover:text-[#111]'}`}>{l}</button>
                       ))}
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className={`text-micro font-black uppercase tracking-widest w-8 shrink-0 ${dimText}`}>{t('보컬', 'Vocal')}</span>
                       {([['all',t('전체','All')],['male',t('남성','Male')],['female',t('여성','Female')],['both',t('혼성','Mixed')]] as const).map(([v,l])=>(
-                        <button key={v} onClick={()=>setPitchVocalFilter(v)} className={`text-micro font-black px-2.5 py-1 rounded-full border transition ${pitchVocalFilter===v?'bg-brand-lead border-brand-lead text-white':D?'border-white/10 text-zinc-500 hover:text-white':'border-black/[0.08] text-zinc-500 hover:text-[#111]'}`}>{l}</button>
+                        <button key={v} onClick={()=>setPitchVocalFilter(v)} className={`text-micro font-black px-2.5 py-1 rounded-full border transition ${pitchVocalFilter===v?'bg-brand-lead border-brand-lead text-white':D?'border-white/10 text-bone-dim hover:text-white':'border-black/[0.08] text-bone-dim hover:text-[#111]'}`}>{l}</button>
                       ))}
                     </div>
                   </div>
@@ -524,13 +524,13 @@ export default function MyPage() {
                               </p>
                             </div>
                             {files.length > 0 && (
-                              <span className={`text-micro font-black px-2 py-0.5 rounded-full shrink-0 ml-2 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}>
+                              <span className={`text-micro font-black px-2 py-0.5 rounded-full shrink-0 ml-2 ${D ? 'bg-white/10 text-bone-dim' : 'bg-black/[0.06] text-bone-dim'}`}>
                                 <i className="ti ti-music" aria-hidden="true"></i> {files.length}
                               </span>
                             )}
                           </div>
                           {p.message && (
-                            <p className={`text-mini leading-relaxed whitespace-pre-line ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>
+                            <p className={`text-mini leading-relaxed whitespace-pre-line ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{p.message}</p>
                           )}
                           {files.length > 0 && (
                             <div className="flex flex-col gap-2 mt-2">
@@ -540,7 +540,7 @@ export default function MyPage() {
                                 <div key={f.id} className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.04]'}`}>
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
-                                    <span className={`flex-1 min-w-0 text-mini truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
+                                    <span className={`flex-1 min-w-0 text-mini truncate ${D ? 'text-bone' : 'text-bone-dim'}`}>{f.file_name || 'audio.mp3'}</span>
                                     {vLabel && <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-brand-lead/15 text-brand-lead-text">{vLabel}</span>}
                                     {f.bpm > 0 && <span className={`text-micro font-black ${dimText}`}>{f.bpm}BPM</span>}
                                     {f.key && <span className={`text-micro font-black ${dimText}`}>{f.key}</span>}
@@ -584,7 +584,7 @@ export default function MyPage() {
                             <p className={`font-bold text-body ${D ? 'text-white' : 'text-[#111]'}`}>{m?.artist_name || '—'}</p>
                             <div className="flex flex-wrap gap-1 mt-0.5">
                               {m?.roles?.slice(0, 2).map((r: string) => (
-                                <span key={r} className={`text-micro font-black px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>
+                                <span key={r} className={`text-micro font-black px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-bone-dim' : 'bg-black/[0.05] text-bone-dim'}`}>
                                   {roleLabels[r] || r}
                                 </span>
                               ))}
@@ -624,7 +624,7 @@ export default function MyPage() {
 
                     <div>
                       <label className={labelCls}>{t('이메일', 'Email')}</label>
-                      <p className={`text-body px-3 py-2.5 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06] text-zinc-500' : 'bg-black/[0.02] border-black/[0.06] text-zinc-400'}`}>{user?.email}</p>
+                      <p className={`text-body px-3 py-2.5 rounded-xl border ${D ? 'bg-white/[0.02] border-white/[0.06] text-bone-dim' : 'bg-black/[0.02] border-black/[0.06] text-bone-dim'}`}>{user?.email}</p>
                     </div>
                     <div>
                       <label className={labelCls}>{t('표시 이름', 'Display name')}</label>
@@ -650,7 +650,7 @@ export default function MyPage() {
                       <div className="flex flex-wrap gap-2">
                         {ROLES.map(r => (
                           <button key={r.id} onClick={() => setHostRoles(p => p.includes(r.id) ? p.filter(x => x !== r.id) : [...p, r.id])}
-                            className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${hostRoles.includes(r.id) ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                            className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${hostRoles.includes(r.id) ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : D ? 'bg-white/[0.03] border-white/[0.08] text-bone-dim' : 'bg-black/[0.03] border-black/[0.08] text-bone-dim'}`}>
                             {r.label}
                           </button>
                         ))}
@@ -661,7 +661,7 @@ export default function MyPage() {
                       <div className="flex flex-wrap gap-2">
                         {GENRES.map(g => (
                           <button key={g.id} onClick={() => setHostGenres(p => p.includes(g.id) ? p.filter(x => x !== g.id) : [...p, g.id])}
-                            className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${hostGenres.includes(g.id) ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                            className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${hostGenres.includes(g.id) ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : D ? 'bg-white/[0.03] border-white/[0.08] text-bone-dim' : 'bg-black/[0.03] border-black/[0.08] text-bone-dim'}`}>
                             {g.label}
                           </button>
                         ))}
@@ -670,7 +670,7 @@ export default function MyPage() {
                   </div>
                   <div className="flex gap-3 mt-6">
                     <button onClick={() => setHostEditing(false)}
-                      className={`flex-1 py-3 rounded-full border font-bold text-body ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>
+                      className={`flex-1 py-3 rounded-full border font-bold text-body ${D ? 'border-white/10 text-bone-dim hover:text-white' : 'border-black/[0.08] text-bone-dim'}`}>
                       {t('취소', 'Cancel')}
                     </button>
                     <button onClick={saveHostProfile} disabled={hostSaving}
@@ -706,16 +706,16 @@ export default function MyPage() {
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => { if (window.history.length > 1) router.back(); else router.push('/'); }}
-                className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${D ? 'border-white/10 bg-white/5 text-zinc-300 hover:text-white' : 'border-black/[0.08] bg-black/[0.04] text-zinc-600 hover:text-[#111]'}`}>
+                className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${D ? 'border-white/10 bg-white/5 text-bone hover:text-white' : 'border-black/[0.08] bg-black/[0.04] text-bone-dim hover:text-[#111]'}`}>
                 ← {t('돌아가기', 'Back')}
               </button>
-              <LangToggle className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-zinc-400 text-mini font-bold hover:text-white transition" />
+              <LangToggle className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-bone-dim text-mini font-bold hover:text-white transition" />
               <button onClick={() => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); localStorage.setItem('lead_theme', n); }}
                 className={`w-9 h-9 rounded-full border flex items-center justify-center text-body ${D ? 'bg-white/5 border-white/10' : 'bg-black/[0.04] border-black/[0.08]'}`}>
                 {D ? <i className="ti ti-sun" aria-hidden="true"></i> : <i className="ti ti-moon" aria-hidden="true"></i>}
               </button>
               <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))}
-                className={`text-mini font-bold transition-colors ${D ? 'text-zinc-600 hover:text-red-400' : 'text-zinc-400 hover:text-red-500'}`}>
+                className={`text-mini font-bold transition-colors ${D ? 'text-bone-dim hover:text-red-400' : 'text-bone-dim hover:text-red-500'}`}>
                 {t('로그아웃', 'Log out')}
               </button>
             </div>
@@ -744,7 +744,7 @@ export default function MyPage() {
                   {member?.genres?.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {member.genres.map((g: string) => (
-                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-zinc-500' : 'bg-black/[0.05] text-zinc-400'}`}>
+                        <span key={g} className={`text-micro font-bold px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-bone-dim' : 'bg-black/[0.05] text-bone-dim'}`}>
                           {g.startsWith('ETC:') ? g.slice(4) : g}
                         </span>
                       ))}
@@ -757,7 +757,7 @@ export default function MyPage() {
                     <i className="ti ti-pencil" aria-hidden="true"></i> {t('수정', 'Edit')}
                   </button>
                   <a href={`/card/${user?.id}`} target="_blank" rel="noopener noreferrer"
-                    className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 text-mini font-bold hover:text-white transition text-center">
+                    className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-bone-dim text-mini font-bold hover:text-white transition text-center">
                     <i className="ti ti-id-badge" aria-hidden="true"></i> {t('컴카드', 'Card')}
                   </a>
                 </div>
@@ -767,12 +767,12 @@ export default function MyPage() {
             {member?.bio && (
               <div className={`px-6 py-4 border-b ${divider}`}>
                 <p className={labelCls}>{t('바이오', 'Bio')}</p>
-                <p className={`text-body leading-relaxed whitespace-pre-line ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{member.bio}</p>
+                <p className={`text-body leading-relaxed whitespace-pre-line ${D ? 'text-bone' : 'text-bone-dim'}`}>{member.bio}</p>
               </div>
             )}
             <div className={`px-6 py-4 border-b ${divider} flex flex-wrap gap-4`}>
               {member?.email && (
-                <div><p className={labelCls}>{t('이메일', 'Email')}</p><p className={`text-body ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{member.email}</p></div>
+                <div><p className={labelCls}>{t('이메일', 'Email')}</p><p className={`text-body ${D ? 'text-bone' : 'text-bone-dim'}`}>{member.email}</p></div>
               )}
               {member?.instagram && (
                 <div>
@@ -783,7 +783,7 @@ export default function MyPage() {
               {(cp?.pro || cp?.ipi) && (
                 <div>
                   <p className={labelCls}>{t('저작권 정보', 'Copyright')} <span className="normal-case tracking-normal font-bold text-micro px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 ml-1">{t('내부용', 'internal')}</span></p>
-                  <p className={`text-body ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{[cp?.pro, cp?.ipi].filter(Boolean).join(' · ')}</p>
+                  <p className={`text-body ${D ? 'text-bone' : 'text-bone-dim'}`}>{[cp?.pro, cp?.ipi].filter(Boolean).join(' · ')}</p>
                 </div>
               )}
             </div>
@@ -795,7 +795,7 @@ export default function MyPage() {
                   {demos.map(d => (
                     <div key={d.id} className={`cv-row flex items-center gap-3 p-3 rounded-xl border ${D ? '/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                       <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
-                      <span className={`flex-1 text-mini font-bold truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{d.file_name}</span>
+                      <span className={`flex-1 text-mini font-bold truncate ${D ? 'text-bone' : 'text-bone-dim'}`}>{d.file_name}</span>
                       <button onClick={async () => {
                         const path = d.file_url.split('/member-demos/')[1];
                         if (!path) return;
@@ -831,7 +831,7 @@ export default function MyPage() {
                         <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-mini font-bold truncate ${D ? 'text-zinc-200' : 'text-zinc-700'}`}>{w.song_title}</p>
+                        <p className={`text-mini font-bold truncate ${D ? 'text-bone' : 'text-bone-dim'}`}>{w.song_title}</p>
                         <p className={`text-mini ${dimText}`}>{w.artist_name}</p>
                       </div>
                       <span className="text-brand-lead-text text-mini">→</span>
@@ -865,10 +865,10 @@ export default function MyPage() {
                           </p>
                         </div>
                         {files.length > 0 && (
-                          <span className={`text-micro font-black px-2 py-0.5 rounded-full shrink-0 ${D ? 'bg-white/10 text-zinc-400' : 'bg-black/[0.06] text-zinc-500'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>
+                          <span className={`text-micro font-black px-2 py-0.5 rounded-full shrink-0 ${D ? 'bg-white/10 text-bone-dim' : 'bg-black/[0.06] text-bone-dim'}`}><i className="ti ti-music" aria-hidden="true"></i> {files.length}</span>
                         )}
                       </div>
-                      {p.message && <p className={`text-mini leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.message}</p>}
+                      {p.message && <p className={`text-mini leading-relaxed whitespace-pre-line mb-2 ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{p.message}</p>}
                       {files.length > 0 && (
                         <div className="flex flex-col gap-2 mt-2">
                           {files.map((f: any) => {
@@ -877,7 +877,7 @@ export default function MyPage() {
                             <div key={f.id} className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg ${D ? 'bg-black/20' : 'bg-black/[0.03]'}`}>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-mini"><i className="ti ti-music" aria-hidden="true"></i></span>
-                                <span className={`flex-1 min-w-0 text-mini truncate ${D ? 'text-zinc-300' : 'text-zinc-700'}`}>{f.file_name || 'audio.mp3'}</span>
+                                <span className={`flex-1 min-w-0 text-mini truncate ${D ? 'text-bone' : 'text-bone-dim'}`}>{f.file_name || 'audio.mp3'}</span>
                                 {vLabel && <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-brand-lead/15 text-brand-lead-text">{vLabel}</span>}
                                 {f.bpm > 0 && <span className={`text-micro font-black ${dimText}`}>{f.bpm}BPM</span>}
                                 {f.key && <span className={`text-micro font-black ${dimText}`}>{f.key}</span>}
@@ -931,7 +931,7 @@ export default function MyPage() {
                     <div className="flex gap-2">
                       {[['male', t('남성','Male')], ['female', t('여성','Female')], ['other', t('기타','Other')]].map(([v, l]) => (
                         <button key={v} onClick={() => setGender(v)}
-                          className={`flex-1 py-2 rounded-full border text-mini font-bold transition ${gender === v ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                          className={`flex-1 py-2 rounded-full border text-mini font-bold transition ${gender === v ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-bone-dim' : 'bg-black/[0.03] border-black/[0.08] text-bone-dim'}`}>
                           {l}
                         </button>
                       ))}
@@ -953,7 +953,7 @@ export default function MyPage() {
                     <div className="flex flex-wrap gap-2">
                       {ROLES.map(r => (
                         <button key={r.id} onClick={() => toggleArr(roles, r.id, setRoles)}
-                          className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${roles.includes(r.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                          className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${roles.includes(r.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-bone-dim' : 'bg-black/[0.03] border-black/[0.08] text-bone-dim'}`}>
                           {r.label}
                         </button>
                       ))}
@@ -965,7 +965,7 @@ export default function MyPage() {
                     <div className="flex flex-wrap gap-2">
                       {GENRES.map(g => (
                         <button key={g.id} onClick={() => toggleArr(genres, g.id, setGenres)}
-                          className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${genres.includes(g.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-zinc-500' : 'bg-black/[0.03] border-black/[0.08] text-zinc-500'}`}>
+                          className={`px-3 py-1.5 rounded-full border text-mini font-bold transition ${genres.includes(g.id) ? 'bg-brand-lead/20 border-brand-lead/50 text-brand-lead-text' : D ? 'bg-white/[0.03] border-white/[0.08] text-bone-dim' : 'bg-black/[0.03] border-black/[0.08] text-bone-dim'}`}>
                           {g.label}
                         </button>
                       ))}
@@ -982,7 +982,7 @@ export default function MyPage() {
                         {demos.map(d => (
                           <div key={d.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${D ? '/[0.02] border-white/[0.06]' : 'bg-black/[0.02] border-black/[0.06]'}`}>
                             <span className="text-body"><i className="ti ti-music" aria-hidden="true"></i></span>
-                            <span className={`flex-1 text-mini truncate ${D ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.file_name}</span>
+                            <span className={`flex-1 text-mini truncate ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{d.file_name}</span>
                             <button onClick={() => deleteDemo(d)} className="text-red-400/60 hover:text-red-400 text-mini font-bold">{t('삭제', 'Delete')}</button>
                           </div>
                         ))}
@@ -993,7 +993,7 @@ export default function MyPage() {
                         <input ref={demoRef} type="file" accept=".mp3,audio/mpeg" multiple className="hidden"
                           onChange={e => { const files = Array.from(e.target.files || []).slice(0, 3 - demos.length - newDemoFiles.length); setNewDemoFiles(p => [...p, ...files]); e.target.value = ''; }} />
                         <button onClick={() => demoRef.current?.click()}
-                          className={`w-full py-2.5 rounded-full border-2 border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-zinc-600 hover:border-white/20 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:border-black/20'}`}>
+                          className={`w-full py-2.5 rounded-full border-2 border-dashed text-mini font-bold transition ${D ? 'border-white/10 text-bone-dim hover:border-white/20 hover:text-bone-dim' : 'border-black/10 text-bone-dim hover:border-black/20'}`}>
                           {t('+ 데모곡 추가', '+ Add demo')} ({3 - demos.length - newDemoFiles.length} {t('개 남음', 'left')})
                         </button>
                       </>
@@ -1060,7 +1060,7 @@ export default function MyPage() {
                       ))}
                       {editWorks.length < 5 && (
                         <button onClick={() => setEditWorks(p => [...p, { song_title: '', artist_name: '', link: '' }])}
-                          className={`py-2 rounded-full border border-dashed text-mini font-bold ${D ? 'border-white/10 text-zinc-600 hover:text-zinc-400' : 'border-black/10 text-zinc-400 hover:text-zinc-600'}`}>
+                          className={`py-2 rounded-full border border-dashed text-mini font-bold ${D ? 'border-white/10 text-bone-dim hover:text-bone-dim' : 'border-black/10 text-bone-dim hover:text-bone-dim'}`}>
                           + {t('추가', 'Add')}
                         </button>
                       )}
@@ -1070,7 +1070,7 @@ export default function MyPage() {
 
                 <div className="flex gap-3 mt-6">
                   <button onClick={() => setEditing(false)}
-                    className={`flex-1 py-3 rounded-full border font-bold text-body ${D ? 'border-white/10 text-zinc-500 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>
+                    className={`flex-1 py-3 rounded-full border font-bold text-body ${D ? 'border-white/10 text-bone-dim hover:text-white' : 'border-black/[0.08] text-bone-dim'}`}>
                     {t('취소', 'Cancel')}
                   </button>
                   <button onClick={handleSave} disabled={saving}

@@ -45,9 +45,11 @@ export default function ProductHeader({
   const tone = BRAND[product];
   const idx = PRODUCTS.findIndex((p) => p.key === product);
 
-  const pillWrap = dark ? 'border-white/10 bg-white/5' : 'border-black/[0.08] bg-black/[0.04]';
+  const pillWrap = dark ? 'border-hairline bg-bone/[0.04]' : 'border-black/[0.08] bg-black/[0.04]';
   // zinc-500은 다크(4.0)·라이트(4.4) 양쪽에서 소형 텍스트 대비 미달 — 테마별로 갈라준다.
-  const muted = dark ? 'text-zinc-400' : 'text-zinc-600';
+  // 다크 쪽은 zinc-400(#a1a1aa, 푸른 회색)이 bone 바탕에서 혼자 차갑게 떴다 → bone-dim(5.2).
+  // 라이트는 종이 바탕이라 zinc 그대로 둔다 — bone은 흰 배경에서 안 보인다.
+  const muted = dark ? 'text-bone-dim' : 'text-bone-dim';
 
   const router = useRouter();
   const armState = useRef(initialArm());
@@ -102,7 +104,7 @@ export default function ProductHeader({
         {showHub && (
           <Link
             href="/hub"
-            className={`text-body rounded-lg transition-colors ${muted} ${dark ? 'hover:text-white' : 'hover:text-black'}`}
+            className={`text-body rounded-lg transition-colors ${muted} ${dark ? 'hover:text-bone' : 'hover:text-black'}`}
           >
             ← hub
           </Link>
@@ -118,7 +120,7 @@ export default function ProductHeader({
           >
             {cur.label}
           </div>
-          <span className={`text-mini font-normal tracking-[0.2em] ${muted}`} translate="no">by NEN</span>
+          <span className={`label-mono ${muted}`} translate="no">by NEN</span>
         </div>
 
         <nav
@@ -136,7 +138,7 @@ export default function ProductHeader({
                 [arm > 0 ? 'right' : 'left']: 0,
                 width: `${armPct}%`,
                 background: `linear-gradient(${arm > 0 ? 'to left' : 'to right'},
-                  ${dark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)'}, transparent)`,
+                  ${dark ? 'rgba(233,229,219,0.16)' : 'rgba(0,0,0,0.10)'}, transparent)`,
                 transition: 'width .06s linear',
               }}
             />

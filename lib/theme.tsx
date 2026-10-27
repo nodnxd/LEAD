@@ -22,6 +22,15 @@ function applyTheme(t: Theme) {
   document.documentElement.dataset.theme = t;
 }
 
+/** CAST 화면(cast_theme)이 쓰는 공개 버전.
+ *  CAST는 테마를 자기 키(cast_theme)에 따로 보관하는데, <html data-theme>를 아무도
+ *  안 찍고 있었다. 그러면 CAST를 라이트로 켜도 문서는 다크로 남아서, data-theme에
+ *  걸려 있는 것들이 전부 거꾸로 나온다 — bone 토큰, --brand-*-text, 그리고
+ *  color-scheme(네이티브 스크롤바·select). 읽을 때와 토글할 때 둘 다 불러야 한다. */
+export function applyDocTheme(t: Theme) {
+  if (typeof document !== 'undefined') document.documentElement.dataset.theme = t;
+}
+
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>('dark');
   useEffect(() => {

@@ -33,7 +33,7 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
 
   const bd = D ? 'border-white/[0.08]' : 'border-black/[0.08]';
   const tx = D ? 'text-white' : 'text-[#111]';
-  const ib = D ? 'bg-white/[0.06] border-white/10 text-white placeholder:text-zinc-600' : 'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400';
+  const ib = D ? 'bg-white/[0.06] border-white/10 text-white placeholder:text-bone-dim' : 'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-bone-dim';
   const name = other?.artist_name || other?.display_name || '채팅';
 
   const markRead = useCallback(async () => {
@@ -97,8 +97,8 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
         </div>
         <span className={`flex-1 font-black text-body truncate ${tx}`}>{name}</span>
         <input type="range" min={20} max={100} value={opacity} onChange={e => setOpacity(Number(e.target.value))} onMouseDown={e => e.stopPropagation()} className="w-14 cursor-pointer accent-brand-lead" title="투명도" />
-        <button onClick={() => setCollapsed(c => !c)} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-full text-mini font-black ${D ? 'text-zinc-500' : 'text-zinc-500'}`}>{collapsed ? '▲' : '▼'}</button>
-        <button onClick={onClose} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-full text-body font-black ${D ? 'text-zinc-500' : 'text-zinc-500'} hover:text-red-400 transition`}>✕</button>
+        <button onClick={() => setCollapsed(c => !c)} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-full text-mini font-black ${D ? 'text-bone-dim' : 'text-bone-dim'}`}>{collapsed ? '▲' : '▼'}</button>
+        <button onClick={onClose} onMouseDown={e => e.stopPropagation()} className={`w-6 h-6 flex items-center justify-center rounded-full text-body font-black ${D ? 'text-bone-dim' : 'text-bone-dim'} hover:text-red-400 transition`}>✕</button>
       </div>
       {!collapsed && (
         <>
@@ -108,8 +108,8 @@ function FloatingChat({ user, conv, other, dark: D, index, onClose }: { user: an
               return (
                 <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex flex-col gap-0.5 ${mine ? 'items-end' : 'items-start'}`} style={{ maxWidth: '82%' }}>
-                    <div className={`px-3 py-2 rounded-xl text-body leading-relaxed ${mine ? 'bg-brand-lead text-white rounded-br-lg' : D ? 'bg-white/[0.08] text-zinc-200 rounded-bl-lg' : 'bg-black/[0.05] text-zinc-800 rounded-bl-lg'}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{m.content}</div>
-                    <span className="text-micro px-1 text-zinc-500">{fmtTime(m.created_at)}</span>
+                    <div className={`px-3 py-2 rounded-xl text-body leading-relaxed ${mine ? 'bg-brand-lead text-white rounded-br-lg' : D ? 'bg-white/[0.08] text-bone rounded-bl-lg' : 'bg-black/[0.05] text-bone-dim rounded-bl-lg'}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{m.content}</div>
+                    <span className="text-micro px-1 text-bone-dim">{fmtTime(m.created_at)}</span>
                   </div>
                 </div>
               );
@@ -422,8 +422,8 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
   const ROLE: Record<string, string> = { producer: 'Producer', topliner: 'Top-liner', lyricist: 'Lyricist', engineer: 'Engineer', ar: 'A&R' };
   const bd = D ? 'border-white/[0.08]' : 'border-black/[0.08]';
   const tx = D ? 'text-white' : 'text-[#111]';
-  const dm = D ? 'text-zinc-500' : 'text-zinc-500';
-  const ib = D ? 'bg-white/[0.06] border-white/10 text-white placeholder:text-zinc-600' : 'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-zinc-400';
+  const dm = D ? 'text-bone-dim' : 'text-bone-dim';
+  const ib = D ? 'bg-white/[0.06] border-white/10 text-white placeholder:text-bone-dim' : 'bg-black/[0.04] border-black/[0.08] text-[#111] placeholder:text-bone-dim';
 
   const Avatar = ({ p, size = 32 }: { p: any; size?: number }) => (
     <div className="rounded-full bg-brand-lead/15 border border-brand-lead/25 flex items-center justify-center overflow-hidden shrink-0" style={{ width: size, height: size }}>
@@ -451,7 +451,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
           <div className="flex gap-2 px-4 pb-3">
             <button
               onClick={e => { e.stopPropagation(); const s = toast.senderId; const fs = friendships.find(f => f.requester_id === s || f.recipient_id === s); if (!fs) sendFriendReq(s); }}
-              className={`flex-1 py-1.5 rounded-full border text-micro font-black transition ${D ? 'border-white/10 text-zinc-400 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}
+              className={`flex-1 py-1.5 rounded-full border text-micro font-black transition ${D ? 'border-white/10 text-bone-dim hover:text-white' : 'border-black/[0.08] text-bone-dim'}`}
             >
               {(() => { const fs = friendships.find(f => f.requester_id === toast.senderId || f.recipient_id === toast.senderId); return fs?.status === 'accepted' ? '✓ 친구' : fs ? '요청중' : '+친구'; })()}
             </button>
@@ -632,7 +632,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                             <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                               {isFriend && <span className="text-micro text-emerald-400 font-black px-1">친구</span>}
                               {isPending && iSent && <span className={`text-micro ${dm}`}>요청중</span>}
-                              {!fs && <button onClick={() => sendFriendReq(m.id)} className={`px-1.5 py-0.5 rounded-full text-micro font-black ${D ? 'bg-white/5 text-zinc-500 hover:text-white' : 'bg-black/[0.05] text-zinc-500'}`}>+친구</button>}
+                              {!fs && <button onClick={() => sendFriendReq(m.id)} className={`px-1.5 py-0.5 rounded-full text-micro font-black ${D ? 'bg-white/5 text-bone-dim hover:text-white' : 'bg-black/[0.05] text-bone-dim'}`}>+친구</button>}
                               <button onClick={() => openConv(m.id)} className="px-1.5 py-0.5 rounded-full bg-brand-lead/15 text-brand-lead-text text-micro font-black hover:bg-brand-lead/25"><i className="ti ti-message" aria-hidden="true"></i></button>
                               <button title="팝업 창으로 띄우기" onClick={() => popOutConv(m.id)} className="px-1.5 py-0.5 rounded-full bg-brand-lead/15 text-brand-lead-text text-micro font-black hover:bg-brand-lead/25">↗</button>
                             </div>
@@ -695,7 +695,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                     {(viewingMember.genres || []).length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
                         {viewingMember.genres.slice(0, 4).map((g: string) => (
-                          <span key={g} className={`text-micro px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-zinc-400' : 'bg-black/[0.05] text-zinc-500'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
+                          <span key={g} className={`text-micro px-1.5 py-0.5 rounded-full ${D ? 'bg-white/5 text-bone-dim' : 'bg-black/[0.05] text-bone-dim'}`}>{g.startsWith('ETC:') ? g.slice(4) : g}</span>
                         ))}
                       </div>
                     )}
@@ -723,7 +723,7 @@ export default function ChatPanel({ user, hostId, dark: D, liftMobile = false }:
                         const fs = getFriendState(viewingMember.id);
                         return !fs ? (
                           <button onClick={() => sendFriendReq(viewingMember.id)}
-                            className={`flex-1 py-2 rounded-full border text-mini font-black transition ${D ? 'border-white/10 text-zinc-400 hover:text-white' : 'border-black/[0.08] text-zinc-500'}`}>
+                            className={`flex-1 py-2 rounded-full border text-mini font-black transition ${D ? 'border-white/10 text-bone-dim hover:text-white' : 'border-black/[0.08] text-bone-dim'}`}>
                             +친구 추가
                           </button>
                         ) : fs.status === 'accepted' ? (

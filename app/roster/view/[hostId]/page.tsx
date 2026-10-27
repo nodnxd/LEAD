@@ -5,6 +5,7 @@ import { pressable } from '@/lib/a11y';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useParams } from 'next/navigation';
+import { applyDocTheme } from '@/lib/theme';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 import { onDbError } from '@/lib/dbErrors';
 import { buildDaysIcs, downloadIcs } from '@/lib/ics';
@@ -96,6 +97,7 @@ export default function GuestView() {
     setLang(getLang());
     const savedTheme = localStorage.getItem('cast_theme') as Theme | null;
     if (savedTheme) setTheme(savedTheme);
+    applyDocTheme(savedTheme ?? 'dark');   // 위와 같은 이유 (lib/theme.tsx 주석 참고)
     const sync = () => setLang(getLang());
     window.addEventListener(LANG_EVENT, sync);
     window.addEventListener('storage', sync);
@@ -107,15 +109,15 @@ export default function GuestView() {
   const toggleLang = () => { setLangValue(lang === 'ko' ? 'en' : 'ko'); };
   const toggleTheme = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next); localStorage.setItem('cast_theme', next);
+    setTheme(next); localStorage.setItem('cast_theme', next); applyDocTheme(next);
   };
 
   // 테마 변수
   const bg = theme === 'light' ? 'bg-[#f5f5f5]' : 'bg-surface-1';
   const cardBg = theme === 'light' ? 'bg-white border-black/10' : 'bg-surface-2 border-[rgba(255,255,255,0.08)]';
   const textMain = theme === 'light' ? 'text-black' : 'text-white';
-  const textSub = theme === 'light' ? 'text-zinc-500' : 'text-zinc-400';
-  const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-400' : 'bg-white/5 border-white/10 text-zinc-500';
+  const textSub = theme === 'light' ? 'text-bone-dim' : 'text-bone-dim';
+  const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-bone-dim' : 'bg-white/5 border-white/10 text-bone-dim';
 
   const onZoomMouseDown = useCallback((e: React.MouseEvent) => {
     isDraggingZoom.current = true; dragStartY.current = e.clientY; dragStartZoom.current = zoom;
@@ -255,7 +257,7 @@ export default function GuestView() {
       case 'Topliner': return { bg: 'bg-[#5FA39A]/15', border: 'border-[#5FA39A]/30', text: 'text-[#5FA39A]', activeBg: 'bg-[#5FA39A]/25', activeBorder: 'border-[#5FA39A]/50', dim: 'text-[#5FA39A]/50' };
       case 'Engineer': return { bg: 'bg-[#C98BA0]/15', border: 'border-[#C98BA0]/30', text: 'text-[#C98BA0]', activeBg: 'bg-[#C98BA0]/25', activeBorder: 'border-[#C98BA0]/50', dim: 'text-[#C98BA0]/50' };
       case 'A&R': return { bg: 'bg-[#C98BA0]/15', border: 'border-[#C98BA0]/30', text: 'text-[#C98BA0]', activeBg: 'bg-[#C98BA0]/25', activeBorder: 'border-[#C98BA0]/50', dim: 'text-[#C98BA0]/50' };
-      default: return { bg: 'bg-white/5', border: 'border-white/10', text: 'text-zinc-400', activeBg: 'bg-white/10', activeBorder: 'border-white/20', dim: 'text-zinc-400' };
+      default: return { bg: 'bg-white/5', border: 'border-white/10', text: 'text-bone-dim', activeBg: 'bg-white/10', activeBorder: 'border-white/20', dim: 'text-bone-dim' };
     }
   };
 
@@ -263,7 +265,7 @@ export default function GuestView() {
   const getVoteIcon = (attendance: string | null) => {
     if (attendance === 'attending') return <span className="text-[#77B18E] shrink-0"><CheckIcon /></span>;
     if (attendance === 'absent') return <span className="text-[#9A8F8A] shrink-0"><XIcon /></span>;
-    return <span className="text-zinc-400 shrink-0"><DotIcon /></span>;
+    return <span className="text-bone-dim shrink-0"><DotIcon /></span>;
   };
 
   const getSortedMembers = (t: string) => {
@@ -327,7 +329,7 @@ export default function GuestView() {
 
   if (notFound) return (
     <div className={`min-h-screen ${bg} flex flex-col items-center justify-center font-ui`}>
-      <p className="text-zinc-400 text-mini font-bold tracking-widest uppercase">{tv.notFound}</p>
+      <p className="text-bone-dim text-mini font-bold tracking-widest uppercase">{tv.notFound}</p>
     </div>
   );
 
@@ -413,7 +415,7 @@ export default function GuestView() {
           <div className="relative z-10 flex items-center gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
             {projects.map(p => (
               <button key={p} onClick={() => setCurrentProject(p)}
-                className={`px-4 py-1.5 rounded-full font-normal text-mini tracking-widest uppercase border transition ${currentProject === p ? 'border-brand-cast/50 bg-brand-cast/20 text-brand-cast-text' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-400'}`}>{p}</button>
+                className={`px-4 py-1.5 rounded-full font-normal text-mini tracking-widest uppercase border transition ${currentProject === p ? 'border-brand-cast/50 bg-brand-cast/20 text-brand-cast-text' : theme === 'light' ? 'border-black/10 bg-black/5 text-bone-dim' : 'border-white/10 bg-white/5 text-bone-dim'}`}>{p}</button>
             ))}
           </div>
 
@@ -422,7 +424,7 @@ export default function GuestView() {
             <div className="relative z-10 flex items-center gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
               {days.map(d => (
                 <button key={d} onClick={() => setCurrentDay(d)}
-                  className={`px-4 py-1.5 rounded-full font-normal text-mini transition border ${currentDay === d ? 'border-brand-cast/40 bg-brand-cast/10 text-brand-cast-text' : theme === 'light' ? 'border-black/10 bg-black/5 text-zinc-500' : 'border-white/10 bg-white/5 text-zinc-500'}`}>{getDayLabel(d)}</button>
+                  className={`px-4 py-1.5 rounded-full font-normal text-mini transition border ${currentDay === d ? 'border-brand-cast/40 bg-brand-cast/10 text-brand-cast-text' : theme === 'light' ? 'border-black/10 bg-black/5 text-bone-dim' : 'border-white/10 bg-white/5 text-bone-dim'}`}>{getDayLabel(d)}</button>
               ))}
             </div>
           )}
@@ -528,12 +530,12 @@ export default function GuestView() {
                 })}
               </div>
               <div className={`border-t pt-5 ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`}>
-                <p className={`text-micro font-black uppercase tracking-widest mb-4 text-zinc-400`}>Status</p>
+                <p className={`text-micro font-black uppercase tracking-widest mb-4 text-bone-dim`}>Status</p>
                 <div className="flex flex-wrap gap-6">
                   {[
                     { label: tv.attending, items: attending, headerColor: 'text-[#77B18E]', borderColor: 'border-[#77B18E]' },
                     { label: tv.absent, items: absent, headerColor: 'text-[#9A8F8A]', borderColor: 'border-[#9A8F8A]' },
-                    { label: tv.noResponse, items: noResponse, headerColor: 'text-zinc-500', borderColor: 'border-zinc-600' },
+                    { label: tv.noResponse, items: noResponse, headerColor: 'text-bone-dim', borderColor: 'border-zinc-600' },
                   ].map(({ label, items, headerColor, borderColor }) => (
                     <div key={label} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
                       <div className={`border rounded-xl p-6 min-h-[80px] shadow-lg flex flex-col ${cardBg}`}>
@@ -543,7 +545,7 @@ export default function GuestView() {
                         </div>
                         <div className="space-y-3 flex-1">
                           {items.map(m => <MemberCard key={m.id} m={m} />)}
-                          {items.length === 0 && <p className="text-zinc-500 text-mini pl-1">—</p>}
+                          {items.length === 0 && <p className="text-bone-dim text-mini pl-1">—</p>}
                         </div>
                       </div>
                     </div>
@@ -568,14 +570,14 @@ export default function GuestView() {
                             <div className="flex items-center justify-between p-4 cursor-pointer" {...pressable(() => setExpandedSession(expandedSession === s.id ? null : s.id))}>
                               <div className="flex items-center gap-3"><span className="text-brand-cast-text font-black text-body">Day {s.day_number}</span>{s.memo && <span className={`text-mini truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                               <div className="flex items-center gap-3">
-                                <span className="text-zinc-400 text-micro">{fmtDate(s.created_at)}</span>
+                                <span className="text-bone-dim text-micro">{fmtDate(s.created_at)}</span>
                                 {s.links?.length > 0 && <div className="flex gap-1">{s.links.map((link: string, i: number) => (<a key={i} href={link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} aria-label={linkName(link)} className="text-mini">{getLinkIcon(link)}</a>))}</div>}
-                                <span className="text-zinc-400 text-micro">{expandedSession === s.id ? '▲' : '▼'}</span>
+                                <span className="text-bone-dim text-micro">{expandedSession === s.id ? '▲' : '▼'}</span>
                               </div>
                             </div>
                             {expandedSession === s.id && s.roster && (
                               <div className={`px-4 pb-4 flex flex-wrap gap-4 border-t pt-4 ${theme === 'light' ? 'border-black/5' : 'border-white/5'}`}>
-                                {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-micro font-black uppercase tracking-widest mb-2 border-l-2 border-brand-cast pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-mini font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-400 text-micro uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
+                                {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-micro font-black uppercase tracking-widest mb-2 border-l-2 border-brand-cast pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-mini font-bold ${textMain}`}>{m.name}</span><span className="text-bone-dim text-micro uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
                               </div>
                             )}
                           </div>
@@ -595,7 +597,7 @@ export default function GuestView() {
                   <div className={`border rounded-xl p-6 min-h-[200px] shadow-lg flex flex-col ${cardBg}`}>
                     <div className={`flex items-center mb-6 px-1 border-l-4 border-brand-cast pl-4`}>
                       <h2 className={`text-body font-black uppercase ${textMain}`}>{tName}</h2>
-                      <span className="ml-auto text-micro font-bold text-zinc-400">{tv.members(getSortedMembers(tName).length)}</span>
+                      <span className="ml-auto text-micro font-bold text-bone-dim">{tv.members(getSortedMembers(tName).length)}</span>
                     </div>
                     <div className="space-y-3 flex-1">
                       {getSortedMembers(tName).map(m => <MemberCard key={m.id} m={m} />)}
@@ -614,17 +616,17 @@ export default function GuestView() {
 
       {/* 줌 컨트롤 */}
       <div className="flex fixed bottom-6 left-6 z-50 flex-col items-center gap-1.5 select-none font-ui">
-        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" aria-label={lang === 'ko' ? '확대' : 'Zoom in'} className={`w-9 h-9 rounded-full border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" aria-label={lang === 'ko' ? '확대' : 'Zoom in'} className={`w-9 h-9 rounded-full border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-bone-dim' : 'bg-white/[0.05] border-white/10 text-bone-dim'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div onMouseDown={onZoomMouseDown} onDoubleClick={() => setZoom(1)} title="드래그로 확대/축소 · 더블클릭 리셋"
           className={`w-9 h-10 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[3px] transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : '/[0.05] border-white/10'}`}>
           {[0, 1, 2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500" />)}
         </div>
-        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" aria-label={lang === 'ko' ? '축소' : 'Zoom out'} className={`w-9 h-9 rounded-full border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" aria-label={lang === 'ko' ? '축소' : 'Zoom out'} className={`w-9 h-9 rounded-full border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-bone-dim' : 'bg-white/[0.05] border-white/10 text-bone-dim'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
-        <span className="text-micro font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
+        <span className="text-micro font-black text-bone-dim tracking-widest">{Math.round(zoom * 100)}%</span>
       </div>
     </>
   );

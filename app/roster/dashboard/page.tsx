@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { applyDocTheme } from '@/lib/theme';
 import { getLang, setLangValue, LANG_EVENT } from '@/lib/lang';
 import { onDbError } from '@/lib/dbErrors';
 import { buildDaysIcs, downloadIcs } from '@/lib/ics';
@@ -200,7 +201,7 @@ const Modal = ({ title, message, children, theme, onClose }: any) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm font-ui" onClick={onClose}>
     <div role="dialog" aria-modal="true" tabIndex={-1} onClick={e => e.stopPropagation()} className={`w-full max-w-sm mx-4 border rounded-xl p-6 shadow-lg ${theme === 'light' ? ' border-black/10' : 'bg-[#111] border-white/10'}`}>
       {title && <h2 className={`font-black text-lead mb-2 ${theme === 'light' ? 'text-black' : 'text-white'}`}>{title}</h2>}
-      {message && <p className={`text-body mb-5 leading-relaxed whitespace-pre-line ${theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'}`}>{message}</p>}
+      {message && <p className={`text-body mb-5 leading-relaxed whitespace-pre-line ${theme === 'light' ? 'text-bone-dim' : 'text-bone-dim'}`}>{message}</p>}
       {children}
     </div>
   </div>
@@ -372,6 +373,9 @@ export default function Dashboard() {
     setLang(getLang());
     const savedTheme = localStorage.getItem('cast_theme') as Theme | null;
     if (savedTheme) setTheme(savedTheme);
+    // <html data-theme>까지 같이 찍는다 — bone 토큰·--brand-*-text·color-scheme이 전부
+    // 이 속성에 걸려 있어서, 안 찍으면 CAST 라이트 모드가 다크 토큰을 받는다.
+    applyDocTheme(savedTheme ?? 'dark');
     const savedPool = localStorage.getItem('cast_pool_order');
     if (savedPool) { try { const p = JSON.parse(savedPool); if (Array.isArray(p) && p.length === 3) setPoolOrder(p); } catch { /* ignore */ } }
     const sync = () => setLang(getLang());
@@ -381,7 +385,7 @@ export default function Dashboard() {
   }, []);
 
   const toggleLang = () => { setLangValue(lang === 'ko' ? 'en' : 'ko'); };
-  const toggleTheme = () => { const next: Theme = theme === 'dark' ? 'light' : 'dark'; setTheme(next); localStorage.setItem('cast_theme', next); };
+  const toggleTheme = () => { const next: Theme = theme === 'dark' ? 'light' : 'dark'; setTheme(next); localStorage.setItem('cast_theme', next); applyDocTheme(next); };
 
   const onZoomMouseDown = useCallback((e: React.MouseEvent) => {
     isDraggingZoom.current = true; dragStartY.current = e.clientY; dragStartZoom.current = zoom;
@@ -1562,9 +1566,9 @@ export default function Dashboard() {
   const bg = theme === 'light' ? 'bg-[#f5f5f5]' : 'bg-surface-1';
   const cardBg = theme === 'light' ? 'bg-white border-black/10' : 'bg-surface-2 border-[rgba(255,255,255,0.08)]';
   const textMain = theme === 'light' ? 'text-black' : 'text-white';
-  const textSub = theme === 'light' ? 'text-zinc-500' : 'text-zinc-400';
+  const textSub = theme === 'light' ? 'text-bone-dim' : 'text-bone-dim';
   const inputBg = theme === 'light' ? 'bg-black/5 border-black/10' : 'bg-white/5 border-white/10';
-  const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-400 hover:bg-black/10' : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10';
+  const btnBg = theme === 'light' ? 'bg-black/5 border-black/10 text-bone-dim hover:bg-black/10' : 'bg-white/5 border-white/10 text-bone-dim hover:bg-white/10';
 
   // 역할색은 왼쪽 레일 한 곳에서만 말한다.
   const ROLE_TAG: Record<string, string> = { Producer: 'P', Topliner: 'T', Engineer: 'E', 'A&R': 'A' };
@@ -1572,7 +1576,7 @@ export default function Dashboard() {
   const getAttendanceBadge = (attendance: string | null) => {
     if (attendance === 'attending') return <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-[#77B18E]/20 text-[#77B18E] border border-[#77B18E]/30 shrink-0">{t.attending}</span>;
     if (attendance === 'absent') return <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-[#9A8F8A]/20 text-[#9A8F8A] border border-[#9A8F8A]/30 shrink-0">{t.absent}</span>;
-    return votingOpen ? <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/10 shrink-0">{t.noResponse}</span> : null;
+    return votingOpen ? <span className="text-micro font-black px-1.5 py-0.5 rounded-full bg-white/5 text-bone-dim border border-white/10 shrink-0">{t.noResponse}</span> : null;
   };
 
 
@@ -1619,7 +1623,7 @@ export default function Dashboard() {
 
   if (!user) return (
     <div className={`min-h-screen ${bg} flex items-center justify-center`}>
-      <div className="text-zinc-400 text-mini font-black tracking-widest uppercase">{t.loading}</div>
+      <div className="text-bone-dim text-mini font-black tracking-widest uppercase">{t.loading}</div>
     </div>
   );
 
@@ -1658,14 +1662,14 @@ export default function Dashboard() {
                               const next = projects.filter(proj => proj !== p); setProjects(next); await saveProjectOrder(user.id, next);
                               if (currentProject === p) setCurrentProject(next[0] || ''); setConfirmModal(null);
                             });
-                          })} className="pr-3 text-zinc-400 hover:text-red-500 text-body">×</button>
+                          })} className="pr-3 text-bone-dim hover:text-red-500 text-body">×</button>
                         </div>
                       )}
                     </Draggable>
                   ))}
                   {provided.placeholder}
                   <button onClick={() => showPrompt(t.newRoster, t.rosterNamePlaceholder, '', async (n) => { if (n) { const next = [...projects, n]; setProjects(next); await saveProjectOrder(user.id, next); setCurrentProject(n); } setPromptModal(null); })}
-                    className={`px-3 py-1.5 rounded-full font-bold text-mini border border-dashed hover:text-brand-cast-text transition ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>+</button>
+                    className={`px-3 py-1.5 rounded-full font-bold text-mini border border-dashed hover:text-brand-cast-text transition ${theme === 'light' ? 'bg-black/5 border-black/10 text-bone-dim' : 'bg-white/5 border-white/10 text-bone-dim'}`}>+</button>
                 </div>
               )}
             </Droppable>
@@ -1679,7 +1683,7 @@ export default function Dashboard() {
                   <input value={projectMemo} onChange={e => setProjectMemo(e.target.value)} onBlur={saveProjectMemo}
                     onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                     placeholder={t.projMemoPlaceholder} aria-label={t.projMemoPlaceholder}
-                    className={`field-bare bg-transparent border-0 text-lead font-bold outline-none w-56 sm:w-72 ${textMain} placeholder:text-zinc-500 placeholder:font-normal`} />
+                    className={`field-bare bg-transparent border-0 text-lead font-bold outline-none w-56 sm:w-72 ${textMain} placeholder:text-bone-dim placeholder:font-normal`} />
                   {votingOpen && (
                     <div className="flex items-center gap-2 ml-2">
                       <span className="text-micro font-bold text-[#77B18E]">{t.attending} {attendingCount}</span>
@@ -1784,15 +1788,15 @@ export default function Dashboard() {
                       onContextMenu={(e) => { e.preventDefault(); setEditingDayName(d); setDayNameInput(dayNames[d] || `Day ${d}`); }}
                       className={`px-4 py-1.5 font-bold text-mini transition ${currentDay === d ? 'text-brand-cast-text' : textSub}`}>{getDayLabel(d)}</button>
                   )}
-                  <label title={t.daySetDate} className={`relative px-1.5 cursor-pointer text-mini transition ${dayDates[d] ? 'text-brand-cast-text' : 'text-zinc-400 hover:text-brand-cast-text'}`}>
+                  <label title={t.daySetDate} className={`relative px-1.5 cursor-pointer text-mini transition ${dayDates[d] ? 'text-brand-cast-text' : 'text-bone-dim hover:text-brand-cast-text'}`}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
                     <input type="date" aria-label={t.daySetDate} value={dayDates[d] || ''} onChange={e => saveDayDate(d, e.target.value)}
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
                   </label>
-                  {days.length > 1 && <button onClick={() => showConfirm(t.dayDelete(getDayLabel(d)), t.dayDeleteMsg(getDayLabel(d)), () => { removeDay(d); setConfirmModal(null); })} aria-label={t.dayDelete(getDayLabel(d))} className="pr-3 text-zinc-500 hover:text-red-500 text-mini">×</button>}
+                  {days.length > 1 && <button onClick={() => showConfirm(t.dayDelete(getDayLabel(d)), t.dayDeleteMsg(getDayLabel(d)), () => { removeDay(d); setConfirmModal(null); })} aria-label={t.dayDelete(getDayLabel(d))} className="pr-3 text-bone-dim hover:text-red-500 text-mini">×</button>}
                 </div>
               ))}
-              <button onClick={addDay} className={`px-3 py-1.5 rounded-full font-bold text-mini border border-dashed hover:text-brand-cast-text transition ${theme === 'light' ? 'bg-black/5 border-black/10 text-zinc-500' : 'bg-white/5 border-white/10 text-zinc-400'}`}>{t.addDay}</button>
+              <button onClick={addDay} className={`px-3 py-1.5 rounded-full font-bold text-mini border border-dashed hover:text-brand-cast-text transition ${theme === 'light' ? 'bg-black/5 border-black/10 text-bone-dim' : 'bg-white/5 border-white/10 text-bone-dim'}`}>{t.addDay}</button>
             </div>
 
             {/* 공지사항 */}
@@ -1809,11 +1813,11 @@ export default function Dashboard() {
                         <div className="flex-1">
                           <p className={`font-bold text-body mb-1 ${textMain}`}>{n.title}</p>
                           {n.content && <p className={`text-mini leading-relaxed whitespace-pre-line ${textSub}`}>{n.content}</p>}
-                          <p className="text-zinc-400 text-micro mt-2">{fmtDate(n.created_at)}</p>
+                          <p className="text-bone-dim text-micro mt-2">{fmtDate(n.created_at)}</p>
                         </div>
                         <div className="flex gap-2 ml-4 shrink-0">
                           <button onClick={() => { setNoticeTitle(n.title); setNoticeContent(n.content || ''); setNoticeIsGlobal(n.is_global || false); setEditingNoticeId(n.id); setShowNoticeModal(true); }} className={`text-mini font-bold ${textSub}`}>{t.edit}</button>
-                          <button onClick={() => showConfirm(t.noticeDelete, t.noticeDeleteMsg(n.title), () => { supabase.from('notices').delete().eq('id', n.id).then(() => { fetchNotices(user); setConfirmModal(null); }); })} className="text-zinc-400 hover:text-red-500 text-mini font-bold">{t.delete}</button>
+                          <button onClick={() => showConfirm(t.noticeDelete, t.noticeDeleteMsg(n.title), () => { supabase.from('notices').delete().eq('id', n.id).then(() => { fetchNotices(user); setConfirmModal(null); }); })} className="text-bone-dim hover:text-red-500 text-mini font-bold">{t.delete}</button>
                         </div>
                       </div>
                     ))}
@@ -1840,9 +1844,9 @@ export default function Dashboard() {
                               <div className="flex items-center justify-between p-4 cursor-pointer" {...pressable(() => setExpandedSession(expandedSession === s.id ? null : s.id))}>
                                 <div className="flex items-center gap-3"><span className="text-brand-cast-text font-black text-body">Day {s.day_number}</span>{s.memo && <span className={`text-mini truncate max-w-[200px] ${textSub}`}>{s.memo}</span>}</div>
                                 <div className="flex items-center gap-3">
-                                  <span className="text-zinc-400 text-micro">{fmtDate(s.created_at)}</span>
-                                  <button onClick={(e) => { e.stopPropagation(); showConfirm(t.sessionDelete, t.sessionDeleteMsg(s.day_number), () => { supabase.from('sessions').delete().eq('id', s.id).then(() => { fetchSessions(user); setConfirmModal(null); }); }); }} aria-label={t.sessionDelete} className="text-zinc-500 hover:text-red-500 text-mini">×</button>
-                                  <span className="text-zinc-400 text-micro">{expandedSession === s.id ? '▲' : '▼'}</span>
+                                  <span className="text-bone-dim text-micro">{fmtDate(s.created_at)}</span>
+                                  <button onClick={(e) => { e.stopPropagation(); showConfirm(t.sessionDelete, t.sessionDeleteMsg(s.day_number), () => { supabase.from('sessions').delete().eq('id', s.id).then(() => { fetchSessions(user); setConfirmModal(null); }); }); }} aria-label={t.sessionDelete} className="text-bone-dim hover:text-red-500 text-mini">×</button>
+                                  <span className="text-bone-dim text-micro">{expandedSession === s.id ? '▲' : '▼'}</span>
                                 </div>
                               </div>
                               {expandedSession === s.id && s.roster && (
@@ -1869,7 +1873,7 @@ export default function Dashboard() {
                                     {lang === 'ko' ? '⬆ 현재 로스터로 불러오기' : '⬆ Load to Current Roster'}
                                   </button>
                                   <div className="flex flex-wrap gap-4">
-                                    {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-micro font-black uppercase tracking-widest mb-2 border-l-2 border-brand-cast pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-mini font-bold ${textMain}`}>{m.name}</span><span className="text-zinc-400 text-micro uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
+                                    {s.roster.map((t: any) => (<div key={t.team} className="flex-1 min-w-[150px]"><p className={`text-micro font-black uppercase tracking-widest mb-2 border-l-2 border-brand-cast pl-2 ${textSub}`}>{t.team}</p>{t.members.map((m: any, i: number) => (<div key={i} className="flex items-center gap-1.5 mb-1"><span className={`text-mini font-bold ${textMain}`}>{m.name}</span><span className="text-bone-dim text-micro uppercase">{m.role.slice(0, 3)}</span></div>))}</div>))}
                                   </div>
                                 </div>
                               )}
@@ -1891,8 +1895,8 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2">
                     <input value={artistSearch} onChange={e => setArtistSearch(e.target.value)}
                       placeholder={lang === 'ko' ? '검색' : 'Search'}
-                      className={`px-3 py-1.5 rounded-lg text-mini outline-none border w-32 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
-                    <button onClick={() => setShowArtistPanel(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-zinc-400 hover:text-red-400 text-lead">×</button>
+                      className={`px-3 py-1.5 rounded-lg text-mini outline-none border w-32 ${inputBg} ${textMain} placeholder:text-bone-dim`} />
+                    <button onClick={() => setShowArtistPanel(false)} aria-label={lang === 'ko' ? '닫기' : 'Close'} className="text-bone-dim hover:text-red-400 text-lead">×</button>
                   </div>
                 </div>
                 {artistList.length === 0 ? (
@@ -1916,7 +1920,7 @@ export default function Dashboard() {
                                   {artist.photo_url && <img src={artist.photo_url} alt="" width={24} height={24} loading="lazy" className="w-6 h-6 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />}
                                   <span className={`text-mini font-bold ${textMain}`}>{artist.name}</span>
                                   <span className={`text-micro ${textSub}`}>{artist.gender === 'female' ? 'F' : 'M'}</span>
-                                  {inRoster ? <span className="text-micro text-zinc-400 font-black">✓</span> : <span className="text-micro text-brand-cast-text font-black">+</span>}
+                                  {inRoster ? <span className="text-micro text-bone-dim font-black">✓</span> : <span className="text-micro text-brand-cast-text font-black">+</span>}
                                 </button>
                               );
                             })}
@@ -2038,14 +2042,14 @@ export default function Dashboard() {
                                       {editingId === String(m.id) ? (
                                         <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={() => updateMemberName(m.id)} onKeyDown={e => e.key === 'Enter' && updateMemberName(m.id)} className={`bg-transparent border-b outline-none text-body font-bold w-full ${theme === 'light' ? 'border-black text-black' : 'border-white text-white'}`} />
                                       ) : (
-                                        <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-body font-semibold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-zinc-400' : textMain}`}>
+                                        <span onClick={() => { setEditingId(String(m.id)); setEditValue(m.name); }} className={`text-body font-semibold flex items-center gap-1.5 cursor-pointer truncate ${m.excluded ? 'line-through text-bone-dim' : textMain}`}>
                                           {m.name}
                                           {getAttendanceBadge(m.attendance)}
                                           {isBusyOn(m.id) && <span className="text-micro font-black px-1 py-0.5 rounded-full shrink-0" style={{ color: '#E0575F', backgroundColor: '#E0575F22' }}>{t.busy}</span>}
                                           {m.links?.length > 0 && <i className="ti ti-link text-micro shrink-0 opacity-40" aria-hidden="true" />}
                                         </span>
                                       )}
-                                      <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="absolute -right-1 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-red-400 text-body leading-none px-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity">×</button>
+                                      <button onClick={(e) => { e.stopPropagation(); showConfirm(t.memberDelete, t.memberDeleteMsg(m.name), () => { deleteMember(m.id); setConfirmModal(null); }); }} aria-label={t.memberDelete} className="absolute -right-1 top-1/2 -translate-y-1/2 text-bone-dim hover:text-red-400 text-body leading-none px-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity">×</button>
                                     </div>
                                   </PortalDraggable>
                                 ))}
@@ -2191,7 +2195,7 @@ export default function Dashboard() {
             </div>
             <input autoFocus value={firstRosterName} onChange={e => setFirstRosterName(e.target.value)} onKeyDown={e => e.key === 'Enter' && createFirstRoster()}
               placeholder={t.firstRosterPlaceholder}
-              className={`w-full border rounded-xl px-4 py-3 text-body outline-none focus:border-brand-cast/50 transition mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+              className={`w-full border rounded-xl px-4 py-3 text-body outline-none focus:border-brand-cast/50 transition mb-4 ${inputBg} ${textMain} placeholder:text-bone-dim`} />
             <button onClick={createFirstRoster} disabled={!firstRosterName.trim()}
               className="w-full py-3 rounded-full bg-brand-cast text-white font-semibold text-body uppercase tracking-widest hover:opacity-90 transition disabled:opacity-40">{t.start}</button>
           </div>
@@ -2210,7 +2214,7 @@ export default function Dashboard() {
             <div className="flex gap-2 mb-4">
               <input value={newLink} onChange={e => setNewLink(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && newLink.trim()) { const l = [...(linkModal.links || []), newLink.trim()]; setLinkModal({ ...linkModal, links: l }); saveMemberLinks(linkModal.id, l); setNewLink(''); }}}
-                placeholder={t.linkPlaceholder} className={`flex-1 border rounded-xl px-4 py-2.5 text-mini outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                placeholder={t.linkPlaceholder} className={`flex-1 border rounded-xl px-4 py-2.5 text-mini outline-none transition ${inputBg} ${textMain} placeholder:text-bone-dim`} />
               <button onClick={() => { if (!newLink.trim()) return; const l = [...(linkModal.links || []), newLink.trim()]; setLinkModal({ ...linkModal, links: l }); saveMemberLinks(linkModal.id, l); setNewLink(''); }}
                 className={`px-4 py-2.5 rounded-full border font-black text-mini transition ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.add}</button>
             </div>
@@ -2219,10 +2223,10 @@ export default function Dashboard() {
                 <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${theme === 'light' ? ' border-black/10' : ' border-white/10'}`}>
                   <span className="text-mini">{getLinkIcon(link)}</span>
                   <a href={link} target="_blank" rel="noopener noreferrer" className={`text-mini truncate flex-1 ${textSub}`}>{link}</a>
-                  <button onClick={() => { const l = (linkModal.links || []).filter((_: string, idx: number) => idx !== i); setLinkModal({ ...linkModal, links: l }); saveMemberLinks(linkModal.id, l); }} aria-label={t.delete} className="text-zinc-400 hover:text-red-500 shrink-0">×</button>
+                  <button onClick={() => { const l = (linkModal.links || []).filter((_: string, idx: number) => idx !== i); setLinkModal({ ...linkModal, links: l }); saveMemberLinks(linkModal.id, l); }} aria-label={t.delete} className="text-bone-dim hover:text-red-500 shrink-0">×</button>
                 </div>
               ))}
-              {(linkModal.links || []).length === 0 && <p className="text-zinc-500 text-mini">{t.noLink}</p>}
+              {(linkModal.links || []).length === 0 && <p className="text-bone-dim text-mini">{t.noLink}</p>}
             </div>
             <button onClick={() => { setLinkModal(null); setNewLink(''); }} className={`w-full py-3 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.close}</button>
           </div>
@@ -2233,9 +2237,9 @@ export default function Dashboard() {
       {showSessionModal && (
         <Modal title={t.sessionSave} theme={theme} onClose={() => setShowSessionModal(false)}>
           <div className="flex flex-col gap-3 mb-5">
-            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.campName}</label><input value={sessionCampName} onChange={e => setSessionCampName(e.target.value)} placeholder={t.campPlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.campName}</label><input value={sessionCampName} onChange={e => setSessionCampName(e.target.value)} placeholder={t.campPlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-bone-dim`} /></div>
             <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.day}</label><input type="number" value={sessionDayNumber} onChange={e => setSessionDayNumber(e.target.value)} min="1" className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain}`} /></div>
-            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.memo}</label><input value={sessionMemo} onChange={e => setSessionMemo(e.target.value)} placeholder={t.memoPlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.memo}</label><input value={sessionMemo} onChange={e => setSessionMemo(e.target.value)} placeholder={t.memoPlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-bone-dim`} /></div>
           </div>
           <div className="flex gap-3">
             <button onClick={() => setShowSessionModal(false)} className={`flex-1 py-3 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
@@ -2248,8 +2252,8 @@ export default function Dashboard() {
       {showNoticeModal && (
         <Modal title={editingNoticeId ? t.noticeEdit : t.noticeAddTitle} theme={theme} onClose={() => setShowNoticeModal(false)}>
           <div className="flex flex-col gap-3 mb-5">
-            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeTitleLabel}</label><input value={noticeTitle} onChange={e => setNoticeTitle(e.target.value)} placeholder={t.noticeTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
-            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeContentLabel}</label><textarea value={noticeContent} onChange={e => setNoticeContent(e.target.value)} placeholder={t.noticeContentPlaceholder} rows={4} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition resize-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeTitleLabel}</label><input value={noticeTitle} onChange={e => setNoticeTitle(e.target.value)} placeholder={t.noticeTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-bone-dim`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.noticeContentLabel}</label><textarea value={noticeContent} onChange={e => setNoticeContent(e.target.value)} placeholder={t.noticeContentPlaceholder} rows={4} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition resize-none ${inputBg} ${textMain} placeholder:text-bone-dim`} /></div>
           </div>
           <div className="flex gap-3">
             <button onClick={() => setShowNoticeModal(false)} className={`flex-1 py-3 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
@@ -2262,8 +2266,8 @@ export default function Dashboard() {
       {showVotingModal && (
         <Modal title={t.voteOpenTitle} theme={theme} onClose={() => setShowVotingModal(false)}>
           <div className="flex flex-col gap-3 mb-5">
-            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.voteTitleLabel}</label><input value={votingTitle} onChange={e => setVotingTitle(e.target.value)} placeholder={t.voteTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
-            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.memo}</label><textarea value={votingMemo} onChange={e => setVotingMemo(e.target.value)} placeholder={t.voteMemoPlaceholder} rows={3} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition resize-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.voteTitleLabel}</label><input value={votingTitle} onChange={e => setVotingTitle(e.target.value)} placeholder={t.voteTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition ${inputBg} ${textMain} placeholder:text-bone-dim`} /></div>
+            <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.memo}</label><textarea value={votingMemo} onChange={e => setVotingMemo(e.target.value)} placeholder={t.voteMemoPlaceholder} rows={3} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition resize-none ${inputBg} ${textMain} placeholder:text-bone-dim`} /></div>
           </div>
           <div className="flex gap-3">
             <button onClick={() => setShowVotingModal(false)} className={`flex-1 py-3 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
@@ -2370,7 +2374,7 @@ export default function Dashboard() {
                   <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.availMonth}</label>
                     <input type="month" value={availMonth} onChange={e => setAvailMonth(e.target.value)} className={`w-full border rounded-xl px-4 py-3 text-body outline-none ${inputBg} ${textMain}`} /></div>
                   <div><label className={`text-micro font-bold uppercase tracking-widest mb-1.5 block ${textSub}`}>{t.availTitleLabel}</label>
-                    <input value={availTitle} onChange={e => setAvailTitle(e.target.value)} placeholder={t.availTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} /></div>
+                    <input value={availTitle} onChange={e => setAvailTitle(e.target.value)} placeholder={t.availTitlePlaceholder} className={`w-full border rounded-xl px-4 py-3 text-body outline-none ${inputBg} ${textMain} placeholder:text-bone-dim`} /></div>
                   <button onClick={openAvailPoll} className="mt-1 py-3 rounded-full bg-brand-cast/20 border border-brand-cast/40 text-[#EFCF8E] font-black text-mini hover:bg-brand-cast/30 transition">{t.availStart}</button>
                 </div>
               ) : (
@@ -2529,13 +2533,13 @@ export default function Dashboard() {
                         </div>
                         <div className="flex flex-col gap-2">
                           <input value={adForm.caption} onChange={e => setAdForm(f => ({ ...f, caption: e.target.value }))} placeholder={t.adCaption}
-                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-bone-dim`} />
                           <input value={adForm.body} onChange={e => setAdForm(f => ({ ...f, body: e.target.value }))} placeholder={t.adBody}
-                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-bone-dim`} />
                           <input value={adForm.link_url} onChange={e => setAdForm(f => ({ ...f, link_url: e.target.value }))} placeholder={t.adLink} inputMode="url"
-                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-bone-dim`} />
                           <input value={adForm.image_url} onChange={e => setAdForm(f => ({ ...f, image_url: e.target.value }))} placeholder={t.adImage} inputMode="url"
-                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+                            className={`field-bare w-full border rounded-lg px-3 py-2 text-mini outline-none ${inputBg} ${textMain} placeholder:text-bone-dim`} />
                           <button onClick={saveAd} className={`py-2 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.save}</button>
                         </div>
                       </div>
@@ -2593,7 +2597,7 @@ export default function Dashboard() {
                   </div>
 
                   <button onClick={() => showConfirm(t.availClose, t.availCloseConfirm, async () => { await closeAvailPoll(); setConfirmModal(null); })}
-                    className={`py-3 rounded-full border font-bold text-body transition ${theme === 'light' ? 'border-black/15 text-zinc-400 hover:bg-black/5' : 'border-white/15 text-zinc-400 hover:bg-white/5'}`}>{t.availClose}</button>
+                    className={`py-3 rounded-full border font-bold text-body transition ${theme === 'light' ? 'border-black/15 text-bone-dim hover:bg-black/5' : 'border-white/15 text-bone-dim hover:bg-white/5'}`}>{t.availClose}</button>
                 </div>
               )}
             </div>
@@ -2614,7 +2618,7 @@ export default function Dashboard() {
       {/* Prompt 모달 */}
       {promptModal && (
         <Modal title={promptModal.title} theme={theme} onClose={() => setPromptModal(null)}>
-          <input autoFocus value={promptValue} onChange={e => setPromptValue(e.target.value)} placeholder={promptModal.placeholder} onKeyDown={e => e.key === 'Enter' && promptModal.onOk(promptValue)} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition mb-4 ${inputBg} ${textMain} placeholder:text-zinc-500`} />
+          <input autoFocus value={promptValue} onChange={e => setPromptValue(e.target.value)} placeholder={promptModal.placeholder} onKeyDown={e => e.key === 'Enter' && promptModal.onOk(promptValue)} className={`w-full border rounded-xl px-4 py-3 text-body outline-none transition mb-4 ${inputBg} ${textMain} placeholder:text-bone-dim`} />
           <div className="flex gap-3">
             <button onClick={() => setPromptModal(null)} className={`flex-1 py-3 rounded-full border font-bold text-mini transition ${btnBg}`}>{t.cancel}</button>
             <button onClick={() => promptModal.onOk(promptValue)} className={`flex-1 py-3 rounded-full border font-black text-mini transition ${theme === 'light' ? 'bg-black/10 border-black/20 text-black' : 'bg-white/10 border-white/20 text-white'}`}>{t.confirm}</button>
@@ -2631,7 +2635,7 @@ export default function Dashboard() {
               <button key={r} onClick={() => updateMemberRole(roleDropdown.id, r)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-mini font-bold transition text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'}`} style={{ color: ROLE_COLORS[r] }}>{r}</button>
             ))}
             <div className={`border-t ${theme === 'light' ? 'border-black/10' : 'border-white/10'}`} />
-            <button onClick={() => toggleExcludeMember(roleDropdown.id, roleDropdown.excluded)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-mini font-bold transition text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${roleDropdown.excluded ? 'text-[#EFCF8E]' : 'text-zinc-500'}`}>
+            <button onClick={() => toggleExcludeMember(roleDropdown.id, roleDropdown.excluded)} className={`flex items-center gap-2 w-full px-4 py-2.5 text-mini font-bold transition text-left ${theme === 'light' ? 'hover:bg-black/5' : 'hover:bg-white/10'} ${roleDropdown.excluded ? 'text-[#EFCF8E]' : 'text-bone-dim'}`}>
               {roleDropdown.excluded ? t.include : t.exclude}
             </button>
             <button onClick={() => { const pid = roleDropdown.id; setRoleDropdown(null); showPrompt(t.inviteTitle, 'email@example.com', '', async (v) => { const em = (v || '').trim().toLowerCase(); if (!em.includes('@')) return; await supabase.from('invites').insert({ host_id: user.id, product: 'cast', email: em, project: currentProject, profile_id: pid }); setPromptModal(null); showToastMsg(t.inviteSent); }); }}
@@ -2792,17 +2796,17 @@ export default function Dashboard() {
 
       {/* 줌 컨트롤 */}
       <div className="flex fixed bottom-6 left-6 z-50 flex-col items-center gap-1.5 select-none">
-        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" className={`w-9 h-9 rounded-full border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.min(1.5, Math.round((z + 0.1) * 100) / 100))} title="확대" className={`w-9 h-9 rounded-full border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-bone-dim' : 'bg-white/[0.05] border-white/10 text-bone-dim'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div onMouseDown={onZoomMouseDown} onDoubleClick={() => setZoom(1)} title="드래그로 확대/축소 · 더블클릭 리셋"
           className={`w-9 h-10 rounded-xl border backdrop-blur-md shadow-xl cursor-ns-resize flex flex-col items-center justify-center gap-[3px] transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10' : '/[0.05] border-white/10'}`}>
           {[0, 1, 2].map(i => <div key={i} className="w-3.5 h-[1.5px] rounded-full bg-zinc-500" />)}
         </div>
-        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" className={`w-9 h-9 rounded-full border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-zinc-400' : 'bg-white/[0.05] border-white/10 text-zinc-400'}`}>
+        <button onClick={() => setZoom(z => Math.max(0.4, Math.round((z - 0.1) * 100) / 100))} title="축소" className={`w-9 h-9 rounded-full border backdrop-blur-md shadow-xl flex items-center justify-center transition hover:border-brand-cast/40 ${theme === 'light' ? 'bg-black/[0.04] border-black/10 text-bone-dim' : 'bg-white/[0.05] border-white/10 text-bone-dim'}`}>
           <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
-        <span className="text-micro font-black text-zinc-500 tracking-widest">{Math.round(zoom * 100)}%</span>
+        <span className="text-micro font-black text-bone-dim tracking-widest">{Math.round(zoom * 100)}%</span>
       </div>
     </>
   );
