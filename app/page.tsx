@@ -58,9 +58,13 @@ export default function LoginPage() {
     setResetSent(true); setLoading(false);
   };
 
-  const inputCls = 'w-full rounded-xl bg-white/5 border border-white/15 px-5 py-4 text-sub text-white placeholder:text-white/55 transition-colors focus:border-white/70';
-  const labelCls = 'block text-mini uppercase tracking-[0.18em] text-white/55 mb-2';
-  const quietBtn = 'text-lead text-white/55 rounded-lg transition-colors hover:text-white';
+  // globals.css가 입력을 '밑줄만'으로 강제한다(!important). 여기서 상자 유틸리티를 적어봐야
+  // 덮어쓰여 죽은 코드가 되므로, 실제로 살아남는 것만 남긴다 — 세로 여백·글자색·밑선 색.
+  const inputCls = 'w-full border-bone-faint py-3 text-sub text-bone placeholder:text-bone-dim';
+  // label-mono를 쓰지 않는다 — 자간 0.22em이 "이 메 일"로 흩어진다(globals.css 주석 참고).
+  // 모노 라벨은 이 화면에서 라틴인 'by NEN' 한 자리에만 쓴다.
+  const labelCls = 'block text-mini uppercase tracking-[0.08em] text-bone-dim mb-2.5';
+  const quietBtn = 'text-lead text-bone-dim rounded-lg transition-colors hover:text-bone';
 
   // 세 제품 — 이름만 있고 설명이 없어서 첫 방문자가 뭘 고르는지 모르던 자리.
   const products = [
@@ -72,17 +76,23 @@ export default function LoginPage() {
   const Wordmark = () => (
     // 가로 한 줄이던 워드마크를 세로로 쌓았다. 320px에서 53px 잘려나가던 문제의 근본 수정이고,
     // Archivo Black 포스터 방향과도 이쪽이 맞는다.
-    <ul className="space-y-1">
+    // 설명은 제품명 옆에 그냥 붙이면 안 된다 — LEAD/CAST/SPLIT 글자폭이 제각각이라
+    // 설명 시작점이 줄마다 어긋나 톱니처럼 보인다. 이름 칸에 하한폭을 줘서 설명을
+    // 한 컬럼으로 떨군다. 하한폭 3.25em은 실측값이다 — Archivo Black에서 LEAD 2.85em,
+    // CAST 2.90em, SPLIT 3.10em이라 제일 긴 SPLIT에 0.15em 여유만 준 값.
+    // 넉넉하게 잡으면(4.6em에서 그랬다) 설명이 멀리 떠서 제품명과 관계가 끊긴다.
+    // 좁은 화면에선 하한을 풀어 설명이 아래로 내려간다.
+    <ul className="space-y-3">
       {products.map((p) => (
-        <li key={p.key} className="flex items-baseline gap-x-4 gap-y-1 flex-wrap">
+        <li key={p.key} className="flex items-baseline gap-x-6 gap-y-1 flex-wrap">
           <span
-            className="font-display text-hero uppercase leading-[0.92]"
+            className="font-display text-hero uppercase leading-[0.92] sm:min-w-[3.25em]"
             style={{ color: BRAND[p.key].onDark }}
             translate="no"
           >
             {p.label}
           </span>
-          <span className="text-body text-white/55">{p.desc}</span>
+          <span className="text-body text-bone-dim">{p.desc}</span>
         </li>
       ))}
     </ul>
@@ -95,15 +105,15 @@ export default function LoginPage() {
   );
 
   return (
-    <main className="min-h-screen bg-surface-0 text-white font-ui safe-x">
+    <main className="min-h-screen bg-surface-0 text-bone font-ui safe-x">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col justify-center gap-14 px-6 py-16 lg:flex-row lg:items-center lg:gap-16 lg:py-20">
 
         {/* 좌 — 브랜드 포스터. 세 제품이 각각 뭔지 여기서 읽힌다. */}
         <header className="lg:flex-1">
           <h1 className="sr-only">LEAD · CAST · SPLIT by NEN</h1>
-          <p className="mb-6 text-mini uppercase tracking-[0.3em] text-white/55" translate="no">by NEN</p>
+          <p className="mb-10 label-mono text-bone-dim" translate="no">by NEN</p>
           <Wordmark />
-          <p className="mt-8 max-w-sm text-body leading-relaxed text-white/55">
+          <p className="mt-10 max-w-sm text-body leading-relaxed text-bone-dim">
             {t('하나의 계정으로 세 도구를 씁니다.', 'One account, three tools.')}
           </p>
         </header>
@@ -115,9 +125,9 @@ export default function LoginPage() {
 
           {confirmSent ? (
             <div>
-              <div className="text-display mb-3 opacity-40"><i className="ti ti-mail" aria-hidden="true"></i></div>
+              <div className="text-display mb-4 text-signal"><i className="ti ti-mail" aria-hidden="true"></i></div>
               <p className="font-display text-title mb-2">{t('인증 메일을 보냈어요', 'Confirmation email sent')}</p>
-              <p className="text-body leading-relaxed text-white/55">
+              <p className="text-body leading-relaxed text-bone-dim">
                 {email}<br />
                 {t('메일 속 링크를 눌러 본인인증을 마치면 로그인할 수 있어요.', 'Click the link in the email to verify, then log in.')}
               </p>
@@ -126,9 +136,9 @@ export default function LoginPage() {
           ) : forgotMode ? (
             resetSent ? (
               <div>
-                <div className="text-display mb-3 opacity-40"><i className="ti ti-mail" aria-hidden="true"></i></div>
+                <div className="text-display mb-4 text-signal"><i className="ti ti-mail" aria-hidden="true"></i></div>
                 <p className="font-display text-title mb-2">{t('재설정 메일을 보냈어요', 'Reset email sent')}</p>
-                <p className="text-body leading-relaxed text-white/55">
+                <p className="text-body leading-relaxed text-bone-dim">
                   {t(`${email}로`, 'We sent a reset link to')}<br />
                   {t('비밀번호 재설정 링크를 보냈어요.', email)}
                 </p>
@@ -136,7 +146,7 @@ export default function LoginPage() {
               </div>
             ) : (
               <form className="flex flex-col gap-5" onSubmit={(e) => { e.preventDefault(); handleReset(); }}>
-                <p className="text-lead text-white/55">{t('가입한 이메일로 재설정 링크를 보내드려요.', 'We’ll email a reset link to your account.')}</p>
+                <p className="text-lead text-bone-dim">{t('가입한 이메일로 재설정 링크를 보내드려요.', 'We’ll email a reset link to your account.')}</p>
                 <div>
                   <label htmlFor="reset-email" className={labelCls}>{t('이메일', 'Email')}</label>
                   <input
@@ -203,9 +213,9 @@ export default function LoginPage() {
                     <input
                       type="checkbox" name="remember" checked={rememberMe}
                       onChange={e => setRememberMe(e.target.checked)}
-                      className="h-5 w-5 shrink-0 rounded-lg border-2 border-white/25 bg-transparent accent-brand-lead"
+                      className="h-5 w-5 shrink-0 rounded-lg border-2 border-bone-faint bg-transparent accent-brand-lead"
                     />
-                    <span className="text-lead text-white/55">{t('아이디 기억하기', 'Remember Me')}</span>
+                    <span className="text-lead text-bone-dim">{t('아이디 기억하기', 'Remember Me')}</span>
                   </label>
                 ) : <span />}
                 <button type="button" onClick={() => { setForgotMode(true); setError(''); }} className={quietBtn}>

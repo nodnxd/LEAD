@@ -12,24 +12,24 @@ const BOTH_PRODUCT_EMAILS = ['hseu2000@gmail.com'];
 
 // Uniform hub card / icon styling. Dynamic product colors go through inline style
 // (Tailwind can't JIT runtime-built color classes).
+// DESIGN.md: "Chrome stays flat and quiet - no gradients on controls, no drop shadows
+// on chrome, surfaces separated by 1px hairlines". 이전 버전은 아이콘에 135° 그라디언트,
+// 카드에 제품색 글로우 섀도를 걸어 둘 다 어겼다. 면은 헤어라인과 아주 옅은 틴트로만 가른다.
+// 호버도 떠오르는 대신 테두리가 또렷해지는 쪽으로 — 들어올림은 모달에나 쓸 말이다.
 function hubCard(color: string, filled = false) {
   return {
-    className: 'hub-card group flex items-center gap-3.5 p-4 rounded-xl border text-left transition duration-200 hover:-translate-y-0.5',
+    className: 'hub-card group flex items-center gap-4 p-4 rounded-xl border text-left transition-colors duration-200',
     style: {
-      borderColor: filled ? color + '3d' : 'rgba(255,255,255,0.07)',
-      backgroundColor: filled ? color + '12' : 'rgba(255,255,255,0.025)',
-      ['--gc']: color + '55',
+      borderColor: filled ? color + '40' : 'var(--hairline)',
+      backgroundColor: filled ? color + '0f' : 'transparent',
+      ['--gc']: color + '80',
     } as CSSProperties,
   };
 }
 function hubIcon(color: string) {
   return {
-    className: 'w-12 h-12 rounded-xl flex items-center justify-center text-sub shrink-0',
-    style: {
-      background: `linear-gradient(135deg, ${color}33, ${color}12)`,
-      color,
-      boxShadow: `inset 0 0 0 1px ${color}22`,
-    } as CSSProperties,
+    className: 'w-11 h-11 rounded-xl flex items-center justify-center text-sub shrink-0 border',
+    style: { backgroundColor: color + '14', borderColor: color + '2e', color } as CSSProperties,
   };
 }
 
@@ -122,7 +122,7 @@ export default function HubPage() {
   const enterCast = (project?: string) => { if (project) localStorage.setItem('cast_current_project', project); router.push('/roster/dashboard'); };
 
   if (loading) return (
-    <div className="min-h-screen bg-surface-1 flex items-center justify-center"><div className="w-6 h-6 border-2 border-brand-lead border-t-transparent rounded-full animate-spin" /></div>
+    <div className="min-h-screen bg-surface-0 flex items-center justify-center"><div className="w-6 h-6 border-2 border-brand-lead border-t-transparent rounded-full animate-spin" /></div>
   );
 
   const who = (user?.email || '').split('@')[0];
@@ -132,76 +132,66 @@ export default function HubPage() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes orb-float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(0,-18px) scale(1.06);}}
-        .hub-card:hover{ box-shadow: 0 12px 36px -12px var(--gc); }
+        .hub-card:hover{ border-color: var(--gc); }
       ` }} />
-      <main className="min-h-screen bg-surface-1 text-white font-ui relative overflow-hidden">
-        {/* soft product orbs */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full" style={{ background:'#C14425', filter:'blur(200px)', opacity:0.10, animation:'orb-float 9s ease-in-out infinite' }} />
-          <div className="absolute top-10 -right-40 w-[480px] h-[480px] rounded-full" style={{ background:'#E3B24A', filter:'blur(210px)', opacity:0.07, animation:'orb-float 11s ease-in-out infinite 1s' }} />
-          <div className="absolute -bottom-48 left-1/3 w-[500px] h-[500px] rounded-full" style={{ background:'#2FB6A3', filter:'blur(210px)', opacity:0.07, animation:'orb-float 13s ease-in-out infinite 2s' }} />
-        </div>
-
-        <div className="relative z-10 max-w-2xl mx-auto px-5 lg:px-8 pt-7 pb-16">
+      <main className="min-h-screen bg-surface-0 text-bone font-ui">
+        {/* 상단바는 본문 폭(2xl)과 분리한다 — 리스트는 좁아야 읽히지만 크롬은 가장자리에 붙는 게 맞다 */}
+        <div className="max-w-2xl mx-auto px-5 lg:px-8 pt-8 pb-20">
           {/* top bar */}
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center justify-between mb-16">
             <div className="flex items-baseline gap-2.5">
-              <span className="font-display text-body uppercase tracking-tighter flex items-center gap-1.5">
+              <span className="font-display text-body uppercase tracking-tighter flex items-center gap-2.5" translate="no">
                 <span style={{ color: '#C14425' }}>LEAD</span>
-                <span aria-hidden="true" className="w-[3px] h-[3px] rounded-full bg-white/25 shrink-0" />
                 <span style={{ color: '#E3B24A' }}>CAST</span>
-                <span aria-hidden="true" className="w-[3px] h-[3px] rounded-full bg-white/25 shrink-0" />
                 <span style={{ color: '#2FB6A3' }}>SPLIT</span>
               </span>
-              <span className="text-zinc-600 text-micro font-bold tracking-[0.2em]">by NEN</span>
+              <span className="label-mono text-bone-faint" translate="no">by NEN</span>
             </div>
             <div className="flex items-center gap-2">
               <LangToggle />
-              <Link href="/mypage" className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-mini font-normal hover:text-white transition">MY</Link>
-              <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="text-mini font-bold text-zinc-600 hover:text-red-400 transition-colors">{t('로그아웃', 'Log out')}</button>
+              <Link href="/mypage" className="px-3 py-1.5 rounded-full border border-hairline bg-transparent text-bone-dim text-mini font-normal hover:text-bone transition">MY</Link>
+              <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="text-mini font-bold text-bone-dim hover:text-red-400 transition-colors">{t('로그아웃', 'Log out')}</button>
             </div>
           </div>
 
           {/* hero */}
-          <div className="mb-11">
-            <p className="text-zinc-500 text-body font-medium">{greet}{who ? `, ${who}` : ''}</p>
-            <h1 className="mt-1.5 text-title md:text-display font-bold tracking-tight leading-tight">{t('오늘은 어디서 작업할까요?', 'Where are we working today?')}</h1>
+          <div className="mb-14">
+            <p className="text-bone-dim text-body">{greet}{who ? `, ${who}` : ''}</p>
+            <h1 className="mt-2 font-display text-display leading-[1.05]">{t('오늘은 어디서 작업할까요?', 'Where are we working today?')}</h1>
           </div>
 
-          <div className="flex flex-col gap-9">
+          <div className="flex flex-col gap-12">
           {/* ── LEAD ── company workspaces (선택형) */}
           <section>
-            <div className="flex items-center gap-2.5 mb-3.5 px-1">
-              <span className="w-2 h-2 rounded-full" style={{ background:'#C14425', boxShadow:'0 0 12px #C14425' }} />
-              <span className="text-body font-black tracking-tight text-white">LEAD</span>
-              <span className="text-mini text-zinc-600 font-medium">{t('회사 워크스페이스', 'Company workspaces')}</span>
+            <div className="flex items-baseline gap-3 mb-4 px-1">
+              <span className="font-display text-sub tracking-tight" style={{ color: '#C14425' }} translate="no">LEAD</span>
+              <span className="text-mini text-bone-dim">{t('회사 워크스페이스', 'Company workspaces')}</span>
             </div>
-            <div className="grid gap-2.5">
+            <div className="grid gap-2">
               {member.map(c => (
                 <button key={c.id} onClick={() => enterMember(c.id)} {...hubCard('#C14425')}>
                   <div {...hubIcon('#C14425')}><i className="ti ti-microphone" aria-hidden="true"></i></div>
-                  <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{c.name}</p><p className="text-mini text-zinc-500">{t('게스트로 입장', 'Enter as guest')}</p></div>
+                  <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{c.name}</p><p className="text-mini text-bone-dim">{t('게스트로 입장', 'Enter as guest')}</p></div>
                   <span className="text-brand-lead-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
               {canHost && operate.map(c => (
                 <button key={c.id} onClick={() => enterOperate(c.id)} {...hubCard('#C14425', true)}>
                   <div {...hubIcon('#C14425')}><i className="ti ti-building" aria-hidden="true"></i></div>
-                  <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{c.name}</p><p className="text-mini text-zinc-500">{c.owner ? t('대시보드 운영', 'Owner') : t('공동 관리', 'Co-manager')}</p></div>
+                  <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{c.name}</p><p className="text-mini text-bone-dim">{c.owner ? t('대시보드 운영', 'Owner') : t('공동 관리', 'Co-manager')}</p></div>
                   <span className="text-brand-lead-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
               {!canHost && (
                 <button type="button" onClick={() => setInqTopic('LEAD 호스트 신청')} className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-lead/25 bg-brand-lead/[0.03] hover:bg-brand-lead/[0.07] text-left transition">
                   <div {...hubIcon('#C14425')}>＋</div>
-                  <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{t('LEAD 시작하기', 'Get started with LEAD')}</p><p className="text-mini text-zinc-500">{t('호스트 권한 요청', 'Request host access')}</p></div>
+                  <div className="flex-1 min-w-0"><p className="font-bold text-body text-bone">{t('LEAD 시작하기', 'Get started with LEAD')}</p><p className="text-mini text-bone-dim">{t('호스트 권한 요청', 'Request host access')}</p></div>
                 </button>
               )}
               {member.length === 0 && (!canHost || operate.length === 0) && (
-                <div className="p-5 rounded-xl border border-dashed border-white/[0.08] /[0.01] text-center">
-                  <p className="text-body text-zinc-500">{t('아직 참여 중인 회사가 없어요.', 'You haven’t joined any company yet.')}</p>
-                  <p className="text-mini text-zinc-600 mt-1">{t('받은 초대 링크로 입장하세요.', 'Enter with an invite link.')}</p>
+                <div className="p-5 rounded-xl border border-dashed border-hairline text-center">
+                  <p className="text-body text-bone-dim">{t('아직 참여 중인 회사가 없어요.', 'You haven’t joined any company yet.')}</p>
+                  <p className="text-mini text-bone-dim mt-1">{t('받은 초대 링크로 입장하세요.', 'Enter with an invite link.')}</p>
                 </div>
               )}
             </div>
@@ -209,35 +199,34 @@ export default function HubPage() {
 
           {/* ── CAST ── roster projects (LEAD와 동일하게 선택형) */}
           <section>
-            <div className="flex items-center gap-2.5 mb-3.5 px-1">
-              <span className="w-2 h-2 rounded-full" style={{ background:'#E3B24A', boxShadow:'0 0 12px #E3B24A' }} />
-              <span className="text-body font-black tracking-tight text-white">CAST</span>
-              <span className="text-mini text-zinc-600 font-medium">{t('로스터', 'Rosters')}</span>
+            <div className="flex items-baseline gap-3 mb-4 px-1">
+              <span className="font-display text-sub tracking-tight" style={{ color: '#E3B24A' }} translate="no">CAST</span>
+              <span className="text-mini text-bone-dim">{t('로스터', 'Rosters')}</span>
             </div>
-            <div className="grid gap-2.5">
+            <div className="grid gap-2">
               {castMemberships.map(m => (
                 <button key={`${m.hostId}|${m.project}`} onClick={() => router.push(`/roster/view/${m.hostId}`)} {...hubCard('#E3B24A')}>
                   <div {...hubIcon('#E3B24A')}><i className="ti ti-microphone" aria-hidden="true"></i></div>
-                  <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{m.project || t('로스터', 'Roster')}</p><p className="text-mini text-zinc-500">{t(`${m.name}(으)로 참여 중`, `Joined as ${m.name}`)}</p></div>
+                  <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{m.project || t('로스터', 'Roster')}</p><p className="text-mini text-bone-dim">{t(`${m.name}(으)로 참여 중`, `Joined as ${m.name}`)}</p></div>
                   <span className="text-brand-cast-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
               {castProjects.map(p => (
                 <button key={p} onClick={() => enterCast(p)} {...hubCard('#E3B24A', true)}>
                   <div {...hubIcon('#E3B24A')}><i className="ti ti-movie" aria-hidden="true"></i></div>
-                  <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{p}</p><p className="text-mini text-zinc-500">{t('로스터 열기', 'Open roster')}</p></div>
+                  <div className="flex-1 min-w-0"><p className="font-black text-body truncate">{p}</p><p className="text-mini text-bone-dim">{t('로스터 열기', 'Open roster')}</p></div>
                   <span className="text-brand-cast-text text-lead font-black shrink-0 opacity-60">→</span>
                 </button>
               ))}
               {(castProjects.length > 0 || canHost) ? (
-                <button onClick={() => enterCast()} className="flex items-center gap-3 p-4 rounded-full border border-dashed border-brand-cast/25 bg-brand-cast/[0.03] hover:bg-brand-cast/[0.07] text-left transition">
+                <button onClick={() => enterCast()} className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-cast/25 bg-brand-cast/[0.03] hover:bg-brand-cast/[0.07] text-left transition">
                   <div {...hubIcon('#E3B24A')}>＋</div>
-                  <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{castProjects.length ? t('새 로스터 · CAST 열기', 'New roster · Open CAST') : t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-mini text-zinc-500">{t('아티스트 로스터 짜기', 'Build your artist roster')}</p></div>
+                  <div className="flex-1 min-w-0"><p className="font-bold text-body text-bone">{castProjects.length ? t('새 로스터 · CAST 열기', 'New roster · Open CAST') : t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-mini text-bone-dim">{t('아티스트 로스터 짜기', 'Build your artist roster')}</p></div>
                 </button>
               ) : castMemberships.length === 0 ? (
                 <button type="button" onClick={() => setInqTopic('CAST 호스트 신청')} className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-cast/25 bg-brand-cast/[0.03] hover:bg-brand-cast/[0.07] text-left transition">
                   <div {...hubIcon('#E3B24A')}>＋</div>
-                  <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-mini text-zinc-500">{t('호스트 권한 요청 · 초대받으면 자동 입장', 'Request host access · invites auto-join')}</p></div>
+                  <div className="flex-1 min-w-0"><p className="font-bold text-body text-bone">{t('CAST 시작하기', 'Get started with CAST')}</p><p className="text-mini text-bone-dim">{t('호스트 권한 요청 · 초대받으면 자동 입장', 'Request host access · invites auto-join')}</p></div>
                 </button>
               ) : null}
             </div>
@@ -245,27 +234,26 @@ export default function HubPage() {
 
           {/* ── SPLIT ── */}
           <section>
-            <div className="flex items-center gap-2.5 mb-3.5 px-1">
-              <span className="w-2 h-2 rounded-full" style={{ background:'#2FB6A3', boxShadow:'0 0 12px #2FB6A3' }} />
-              <span className="text-body font-black tracking-tight text-white">SPLIT</span>
-              <span className="text-mini text-zinc-600 font-medium">{t('저작권 지분', 'Songwriter splits')}</span>
+            <div className="flex items-baseline gap-3 mb-4 px-1">
+              <span className="font-display text-sub tracking-tight" style={{ color: '#2FB6A3' }} translate="no">SPLIT</span>
+              <span className="text-mini text-bone-dim">{t('저작권 지분', 'Songwriter splits')}</span>
             </div>
-            <div className="grid gap-2.5">
+            <div className="grid gap-2">
               <Link href="/split" {...hubCard('#2FB6A3', true)}>
                 <div {...hubIcon('#2FB6A3')}><i className="ti ti-file-text" aria-hidden="true"></i></div>
-                <div className="flex-1 min-w-0"><p className="font-black text-body truncate text-white">{t('스플릿시트', 'Split Sheet')}</p><p className="text-mini text-zinc-500">{t('전세계 표준 저작권 지분 문서', 'Global-standard split sheet')}</p></div>
+                <div className="flex-1 min-w-0"><p className="font-black text-body truncate text-bone">{t('스플릿시트', 'Split Sheet')}</p><p className="text-mini text-bone-dim">{t('전세계 표준 저작권 지분 문서', 'Global-standard split sheet')}</p></div>
                 <span className="text-brand-split-text text-lead font-black shrink-0 opacity-60">→</span>
               </Link>
               <Link href="/split" className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-brand-split/25 bg-brand-split/[0.03] hover:bg-brand-split/[0.07] text-left transition">
                 <div {...hubIcon('#2FB6A3')}>＋</div>
-                <div className="flex-1 min-w-0"><p className="font-bold text-body text-zinc-300">{t('새 스플릿시트', 'New split sheet')}</p><p className="text-mini text-zinc-500">{t('저작권 지분 문서 만들기', 'Create a split sheet')}</p></div>
+                <div className="flex-1 min-w-0"><p className="font-bold text-body text-bone">{t('새 스플릿시트', 'New split sheet')}</p><p className="text-mini text-bone-dim">{t('저작권 지분 문서 만들기', 'Create a split sheet')}</p></div>
               </Link>
             </div>
           </section>
           </div>
 
           {!canHost && member.length === 0 && (
-            <p className="text-center text-mini text-zinc-700 mt-8">{t('호스트 권한이 필요하면 담당자에게 문의하세요.', 'Contact your admin if you need host access.')}</p>
+            <p className="text-center text-mini text-bone-dim mt-8">{t('호스트 권한이 필요하면 담당자에게 문의하세요.', 'Contact your admin if you need host access.')}</p>
           )}
         </div>
       </main>

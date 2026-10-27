@@ -15,10 +15,10 @@ description: >
 
 colors:
   # 표면 (다크 우선. 라이트 테마는 화면별로 D 플래그가 갈라 쓴다)
-  surface-0: "#0a0a0a"     # 앱 바탕
-  surface-1: "#141416"     # 카드·패널
-  surface-2: "#1e1e1e"     # 한 단계 올라온 면
-  hairline: "rgba(255,255,255,0.10)"
+  surface-0: "#0a0b0e"     # 앱 바탕 (청흑. 무채 #0a0a0a에서 식혔다 — 휘도차 0.0003이라 제품색 대비는 그대로)
+  surface-1: "#101218"     # 카드·패널
+  surface-2: "#191c22"     # 한 단계 올라온 면
+  hairline: "rgba(233,229,219,0.10)"   # 본 기준. 순백 헤어라인은 청흑 위에서 푸르게 떴다
 
   # 제품색 — base는 배경용, on은 그 위 글자색, on-dark는 다크 배경 위 텍스트용
   lead: "#7c5ae8"
@@ -30,9 +30,12 @@ colors:
   split: "#2fb6a3"
   split-on: "#0a0a0a"
 
-  # 텍스트 (다크 배경 기준)
-  text: "#ffffff"
-  text-muted: "rgba(255,255,255,0.55)"    # 이 아래로는 내리지 않는다 — 대비 4.5 하한선
+  # 텍스트 (다크 배경 기준) — bone. 순백은 surface-0 위 대비 19로 과하게 때린다.
+  # 순백(#ffffff)은 QR·서명패드·종이 테마가 쓰는 '진짜 흰색' 자리로 남겨 둔다. 섞지 말 것.
+  bone: "#e9e5db"                         # surface-0 위 16.3
+  bone-dim: "rgba(233,229,219,0.55)"      # 5.2 — 이 아래로는 내리지 않는다(4.5 하한)
+  bone-faint: "rgba(233,229,219,0.35)"    # 2.7 ⚠️ 텍스트 금지. 헤어라인·점선 전용
+  signal: "#aebccf"                       # 9.0 — 제품색이 아닌 중립 강조 (성공 아이콘 등)
   danger: "#f87171"
   success: "#6ee7b7"
 
@@ -58,6 +61,11 @@ typography:
     text-title: 24px      # 섹션 제목
     text-display: "clamp(1.75rem, 7vw, 2.5rem)"   # 워드마크·페이지 헤더
     text-hero: "clamp(2.5rem, 9vw, 4.5rem)"       # 랜딩 포스터 전용
+
+  # 모노 마이크로라벨 (.label-mono) — IBM Plex Mono 10px / uppercase / 자간 0.22em.
+  # 섹션을 가리키는 작은 글자를 본문 서체로 줄이는 대신 '다른 층'으로 올린다.
+  # ⚠️ 라틴 전용. 한글에 걸면 "회 사  워 크 스 페 이 스"로 흩어진다 — 한국어 보조 라벨은
+  #    text-mini + bone-dim으로 둘 것. ⚠️ 한 화면에 3개까지.
 
 rounded:
   sm: 8px

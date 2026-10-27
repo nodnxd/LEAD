@@ -22,22 +22,37 @@
   --brand-cast-text: #8a6a18;
   --brand-split-text: #1e7a6d;
 
-  --surface-0: #0a0a0a;
-  --surface-1: #141416;
-  --surface-2: #1e1e1e;
+  --surface-0: #0a0b0e;
+  --surface-1: #101218;
+  --surface-2: #191c22;
+
+  /* ── bone / signal (2026-10-27) ───────────────────────────────────────
+     순백 #ffffff을 바탕 텍스트로 쓰면 다크에서 대비 19로 과하게 때린다.
+     bone은 haveagoodtrip.studio에서 가져온 따뜻한 오프화이트다.
+       bone      #e9e5db  on surface-0 → 16.3  (본문·제목)
+       bone-dim  55%      on surface-0 →  5.2  (보조. 4.5 하한 통과)
+       bone-faint 35%     on surface-0 →  2.7  ⚠️ 텍스트 금지. 헤어라인·구분선 전용
+       signal    #aebccf  on surface-0 →  9.0  (중립 강조 — 제품색이 아닌 자리)
+     surface도 같이 식혔다: #0a0a0a(무채) → #0a0b0e(청흑). 휘도 차는 0.0003이라
+     brand.ts에 적어둔 제품색 대비 수치는 그대로 유효하다. */
+  --bone: #e9e5db;
+  --bone-dim: rgba(233, 229, 219, 0.55);
+  --bone-faint: rgba(233, 229, 219, 0.35);
+  --hairline: rgba(233, 229, 219, 0.10);
+  --signal: #aebccf;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0a0b0e;
+    --foreground: #e9e5db;
   }
 }
 
 /* 앱의 실제 테마는 localStorage(lead_theme) → <html data-theme>가 정한다 */
 html[data-theme="dark"] {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #0a0b0e;
+  --foreground: #e9e5db;
   --brand-lead-text: #dd684b;
   --brand-cast-text: #e3b24a;
   --brand-split-text: #2fb6a3;
@@ -58,6 +73,14 @@ html[data-theme="dark"] {
   --color-brand-cast-text: var(--brand-cast-text);
   --color-brand-split-text: var(--brand-split-text);
 
+  /* bone/signal — text-bone, text-bone-dim, border-hairline 으로 쓴다.
+     순백(text-white)은 QR·서명패드·종이 테마가 쓰는 진짜 흰색으로 남겨둔다. */
+  --color-bone: var(--bone);
+  --color-bone-dim: var(--bone-dim);
+  --color-bone-faint: var(--bone-faint);
+  --color-hairline: var(--hairline);
+  --color-signal: var(--signal);
+
   /* ── 타입 스케일 (7단계, 이것 말고는 쓰지 않는다) ──
      text-micro … text-display 로 쓴다. 임의 px(text-[13px])을 새로 만들지 말 것.
      display는 clamp — 워드마크가 좁은 화면에서 잘리던 문제의 근본 수정이다. */
@@ -73,6 +96,23 @@ html[data-theme="dark"] {
    유틸리티로 직접 정의한다 — 워드마크가 좁은 화면에서 잘리던 문제의 근본 수정. */
 @utility text-display { font-size: clamp(1.75rem, 7vw, 2.5rem); }
 @utility text-hero    { font-size: clamp(2.5rem, 9vw, 4.5rem); }
+
+/* ── 모노 마이크로라벨 (2026-10-27) ──────────────────────────────────────
+   haveagoodtrip.studio에서 가져온 한 가지 동작: 섹션을 가리키는 작은 라벨을
+   본문 서체로 작게 줄이는 대신, 모노로 바꾸고 자간을 벌려 '다른 층'으로 만든다.
+   Unbounded를 10px로 줄이면 뭉개진다(디스플레이체라 12px 하한) — 이 자리는 모노가 맞다.
+   ⚠️ 라틴 전용이다. 자간 0.22em은 한글에 걸면 "회 사  워 크 스 페 이 스"로 흩어져
+      읽기가 무너진다(한글은 글자 자체가 이미 네모틀이라 추가 자간을 못 받는다).
+      한국어가 들어가는 보조 라벨은 그냥 text-mini + text-bone-dim으로 둘 것.
+   ⚠️ 한 화면에 3개까지. 섹션마다 달면 리듬이 템플릿처럼 굳는다. */
+@utility label-mono {
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-weight: 500;
+}
 
 body {
   background: var(--background);
